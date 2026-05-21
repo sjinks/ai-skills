@@ -20,14 +20,14 @@ At the moment, the repository contains one skill:
 
 ### `ssrf-outbound-fetch-review`
 
-This skill is aimed at code paths that accept or derive URLs from untrusted or semi-trusted input and then perform outbound requests, especially when policy, parsing, DNS, proxy, transport, redirect, and opt-out behavior all need to line up.
+This skill is aimed at code paths that accept or derive URLs from untrusted or semi-trusted input and then perform outbound requests, especially when policy, parsing, DNS, proxy, transport, redirect, and trusted private-target opt-in behavior all need to line up.
 
 It helps an assistant:
 
 - define explicit egress and port policy contracts before implementation
 - review URL parsing, normalization, IP classification, and DNS handling, including connection-time lookup and rebinding risks
 - reason about proxy behavior and transport semantics such as SNI, Host, and certificate verification
-- assess redirect safety, sensitive-header stripping, and trusted private-network opt-outs
+- assess redirect safety, sensitive-header handling, and trusted private-target opt-ins
 - build realistic adversarial tests for SSRF-related edge cases
 - return findings in a consistent, review-ready format
 
