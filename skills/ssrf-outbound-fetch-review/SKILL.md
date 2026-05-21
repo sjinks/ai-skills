@@ -136,7 +136,7 @@ Before implementation, define the contract in concrete terms:
 - Do not include credentials in error messages, logs, thrown stack traces, or telemetry.
 - Redact URLs before logging if credentials, tokens, signed URLs, or customer-controlled query strings may appear.
 
-### Trusted Private Targets
+### Trusted Private-Target Opt-Ins
 
 - Keep strict public-target behavior as the default.
 - Add private-target opt-ins only as explicit options on trusted internal callsites.
