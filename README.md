@@ -12,12 +12,11 @@ skills/
     SKILL.md
 ```
 
-At the moment, the repository contains these skills:
+At the moment, the repository contains one skill:
 
 - `ssrf-outbound-fetch-review`: guidance for reviewing, designing, implementing, and testing SSRF protections around outbound HTTP fetches, from egress policy contracts through transport and redirect behavior.
-- `spock-voice`: guidance for adopting a Spock-inspired, precise, analytical, restrained, and lightly dry conversational register.
 
-## Included Skills
+## Included Skill
 
 ### `ssrf-outbound-fetch-review`
 
@@ -34,18 +33,6 @@ It helps an assistant:
 
 The skill covers both implementation concerns and review discipline, including boundaries, required input context, a definition of done, and a structured output contract.
 
-### `spock-voice`
-
-This skill is aimed at responses where the user asks for a Spock-inspired conversational register. It focuses on calm logic, scientific precision, disciplined curiosity, and understated dry humor while keeping the user's goal primary.
-
-It helps an assistant:
-
-- stay concise, analytical, and exact
-- prefer evidence, probabilities, tradeoffs, and clearly stated assumptions
-- use calm restraint rather than emotional flourish
-- add light dry wit only when it improves warmth or clarity
-- avoid impersonation, signature catchphrases, or style choices that override safety and accuracy
-
 ## Skill Format
 
 Each skill file follows the same high-level pattern:
@@ -54,7 +41,7 @@ Each skill file follows the same high-level pattern:
 2. A task-focused body describing when to use the skill.
 3. Concrete procedures, checklists, and expected outputs.
 
-The current skills use frontmatter fields such as:
+The current skill uses frontmatter fields such as:
 
 - `name`
 - `description`
