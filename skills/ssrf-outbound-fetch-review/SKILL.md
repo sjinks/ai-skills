@@ -175,8 +175,7 @@ Adapt this matrix to the runtime and policy. Mark each item as covered, not appl
 
 ### Literal IPs
 
-For URL tests, use bracketed IPv6 URL forms such as `https://[::1]/` in addition to raw address classifier tests.
-
+- For URL tests, exercise bracketed IPv6 URL forms such as `https://[::1]/` in addition to raw address classifier tests.
 - IPv4 loopback: `127.0.0.1`.
 - IPv4 private: `10.0.0.1`, `172.16.0.1`, `192.168.0.1`.
 - Link-local metadata target: `169.254.169.254`.
@@ -281,5 +280,5 @@ An outbound-fetch SSRF fix is not ready until:
 - Redirect hops cannot bypass validation or leak sensitive headers.
 - Initial and redirected outbound requests cannot leak sensitive inbound, ambient, session, tenant, cookie, authorization, or cloud credential headers.
 - Private/internal targets are denied by default and require explicit trusted private-target opt-in.
-- Tests cover malformed URLs, private/reserved targets, mapped IP aliases, DNS behavior, proxies, ports, redirects, sensitive-header stripping, and test-mock limitations.
+- Tests cover malformed URLs, private/reserved targets, mapped IP aliases, DNS behavior, proxies, ports, redirects, sensitive-header handling on both initial requests and redirects, and test-mock limitations.
 - Compatibility tradeoffs are documented as intentional decisions, not accidental gaps.
