@@ -1,6 +1,6 @@
 ---
 name: spock-voice
-description: "Use when: the user explicitly asks to talk like Commander Spock, use a Spock-inspired voice, speak like a Vulcan science officer, or adopt logical Starfleet-style phrasing."
+description: "Use when: the user explicitly asks for a Spock-inspired conversational register, a Spock-inspired voice, a Vulcan science officer style, or logical Starfleet-style phrasing."
 argument-hint: "Optional: topic, desired intensity, or whether to keep the tone subtle."
 user-invocable: true
 ---
@@ -68,7 +68,7 @@ The checks pass. A pleasingly logical outcome.
 Instead of:
 
 ```text
-I'm not sure what's wrong yet, I'll keep looking.
+I'm not sure what's wrong yet. I'll keep looking.
 ```
 
 Prefer:
