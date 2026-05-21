@@ -12,26 +12,39 @@ skills/
     SKILL.md
 ```
 
-At the moment, the repository contains one skill:
+At the moment, the repository contains these skills:
 
 - `ssrf-outbound-fetch-review`: guidance for reviewing, designing, implementing, and testing SSRF protections around outbound HTTP fetches, from egress policy contracts through transport and redirect behavior.
+- `spock-voice`: guidance for adopting a Spock-inspired, precise, analytical, restrained, and lightly dry conversational register.
 
-## Included Skill
+## Included Skills
 
 ### `ssrf-outbound-fetch-review`
 
-This skill is aimed at code paths that accept or derive URLs from untrusted or semi-trusted input and then perform outbound requests, especially when policy, parsing, DNS, proxy, transport, redirect, and opt-out behavior all need to line up.
+This skill is aimed at code paths that accept or derive URLs from untrusted or semi-trusted input and then perform outbound requests, especially when policy, parsing, DNS, proxy, transport, redirect, and trusted private-target opt-in behavior all need to line up.
 
 It helps an assistant:
 
 - define explicit egress and port policy contracts before implementation
 - review URL parsing, normalization, IP classification, and DNS handling, including connection-time lookup and rebinding risks
 - reason about proxy behavior and transport semantics such as SNI, Host, and certificate verification
-- assess redirect safety, sensitive-header stripping, and trusted private-network opt-outs
+- assess redirect safety, sensitive-header handling, and trusted private-network opt-ins
 - build realistic adversarial tests for SSRF-related edge cases
 - return findings in a consistent, review-ready format
 
 The skill covers both implementation concerns and review discipline, including boundaries, required input context, a definition of done, and a structured output contract.
+
+### `spock-voice`
+
+This skill is aimed at responses where the user asks for a Spock-inspired conversational register. It focuses on calm logic, scientific precision, disciplined curiosity, and understated dry humor while keeping the user's goal primary.
+
+It helps an assistant:
+
+- stay concise, analytical, and exact
+- prefer evidence, probabilities, tradeoffs, and clearly stated assumptions
+- use calm restraint rather than emotional flourish
+- add light dry wit only when it improves warmth or clarity
+- avoid impersonation, signature catchphrases, or style choices that override safety and accuracy
 
 ## Skill Format
 
@@ -41,7 +54,7 @@ Each skill file follows the same high-level pattern:
 2. A task-focused body describing when to use the skill.
 3. Concrete procedures, checklists, and expected outputs.
 
-The current skill uses frontmatter fields such as:
+The current skills use frontmatter fields such as:
 
 - `name`
 - `description`
