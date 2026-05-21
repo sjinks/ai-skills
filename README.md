@@ -28,7 +28,7 @@ It helps an assistant:
 - define explicit egress and port policy contracts before implementation
 - review URL parsing, normalization, IP classification, and DNS handling, including connection-time lookup and rebinding risks
 - reason about proxy behavior and transport semantics such as SNI, Host, and certificate verification
-- assess redirect safety, sensitive-header handling, and trusted private-network opt-ins
+- assess redirect safety, sensitive-header handling, and trusted private-target opt-ins
 - build realistic adversarial tests for SSRF-related edge cases
 - return findings in a consistent, review-ready format
 
