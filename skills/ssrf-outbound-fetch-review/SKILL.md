@@ -96,8 +96,9 @@ Before implementation, define the contract in concrete terms:
 ### DNS And Connection-Time Checks
 
 - Validate literal IP hosts before any network request.
-- For hostnames, resolve every address family the client may use, usually both A and AAAA, and reject the target if any returned address is blocked by policy.
-- If a narrower family-selection policy is intentionally used, enforce the same family selection at connection time.
+- For hostnames, resolve every address family the client may use, usually both A and AAAA, before any request.
+- Define how mixed public/private answers are handled in policy terms; for example, reject the target if any returned A/AAAA answer is blocked when the policy requires all answers to be public, or select only allowed answers when the policy intentionally permits that.
+- Whichever answer-handling rule is chosen, enforce the same selection at connection time so DNS rebinding or unguarded connect-time lookups cannot pick a different answer than preflight validated.
 - Treat CNAME chains as part of the same target resolution decision; final A/AAAA answers must satisfy policy, and CNAME names must not bypass host allowlists or private-suffix rules.
 - Decide whether to reject single-label hostnames, resolver search-domain expansion, and private DNS suffixes such as `.local`, `.internal`, `.svc`, or `.cluster.local`.
 - Treat cloud metadata DNS names and addresses, for example `metadata.google.internal`, `169.254.169.254`, `fd00:ec2::254`, or provider-specific metadata aliases, according to the same private-target policy as link-local metadata IPs.
@@ -184,7 +185,7 @@ For URL tests, use bracketed IPv6 URL forms such as `https://[::1]/` in addition
 - IPv6 loopback: `::1`.
 - IPv6 unique-local: `fc00::1` or `fd00::1`.
 - IPv6 link-local: `fe80::1`.
-- IPv6 scoped or zone identifier form: `[fe80::1%25eth0]`, if accepted by the runtime.
+- IPv6 scoped or zone identifier form, both as a URL such as `https://[fe80::1%25eth0]/` and as a raw bracketed address `[fe80::1%25eth0]`, if accepted by the runtime.
 - IPv6 transition forms such as 6to4, Teredo, or NAT64 well-known prefix addresses where relevant.
 - IPv4-mapped IPv6 dotted form: `::ffff:127.0.0.1`.
 - IPv4-mapped IPv6 hex form: `::ffff:7f00:1`.
@@ -233,7 +234,7 @@ For URL tests, use bracketed IPv6 URL forms such as `https://[::1]/` in addition
 - Initial request to a user-controlled target does not forward inbound, ambient, session, tenant, cookie, authorization, or cloud credential headers unless explicitly allowlisted.
 - Errors, logs, stack traces, telemetry, and redacted URLs do not expose credentials, signed URLs, fragments, or customer-controlled secrets.
 
-### Trusted Internal Calls
+### Trusted Private-Target Opt-Ins
 
 - Default behavior blocks private literal and private DNS targets.
 - Explicit trusted private-target opt-in permits a known internal callsite.
