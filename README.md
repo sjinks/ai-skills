@@ -14,10 +14,24 @@ skills/
 
 At the moment, the repository contains these skills:
 
+- `adversarial-review`: guidance for challenging specs, designs, implementations, workflows, and test plans with evidence-based failure-mode review and risk-focused verification.
 - `ssrf-outbound-fetch-review`: guidance for reviewing, designing, implementing, and testing SSRF protections around outbound HTTP fetches, from egress policy contracts through transport and redirect behavior.
 - `spock-voice`: guidance for adopting a Spock-inspired, precise, analytical, restrained, and lightly dry conversational register.
 
 ## Included Skills
+
+### `adversarial-review`
+
+This skill is aimed at specs, designs, implementations, workflows, migrations, operational procedures, and test plans that need deliberate failure-mode review before they are trusted.
+
+It helps an assistant:
+
+- identify the target, intended behavior, assumptions, and evidence basis before judging
+- apply optional review lenses for reliability, maintainability, security/privacy, user workflow, and verification
+- classify failure modes with concrete categories, severity, and evidence standards
+- distinguish confirmed issues, likely risks, open questions, accepted tradeoffs, and test gaps
+- convert top risks into adversarial tests, mitigations, or acceptance criteria
+- return `BLOCK`, `CONCERNS`, or `CLEAN` verdicts without inventing findings
 
 ### `ssrf-outbound-fetch-review`
 
