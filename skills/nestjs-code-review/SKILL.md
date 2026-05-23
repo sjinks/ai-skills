@@ -1,6 +1,6 @@
 ---
 name: nestjs-code-review
-description: "Use when: performing code review, pull request review, security review, architecture review, or change-impact review of NestJS applications; reviewing controllers, services, modules, providers, guards, interceptors, pipes, exception filters, DTOs, validation, configuration, TypeORM/Prisma/Mongoose integration, authentication, authorization, testing, or production readiness."
+description: "Use when: performing code review, pull request review, security review, architecture review, or change-impact review of NestJS applications; reviewing controllers, services, modules, providers, guards, interceptors, pipes, exception filters, DTOs, validation, configuration, ORM integration (TypeORM, Prisma, Mongoose, Drizzle, MikroORM, or similar), authentication, authorization, testing, or production readiness."
 argument-hint: "Describe the NestJS change, affected files, modules, runtime/version, ORM choice, auth strategy, and tests or PR context."
 user-invocable: true
 ---
@@ -26,7 +26,7 @@ Use this skill if any of these are true:
 - A change touches DTOs, validation, serialization, or OpenAPI/Swagger decorators.
 - A change touches dependency-injection wiring: provider arrays, exports, custom providers, factories, `forwardRef`, scoped providers, dynamic modules.
 - A change touches authentication, authorization, guards, or Passport strategies.
-- A change touches ORM integration: TypeORM/Prisma/Mongoose entities, repositories, transactions, or migrations.
+- A change touches ORM integration (TypeORM, Prisma, Mongoose, Drizzle, MikroORM, or similar) entities, repositories, transactions, or migrations.
 - A change touches testing setup: `Test.createTestingModule`, mocks, `getRepositoryToken`, e2e harness, Supertest.
 - A change touches bootstrap, `main.ts`, global pipes/filters/interceptors, configuration, or environment loading.
 

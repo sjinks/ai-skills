@@ -1,6 +1,6 @@
 ---
 name: nestjs-development
-description: "Use when: designing, scaffolding, implementing, refactoring, or debugging NestJS applications; building modules, controllers, services, providers, guards, interceptors, pipes, exception filters, DTOs, validation, configuration, TypeORM/Prisma/Mongoose integration, authentication, authorization, testing, microservices, or production wiring."
+description: "Use when: designing, scaffolding, implementing, refactoring, or debugging NestJS applications; building modules, controllers, services, providers, guards, interceptors, pipes, exception filters, DTOs, validation, configuration, ORM integration (TypeORM, Prisma, Mongoose, Drizzle, MikroORM, or similar), authentication, authorization, testing, microservices, or production wiring."
 argument-hint: "Describe the feature or change, target module, runtime/version, ORM choice, auth strategy, transports, and existing project conventions."
 user-invocable: true
 ---
@@ -26,7 +26,7 @@ Use this skill when any of these apply:
 - Wiring dependency injection: provider arrays, exports, custom providers, factories, `forwardRef`, scoped providers, or dynamic modules.
 - Adding or changing DTOs, validation, serialization, or OpenAPI/Swagger documentation.
 - Adding or changing authentication or authorization (JWT, session, OAuth, Passport strategies, role/permission guards).
-- Integrating an ORM (TypeORM/Prisma/Mongoose), entities, repositories, transactions, or migrations.
+- Integrating an ORM (TypeORM, Prisma, Mongoose, Drizzle, MikroORM, or similar), entities, repositories, transactions, or migrations.
 - Adding or fixing tests: unit, integration, or e2e with `@nestjs/testing` and Supertest.
 - Bootstrap changes: `main.ts`, global pipes/filters/interceptors, configuration, environment loading.
 - Adding microservices transports, message handlers, or background workers.
@@ -72,9 +72,21 @@ Collect before generating or proposing code:
 
 ### Feature module skeleton
 
+The example below uses an `ORMModule.forFeature` placeholder to stay
+ORM-agnostic. In a real project, substitute the integration the project
+already uses (for example `TypeOrmModule.forFeature([User])`,
+`MongooseModule.forFeature([{ name: User.name, schema: UserSchema }])`,
+or no ORM import at all if the repository is a hand-rolled provider).
+
 ```typescript
 @Module({
-  imports: [TypeOrmModule.forFeature([User])],
+  imports: [
+    // Project-specific ORM/feature wiring goes here. Examples:
+    //   TypeOrmModule.forFeature([User])
+    //   MongooseModule.forFeature([{ name: User.name, schema: UserSchema }])
+    //   PrismaModule
+    //   (omit entirely for a hand-rolled UsersRepository provider)
+  ],
   controllers: [UsersController],
   providers: [UsersService, UsersRepository],
   exports: [UsersService],
