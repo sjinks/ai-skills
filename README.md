@@ -19,6 +19,7 @@ At the moment, the repository contains these skills:
 - `spock-voice`: guidance for adopting a Spock-inspired, precise, analytical, restrained, and lightly dry conversational register.
 - `nestjs-code-review`: guidance for reviewing NestJS applications with severity-classified findings covering modules, DI, controllers, DTOs, guards, exception handling, persistence, testing, API design, performance, and microservices.
 - `nestjs-development`: guidance for designing, scaffolding, implementing, refactoring, and testing NestJS features with idiomatic patterns, anti-patterns, and a structured build workflow.
+- `review-cycle-gatekeeper`: guidance for enforcing review/fix cycle closure gates so findings are explicitly resolved, verified, owned, or waived before merge.
 
 ## Included Skills
 
@@ -86,6 +87,19 @@ It helps an assistant:
 - use idiomatic patterns for modules, controllers, services, DTOs, custom decorators, global pipes/filters/interceptors at bootstrap, config validation, and unit tests with `@nestjs/testing`
 - avoid common anti-patterns such as `new`-ing `@Injectable()` services, `any` on DTOs, hardcoded secrets, and `synchronize: true` in production
 - prefer additive, reversible changes and call out breaking changes explicitly
+
+### `review-cycle-gatekeeper`
+
+This skill is aimed at pull requests and change reviews that have already gone through one or more fix cycles and need a clear, evidence-backed merge gate decision.
+
+It helps an assistant:
+
+- normalize findings into explicit states (`fixed`, `owned-with-remediation-plan`, `waived-with-rationale`, `open`)
+- enforce severity-aware closure rules so unresolved high-risk findings cannot be merged silently
+- require verification evidence for functional fixes and highlight missing proof
+- track regressions introduced during fix rounds as first-class findings
+- validate waiver quality and ownership/remediation metadata
+- return a compact `pass`, `fail`, or `BLOCK` gate summary with exact blockers to clear
 
 ## Skill Format
 
