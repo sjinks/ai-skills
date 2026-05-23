@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: negative-close-002
+name: URL parsing in tests
+description: |
+  Asks how to PARSE a URL string in unit tests — no fetch, no egress. Skill should not activate.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    In Vitest, what's the simplest way to assert that a string is a valid HTTPS URL with a hostname matching `*.example.com`? No network calls — pure string parsing.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/ssrf-outbound-fetch-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Egress policy:"
+        - "Adversarial tests:"
+        - "Checklist status:"
+        - "169.254.169.254"
+        - "metadata endpoint"

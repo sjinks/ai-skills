@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: positive-trigger-002
+name: Multi-concern review framing
+description: |
+  Prompt asks for several review perspectives reconciled into one decision —
+  the multi-lens-review use case.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Please review this change from design, implementation, security, and
+    verification perspectives and reconcile the findings into a single merge
+    decision with explicit required actions and residual risk. The change adds
+    server-side OAuth refresh-token rotation with grace-period reuse detection.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/multi-lens-review/SKILL.md
+      mode: positive
+      threshold: 0.4
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - multi-lens-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Lens findings:"
+        - "(?i)(Required actions|Follow-ups|Residual risk):"
+      not_contains:
+        - "Gate decision:"
+        - "Egress policy:"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"

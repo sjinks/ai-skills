@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: negative-close-001
+name: Star Trek trivia question
+description: |
+  Asks a Star Trek trivia question that mentions Spock and Vulcans by name but does not ask the assistant to adopt the Spock voice. Skill should not activate; the assistant should answer in its usual register.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Quick Star Trek trivia: in the original series, what is Spock's mother's name and where is she from? Just answer the question in your normal tone — no need to roleplay or take on his voice.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spock-voice/SKILL.md
+      mode: negative
+      threshold: 0.15
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Captain,"
+        - "pleasingly logical"
+        - "Live long and prosper"
+        - "Fascinating."
+        - "It is logical to"

@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: negative-close-001
+name: Plain Node Express handler review
+description: |
+  Plain Express handler with no NestJS surfaces (no controllers, modules,
+  decorators, DI, guards, DTOs). nestjs-code-review should not activate.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Review this Express handler:
+
+    ```js
+    app.get('/health', (req, res) => {
+      res.json({ ok: true, uptime: process.uptime() });
+    });
+    ```
+
+    Is there anything obviously wrong?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-code-review/SKILL.md
+      mode: negative
+      threshold: 0.5
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Critical (must fix)"
+        - "Warnings (should fix)"
+        - "Suggestions (consider improving)"
+        - "Severity: Critical"
+        - "Severity: Warning"
+        - "## Critical"
+        - "## Warning"
+        - "## Suggestion"
+        - "ValidationPipe"
+        - "JwtAuthGuard"

@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: positive-edge-001
+name: Self-exporting feature module
+description: |
+  UsersModule exporting itself instead of UsersService is the canonical NestJS anti-pattern called out in the skill checklist.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Review this NestJS module:
+
+    ```ts
+    @Module({
+      imports: [TypeOrmModule.forFeature([User])],
+      controllers: [UsersController],
+      providers: [UsersService, UsersRepository],
+      exports: [UsersModule],
+    })
+    export class UsersModule {}
+    ```
+
+    Flag findings by severity with file/line evidence and a concrete fix.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-code-review/SKILL.md
+      mode: positive
+      threshold: 0.5
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - nestjs-code-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(Critical|Warning)"
+        - "(?i)(module\\s+(re-?)?exports?\\s+itself|exports\\s+self|self-?export|export\\s+UsersService\\s+instead)"
+        - "(?i)(provider|UsersService)"

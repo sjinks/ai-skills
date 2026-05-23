@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: negative-trigger-001
+name: Off-topic French translation request
+description: Unrelated everyday question must not activate the NestJS review skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "Translate this sentence to French: 'The library closes at six.'"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-code-review/SKILL.md
+      mode: negative
+      threshold: 0.5
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Critical (must fix)"
+        - "Warnings (should fix)"
+        - "Suggestions (consider improving)"
+        - "Severity: Critical"
+        - "Severity: Warning"
+        - "## Critical"
+        - "## Warning"
+        - "## Suggestion"
+        - "ValidationPipe"
+        - "JwtAuthGuard"

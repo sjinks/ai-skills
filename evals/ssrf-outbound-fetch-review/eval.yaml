@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/eval.schema.json
+name: ssrf-outbound-fetch-review-eval
+description: |
+  Evaluates the ssrf-outbound-fetch-review skill: it activates when code
+  fetches user-controlled URLs / does URL validation / changes redirect or
+  proxy behavior, stays silent on URL questions that are not about outbound
+  egress, is actually invoked when expected (and not when not), and emits
+  the skill's required output (egress policy, findings, checklist status,
+  adversarial tests, residual risk).
+skill: ssrf-outbound-fetch-review
+version: "1.1"
+config:
+  trials_per_task: 2
+  timeout_seconds: 300
+  parallel: true
+  workers: 4
+  executor: copilot-sdk
+  model: claude-sonnet-4.6
+  max_attempts: 2
+metrics:
+  - name: trigger_accuracy
+    weight: 0.30
+    threshold: 0.8
+    description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected mode.
+  - name: skill_invocation
+    weight: 0.15
+    threshold: 0.9
+    description: Skill is invoked on positives and not invoked on negatives.
+  - name: task_completion
+    weight: 0.40
+    threshold: 0.8
+    description: Output carries the SSRF review contract and identifies the specific SSRF risks the prompt asks about.
+  - name: efficiency
+    weight: 0.15
+    threshold: 0.7
+    description: Stays within tool-call and total-token budgets.
+graders:
+  - type: behavior
+    name: efficiency
+    config:
+      max_tool_calls: 10
+      max_tokens: 12000
+tasks:
+  - "tasks/*.yaml"

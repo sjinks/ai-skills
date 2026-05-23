@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: negative-trigger-001
+name: Off-topic giraffe trivia
+description: Unrelated everyday question must not activate review-cycle-gatekeeper.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "What's the average gestation period of a giraffe?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/review-cycle-gatekeeper/SKILL.md
+      mode: negative
+      threshold: 0.4
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Gate decision:"
+        - "Findings matrix:"
+        - "Blockers to clear:"

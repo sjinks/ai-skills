@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: positive-trigger-001
+name: Explicit multi-lens review request
+description: Direct invocation of multi-lens review on a non-trivial artifact.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Use multi-lens review to evaluate this proposal: switch the user import job
+    from synchronous HTTP to a background queue, persist intermediate state in
+    Redis, and emit completion via webhook. The change affects API contract,
+    durability, security of the webhook target, and verification.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/multi-lens-review/SKILL.md
+      mode: positive
+      threshold: 0.4
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - multi-lens-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Lenses applied:"
+        - "(?i)Verdict:\\s*(BLOCK|CONCERNS|CLEAN)"
+        - "(?i)(Intent\\s*/\\s*Spec|Design|Implementation|Security\\s*&\\s*Privacy|Adversarial|Verification)\\s*:"
+      not_contains:
+        - "Gate decision:"
+        - "Egress policy:"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"

@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: negative-close-001
+name: Single-lens CSS question
+description: |
+  The skill's own "Do not use it for..." example — single-lens questions
+  with an obvious owner should not invoke multi-lens-review.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Does this CSS rule validate as a syntactically correct selector?
+
+    ```css
+    .card > p:nth-of-type(odd) { color: rebeccapurple; }
+    ```
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/multi-lens-review/SKILL.md
+      mode: negative
+      threshold: 0.4
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Lenses applied:"
+        - "Lens findings:"
+        - "Required actions:"
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Verdict: CLEAN"

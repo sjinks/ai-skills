@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: positive-trigger-001
+name: Turn adversarial-review findings into a test plan
+description: |
+  Findings with severity + change set + existing coverage — the canonical
+  case for converting review output into a concrete, prioritized test plan.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Turn these adversarial-review findings into a concrete test plan with
+    assertions, layer, owner, and a coverage summary so the merge gate can
+    verify each blocking finding is covered.
+
+    Findings:
+    1. Redirect target not validated on second hop. Severity HIGH.
+       Classification: Test gap. Trigger: outbound fetch follows 302 to a
+       public host, then a second 302 to an internal address.
+    2. Empty DNS answer is not handled fail-closed. Severity MEDIUM.
+       Classification: Likely risk. Trigger: resolver returns no records.
+    3. Inconsistent log redaction of signed URLs. Severity LOW.
+       Classification: Confirmed issue.
+
+    Change set: `src/fetch/redirect.ts`, `src/fetch/dns.ts`,
+    `src/log/redact.ts`. Project uses Vitest with `unit/`, `integration/`,
+    and `e2e/` suites. Owner: self.
+
+    Return the verdict, test cases, untestable risks, coverage summary, and
+    handoff.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-gap-to-test-plan/SKILL.md
+      mode: positive
+      threshold: 0.55
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - test-gap-to-test-plan
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(BLOCK|PLAN-READY|PLAN-PARTIAL)"
+        - "(?i)Test cases:"
+        - "(?i)(Coverage summary|Handoff):"
+        - "(?i)(must-have|should-have|nice-to-have)"
+        - "(?i)Layer:\\s*(unit|integration|e2e)"
+        - "(?i)Owner:"
+      not_contains:
+        - "Lenses applied:"
+        - "Gate decision:"
+        - "Egress policy:"
+        - "Adversarial tests:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response:
+        - Returns Verdict PLAN-READY or PLAN-PARTIAL (NOT BLOCK).
+        - Assigns must-have priority to the HIGH finding (redirect second hop)
+          and chooses Layer `integration` for it (because redirect + DNS +
+          egress policy must interact).
+        - Assigns should-have to the MEDIUM finding (empty DNS answer).
+        - Assigns nice-to-have to the LOW finding (log redaction).
+        - Has an `Owner:` field on every test case.
+        - Has a `Coverage summary:` line counting must-have / should-have /
+          nice-to-have.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: negative-close-002
+name: Logic-puzzle request
+description: |
+  A logic / reasoning puzzle that uses words like "logical" but does not request a Spock register. Skill should not activate.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    I have a small logic puzzle. Three doors; one prize. The host opens one of the unchosen doors revealing no prize. Should the player switch? Answer step by step.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spock-voice/SKILL.md
+      mode: negative
+      threshold: 0.15
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Captain,"
+        - "Vulcan"
+        - "Starfleet"
+        - "pleasingly logical"
+        - "Live long and prosper"

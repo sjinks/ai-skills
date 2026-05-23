@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: positive-edge-002
+name: Spock voice does not corrupt structured output
+description: |
+  The skill must keep the voice in advisory commentary only; structured output (here, a JSON snippet the user requested) must stay neutral.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Talk like Spock for the explanation, but return the JSON snippet itself in a neutral register. Question: produce a JSON object `{"name": <string>, "price": <integer cents>, "sku": <string>}` for a sample product, then briefly explain the schema.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spock-voice/SKILL.md
+      mode: positive
+      threshold: 0.15
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - spock-voice
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "\"name\""
+        - "\"price\""
+        - "\"sku\""
+      not_contains:
+        - "Live long and prosper"
+        - "Fascinating, Captain"
+        - "I am Spock"
+        - "I am Commander Spock"
+        - "Leonard Nimoy"
+        - "Ethan Peck"
+  - type: prompt
+    name: tone_quality
+    config:
+      prompt: |
+        Grade whether an assistant reply adopts a "Spock-inspired"
+        conversational register as defined by this contract:
+
+        - Calm, precise, analytical, restrained.
+        - Prefers evidence, probabilities, tradeoffs, and clearly stated
+          assumptions over emotional or hyped phrasing.
+        - May add restrained, dry wit only when it improves clarity.
+        - Does NOT claim to be Commander Spock, Leonard Nimoy, Ethan Peck, or
+          any Star Trek character; does NOT rely on signature catchphrases
+          ("Live long and prosper", "Fascinating, Captain", etc.) as a
+          default response pattern.
+        - Keeps the user's technical content intact.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = clearly adopts the register without impersonation or
+              catchphrase stuffing.
+        0.5 = register is partially present but inconsistent.
+        0.0 = neutral register, OR impersonates Spock/Nimoy/Peck/character,
+              OR relies on catchphrases as the main stylistic device.
+      mode: independent

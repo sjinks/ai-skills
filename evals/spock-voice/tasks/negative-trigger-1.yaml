@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: negative-trigger-001
+name: Neutral technical question
+description: |
+  A neutral technical question without any Spock / Vulcan / Starfleet
+  framing. The skill says it must be invoked only on explicit user request
+  and never unprompted.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "What's the difference between TCP and UDP?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spock-voice/SKILL.md
+      mode: negative
+      threshold: 0.15
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Captain,"
+        - "Vulcan"
+        - "Starfleet"
+        - "pleasingly logical"
+        - "A pleasingly logical outcome"

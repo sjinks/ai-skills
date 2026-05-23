@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: positive-trigger-002
+name: Failure-mode analysis of a migration runbook
+description: Failure-mode / red-team framing on an ops artifact should trigger the skill.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Red-team this database migration runbook for failure modes, rollback gaps,
+    and verification holes.
+
+    Runbook:
+    1. Put the app in read-only mode.
+    2. Run `ALTER TABLE orders ADD COLUMN region TEXT NOT NULL DEFAULT 'us';`
+       in production.
+    3. Deploy the new app version that writes `region` on every insert.
+    4. Re-enable writes.
+    5. Backfill historical rows with a script that loops over orders and sets
+       `region` from the related `customer.country` column.
+
+    The runbook has no rollback step, no estimate of how long the ALTER will
+    hold a lock, and no verification that the backfill completed before the
+    next release.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/adversarial-review/SKILL.md
+      mode: positive
+      threshold: 0.3
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - adversarial-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(BLOCK|CONCERNS|CLEAN)"
+        - "(?i)Findings:"
+        - "(?i)(Severity|Classification|Trigger)"
+        - "(?i)(no\\s+rollback|missing\\s+rollback|rollback\\s+(plan|step)\\s+(missing|absent)|long[-\\s]running|lock\\s+(duration|contention|wait)|ACCESS\\s+EXCLUSIVE|order\\s+of\\s+operations)"
+      not_contains:
+        - "Gate decision:"
+        - "Lenses applied:"
+        - "Egress policy:"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"

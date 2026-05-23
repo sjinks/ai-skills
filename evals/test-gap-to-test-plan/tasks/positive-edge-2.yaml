@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: positive-edge-002
+name: PLAN-PARTIAL when must-have lacks owner
+description: |
+  A must-have test case with no Owner downgrades the verdict to PLAN-PARTIAL, not PLAN-READY.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Build a test plan.
+
+    Finding F-501 (HIGH): missing CSRF protection on /admin/import. Behavior: cross-origin POST should be rejected.
+    Change set: `src/admin/import.ts`.
+    Project conventions: Vitest, three layers, no explicit owners assigned for this round.
+
+    Return the verdict and coverage summary.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-gap-to-test-plan/SKILL.md
+      mode: positive
+      threshold: 0.55
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - test-gap-to-test-plan
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*PLAN-PARTIAL"
+        - "(?i)(Owner|missing\\s+owner|no\\s+owner)"
+        - "(?i)must-have"
+        - "(?i)Coverage summary:"

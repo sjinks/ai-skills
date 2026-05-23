@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: positive-edge-001
+name: Unreadable artifact triggers BLOCK
+description: |
+  Per the skill, an empty or unreadable target must produce a BLOCK verdict with an Open question finding, not a fabricated review.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Adversarial-review this spec:
+
+    [REDACTED — only the title was shared; body unavailable]
+
+    Produce a verdict.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/adversarial-review/SKILL.md
+      mode: positive
+      threshold: 0.3
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - adversarial-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*BLOCK"
+        - "(?i)(Open question|target unavailable|insufficient|unreadable|empty)"
+        - "(?i)Pending - target unavailable"

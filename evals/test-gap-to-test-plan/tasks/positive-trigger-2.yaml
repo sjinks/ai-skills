@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: positive-trigger-002
+name: BLOCK on insufficient input
+description: |
+  Vague findings with no severity — the skill must emit BLOCK rather than
+  fabricate a test plan.
+tags:
+  - positive-trigger
+  - block
+inputs:
+  prompt: |
+    Build a test plan from these notes:
+
+    - "Harden inputs."
+    - "Make it more robust."
+    - "Add tests."
+
+    No severities, no change-set files, no behavior names. Return your
+    verdict.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-gap-to-test-plan/SKILL.md
+      mode: positive
+      threshold: 0.55
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - test-gap-to-test-plan
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*BLOCK"
+        - "(?i)(missing|insufficient|severit|behavior|change\\s+set)"
+        - "(?i)(Pending\\s*-\\s*input\\s+incomplete|Test cases:\\s*(Pending|None))"
+      not_contains:
+        - "Lenses applied:"
+        - "Gate decision:"
+        - "Egress policy:"
+        - "Adversarial tests:"

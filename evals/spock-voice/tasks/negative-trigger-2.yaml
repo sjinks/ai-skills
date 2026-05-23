@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: negative-trigger-002
+name: Off-topic time-zone question
+description: Unrelated everyday question should not switch register.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "What time zone is Reykjavik in?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spock-voice/SKILL.md
+      mode: negative
+      threshold: 0.15
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Captain,"
+        - "Vulcan"
+        - "Starfleet"
+        - "pleasingly logical"
+        - "Live long and prosper"

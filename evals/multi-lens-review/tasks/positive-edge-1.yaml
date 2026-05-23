@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: positive-edge-001
+name: 'Lens conflict: ergonomics vs security'
+description: |
+  Two lenses produce conflicting recommendations; synthesis must name the tradeoff and pick a winning lens.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Multi-lens review this proposal. We need an explicit winning lens, not silent consensus.
+
+    Proposal: replace per-tenant API keys with a single shared service key, then sign all per-tenant requests in middleware. The DX lens loves it (one secret to rotate; simpler local dev). The Security lens hates it (single key = blast radius across tenants). Reconcile and decide.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/multi-lens-review/SKILL.md
+      mode: positive
+      threshold: 0.4
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - multi-lens-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Lenses applied:"
+        - "(?i)Conflicts between lenses:"
+        - "(?i)Verdict:\\s*(BLOCK|CONCERNS|CLEAN)"
+        - "(?i)(Security|DX).*(wins|preferred|chosen)"

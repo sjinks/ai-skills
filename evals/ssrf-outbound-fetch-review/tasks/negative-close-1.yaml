@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: negative-close-001
+name: Client-side URL formatting question
+description: |
+  A pure URL-formatting question with no outbound fetch, no validation, and
+  no egress concern. SSRF review should not activate.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    I want to build a query string in the browser to share a permalink to a
+    document with a `docId` and a `page` parameter. What is the cleanest way
+    to construct the URL with `URLSearchParams`?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/ssrf-outbound-fetch-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Egress policy:"
+        - "Adversarial tests:"
+        - "Checklist status:"
+        - "169.254.169.254"

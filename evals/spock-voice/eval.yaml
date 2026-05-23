@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/eval.schema.json
+name: spock-voice-eval
+description: |
+  Evaluates the spock-voice skill: it activates only on explicit Spock /
+  Vulcan / Starfleet voice requests, is actually invoked when expected,
+  keeps the technical content of the user's question, and adopts the voice
+  register without impersonating Spock or stuffing catchphrases.
+skill: spock-voice
+version: "1.1"
+config:
+  trials_per_task: 2
+  timeout_seconds: 180
+  parallel: true
+  workers: 4
+  executor: copilot-sdk
+  model: claude-sonnet-4.6
+  max_attempts: 2
+metrics:
+  - name: trigger_accuracy
+    weight: 0.25
+    threshold: 0.8
+    description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected mode.
+  - name: skill_invocation
+    weight: 0.15
+    threshold: 0.9
+    description: Skill is invoked on positives and not invoked on negatives.
+  - name: task_completion
+    weight: 0.25
+    threshold: 0.8
+    description: Technical content of the question is preserved; forbidden catchphrases absent.
+  - name: tone_quality
+    weight: 0.25
+    threshold: 0.7
+    description: Reply adopts the Spock register without impersonation or catchphrase stuffing (LLM judge).
+  - name: efficiency
+    weight: 0.10
+    threshold: 0.7
+    description: Stays within tool-call and total-token budgets.
+graders:
+  - type: behavior
+    name: efficiency
+    config:
+      max_tool_calls: 2
+      max_tokens: 4000
+tasks:
+  - "tasks/*.yaml"

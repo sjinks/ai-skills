@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: negative-close-002
+name: Plain Express app scaffold
+description: |
+  Asks to scaffold a plain Express app, not NestJS. Skill should not activate.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Set up a minimal Express 5 app with a single `GET /ping` route returning JSON. Show me `package.json` and `server.js` only. No framework beyond Express.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-development/SKILL.md
+      mode: negative
+      threshold: 0.5
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "@Module("
+        - "@Controller("
+        - "@Injectable("
+        - "ValidationPipe"
+        - "Test.createTestingModule"
+        - "passport-jwt"

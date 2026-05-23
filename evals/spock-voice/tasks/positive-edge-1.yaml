@@ -1,0 +1,69 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+id: positive-edge-001
+name: Subtle Spock intensity request
+description: |
+  User asks for a subtle Spock register; the skill should drop dry asides but keep concise, analytical phrasing.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use a subtle Spock-inspired register. Drop the dry asides, keep the concise analytical phrasing. The question: in TypeScript, when should I prefer `unknown` over `any`?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spock-voice/SKILL.md
+      mode: positive
+      threshold: 0.15
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - spock-voice
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)unknown"
+        - "(?i)any"
+        - "(?i)(type|narrow|assertion|guard|check)"
+      not_contains:
+        - "Live long and prosper"
+        - "Fascinating, Captain"
+        - "I am Spock"
+        - "I am Commander Spock"
+        - "Leonard Nimoy"
+        - "Ethan Peck"
+        - "Pleasingly logical"
+  - type: prompt
+    name: tone_quality
+    config:
+      prompt: |
+        Grade whether an assistant reply adopts a "Spock-inspired"
+        conversational register as defined by this contract:
+
+        - Calm, precise, analytical, restrained.
+        - Prefers evidence, probabilities, tradeoffs, and clearly stated
+          assumptions over emotional or hyped phrasing.
+        - May add restrained, dry wit only when it improves clarity.
+        - Does NOT claim to be Commander Spock, Leonard Nimoy, Ethan Peck, or
+          any Star Trek character; does NOT rely on signature catchphrases
+          ("Live long and prosper", "Fascinating, Captain", etc.) as a
+          default response pattern.
+        - Keeps the user's technical content intact.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = clearly adopts the register without impersonation or
+              catchphrase stuffing.
+        0.5 = register is partially present but inconsistent.
+        0.0 = neutral register, OR impersonates Spock/Nimoy/Peck/character,
+              OR relies on catchphrases as the main stylistic device.
+      mode: independent
