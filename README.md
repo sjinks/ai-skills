@@ -122,7 +122,7 @@ This skill is aimed at the step that comes after a review skill has produced fin
 
 It helps an assistant:
 
-- consume findings with severity (either the 4-level `CRITICAL` / `HIGH` / `MEDIUM` / `LOW` scheme from `adversarial-review` or the 3-level `High` / `Medium` / `Low` scheme from `review-cycle-gatekeeper`) and map them to `must-have` / `should-have` / `nice-to-have` priority
+- consume findings with severity from any of three declared vocabularies — the 4-level `CRITICAL` / `HIGH` / `MEDIUM` / `LOW` scheme from `adversarial-review`, the 3-level `High` / `Medium` / `Low` scheme from `review-cycle-gatekeeper`, or the `Critical` / `Warning` / `Suggestion` rubric from `nestjs-code-review` — and map them to `must-have` / `should-have` / `nice-to-have` priority
 - restate each finding as one specific unverified behavior before proposing a test
 - pick the smallest faithful test layer (unit, integration, or e2e) and record it on the case
 - write each case against a fixed template covering finding reference, target suite, scenario, input/setup, expected behavior, failure signal, layer, priority, owner, and status
