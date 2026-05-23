@@ -1,7 +1,7 @@
 ---
 name: test-gap-to-test-plan
 description: "Use when: converting review findings, identified test gaps, or unverified behaviors into a concrete, prioritized test plan with assertions, layer choice, ownership, and a merge-gate-ready evidence trail."
-argument-hint: "Findings list with severity, changed files or modules, existing test coverage signals, and any prior review output (adversarial-review, multi-lens-review)."
+argument-hint: "Findings list with severity, changed files or modules, existing test coverage signals, and any prior review output."
 user-invocable: true
 ---
 
@@ -11,7 +11,7 @@ Use this skill to turn an existing list of review findings and unverified behavi
 
 ## When to Use
 
-Use this skill after a review skill (`adversarial-review`, `multi-lens-review`, `nestjs-code-review`, or an external review) has produced findings with severity, and those findings now need to become a concrete test plan before merge. Use it before a fix cycle when `review-cycle-gatekeeper` Gate Rule 4 will require test evidence (or an explicit no-test rationale) for every functional fix.
+Use this skill after a review (adversarial review, multi-lens review, pull request review, or any other source) has produced findings with severity, and those findings now need to become a concrete test plan before merge. Use it before a fix cycle when a downstream merge-gate workflow will require test evidence (or an explicit no-test rationale) for every functional fix.
 
 This skill plans tests; it does not execute them and does not perform review itself. It consumes upstream findings; it does not re-judge them or invent new ones.
 
@@ -55,7 +55,7 @@ When coverage signals or test-layer conventions are partially available — enou
 
 ## Severity Vocabulary And Priority Mapping
 
-This skill inherits the four-level severity vocabulary from `adversarial-review`:
+This skill uses the following four-level severity vocabulary:
 
 - `CRITICAL`: exploitable or triggerable now with no compensating control; severe or irreversible impact.
 - `HIGH`: exploitable or triggerable in normal use; major impact unless explicitly mitigated or accepted.
@@ -70,7 +70,7 @@ Map severity to priority:
 
 ### Compatibility With The 3-Level Scheme
 
-When upstream findings use the 3-level `High` / `Medium` / `Low` vocabulary from `review-cycle-gatekeeper`, map them as:
+When upstream findings use a 3-level `High` / `Medium` / `Low` vocabulary, map them as:
 
 - `High` → `must-have`.
 - `Medium` → `should-have`.
@@ -80,7 +80,7 @@ Priority is determined by upstream severity, never by how easy or hard the test 
 
 ### Compatibility With The NestJS Review Rubric
 
-When upstream findings use the `nestjs-code-review` rubric (`Critical` / `Warning` / `Suggestion`, exact-case), map them as:
+When upstream findings use the NestJS code review rubric (`Critical` / `Warning` / `Suggestion`, exact-case), map them as:
 
 - `Critical` → `must-have`.
 - `Warning` → `should-have`.
@@ -130,9 +130,9 @@ Each test case records the following fields:
 ## Blocking Criteria
 
 - A finding recorded under `Untestable risks` is not a substitute for a `must-have` test case. A `CRITICAL` / `HIGH` / `High` / `Critical` finding without a `must-have` test case triggers `BLOCK` regardless of whether it also appears in `Untestable risks`, unless it carries a recorded waiver in the `Waivers:` section per `## Output Format`.
-- Block the merge recommendation if any `CRITICAL` or `HIGH` finding (or `High` finding under the 3-level scheme, or `Critical` finding under the NestJS rubric) lacks at least one `must-have` test case (any `Status`), unless the finding is explicitly waived per `review-cycle-gatekeeper` waiver rules (scope statement, technical rationale, named risk-acceptance owner, and follow-up reference or `wontfix`).
+- Block the merge recommendation if any `CRITICAL` or `HIGH` finding (or `High` finding under the 3-level scheme, or `Critical` finding under the NestJS rubric) lacks at least one `must-have` test case (any `Status`), unless the finding is explicitly waived. A valid waiver requires four fields: scope statement, technical rationale, named risk-acceptance owner, and follow-up reference (or `wontfix`).
 - `LOW`, `Low`, and `Suggestion` findings never block the merge recommendation, regardless of whether a test case exists for them.
-- A plan whose `must-have` test cases are all `Status: proposed` is intent, not evidence. It satisfies this skill's gate but does not satisfy `review-cycle-gatekeeper` Gate Rule 4. The `Handoff:` line must state explicitly when `must-have` cases are not yet `landed`.
+- A plan whose `must-have` test cases are all `Status: proposed` is intent, not evidence. It satisfies this skill's gate but does not satisfy a downstream merge-gate rule that requires actual test evidence for each functional fix. The `Handoff:` line must state explicitly when `must-have` cases are not yet `landed`.
 - A `must-have` test case with no `Owner` or no decidable `Layer` does not satisfy the gate; mark such gaps in the output and downgrade the verdict to `PLAN-PARTIAL` rather than `PLAN-READY`.
 
 ## Output Format
@@ -162,7 +162,7 @@ Waivers:
 - <finding reference>: scope: <code path, behavior, configuration, or condition>; rationale: <technical reason residual risk is acceptable>; owner: <named individual or role>; follow-up: <issue reference or `wontfix`>
 
 Coverage summary: must-have <N>, should-have <N>, nice-to-have <N>; uncovered findings: <ids or None>
-Handoff: <one or two lines on how this plan feeds review-cycle-gatekeeper Gate Rule 4; if any must-have case is not yet landed, state that explicitly and note that Gate Rule 4 requires test evidence, not a proposed plan>
+Handoff: <one or two lines on how this plan feeds the downstream merge-gate workflow's test-evidence rule; if any must-have case is not yet landed, state that explicitly and note that the merge-gate rule requires actual test evidence, not a proposed plan>
 ```
 
 Verdict rules:
