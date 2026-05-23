@@ -72,11 +72,13 @@ Collect before generating or proposing code:
 
 ### Feature module skeleton
 
-The example below uses an `ORMModule.forFeature` placeholder to stay
-ORM-agnostic. In a real project, substitute the integration the project
-already uses (for example `TypeOrmModule.forFeature([User])`,
+The example below leaves the `imports` array empty and uses an inline
+comment as a placeholder to stay ORM-agnostic. In a real project,
+replace the comment with whatever the project already uses (for
+example `TypeOrmModule.forFeature([User])`,
 `MongooseModule.forFeature([{ name: User.name, schema: UserSchema }])`,
-or no ORM import at all if the repository is a hand-rolled provider).
+`PrismaModule`, or no ORM import at all if the repository is a
+hand-rolled provider).
 
 ```typescript
 @Module({

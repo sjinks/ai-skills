@@ -60,7 +60,7 @@ Before writing findings, restate the change in concrete terms:
 
 - Each feature lives in its own module with clear `imports`, `controllers`, `providers`, and `exports`.
 - No circular module dependencies. `forwardRef` is justified, scoped, and not masking a design flaw.
-- Modules export the provider that consumers need, not the module itself.
+- A feature module's `exports` array lists the specific providers or tokens consumers need, rather than re-exporting the feature module itself. Re-exporting an imported infrastructure module (for example `TypeOrmModule`, `MongooseModule`, or a `*Module.forFeature(...)` result) when downstream modules genuinely need those providers is a legitimate pattern.
 - Custom providers use proper injection tokens (`Symbol` or class) instead of bare strings when feasible.
 - Provider scope (`DEFAULT`, `REQUEST`, `TRANSIENT`) matches the intended lifecycle and is not used to paper over hidden state.
 - Dynamic modules expose `forRoot`/`forRootAsync` consistently and validate options.
@@ -161,7 +161,7 @@ Before writing findings, restate the change in concrete terms:
 - Authorization logic inside controller handlers instead of guards or services.
 - Returning raw ORM entities that expose passwords, tokens, audit columns, or relations not intended for clients.
 - Tests that import the real database or hit real external services without an explicit reason.
-- Modules exporting themselves (`exports: [SomeModule]`) instead of the intended provider (`exports: [SomeService]`).
+- A feature module exporting itself instead of its intended providers, e.g. a `UsersModule` that declares `exports: [UsersModule]` rather than `exports: [UsersService]`. Re-exporting an imported infrastructure module such as `TypeOrmModule` or `MongooseModule` from an infrastructure module is not the same anti-pattern when consumers genuinely need those providers.
 
 ## Review Procedure
 
