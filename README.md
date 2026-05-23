@@ -128,7 +128,7 @@ It helps an assistant:
 - write each case against a fixed template covering finding reference, target suite, scenario, input/setup, expected behavior, failure signal, layer, priority, owner, and status
 - group cases by finding rather than by file so traceability survives deduplication
 - record live-system or production-data dependencies under `Untestable risks` instead of forcing them into the plan
-- return `BLOCK`, `PLAN-PARTIAL`, or `PLAN-READY` so the result feeds directly into `review-cycle-gatekeeper` Gate Rule 4 and closes `adversarial-review` `Adversarial tests` / `verification-gap` findings
+- return `BLOCK`, `PLAN-PARTIAL`, or `PLAN-READY` so the result feeds directly into `review-cycle-gatekeeper` Gate Rule 4 once the plan's `must-have` cases are `landed`, and plans the test coverage that `adversarial-review` `Adversarial tests` / `verification-gap` findings call for rather than closing them on the strength of a proposed plan
 - refuse to fabricate findings, severities, or owners; emit `BLOCK` when required input context is missing
 
 ## Skill Format
