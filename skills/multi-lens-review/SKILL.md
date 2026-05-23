@@ -128,6 +128,8 @@ Use one overall verdict:
 
 The `Lens findings:` block is a one-line summary per applied lens. The `Findings:` block is the numbered detail list; each entry's `Lens:` field cross-references back to the lens that produced it. Do not duplicate detail between the two blocks.
 
+The template below is a partial example: Intent / Spec, Security & Privacy, Adversarial, and Verification are shown as applied; Design and Implementation are assumed under `Lenses skipped:`. Include one `Lens findings:` line per applied lens only — lenses listed under `Lenses skipped:` do not appear in the `Lens findings:` block. The template shows only emitted content; do not copy any explanatory prose from this document into the output.
+
 ```text
 Verdict: BLOCK | CONCERNS | CLEAN
 Target: <artifact and content type>
@@ -139,8 +141,6 @@ Evidence basis: <files, sections, tests, logs, or context reviewed>
 Assumptions: <explicit assumptions or "None beyond reviewed material">
 
 Lens findings:
-# Partial example — Design and Implementation are assumed under `Lenses skipped:` for this illustration.
-# Include one line per APPLIED lens only. Lenses listed under `Lenses skipped:` do not appear here.
 - Intent / Spec: <summary or None>
 - Security & Privacy: <summary or None>
 - Adversarial: <summary or None>
