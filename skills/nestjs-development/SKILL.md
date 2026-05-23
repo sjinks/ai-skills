@@ -205,11 +205,27 @@ describe('UsersService', () => {
 
 ## Decision Hints
 
-- **ORM:** prefer Prisma for strong type-safety and migrations, TypeORM when integrating with an existing schema or complex relations, Mongoose for MongoDB.
-- **Module shape:** simple CRUD → single module with controller and service; domain logic → domain module plus infrastructure; shared logic → dedicated shared module with explicit exports.
-- **Auth:** stateless API → JWT with refresh tokens; multi-tenant → JWT with tenant claims; service-to-service → mTLS or signed tokens.
-- **Caching:** user-specific → Redis with user-key prefix; computed values → in-memory with TTL.
-- **Testing:** services → unit tests with mocks; controllers and contracts → e2e with Supertest; long-running flows → focused integration tests.
+Use these only when the project has no established convention for the decision in
+question. Existing project conventions, ADRs, and team standards always win; do not
+propose a change of ORM, auth strategy, or test layering just to match a hint below.
+
+- **ORM (greenfield only):** if the project has no ORM yet, candidates include
+  Prisma (strong type-safety, first-class migrations), TypeORM (mature legacy
+  schema and complex relational mapping), Mongoose (MongoDB), Drizzle, or
+  MikroORM. Match the team's familiarity and operational constraints rather than
+  picking by feature list.
+- **Module shape:** simple CRUD → single module with controller and service;
+  domain logic → domain module plus infrastructure; shared logic → dedicated
+  shared module with explicit exports.
+- **Auth (greenfield only):** if no auth strategy is in place, common shapes are
+  stateless API with JWT and refresh tokens, multi-tenant with tenant claims, or
+  service-to-service with mTLS or signed tokens. Follow whatever the project
+  already uses.
+- **Caching:** user-specific → Redis with user-key prefix; computed values →
+  in-memory with TTL. Reuse the project's existing cache layer when one exists.
+- **Testing:** services → unit tests with mocks; controllers and contracts → e2e
+  with Supertest; long-running flows → focused integration tests. Match the
+  project's existing test layering and tooling.
 
 ## Output Format
 
