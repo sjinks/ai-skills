@@ -21,6 +21,7 @@ At the moment, the repository contains these skills:
 - `nestjs-development`: guidance for designing, scaffolding, implementing, refactoring, and testing NestJS features with idiomatic patterns, anti-patterns, and a structured build workflow.
 - `review-cycle-gatekeeper`: guidance for enforcing review/fix cycle closure gates so findings are explicitly resolved, verified, owned, or waived before merge.
 - `multi-lens-review`: guidance for structuring a multi-lens review (intent, design, implementation, security, adversarial, verification) and synthesizing the lens findings into a single integrated decision with required actions and residual risk.
+- `test-gap-to-test-plan`: guidance for converting review findings and unverified behaviors into a prioritized, owned, layer-typed test plan that tracks the test evidence a downstream merge gate will require.
 
 ## Included Skills
 
@@ -114,6 +115,21 @@ It helps an assistant:
 - run an explicit Synthesis step to deduplicate, reconcile lens conflicts by naming the winning tradeoff, and split required actions from follow-ups
 - emit a `BLOCK`, `CONCERNS`, or `CLEAN` verdict with residual risk
 - avoid role-playing independent reviewers, applying every lens by default, or hiding conflicts behind silent consensus
+
+### `test-gap-to-test-plan`
+
+This skill is aimed at the step that comes after a review skill has produced findings: turning those findings into a concrete, prioritized, owned test plan that a merge gate can verify. It consumes upstream review output rather than re-judging it, and stays stack-neutral so it can sit behind `adversarial-review`, `multi-lens-review`, or an external review.
+
+It helps an assistant:
+
+- consume findings with severity from any of three declared vocabularies — the 4-level `CRITICAL` / `HIGH` / `MEDIUM` / `LOW` scheme from `adversarial-review`, the 3-level `High` / `Medium` / `Low` scheme from `review-cycle-gatekeeper`, or the `Critical` / `Warning` / `Suggestion` rubric — and map them to `must-have` / `should-have` / `nice-to-have` priority
+- restate each finding as one specific unverified behavior before proposing a test
+- pick the smallest faithful test layer (unit, integration, or e2e) and record it on the case
+- write each case against a fixed template covering finding reference, target suite, scenario, input/setup, expected behavior, failure signal, layer, priority, owner, and status
+- group cases by finding rather than by file so traceability survives deduplication
+- record live-system or production-data dependencies under `Untestable risks` instead of forcing them into the plan
+- return `BLOCK`, `PLAN-PARTIAL`, or `PLAN-READY` so the result feeds directly into `review-cycle-gatekeeper` Gate Rule 4 once the plan's `must-have` cases are `landed`, and plans the test coverage that `adversarial-review` `Adversarial tests` / `verification-gap` findings call for rather than closing them on the strength of a proposed plan
+- refuse to fabricate findings, severities, or owners; emit `BLOCK` when required input context is missing
 
 ## Skill Format
 
