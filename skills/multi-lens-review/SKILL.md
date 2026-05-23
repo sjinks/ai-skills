@@ -101,6 +101,8 @@ Use severity for findings:
 - `MEDIUM`: credible but bounded impact; meaningful failure, regression, operational burden, or user harm worth fixing or tracking.
 - `LOW`: low likelihood or limited impact; localized ambiguity or minor maintainability risk worth noting.
 
+MEDIUM uses `credible` instead of `adversarial-review`'s `plausible` because this skill has a separate confidence axis (`medium` confidence is "plausible from the evidence"); reusing `plausible` on both axes would collapse impact and evidentiary strength into the same word. The two skills' severity remain semantically aligned — only the MEDIUM-impact adjective differs.
+
 Use confidence per finding:
 
 - `high`: direct evidence in the reviewed material.
@@ -137,6 +139,7 @@ Evidence basis: <files, sections, tests, logs, or context reviewed>
 Assumptions: <explicit assumptions or "None beyond reviewed material">
 
 Lens findings:
+# Partial example — Design and Implementation are assumed under `Lenses skipped:` for this illustration.
 # Include one line per APPLIED lens only. Lenses listed under `Lenses skipped:` do not appear here.
 - Intent / Spec: <summary or None>
 - Security & Privacy: <summary or None>
