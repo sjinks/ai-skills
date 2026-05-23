@@ -20,6 +20,7 @@ At the moment, the repository contains these skills:
 - `nestjs-code-review`: guidance for reviewing NestJS applications with severity-classified findings covering modules, DI, controllers, DTOs, guards, exception handling, persistence, testing, API design, performance, and microservices.
 - `nestjs-development`: guidance for designing, scaffolding, implementing, refactoring, and testing NestJS features with idiomatic patterns, anti-patterns, and a structured build workflow.
 - `review-cycle-gatekeeper`: guidance for enforcing review/fix cycle closure gates so findings are explicitly resolved, verified, owned, or waived before merge.
+- `multi-lens-review`: guidance for structuring a multi-lens review (intent, design, implementation, security, adversarial, verification) and synthesizing the lens findings into a single integrated decision with required actions and residual risk.
 
 ## Included Skills
 
@@ -100,6 +101,19 @@ It helps an assistant:
 - track regressions introduced during fix rounds as first-class findings
 - validate waiver quality and ownership/remediation metadata
 - return a compact `pass`, `fail`, or `BLOCK` gate summary with exact blockers to clear
+
+### `multi-lens-review`
+
+This skill is aimed at changes that span more than one concern (correctness, security, data, UX, ops) and need several review perspectives reconciled into a single merge decision, rather than a single-lens check that an existing focused skill already covers.
+
+It helps an assistant:
+
+- walk a target through Intent / Spec, Design, Implementation, Security & Privacy, Adversarial, and Verification lenses, skipping any lens that does not add value
+- delegate to focused skills such as `adversarial-review`, `ssrf-outbound-fetch-review`, or `nestjs-code-review` when a lens falls squarely in their scope
+- record findings with severity, confidence, classification, concrete trigger, evidence, and suggested fix, separated from one-line per-lens summaries
+- run an explicit Synthesis step to deduplicate, reconcile lens conflicts by naming the winning tradeoff, and split required actions from follow-ups
+- emit a `BLOCK`, `CONCERNS`, or `CLEAN` verdict with residual risk
+- avoid role-playing independent reviewers, applying every lens by default, or hiding conflicts behind silent consensus
 
 ## Skill Format
 
