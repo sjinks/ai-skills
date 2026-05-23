@@ -133,7 +133,7 @@ Each test case records the following fields:
 - Block the merge recommendation if any `CRITICAL` or `HIGH` finding (or `High` finding under the 3-level scheme, or `Critical` finding under the `Critical` / `Warning` / `Suggestion` rubric) lacks at least one `must-have` test case (any `Status`), unless the finding is explicitly waived. A valid waiver requires four fields: scope statement, technical rationale, named risk-acceptance owner, and follow-up reference (or `wontfix`).
 - `LOW`, `Low`, and `Suggestion` findings never block the merge recommendation, regardless of whether a test case exists for them.
 - A plan whose `must-have` test cases are all `Status: proposed` is intent, not evidence. It satisfies this skill's gate but does not satisfy a downstream merge-gate rule that requires actual test evidence for each functional fix. The `Handoff:` line must state explicitly when `must-have` cases are not yet `landed`.
-- A `must-have` test case with no `Owner` or no decidable `Layer` does not satisfy the gate; mark such gaps in the output and downgrade the verdict to `PLAN-PARTIAL` rather than `PLAN-READY`.
+- A `must-have` test case with no `Owner` (where the `Layer` has been decided) does not satisfy the gate; mark the gap in the output and downgrade the verdict to `PLAN-PARTIAL` rather than `PLAN-READY`. A `must-have` case with an undecidable `Layer` is handled by `### BLOCK On Insufficient Input` and produces `BLOCK`, not `PLAN-PARTIAL`.
 
 ## Output Format
 
@@ -168,7 +168,7 @@ Handoff: <one or two lines on how this plan feeds the downstream merge-gate work
 Verdict rules:
 
 - `BLOCK` when required input context is insufficient (per `## Required Input Context`) or when any `CRITICAL` / `HIGH` / `High` / `Critical` finding lacks an unwaived `must-have` test case.
-- `PLAN-PARTIAL` when every blocking finding has at least one `must-have` test case, but one or more `must-have` cases are missing an `Owner` or have an undecidable `Layer`.
+- `PLAN-PARTIAL` when every blocking finding has at least one `must-have` test case with a decided `Layer`, but one or more `must-have` cases are missing an `Owner`. An undecidable `Layer` on a `must-have` case produces `BLOCK` per `### BLOCK On Insufficient Input`, not `PLAN-PARTIAL`.
 - `PLAN-READY` otherwise.
 
 A `Waivers:` entry is required for every blocking finding (`CRITICAL` / `HIGH` / `High` / `Critical`) that does not carry a `must-have` test case. A waiver entry must include all four fields (scope, rationale, owner, follow-up); a partial waiver does not satisfy the gate and the verdict downgrades to `BLOCK`.
