@@ -17,6 +17,8 @@ At the moment, the repository contains these skills:
 - `adversarial-review`: guidance for challenging specs, designs, implementations, workflows, and test plans with evidence-based failure-mode review and risk-focused verification.
 - `ssrf-outbound-fetch-review`: guidance for reviewing, designing, implementing, and testing SSRF protections around outbound HTTP fetches, from egress policy contracts through transport and redirect behavior.
 - `spock-voice`: guidance for adopting a Spock-inspired, precise, analytical, restrained, and lightly dry conversational register.
+- `nestjs-code-review`: guidance for reviewing NestJS applications with severity-classified findings covering modules, DI, controllers, DTOs, guards, exception handling, persistence, testing, API design, performance, and microservices.
+- `nestjs-development`: guidance for designing, scaffolding, implementing, refactoring, and testing NestJS features with idiomatic patterns, anti-patterns, and a structured build workflow.
 
 ## Included Skills
 
@@ -60,6 +62,30 @@ It helps an assistant:
 - add light dry wit only when it improves warmth or clarity
 - avoid impersonation, signature catchphrases, or style choices that override safety and accuracy
 - apply the voice only to advisory commentary, leaving code, commit messages, PR text, and required structured output in a neutral register
+
+### `nestjs-code-review`
+
+This skill is aimed at NestJS pull requests, feature branches, security reviews, and architecture validations where a repeatable review contract is more useful than ad-hoc style comments.
+
+It helps an assistant:
+
+- restate the change as intent, scope, risk surfaces, severity rubric, and out-of-scope before judging
+- walk a checklist covering module architecture and DI, controllers and the request lifecycle, DTOs and validation, guards and auth, exception handling, configuration and bootstrap, persistence, testing, API design, performance, and microservices
+- flag NestJS-specific anti-patterns such as fat controllers, direct ORM access from controllers, `forwardRef` overuse, and modules exporting themselves
+- return findings classified as Critical, Warning, or Suggestion, each with file/line evidence and a concrete fix
+- stay stack-neutral on ORM and auth strategy while respecting existing project conventions
+
+### `nestjs-development`
+
+This skill is aimed at designing, scaffolding, implementing, refactoring, or debugging NestJS code that needs to be idiomatic, secure, testable, and consistent with the project's existing conventions.
+
+It helps an assistant:
+
+- restate intent and acceptance criteria, then walk a feature-module-first build workflow
+- apply architecture principles such as thin controllers, fat services, explicit DI, validation at the edge, typed errors, and configuration over code
+- use idiomatic patterns for modules, controllers, services, DTOs, custom decorators, global pipes/filters/interceptors at bootstrap, config validation, and unit tests with `@nestjs/testing`
+- avoid common anti-patterns such as `new`-ing `@Injectable()` services, `any` on DTOs, hardcoded secrets, and `synchronize: true` in production
+- prefer additive, reversible changes and call out breaking changes explicitly
 
 ## Skill Format
 
