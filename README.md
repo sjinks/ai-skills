@@ -21,7 +21,7 @@ At the moment, the repository contains these skills:
 - `nestjs-development`: guidance for designing, scaffolding, implementing, refactoring, and testing NestJS features with idiomatic patterns, anti-patterns, and a structured build workflow.
 - `review-cycle-gatekeeper`: guidance for enforcing review/fix cycle closure gates so findings are explicitly resolved, verified, owned, or waived before merge.
 - `multi-lens-review`: guidance for structuring a multi-lens review (intent, design, implementation, security, adversarial, verification) and synthesizing the lens findings into a single integrated decision with required actions and residual risk.
-- `test-gap-to-test-plan`: guidance for converting review findings and unverified behaviors into a prioritized, owned, layer-typed test plan that satisfies merge-gate evidence requirements.
+- `test-gap-to-test-plan`: guidance for converting review findings and unverified behaviors into a prioritized, owned, layer-typed test plan that tracks the test evidence a downstream merge gate will require.
 
 ## Included Skills
 
@@ -118,11 +118,11 @@ It helps an assistant:
 
 ### `test-gap-to-test-plan`
 
-This skill is aimed at the step that comes after a review skill has produced findings: turning those findings into a concrete, prioritized, owned test plan that a merge gate can verify. It consumes upstream review output rather than re-judging it, and stays stack-neutral so it can sit behind `adversarial-review`, `multi-lens-review`, `nestjs-code-review`, or an external review.
+This skill is aimed at the step that comes after a review skill has produced findings: turning those findings into a concrete, prioritized, owned test plan that a merge gate can verify. It consumes upstream review output rather than re-judging it, and stays stack-neutral so it can sit behind `adversarial-review`, `multi-lens-review`, or an external review.
 
 It helps an assistant:
 
-- consume findings with severity from any of three declared vocabularies — the 4-level `CRITICAL` / `HIGH` / `MEDIUM` / `LOW` scheme from `adversarial-review`, the 3-level `High` / `Medium` / `Low` scheme from `review-cycle-gatekeeper`, or the `Critical` / `Warning` / `Suggestion` rubric from `nestjs-code-review` — and map them to `must-have` / `should-have` / `nice-to-have` priority
+- consume findings with severity from any of three declared vocabularies — the 4-level `CRITICAL` / `HIGH` / `MEDIUM` / `LOW` scheme from `adversarial-review`, the 3-level `High` / `Medium` / `Low` scheme from `review-cycle-gatekeeper`, or the `Critical` / `Warning` / `Suggestion` rubric — and map them to `must-have` / `should-have` / `nice-to-have` priority
 - restate each finding as one specific unverified behavior before proposing a test
 - pick the smallest faithful test layer (unit, integration, or e2e) and record it on the case
 - write each case against a fixed template covering finding reference, target suite, scenario, input/setup, expected behavior, failure signal, layer, priority, owner, and status

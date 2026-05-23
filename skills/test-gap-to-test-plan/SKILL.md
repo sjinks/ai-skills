@@ -40,7 +40,7 @@ Collect the narrowest useful context before planning:
 Emit `BLOCK` instead of a plan when any of the following is true:
 
 - Findings have no severity, so the priority mapping cannot be applied.
-- Findings carry severity labels outside the three declared vocabularies — 4-level (`CRITICAL` / `HIGH` / `MEDIUM` / `LOW`, exact-case), 3-level (`High` / `Medium` / `Low`, exact-case), or NestJS rubric (`Critical` / `Warning` / `Suggestion`, exact-case). A planner must not silently demote, promote, or translate unrecognized labels; emit `BLOCK` and name each unrecognized label.
+- Findings carry severity labels outside the three declared vocabularies — 4-level (`CRITICAL` / `HIGH` / `MEDIUM` / `LOW`, exact-case), 3-level (`High` / `Medium` / `Low`, exact-case), or the `Critical` / `Warning` / `Suggestion` rubric (exact-case). A planner must not silently demote, promote, or translate unrecognized labels; emit `BLOCK` and name each unrecognized label.
 - Findings in a single input mix vocabularies (for example one finding labeled `HIGH` and another labeled `Critical`). Emit `BLOCK` and name the specific findings whose vocabularies disagree; ask the upstream to normalize before re-running.
 - A finding lacks a location anchor (file, module, workflow step, or behavior name), so the test case cannot identify which suite or surface to target.
 - The change set is unknown, so target suites cannot be chosen.
@@ -78,17 +78,17 @@ When upstream findings use a 3-level `High` / `Medium` / `Low` vocabulary, map t
 
 Priority is determined by upstream severity, never by how easy or hard the test is to write. Ease of authoring may justify promoting a `LOW` / `Low` finding to `should-have`, but it never demotes a `HIGH` / `High` finding.
 
-### Compatibility With The NestJS Review Rubric
+### Compatibility With The Critical / Warning / Suggestion Rubric
 
-When upstream findings use the NestJS code review rubric (`Critical` / `Warning` / `Suggestion`, exact-case), map them as:
+When upstream findings use the `Critical` / `Warning` / `Suggestion` rubric (exact-case), map them as:
 
 - `Critical` → `must-have`.
 - `Warning` → `should-have`.
 - `Suggestion` → `nice-to-have`.
 
-The NestJS rubric does not distinguish a separate top-of-scale and high-impact-but-not-top tier the way the 4-level vocabulary does; `Critical` covers both. The `LOW` → `should-have` promotion clause does not apply to `Suggestion`; treat NestJS `Suggestion` findings as `nice-to-have` regardless of test cost, since the rubric already encodes that the finding is advisory.
+This rubric does not distinguish a separate top-of-scale and high-impact-but-not-top tier the way the 4-level vocabulary does; `Critical` covers both. The `LOW` → `should-have` promotion clause does not apply to `Suggestion`; treat `Suggestion` findings as `nice-to-have` regardless of test cost, since the rubric already encodes that the finding is advisory.
 
-Severity labels are matched case-sensitively against the declared vocabularies. A label is recognized when it appears verbatim in one of: the 4-level vocabulary (`CRITICAL` / `HIGH` / `MEDIUM` / `LOW`), the 3-level vocabulary (`High` / `Medium` / `Low`), or the NestJS rubric (`Critical` / `Warning` / `Suggestion`). Labels such as `critical`, `warning`, `suggestion`, `P0`, `blocker`, `severe`, or any other token outside these three vocabularies are unrecognized and trigger `BLOCK` per `## Required Input Context`. Do not infer a mapping; ask the upstream to normalize.
+Severity labels are matched case-sensitively against the declared vocabularies. A label is recognized when it appears verbatim in one of: the 4-level vocabulary (`CRITICAL` / `HIGH` / `MEDIUM` / `LOW`), the 3-level vocabulary (`High` / `Medium` / `Low`), or the `Critical` / `Warning` / `Suggestion` rubric. Labels such as `critical`, `warning`, `suggestion`, `P0`, `blocker`, `severe`, or any other token outside these three vocabularies are unrecognized and trigger `BLOCK` per `## Required Input Context`. Do not infer a mapping; ask the upstream to normalize.
 
 Within a single findings list, all findings must use one vocabulary. Findings that mix vocabularies (for example, one finding labeled `HIGH` and another labeled `Critical` in the same input) trigger `BLOCK` with the specific findings that disagree named in the output. Translating a finding's severity from one vocabulary to another counts as re-judging upstream severity and is forbidden per `## Anti-Patterns`.
 
@@ -130,7 +130,7 @@ Each test case records the following fields:
 ## Blocking Criteria
 
 - A finding recorded under `Untestable risks` is not a substitute for a `must-have` test case. A `CRITICAL` / `HIGH` / `High` / `Critical` finding without a `must-have` test case triggers `BLOCK` regardless of whether it also appears in `Untestable risks`, unless it carries a recorded waiver in the `Waivers:` section per `## Output Format`.
-- Block the merge recommendation if any `CRITICAL` or `HIGH` finding (or `High` finding under the 3-level scheme, or `Critical` finding under the NestJS rubric) lacks at least one `must-have` test case (any `Status`), unless the finding is explicitly waived. A valid waiver requires four fields: scope statement, technical rationale, named risk-acceptance owner, and follow-up reference (or `wontfix`).
+- Block the merge recommendation if any `CRITICAL` or `HIGH` finding (or `High` finding under the 3-level scheme, or `Critical` finding under the `Critical` / `Warning` / `Suggestion` rubric) lacks at least one `must-have` test case (any `Status`), unless the finding is explicitly waived. A valid waiver requires four fields: scope statement, technical rationale, named risk-acceptance owner, and follow-up reference (or `wontfix`).
 - `LOW`, `Low`, and `Suggestion` findings never block the merge recommendation, regardless of whether a test case exists for them.
 - A plan whose `must-have` test cases are all `Status: proposed` is intent, not evidence. It satisfies this skill's gate but does not satisfy a downstream merge-gate rule that requires actual test evidence for each functional fix. The `Handoff:` line must state explicitly when `must-have` cases are not yet `landed`.
 - A `must-have` test case with no `Owner` or no decidable `Layer` does not satisfy the gate; mark such gaps in the output and downgrade the verdict to `PLAN-PARTIAL` rather than `PLAN-READY`.
@@ -173,7 +173,12 @@ Verdict rules:
 
 A `Waivers:` entry is required for every blocking finding (`CRITICAL` / `HIGH` / `High` / `Critical`) that does not carry a `must-have` test case. A waiver entry must include all four fields (scope, rationale, owner, follow-up); a partial waiver does not satisfy the gate and the verdict downgrades to `BLOCK`.
 
-Replace empty sections with `None`. When no waivers exist, render the entire `Waivers:` section as `Waivers: None` on a single line. When emitting `BLOCK` for insufficient input, use `Pending - input incomplete` for `Test cases`, `Untestable risks`, and `Coverage summary`, and name the missing context on the `Inputs considered` line.
+Replace empty sections with `None`. When no waivers exist, render the entire `Waivers:` section as `Waivers: None` on a single line.
+
+When emitting `BLOCK` for insufficient input, distinguish full absence from partial gaps:
+
+- *Full absence*: when no finding can be planned (for example because findings, severities, or the change set are missing), use `Pending - input incomplete` for `Test cases`, `Untestable risks`, `Waivers`, and `Coverage summary`, and name the missing context on the `Inputs considered:` line.
+- *Partial gaps*: when some findings can be planned but others cannot (per the partial-availability rule in `### BLOCK On Insufficient Input`), include the planned `Test cases`, `Untestable risks`, and `Waivers` for the disambiguated findings, populate `Coverage summary` for those findings only, and on the `Inputs considered:` line name both the planned findings and the specific blocked findings together with the missing context that blocks them.
 
 ## Worked Example
 
