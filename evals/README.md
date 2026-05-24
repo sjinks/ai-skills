@@ -21,9 +21,13 @@ Evaluation suites for the skills in this repository, in
 
 ## Grader Design
 
-Each task has three task-level graders (positive tasks add a fourth on
-`spock-voice`) plus one eval-level efficiency grader. Grader names match
-metric names so `waza`'s metric → grader weighting takes effect.
+Each task has a baseline set of task-level graders plus one eval-level
+`efficiency` grader. Positive tasks add `skill_invocation`; one
+representative positive per skill adds `task_completion_substance`;
+`spock-voice` positives add `tone_quality`; and
+`nestjs-development/positive-trigger-1.yaml` adds the `ts_parse`
+`program` grader. Grader names match metric names so `waza`'s metric →
+grader weighting takes effect.
 
 - `trigger_accuracy` (task-level, `trigger`) — heuristic
   prompt-vs-SKILL.md keyword overlap. `mode: positive` on positive
@@ -69,14 +73,14 @@ metric names so `waza`'s metric → grader weighting takes effect.
 
 Upstream waza supports `config.inject_skill_body: false` in `eval.yaml`
 to suppress pasting the SKILL.md body into the agent's system prompt
-during trigger-precision evals. The waza CLI release currently in CI
+during trigger-precision evals. The waza CLI release we run against
 (`v0.33.0`) ships an older bundled YAML schema that rejects the field
 at parse time, so it is intentionally omitted from these eval specs.
-Negative-trigger tasks will currently see the SKILL.md body in the
-system prompt; the trigger heuristic and `skill_invocation` graders
-still work, but the model has more "permission" to over-activate than
-it would with the field set. Re-add `inject_skill_body: false` once
-upstream waza ships a binary with the new schema.
+Negative-trigger tasks therefore see the SKILL.md body in the system
+prompt; the `trigger` grader (`mode: negative`) and the `text`
+`not_contains` patterns are the only signals against over-activation
+until the field can be re-added. Re-add `inject_skill_body: false`
+once a waza release with the new schema ships.
 
 ## Trials and parallelism
 
@@ -106,11 +110,11 @@ checks:
 
 ## Running these evals
 
-The CI workflow for running this matrix automatically on every PR is
-intentionally NOT part of this repo yet. The waza CLI's `copilot-sdk`
+No CI workflow ships in this repo. The waza CLI's `copilot-sdk`
 executor rejects the default GitHub Actions `GITHUB_TOKEN` ("GitHub
-App Server-To-Server Tokens are not supported"), so the matrix has to
-be run either:
+App Server-To-Server Tokens are not supported"), so a matrix workflow
+cannot be added until a user-scoped Copilot PAT is configured. For
+now the suite is run either:
 
 - locally by a maintainer with `copilot login` configured, or
 - in a workflow that injects a user-scoped GitHub Copilot PAT and
