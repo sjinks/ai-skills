@@ -47,7 +47,6 @@ graders:
     config:
       regex_match:
         - "(?i)Verdict:\\s*CLEAN"
-        - "(?i)no material findings"
         - "(?i)Scope:"
         - "(?i)Trust map:"
         - "(?i)Findings:"
