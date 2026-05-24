@@ -22,7 +22,7 @@ Evaluation suites for the skills in this repository, in
 ## Grader Design
 
 Each task has a baseline set of task-level graders plus one eval-level
-`efficiency` grader. Positive tasks add `skill_invocation`; seven
+`efficiency` grader. Positive tasks add `skill_invocation`; selected
 representative positives add `task_completion_substance`;
 `spock-voice` positives add `tone_quality`; and
 `nestjs-development/positive-trigger-1.yaml` adds the `ts_parse`
@@ -42,6 +42,7 @@ grader weighting takes effect.
   - `review-cycle-gatekeeper`: 0.40
   - `spock-voice`: 0.15 (short SKILL.md body → very few keywords)
   - `ssrf-outbound-fetch-review`: 0.45
+  - `web-app-security-review`: 0.45
   - `test-gap-to-test-plan`: 0.55
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks
   only) — requires the named skill via `required_skills` with
@@ -66,7 +67,8 @@ grader weighting takes effect.
   parser can extract the score reliably.
 - `efficiency` (eval-level, `behavior`) — `max_tool_calls` and
   `max_tokens` budgets per task. Substance-heavy suites
-  (`multi-lens-review`, `ssrf-outbound-fetch-review`) use 12 000
+  (`multi-lens-review`, `ssrf-outbound-fetch-review`,
+  `web-app-security-review`) use 12 000
   tokens; the rest use 8 000; `spock-voice` uses 4 000.
 
 ## Skill-body injection
@@ -95,15 +97,16 @@ checks:
 
 - Two close-domain negative tasks per skill so a single close-domain bias
   does not silently pass.
-- LLM-judge `task_completion_substance` graders on one representative
-  positive task in each suite (seven total). They score 1.0 / 0.5 / 0.0
+- LLM-judge `task_completion_substance` graders on representative
+  positive tasks across suites. They score 1.0 / 0.5 / 0.0
   against a skill-specific rubric, using the same final-line numeric
   format as `tone_quality`.
 - Edge-case positives (`positive-edge-*.yaml`) per skill covering the
   documented "hard" behaviors — BLOCK on insufficient input, CLEAN
   verdicts, lens conflict resolution, regression-during-fix-cycle,
-  trusted private-target opt-in, untestable risks, and the
-  PLAN-PARTIAL-on-missing-owner case.
+  trusted private-target opt-in, untestable risks, safe triage of
+  untrusted vulnerability-report artifacts, multi-surface web-app review,
+  and the PLAN-PARTIAL-on-missing-owner case.
 - `nestjs-development/positive-trigger-1.yaml` runs a `program` grader
   that pipes the generated TypeScript through `tsc --noEmit` so syntax
   errors fail the task.

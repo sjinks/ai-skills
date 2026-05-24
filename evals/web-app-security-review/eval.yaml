@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
+name: web-app-security-review-eval
+description: |
+  Evaluates the web-app-security-review skill: it activates for web
+  application security reviews of code, PRs, designs, and vulnerability
+  reports; stays silent on generic code/style or non-web security prompts;
+  preserves safe-use boundaries; covers multi-surface web risks; and emits
+  the skill's required output (verdict, scope, trust map, findings,
+  checklist coverage, focused deep-dive areas, regression tests, and residual
+  risk).
+skill: web-app-security-review
+version: "1.2"
+config:
+  trials_per_task: 2
+  timeout_seconds: 300
+  parallel: true
+  workers: 4
+  executor: copilot-sdk
+  model: claude-sonnet-4.6
+  max_attempts: 2
+metrics:
+  - name: trigger_accuracy
+    weight: 0.30
+    threshold: 0.8
+    description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected mode.
+  - name: skill_invocation
+    weight: 0.15
+    threshold: 0.9
+    description: Skill is invoked on positive tasks that should activate it.
+  - name: task_completion
+    weight: 0.40
+    threshold: 0.8
+    description: Output carries the web-app security review contract and identifies the specific risks the prompt asks about.
+  - name: efficiency
+    weight: 0.15
+    threshold: 0.7
+    description: Stays within tool-call and total-token budgets.
+graders:
+  - type: behavior
+    name: efficiency
+    config:
+      max_tool_calls: 10
+      max_tokens: 12000
+tasks:
+  - "tasks/*.yaml"

@@ -1,0 +1,112 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: PR review for access control and browser security
+description: |
+  A web-app PR review with IDOR, CSRF, CORS, logging, and missing regression
+  coverage signals. This is the canonical broad web security review case.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Security-review this PR for a multi-tenant SaaS app. Return the verdict,
+    scope, trust map, findings, checklist coverage, focused deep-dive areas,
+    regression tests, and residual risk.
+
+    ```ts
+    app.get('/api/projects/:projectId/export', requireLogin, async (req, res) => {
+      const project = await db.project.findUnique({ where: { id: req.params.projectId } });
+      const rows = await db.invoice.findMany({ where: { projectId: project.id } });
+      logger.info({ user: req.user.email, projectId: project.id, rows });
+      res.json({ project, rows });
+    });
+
+    app.post('/api/admin/users/:id/role', requireLogin, async (req, res) => {
+      await db.user.update({ where: { id: req.params.id }, data: { role: req.body.role } });
+      res.sendStatus(204);
+    });
+
+    app.use(cors({ origin: true, credentials: true }));
+    ```
+
+    The frontend calls the role endpoint from a cookie-authenticated admin
+    panel. Tests only cover the happy path for the export endpoint.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/web-app-security-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - web-app-security-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(BLOCK|CONCERNS)"
+        - "(?i)Scope:"
+        - "(?i)Trust map:"
+        - "(?i)Findings:"
+        - "(?i)Checklist coverage:"
+        - "(?i)Focused deep-dive areas:"
+        - "(?i)Regression tests:"
+        - "(?i)Residual risk:"
+        - "(?i)(IDOR|broken access control|cross-tenant|tenant)"
+        - "(?i)(CSRF|cross-site request forgery|state-changing|mutating)"
+        - "(?i)(CORS|credentialed|origin)"
+        - "(?i)(log|logging|PII|sensitive)"
+        - "(?i)(Regression tests|cross-tenant|unauthorized|CSRF)"
+      not_contains:
+        - "Egress policy:"
+        - "Gate decision:"
+        - "Verdict: PLAN-READY"
+        - "ssrf-outbound-fetch-review"
+        - "filesystem-path-safety"
+        - "delegate to"
+        - "Delegate to"
+        - "hand off"
+        - "Hand off"
+        - "handoff"
+        - "Handoff"
+        - "use the SSRF skill"
+        - "Use the SSRF skill"
+        - "use the filesystem skill"
+        - "Use the filesystem skill"
+        - "use the filesystem-path-safety skill"
+        - "Use the filesystem-path-safety skill"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response identifies at least these issues:
+        - Export endpoint fetches by project id without proving tenant or
+          role authorization, creating an IDOR/cross-tenant exposure risk.
+        - Admin role mutation uses only requireLogin and lacks explicit admin
+          authorization.
+        - Cookie-authenticated role mutation needs CSRF protection or an
+          equivalent origin/token defense.
+        - Reflecting credentialed CORS origins is risky unless strictly
+          allowlisted.
+        - Logging invoice rows and user email creates sensitive-data logging
+          risk.
+        A correct response uses the web-app-security-review structure and
+        requires regression tests for unauthorized/cross-tenant/admin/CSRF
+        cases.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

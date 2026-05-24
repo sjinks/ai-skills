@@ -1,0 +1,97 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-005
+name: Non-web security review stays out of scope
+description: |
+  Security review wording is close-domain, but the target is not a web
+  application artifact and should not activate the web-app security review
+  structure.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Please do a security review of this Linux daemon hardening checklist for
+    an offline backup appliance. It has no web UI, no HTTP API, no browser
+    surface, and no web application code. Focus only on systemd unit options,
+    local file permissions, and SSH access policy.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/web-app-security-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Verdict: CLEAN"
+        - "**Verdict:**"
+        - "Verdict -"
+        - "## Verdict"
+        - "### Verdict"
+        - "VERDICT:"
+        - "verdict:"
+        - "Scope:"
+        - "**Scope:**"
+        - "## Scope"
+        - "### Scope"
+        - "SCOPE:"
+        - "Scope -"
+        - "scope:"
+        - "Findings:"
+        - "**Findings:**"
+        - "## Findings"
+        - "### Findings"
+        - "FINDINGS:"
+        - "Findings -"
+        - "findings:"
+        - "Trust map:"
+        - "Trust Map:"
+        - "**Trust map:**"
+        - "## Trust map"
+        - "## Trust Map"
+        - "### Trust map"
+        - "### Trust Map"
+        - "TRUST MAP:"
+        - "Trust map -"
+        - "Checklist coverage:"
+        - "Checklist Coverage:"
+        - "**Checklist coverage:**"
+        - "## Checklist coverage"
+        - "## Checklist Coverage"
+        - "### Checklist coverage"
+        - "### Checklist Coverage"
+        - "CHECKLIST COVERAGE:"
+        - "Checklist coverage -"
+        - "Focused deep-dive areas:"
+        - "Focused Deep-Dive Areas:"
+        - "**Focused deep-dive areas:**"
+        - "## Focused deep-dive areas"
+        - "## Focused Deep-Dive Areas"
+        - "### Focused deep-dive areas"
+        - "### Focused Deep-Dive Areas"
+        - "FOCUSED DEEP-DIVE AREAS:"
+        - "Focused deep-dive areas -"
+        - "Regression tests:"
+        - "Regression Tests:"
+        - "**Regression tests:**"
+        - "## Regression tests"
+        - "## Regression Tests"
+        - "### Regression tests"
+        - "### Regression Tests"
+        - "REGRESSION TESTS:"
+        - "Regression tests -"
+        - "Residual risk:"
+        - "Residual Risk:"
+        - "**Residual risk:**"
+        - "## Residual risk"
+        - "## Residual Risk"
+        - "### Residual risk"
+        - "### Residual Risk"
+        - "RESIDUAL RISK:"
+        - "Residual risk -"

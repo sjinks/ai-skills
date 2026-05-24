@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-005
+name: Clean review with controls and tests
+description: |
+  A small well-scoped artifact with relevant controls and tests may receive a
+  CLEAN or no-material-findings result, while still naming evidence and caveats.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Security-review this small Express route. Return the verdict, scope,
+    trust map, findings, checklist coverage, focused deep-dive areas,
+    regression tests, and residual risk.
+
+    ```ts
+    app.get('/api/me/profile', requireLogin, async (req, res) => {
+      const profile = await db.user.findUnique({
+        where: { id: req.user.id },
+        select: { id: true, displayName: true, timezone: true }
+      });
+      res.set('Cache-Control', 'private, no-store');
+      res.json(profile);
+    });
+    ```
+
+    Existing tests cover unauthenticated rejection, a logged-in user receiving
+    only their own profile, no tenant or role parameter being accepted, no
+    sensitive fields in the JSON response, and the cache-control header.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/web-app-security-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - web-app-security-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*CLEAN"
+        - "(?i)Scope:"
+        - "(?i)Trust map:"
+        - "(?i)Findings:"
+        - "(?i)Checklist coverage:"
+        - "(?i)Focused deep-dive areas:"
+        - "(?i)Regression tests:"
+        - "(?i)Residual risk:"
+        - "(?i)(unauthenticated|own profile|sensitive fields|cache-control|no-store)"
+      not_contains:
+        - "Severity: CRITICAL"
+        - "Severity: HIGH"
+        - "Verdict: PLAN-READY"
+        - "ssrf-outbound-fetch-review"
+        - "filesystem-path-safety"
+        - "delegate to"
+        - "Delegate to"
+        - "hand off"
+        - "Hand off"
+        - "handoff"
+        - "Handoff"
+        - "use the SSRF skill"
+        - "Use the SSRF skill"
+        - "use the filesystem skill"
+        - "Use the filesystem skill"
+        - "use the filesystem-path-safety skill"
+        - "Use the filesystem-path-safety skill"

@@ -1,0 +1,72 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Design review for GraphQL, uploads, webhooks, and OAuth
+description: |
+  A design-level web-app security review touching modern app surfaces beyond
+  classic injection bugs.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this design for web application security risks before we implement
+    it. Return the verdict, scope, trust map, findings, checklist coverage,
+    focused deep-dive areas, regression tests, and residual risk.
+
+    Design: We are adding a partner portal. Partners authenticate with OIDC,
+    then use GraphQL to query customers and invoices. The API supports nested
+    filters, cursor pagination, subscriptions over WebSocket, CSV upload for
+    invoice adjustments, and outbound webhooks to partner URLs. The webhook
+    retry worker signs events with a shared secret. The product team wants
+    CORS enabled for every partner dashboard origin during beta. No rate limit
+    or GraphQL complexity limit is planned yet.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/web-app-security-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - web-app-security-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(BLOCK|CONCERNS)"
+        - "(?i)Scope:"
+        - "(?i)Trust map:"
+        - "(?i)Findings:"
+        - "(?i)Checklist coverage:"
+        - "(?i)Focused deep-dive areas:"
+        - "(?i)Regression tests:"
+        - "(?i)Residual risk:"
+        - "(?i)(GraphQL|resolver|complexity|depth|nested)"
+        - "(?i)(WebSocket|subscription|per-message|upgrade)"
+        - "(?i)(webhook|signature|replay|timestamp|idempotency)"
+        - "(?i)(OIDC|OAuth|issuer|audience|state|nonce)"
+        - "(?i)(upload|CSV|formula|parser|file)"
+        - "(?i)(CORS|origin|allowlist|credential)"
+        - "(?i)(rate limit|quota|DoS|resource)"
+      not_contains:
+        - "Gate decision:"
+        - "Verdict: PLAN-READY"
+        - "ssrf-outbound-fetch-review"
+        - "filesystem-path-safety"
+        - "delegate to"
+        - "Delegate to"
+        - "hand off"
+        - "Hand off"
+        - "handoff"
+        - "Handoff"
+        - "use the SSRF skill"
+        - "Use the SSRF skill"
+        - "use the filesystem skill"
+        - "Use the filesystem skill"
+        - "use the filesystem-path-safety skill"
+        - "Use the filesystem-path-safety skill"
