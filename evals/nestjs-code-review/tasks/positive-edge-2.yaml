@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Catch-and-rethrow typed exceptions as HttpException(500)
+description: |
+  Wrapping NotFoundException into HttpException(message, 500) is the catch-and-rewrap anti-pattern from the skill checklist.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Review this NestJS service method:
+
+    ```ts
+    async findOne(id: string): Promise<User> {
+      try {
+        const user = await this.repo.findById(id);
+        if (!user) throw new NotFoundException(`User ${id} not found`);
+        return user;
+      } catch (err) {
+        throw new HttpException(err.message, 500);
+      }
+    }
+    ```
+
+    What's wrong?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-code-review/SKILL.md
+      mode: positive
+      threshold: 0.5
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - nestjs-code-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(Critical|Warning)"
+        - "(?i)(catch.{0,15}(rethrow|rewrap|wrap)|swallow|lose\\s+stack|loses\\s+the\\s+typed)"
+        - "(?i)(NotFoundException|HttpException.*500)"

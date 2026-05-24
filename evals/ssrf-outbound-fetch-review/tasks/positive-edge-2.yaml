@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Trusted private-target opt-in design
+description: |
+  Designing an explicit, narrowly-scoped opt-in for a single internal callsite is a documented pattern; must not be settable from user-controlled paths.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    We need to fetch a private internal status URL from a SINGLE service-to-service callsite, while keeping all other callsites strict public-only. Design the trusted private-target opt-in. Cover: option name, who is allowed to set it, where the boundary is, and tests proving user-controlled request paths cannot set it.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/ssrf-outbound-fetch-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - ssrf-outbound-fetch-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(allowPrivateAddress|allow_private_address|trusted\\s+(private|internal)\\s+(opt-?in|callsite|target))"
+        - "(?i)(boundary|service-?to-?service|server-?initiated)"
+        - "(?i)(user-?controlled|cannot\\s+set|cannot\\s+smuggle|cannot\\s+toggle)"
+        - "(?i)(Adversarial tests|tests):"

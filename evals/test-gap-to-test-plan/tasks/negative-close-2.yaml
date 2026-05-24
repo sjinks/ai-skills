@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Generic "we need more tests" request
+description: |
+  A generic "improve coverage" request with no findings; not a findings-to-plan conversion. Skill should not activate.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Our coverage report says 62% line coverage on the auth module. Suggest where to add tests to push it past 80%. No specific defects, just coverage uplift.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-gap-to-test-plan/SKILL.md
+      mode: negative
+      threshold: 0.55
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"
+        - "Verdict: BLOCK"
+        - "Test cases:"
+        - "Coverage summary:"
+        - "must-have"
+        - "should-have"
+        - "nice-to-have"

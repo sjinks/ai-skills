@@ -1,0 +1,72 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Adversarial review of a feature spec
+description: Explicit red-team / adversarial review request should trigger the skill.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Please run an adversarial review of the following short spec and report
+    failure modes, edge cases, and risks before we trust it.
+
+    Spec: A new `/exports/:id` endpoint streams a tenant's CSV export to the
+    caller. The export job ID is generated client-side. The endpoint authenticates
+    via a session cookie and looks up the job by ID; if the job exists, it pipes
+    the file from object storage to the response. There is no per-job ACL check.
+    Errors return HTTP 500 with the upstream error string in the body.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/adversarial-review/SKILL.md
+      mode: positive
+      threshold: 0.3
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - adversarial-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(BLOCK|CONCERNS|CLEAN)"
+        - "(?i)Target:"
+        - "(?i)(Findings|Adversarial tests|Residual risk)"
+        - "(?i)(cross-?tenant|IDOR|ownership\\s+check|tenant\\s+isolation|ACL\\s+(check|missing))"
+      not_contains:
+        - "Gate decision:"
+        - "Lenses applied:"
+        - "Egress policy:"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response treats the spec as worth BLOCK-ing rather than
+        CONCERNS. The decisive issue is the missing per-job ACL check combined
+        with a client-generated job ID, which is a cross-tenant IDOR risk that
+        the spec text confirms. The response should:
+        - Reach verdict BLOCK (or argue persuasively that compensating controls
+          downgrade it to CONCERNS — accept either if the cross-tenant risk is
+          named explicitly).
+        - Identify the cross-tenant / IDOR / ownership issue as CRITICAL or HIGH
+          with classification "Confirmed issue".
+        - Mention error-message leakage (HTTP 500 with upstream error string in
+          body) as a separate finding.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

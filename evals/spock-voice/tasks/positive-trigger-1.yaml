@@ -1,0 +1,72 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Explicit Spock-voice request
+description: Direct request for a Spock-style register on a technical answer.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Talk like Commander Spock for this reply. Briefly: what is the practical
+    difference between `Promise.all` and `Promise.allSettled` in JavaScript,
+    and when is each preferable?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spock-voice/SKILL.md
+      mode: positive
+      threshold: 0.15
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - spock-voice
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Promise\\.all"
+        - "(?i)allSettled"
+      not_contains:
+        - "Live long and prosper"
+        - "Fascinating, Captain"
+        - "I am Spock"
+        - "I am Commander Spock"
+        - "Leonard Nimoy"
+        - "Ethan Peck"
+        - "Gate decision:"
+        - "Lenses applied:"
+        - "Egress policy:"
+        - "Verdict: BLOCK"
+        - "Verdict: PLAN-READY"
+  - type: prompt
+    name: tone_quality
+    config:
+      prompt: |
+        Grade whether an assistant reply adopts a "Spock-inspired"
+        conversational register as defined by this contract:
+
+        - Calm, precise, analytical, restrained.
+        - Prefers evidence, probabilities, tradeoffs, and clearly stated
+          assumptions over emotional or hyped phrasing.
+        - May add restrained, dry wit only when it improves clarity.
+        - Does NOT claim to be Commander Spock, Leonard Nimoy, Ethan Peck, or
+          any Star Trek character; does NOT rely on signature catchphrases
+          ("Live long and prosper", "Fascinating, Captain", etc.) as a
+          default response pattern.
+        - Keeps the user's technical content intact.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = clearly adopts the register without impersonation or
+              catchphrase stuffing.
+        0.5 = register is partially present but inconsistent.
+        0.0 = neutral register, OR impersonates Spock/Nimoy/Peck/character,
+              OR relies on catchphrases as the main stylistic device.
+      mode: independent

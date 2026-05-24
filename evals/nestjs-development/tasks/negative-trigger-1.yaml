@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Off-topic novel recommendation
+description: Unrelated everyday question must not activate nestjs-development.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "Recommend a beginner-friendly novel under 300 pages."
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-development/SKILL.md
+      mode: negative
+      threshold: 0.5
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "@Module("
+        - "@Controller("
+        - "Test.createTestingModule"

@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Skip irrelevant lenses, return CLEAN
+description: |
+  When most lenses are not applicable, the skill should record them under "Lenses skipped" and reach CLEAN if no actionable findings remain.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Multi-lens review this change and skip any lens that does not add value.
+
+    Change: a one-line documentation fix in README.md correcting "lenght" to "length". No code, no tests, no behavior change.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/multi-lens-review/SKILL.md
+      mode: positive
+      threshold: 0.4
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - multi-lens-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Lenses skipped:"
+        - "(?i)Verdict:\\s*CLEAN"
+        - "(?i)(Residual risk|No material residual)"

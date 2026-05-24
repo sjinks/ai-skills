@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Compose Auth decorator from JwtAuthGuard + RolesGuard
+description: |
+  Producing a custom `@Auth(...roles)` decorator that composes `@UseGuards` and `@Roles` via `applyDecorators` — a documented idiomatic pattern.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    On NestJS 10 with Passport JWT already configured, write an `@Auth(...roles: Role[])` custom decorator that pairs `JwtAuthGuard` with a `RolesGuard` that reads role metadata. Show the decorator code and one usage example on a controller.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-development/SKILL.md
+      mode: positive
+      threshold: 0.5
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - nestjs-development
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)applyDecorators"
+        - "(?i)(UseGuards.*JwtAuthGuard|JwtAuthGuard.*UseGuards)"
+        - "(?i)(SetMetadata|Reflector|Roles)"
+        - "(?i)@Auth\\("

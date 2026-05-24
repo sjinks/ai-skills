@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Initial review request with no findings yet
+description: |
+  An initial code-review request, not a findings-to-test-plan conversion.
+  test-gap-to-test-plan consumes existing findings; it does not produce them.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Please review this small TypeScript helper and tell me what's wrong with
+    it.
+
+    ```ts
+    export function divide(a: number, b: number): number {
+      return a / b;
+    }
+    ```
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-gap-to-test-plan/SKILL.md
+      mode: negative
+      threshold: 0.55
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"
+        - "Verdict: BLOCK"
+        - "Test cases:"
+        - "Coverage summary:"
+        - "must-have"

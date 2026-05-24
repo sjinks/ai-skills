@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-002
+name: Plain code-explanation request
+description: |
+  A neutral "explain this code" request without red-team framing is not
+  adversarial review; the skill should stay silent.
+tags:
+  - negative-trigger
+inputs:
+  prompt: |
+    Can you explain what this function does, in plain English?
+
+    ```ts
+    function chunk<T>(items: T[], size: number): T[][] {
+      const out: T[][] = [];
+      for (let i = 0; i < items.length; i += size) {
+        out.push(items.slice(i, i + size));
+      }
+      return out;
+    }
+    ```
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/adversarial-review/SKILL.md
+      mode: negative
+      threshold: 0.3
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Adversarial tests:"
+        - "Mitigations / acceptance criteria:"

@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-substance-001
+name: Multi-lens review of a cross-concern change
+description: |
+  A change that spans correctness, security, and verification — the canonical
+  case for multi-lens-review, not a focused single-lens skill.
+tags:
+  - positive-trigger
+  - substance
+inputs:
+  prompt: |
+    Multi-lens review this change. Walk Intent / Spec, Design, Implementation,
+    Security & Privacy, Adversarial, and Verification, then synthesize a single
+    decision with required actions and residual risk.
+
+    Change: A new `POST /api/share` endpoint accepts a `{ url, recipientEmail }`
+    body. The server fetches the URL server-side, takes a screenshot using a
+    headless browser, attaches it to an email, and sends it to the recipient.
+    The URL is validated only against a regex `^https?://`. There are no tests
+    for redirect handling, no rate limit, and the screenshot worker shares an
+    HTTP agent with the rest of the app. The PR description says "internal
+    tool, low risk."
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/multi-lens-review/SKILL.md
+      mode: positive
+      threshold: 0.4
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - multi-lens-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(BLOCK|CONCERNS|CLEAN)"
+        - "(?i)Lenses applied:"
+        - "(?i)(Lens findings|Findings):"
+        - "(?i)(Required actions|Follow-ups|Residual risk):"
+        - "(?i)(security|privacy)"
+        - "(?i)(verification|test)"
+        - "(?i)(SSRF|server-side\\s+request\\s+forgery|private\\s+(IP|address|network)|localhost|metadata\\s+endpoint)"
+      not_contains:
+        - "Gate decision:"
+        - "Egress policy:"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response identifies the SSRF risk as the dominant
+        security concern, names at least one credential/auth-leak risk (the
+        shared HTTP agent), and flags the missing rate limit as a UX/abuse risk
+        under a non-Security lens. A correct response uses several lenses
+        (Security & Privacy + Adversarial + Verification at minimum) and
+        reconciles them in synthesis, NOT just lists problems.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

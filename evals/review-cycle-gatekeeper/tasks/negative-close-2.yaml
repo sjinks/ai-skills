@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Findings list without fix cycle
+description: |
+  Lists review findings but explicitly says "no fix cycle yet" — gatekeeper should defer until after a fix round.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Here are the findings from the first review round. We have NOT started any fix work yet. Don't make a merge decision; just summarise the findings:
+
+    - F-001 (High): missing input validation on /search
+    - F-002 (Medium): N+1 query in OrdersService
+    - F-003 (Low): inconsistent error envelope
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/review-cycle-gatekeeper/SKILL.md
+      mode: negative
+      threshold: 0.4
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Gate decision: pass"
+        - "Gate decision: fail"
+        - "Gate decision: BLOCK"
+        - "Findings matrix:"
+        - "Blockers to clear:"
+        - "owned-with-remediation-plan"
+        - "waived-with-rationale"

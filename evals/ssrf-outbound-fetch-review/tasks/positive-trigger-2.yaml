@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Design an egress allowlist for plugin downloads
+description: |
+  Design / implementation framing for an outbound-fetch egress policy with
+  redirect handling — squarely in skill scope.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Help us design the egress policy and implementation for a plugin
+    downloader. Plugin manifests come from a tenant-controlled registry; the
+    server fetches the zipball over HTTPS, follows up to 5 redirects, and
+    streams the archive to a sandbox extractor. Define the URL parser,
+    scheme, host, port, private-network, DNS, connection-time, proxy,
+    redirect, header, and trusted private-target opt-in policies, and list
+    the adversarial tests we need before this ships.
+
+    Archive extraction is out of scope for this review.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/ssrf-outbound-fetch-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - ssrf-outbound-fetch-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(scheme|host|port).{0,40}(allowlist|policy|polic)"
+        - "(?i)(loopback|link-local|169\\.254|RFC\\s*1918|private\\s+(address|range|network))"
+        - "(?i)(connection-time|preflight|rebinding|all\\s+(A|A/AAAA|address)\\s+(records|answers))"
+        - "(?i)(per-?hop|re-?validation|each\\s+(hop|redirect))"
+        - "(?i)(Adversarial\\s+tests|Checklist\\s+status):"
+      not_contains:
+        - "zip slip"
+        - "zip-slip"
+        - "decompression bomb"
+        - "Lenses applied:"
+        - "Gate decision:"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"

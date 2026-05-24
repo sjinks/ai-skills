@@ -1,0 +1,94 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Scaffold a NestJS feature module
+description: |
+  Build / scaffold a new NestJS feature module, controller, service, and DTO
+  with validation — the canonical nestjs-development case.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Implement a new NestJS `products` feature module on Nest 10 with TypeORM.
+    Requirements:
+
+    - `POST /products` creates a product with `name` (non-empty string, max
+      120 chars), `priceCents` (positive integer), and `sku` (non-empty
+      string).
+    - `GET /products/:id` returns the product or 404.
+    - Validation must happen via DTOs at the edge; controllers must be thin.
+    - Service throws typed exceptions; SKU collisions return 409.
+    - Include a unit test for the service.
+    - Put every TypeScript snippet inside fenced code blocks tagged as `ts`
+      or `typescript`.
+
+    Return the module layout, code for the module, controller, service, DTOs,
+    and one unit test.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-development/SKILL.md
+      mode: positive
+      threshold: 0.5
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - nestjs-development
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)@Module\\("
+        - "(?i)@(Controller|Injectable)\\("
+        - "(?i)(class-validator|@Is(NotEmpty|String|Int|Positive))"
+        - "(?i)(ConflictException|NotFoundException)"
+        - "(?i)(Test\\.createTestingModule|@nestjs/testing)"
+      not_contains:
+        - "synchronize: true"
+        - "new SomeService()"
+        - "any = req.body"
+        - "Lenses applied:"
+        - "Gate decision:"
+        - "Egress policy:"
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response produces:
+        - A feature `ProductsModule` with controller, service, request DTOs, a
+          response DTO, and a unit test.
+        - Class-validator decorators on the request DTO (`@IsNotEmpty`,
+          `@MaxLength(120)`, `@IsInt`, `@Min(1)` or `@IsPositive`).
+        - A thin controller that delegates to the service.
+        - A service that throws `ConflictException` on SKU collision and
+          `NotFoundException` on missing ID.
+        - A unit test using `Test.createTestingModule` with a mocked repository.
+        The response must NOT use `synchronize: true`, hardcoded secrets, or
+        bare `any` on DTO fields.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent
+  - type: program
+    name: ts_parse
+    config:
+      command: bash
+      args:
+        - evals/_helpers/check-ts-parse.sh
+      timeout: 60

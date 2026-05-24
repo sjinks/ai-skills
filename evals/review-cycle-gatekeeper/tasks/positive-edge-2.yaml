@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: BLOCK on findings without severity
+description: |
+  If findings have no severity, the gate rules cannot be applied; the skill must emit BLOCK.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Decide go/no-go for merge.
+
+    Findings:
+    - Something about validation in the search endpoint
+    - N+1 on orders list
+    - Error messages look inconsistent
+
+    Fix cycle: "team handled it". No commit links. No verification evidence linked. Unresolved threads: unknown.
+
+    Return your gate decision.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/review-cycle-gatekeeper/SKILL.md
+      mode: positive
+      threshold: 0.4
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - review-cycle-gatekeeper
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Gate decision:\\s*BLOCK"
+        - "(?i)(missing|insufficient|no\\s+severity|severity\\s+missing|unlinked)"
+        - "(?i)(smallest concrete addition|specific\\s+missing)"

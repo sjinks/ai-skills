@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
+name: nestjs-development-eval
+description: |
+  Evaluates the nestjs-development skill: it activates on build / scaffold /
+  refactor NestJS prompts, stays silent on pure-review prompts (which belong
+  to nestjs-code-review) and unrelated NodeJS questions, is actually
+  invoked when expected (and not when not), and produces idiomatic NestJS
+  code following the skill's architecture principles.
+skill: nestjs-development
+version: "1.1"
+config:
+  trials_per_task: 2
+  timeout_seconds: 300
+  parallel: true
+  workers: 4
+  executor: copilot-sdk
+  model: claude-sonnet-4.6
+  max_attempts: 2
+metrics:
+  - name: trigger_accuracy
+    weight: 0.25
+    threshold: 0.8
+    description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected mode.
+  - name: skill_invocation
+    weight: 0.15
+    threshold: 0.9
+    description: Skill is invoked on positive tasks that should activate it.
+  - name: task_completion
+    weight: 0.35
+    threshold: 0.8
+    description: Output uses idiomatic NestJS patterns and avoids documented anti-patterns.
+  - name: ts_parse
+    weight: 0.10
+    threshold: 0.9
+    description: TypeScript fences in generated code parse with `tsc --noEmit`.
+  - name: efficiency
+    weight: 0.15
+    threshold: 0.7
+    description: Stays within tool-call and total-token budgets.
+graders:
+  - type: behavior
+    name: efficiency
+    config:
+      max_tool_calls: 12
+      max_tokens: 8000
+tasks:
+  - "tasks/*.yaml"

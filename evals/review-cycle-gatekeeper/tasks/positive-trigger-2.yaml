@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Validate waiver quality
+description: |
+  Waiver-validation request — explicit gatekeeper scope.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Is this waiver valid for review-cycle-gatekeeper purposes? Please apply
+    the waiver rules.
+
+    Finding F-007 (High): "Service-to-service mTLS not enforced on the legacy
+    `/v1/internal/*` endpoints."
+
+    Waiver text: "We'll fix it later. Accepted by the team."
+
+    Return the gate decision (pass / fail / BLOCK), the waiver validity
+    judgement, and any blockers to clear.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/review-cycle-gatekeeper/SKILL.md
+      mode: positive
+      threshold: 0.4
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - review-cycle-gatekeeper
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Gate decision:\\s*(fail|BLOCK)"
+        - "(?i)(Waivers|waiver):"
+        - "(?i)(invalid|missing|scope|owner|follow-up|rationale)"
+      not_contains:
+        - "Lenses applied:"
+        - "Egress policy:"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"

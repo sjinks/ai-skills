@@ -1,0 +1,88 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Review of a user-controlled outbound fetch
+description: |
+  Helper that fetches a user-supplied URL with no IP / DNS / redirect /
+  private-network guards — squarely in the SSRF review scope.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this Node 20 helper for SSRF risk. It is called from a webhook
+    handler that accepts a `url` field from authenticated tenants.
+
+    ```ts
+    import { request } from 'undici';
+
+    export async function fetchUserUrl(url: string): Promise<Buffer> {
+      const res = await request(url, { method: 'GET', maxRedirections: 10 });
+      const chunks: Buffer[] = [];
+      for await (const chunk of res.body) {
+        chunks.push(chunk as Buffer);
+      }
+      return Buffer.concat(chunks);
+    }
+    ```
+
+    Tests use `MockAgent`. There is no allowlist, no IP classification, no
+    DNS resolution check, and no redirect re-validation. Return the egress
+    policy, findings, checklist status, adversarial tests, and residual
+    risk.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/ssrf-outbound-fetch-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - ssrf-outbound-fetch-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(Egress policy|Intended behavior):"
+        - "(?i)Findings:"
+        - "(?i)(Checklist status|Adversarial tests|Residual risk):"
+        - "(?i)(169\\.254\\.169\\.254|cloud\\s+metadata|metadata\\s+endpoint)"
+        - "(?i)(rebinding|connection-time|preflight|all\\s+(A|A/AAAA)\\s+(answers|records))"
+        - "(?i)(per-?hop|re-?validation|each\\s+(redirect|hop))"
+        - "(?i)(loopback|link-local|RFC\\s*1918|private\\s+(address|range|network))"
+      not_contains:
+        - "Lenses applied:"
+        - "Gate decision:"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response identifies at least these risks:
+        - No literal-IP / private-network classification before the request.
+        - No DNS lookup OR no fail-closed handling for private/mixed/empty
+          answers.
+        - No re-validation of redirect targets (maxRedirections: 10 is set but
+          redirect targets are not policy-checked).
+        - Cloud-metadata endpoint (169.254.169.254 etc.) is reachable.
+        - Tests using MockAgent do not exercise DNS or socket-level behavior,
+          so security tests are missing.
+        A correct response uses the skill's structured sections (Egress policy,
+        Findings, Adversarial tests, Residual risk).
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

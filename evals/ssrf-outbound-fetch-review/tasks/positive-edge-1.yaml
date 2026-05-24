@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: DNS rebinding via unguarded connect-time lookup
+description: |
+  Review must specifically address the DNS-rebinding / connection-time-lookup mismatch when preflight DNS and HTTP client lookup diverge.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Review this outbound-fetch helper for SSRF risk, with specific attention to DNS rebinding.
+
+    ```ts
+    async function safeFetch(rawUrl: string) {
+      const url = new URL(rawUrl);
+      const ip = await dns.resolve4(url.hostname);
+      if (ip.some(isPrivate)) throw new Error('private target');
+      return fetch(rawUrl); // resolves DNS again at connect time
+    }
+    ```
+
+    Return the egress policy gaps and the adversarial tests needed.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/ssrf-outbound-fetch-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - ssrf-outbound-fetch-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(rebind(ing)?|TOCTOU|time-?of-?check)"
+        - "(?i)(connection-?time|connect-?time|preflight|second\\s+lookup)"
+        - "(?i)(pin|pinned\\s+IP|fixed\\s+IP|dispatcher|agent)"
+        - "(?i)(Egress policy|Findings|Adversarial tests):"

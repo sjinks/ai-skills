@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Plain Node script question
+description: |
+  Plain Node script with no NestJS context. nestjs-development should not
+  activate even though the language is TypeScript-adjacent.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Write a small Node.js script that reads a CSV file from disk, filters rows
+    where the third column is non-empty, and writes the result to a new CSV.
+    No web server, no framework. Just plain Node and `node:fs`.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-development/SKILL.md
+      mode: negative
+      threshold: 0.5
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "@Module("
+        - "@Controller("
+        - "@Injectable("
+        - "ValidationPipe"

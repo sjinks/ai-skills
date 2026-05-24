@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Off-topic temperature conversion
+description: Unrelated everyday question must not activate test-gap-to-test-plan.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "Convert 75 degrees Fahrenheit to Celsius."
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-gap-to-test-plan/SKILL.md
+      mode: negative
+      threshold: 0.55
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"
+        - "Verdict: BLOCK"
+        - "Test cases:"
+        - "Coverage summary:"

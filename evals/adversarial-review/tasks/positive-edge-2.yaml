@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Tightly-reviewed artifact reaches CLEAN
+description: |
+  When the target already has explicit guards, tests, and rollback, a CLEAN verdict with residual caveats is a valid outcome.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Adversarial-review this small change before merge. We want a real verdict.
+
+    Change: add a feature flag `enable_new_ranking` defaulting to `false`. The flag is read once at request boundary via `ConfigService`. A regression test confirms default-off behaviour matches the previous output for 500 fixture inputs. Toggle is reversible without a deploy. Telemetry counts toggled requests.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/adversarial-review/SKILL.md
+      mode: positive
+      threshold: 0.3
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - adversarial-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(CLEAN|CONCERNS)"
+        - "(?i)Residual risk:"
+        - "(?i)(rollback|reversible|feature flag|default)"

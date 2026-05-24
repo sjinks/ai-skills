@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Add a JWT auth guard and decorator
+description: |
+  Add JWT auth surface — guards, custom decorator, ConfigService for secrets,
+  bootstrap wiring — squarely in nestjs-development's scope.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    On a NestJS 10 project, add JWT bearer authentication. Specifically:
+
+    - Add a `JwtAuthGuard` using `passport-jwt` that reads the secret from
+      `ConfigService` (fail-fast if missing).
+    - Add a `@Auth(...roles)` composed decorator that pairs the guard with a
+      roles guard reading metadata.
+    - Show the bootstrap wiring for global pipes and filters in `main.ts`.
+
+    Return the code for the guards, the decorator, the strategy, and the
+    bootstrap diff.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-development/SKILL.md
+      mode: positive
+      threshold: 0.5
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - nestjs-development
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)passport-jwt"
+        - "(?i)(@Injectable|CanActivate|AuthGuard)"
+        - "(?i)ConfigService"
+        - "(?i)(applyDecorators|SetMetadata|UseGuards)"
+      not_contains:
+        - "secret: 'changeme'"
+        - "secret: \"changeme\""
+        - "JWT_SECRET = \""
+        - "Lenses applied:"
+        - "Gate decision:"
+        - "Egress policy:"
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"

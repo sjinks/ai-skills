@@ -1,0 +1,94 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: NestJS controller and guard review
+description: |
+  A NestJS PR touching controllers, guards, DTO validation, and JWT auth —
+  squarely in the skill's scope.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this NestJS pull request. We're on Nest 10, Node 20, TypeORM, and
+    JWT auth via Passport.
+
+    ```ts
+    // users.controller.ts
+    @Controller('users')
+    export class UsersController {
+      constructor(private readonly repo: UserRepository) {}
+
+      @Get(':id')
+      async findOne(@Param('id') id: any, @Req() req: any) {
+        if (!req.headers.authorization) {
+          throw new HttpException('no auth', 401);
+        }
+        return this.repo.findOne(id);
+      }
+
+      @Post()
+      async create(@Body() body: any) {
+        const user = new User();
+        Object.assign(user, body);
+        return this.repo.save(user);
+      }
+    }
+    ```
+
+    Flag the issues by severity (Critical / Warning / Suggestion) with file
+    and line evidence and a concrete fix per finding.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-code-review/SKILL.md
+      mode: positive
+      threshold: 0.5
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - nestjs-code-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Critical"
+        - "(?i)Warning"
+        - "(?i)(Suggestion|Positive observations|Recommendations)"
+        - "(?i)(DTO|class-validator|ValidationPipe|whitelist)"
+        - "(?i)(inline\\s+(auth|authorization)|move\\s+(auth|authentication)\\s+to\\s+(guard|JwtAuthGuard)|use\\s+a\\s+guard|raw\\s+req\\.body|untyped\\s+body)"
+      not_contains:
+        - "Lenses applied:"
+        - "Gate decision:"
+        - "Egress policy:"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response correctly flags at least:
+        - Inline authorization (the `if (!req.headers.authorization)` check
+          belongs in a guard) as Critical or Warning.
+        - Missing DTO/class-validator on POST body (`@Body() body: any` +
+          `Object.assign`) as Critical.
+        - Untyped `id: any` param on GET as Warning.
+        - Returning raw repo result without a response DTO as Warning.
+        A correct response uses severity vocabulary AND points to file/line
+        evidence (the snippet is in-line so "line N of users.controller.ts" is
+        acceptable).
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Fix introduces a new regression
+description: |
+  Per Gate Rule 6, regressions added during the fix cycle are themselves findings.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Apply review-cycle-gatekeeper.
+
+    Finding round 1:
+    - F-101 (High): SQL injection in /search
+
+    Fix cycle:
+    - F-101 marked fixed by commit `def4567` adding parameterised queries. Verification: integration test `search.spec.ts` exercises injection vectors.
+    - The same commit removed pagination headers from /search responses, breaking the `X-Total-Count` contract used by the web client.
+
+    Unresolved threads: none. Return the gate decision.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/review-cycle-gatekeeper/SKILL.md
+      mode: positive
+      threshold: 0.4
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - review-cycle-gatekeeper
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Gate decision:\\s*(pass|fail|BLOCK)"
+        - "(?i)(regression|new\\s+finding|Gate\\s+Rule\\s+6)"
+        - "(?i)(X-Total-Count|pagination|response\\s+contract)"

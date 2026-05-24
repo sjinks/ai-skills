@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Finding only reproducible against production is untestable here
+description: |
+  Findings that can only be exercised against live production must be recorded under Untestable risks with the documented label, not invented test cases.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Turn these findings into a test plan.
+
+    Findings:
+    1. (HIGH) Race condition in payment-capture flow that only reproduces against the live PSP sandbox (third-party). No way to replay it offline.
+    2. (MEDIUM) Empty pagination response returns 200 instead of 204. Local-reproducible.
+
+    Change set: `src/payments/capture.ts`, `src/api/pagination.ts`. Vitest with `unit/`, `integration/`, `e2e/`. Owner: self.
+
+    Return the verdict, test cases, untestable risks, and coverage summary.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-gap-to-test-plan/SKILL.md
+      mode: positive
+      threshold: 0.55
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - test-gap-to-test-plan
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*BLOCK"
+        - "(?i)Untestable risks:"
+        - "(?i)untestable-at-this-layer"
+        - "(?i)Coverage summary:"

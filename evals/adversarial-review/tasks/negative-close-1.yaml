@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Code-quality / linting suggestion request
+description: |
+  Asks for general code-quality improvements and linting suggestions on a small utility — a review framing, but not a red-team / failure-mode framing. Adversarial-review should not activate.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Look over this small utility and suggest code-quality improvements or lint-style cleanups. I am not asking about failure modes or edge cases — just whether the code is tidy and easy to read.
+
+    ```js
+    function chunk(arr, size) {
+      var out = [];
+      for (var i = 0; i < arr.length; i = i + size) {
+        out.push(arr.slice(i, i + size));
+      }
+      return out;
+    }
+    module.exports = chunk;
+    ```
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/adversarial-review/SKILL.md
+      mode: negative
+      threshold: 0.3
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Verdict: CLEAN"
+        - "Adversarial tests:"
+        - "Mitigations / acceptance criteria:"
+        - "Failure modes:"
+        - "Residual risk:"
