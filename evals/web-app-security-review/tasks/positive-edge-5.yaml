@@ -10,8 +10,8 @@ tags:
 inputs:
   prompt: |
     Security-review this small Express route. Return the verdict, scope,
-    findings, checklist coverage, focused deep-dive areas, regression tests,
-    and residual risk.
+    trust map, findings, checklist coverage, focused deep-dive areas,
+    regression tests, and residual risk.
 
     ```ts
     app.get('/api/me/profile', requireLogin, async (req, res) => {
