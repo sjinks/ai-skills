@@ -104,9 +104,10 @@ Every applicable item must be answered "yes, anchored at <file>:<line>" or "N/A 
 1. Identify the trusted root, external-input surface, and operation kind from the target. If unclear, switch to insufficient-context mode (Output Format) and stop.
 2. Walk the checklist top to bottom (A -> F). For each item, find an anchor in the target or mark it as a finding.
 3. For each finding, classify using this local vocabulary:
-  - Confirmed: evidence in code or diff directly shows the guard is missing or broken.
-  - Likely: strong signal exists, but one dependency or caller context is not fully visible.
+  - Confirmed issue: evidence in code or diff directly shows the guard is missing or broken.
+  - Likely risk: strong signal exists, but one dependency or caller context is not fully visible.
   - Open question: required context is missing; no safe conclusion yet.
+  - Accepted tradeoff: the gap is real but the project has documented a deviation with an explicit owner and rationale; record the gap, do not re-litigate it.
   - Test gap: control may exist, but tests do not cover a required failure mode.
 4. Map severity using this local rubric:
   - CRITICAL: externally reachable path operation can lead to traversal, symlink-follow, destructive mutation, or persistent cross-tenant impact.
@@ -119,7 +120,7 @@ Every applicable item must be answered "yes, anchored at <file>:<line>" or "N/A 
   - F1-F3 -> MEDIUM (test-gap class).
   - Severity may be adjusted up or down by one level based on external reachability, privilege boundary crossing, operation destructiveness, and verifiable compensating controls.
 5. Map findings to the overall verdict:
-  - BLOCK: any Confirmed CRITICAL finding, any HIGH finding without a documented compensating control or owner-accepted tradeoff, OR insufficient-context mode (required context cannot be established).
+  - BLOCK: any Confirmed-issue CRITICAL finding, any HIGH finding without a documented compensating control or owner-accepted tradeoff, OR insufficient-context mode (required context cannot be established).
   - CONCERNS: HIGH or MEDIUM findings remain but each is either non-externally-reachable, has a documented compensating control, or is owner-accepted.
   - CLEAN: every applicable item is anchored AND F3 regression coverage exists per applicable A-E gate. (See also the existing CLEAN constraint at the end of Output Format.)
 6. Deduplicate findings — if the same missing helper triggers multiple checklist items, file one finding with the full list of failing item IDs.
@@ -141,7 +142,7 @@ Findings:
   Anchor: <file:line> or "no anchor; missing from target"
   Category: Input validation | Trusted-root handling | Walk and gate | Mutating operation | Resource ordering | Tests
   Severity: CRITICAL | HIGH | MEDIUM | LOW
-  Classification: Confirmed | Likely | Open question | Test gap
+  Classification: Confirmed issue | Likely risk | Open question | Accepted tradeoff | Test gap
   Trigger: <one-sentence concrete scenario>
   Risk: <what an attacker, a planted symlink, or a race wins>
   Required guard: <the specific check or pattern the checklist names>
