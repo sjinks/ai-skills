@@ -95,7 +95,7 @@ reasonable.
 The suites also include the following beyond the baseline trigger / output
 checks:
 
-- Two close-domain negative tasks per skill so a single close-domain bias
+- At least two close-domain negative tasks per skill so a single close-domain bias
   does not silently pass.
 - LLM-judge `task_completion_substance` graders on representative
   positive tasks across suites. They score 1.0 / 0.5 / 0.0
@@ -104,9 +104,10 @@ checks:
 - Edge-case positives (`positive-edge-*.yaml`) per skill covering the
   documented "hard" behaviors — BLOCK on insufficient input, CLEAN
   verdicts, lens conflict resolution, regression-during-fix-cycle,
-  trusted private-target opt-in, untestable risks, safe triage of
-  untrusted vulnerability-report artifacts, multi-surface web-app review,
-  and the PLAN-PARTIAL-on-missing-owner case.
+  trusted private-target opt-in, untestable risks, the
+  PLAN-PARTIAL-on-missing-owner case, untrusted vulnerability-report
+  triage boundaries, multi-surface web-app review, and narrow-skill
+  handoff from broad web security review.
 - `nestjs-development/positive-trigger-1.yaml` runs a `program` grader
   that pipes the generated TypeScript through `tsc --noEmit` so syntax
   errors fail the task.
