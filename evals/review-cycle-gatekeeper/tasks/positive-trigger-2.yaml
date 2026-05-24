@@ -36,7 +36,7 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - "(?i)Gate decision:\\s*(pass|fail|BLOCK)"
+        - "(?i)Gate decision:\\s*(fail|BLOCK)"
         - "(?i)(Waivers|waiver):"
         - "(?i)(invalid|missing|scope|owner|follow-up|rationale)"
       not_contains:

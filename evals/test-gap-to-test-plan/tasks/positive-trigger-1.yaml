@@ -46,7 +46,7 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - "(?i)Verdict:\\s*(BLOCK|PLAN-READY|PLAN-PARTIAL)"
+        - "(?i)Verdict:\\s*(PLAN-READY|PLAN-PARTIAL)"
         - "(?i)Test cases:"
         - "(?i)(Coverage summary|Handoff):"
         - "(?i)(must-have|should-have|nice-to-have)"

@@ -36,7 +36,7 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - "(?i)Verdict:\\s*(PLAN-READY|PLAN-PARTIAL)"
+        - "(?i)Verdict:\\s*BLOCK"
         - "(?i)Untestable risks:"
         - "(?i)untestable-at-this-layer"
         - "(?i)Coverage summary:"

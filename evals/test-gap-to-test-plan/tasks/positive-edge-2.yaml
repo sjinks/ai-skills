@@ -35,6 +35,6 @@ graders:
     config:
       regex_match:
         - "(?i)Verdict:\\s*PLAN-PARTIAL"
-        - "(?i)(Owner|missing\\s+owner|no\\s+owner)"
+        - "(?i)(missing\\s+owner|no\\s+owner|owner:\\s*(none|unassigned|tbd|missing))"
         - "(?i)must-have"
         - "(?i)Coverage summary:"
