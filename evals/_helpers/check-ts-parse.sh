@@ -32,13 +32,13 @@ fi
 # Prepend `// @ts-nocheck` so the compiler skips semantic checks and only
 # surfaces syntax errors.
 echo "$OUTPUT" | awk '
-  /^```(ts|typescript)\s*$/ {
+    /^```(ts|typescript)[[:space:]]*$/ {
     fence=1; n++;
     out=sprintf("'"$WORKDIR"'/snippet_%02d.ts", n);
     print "// @ts-nocheck" > out;
     next
   }
-  /^```\s*$/ { fence=0; next }
+    /^```[[:space:]]*$/ { fence=0; next }
   fence { print > out }
 '
 

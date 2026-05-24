@@ -15,7 +15,7 @@ Evaluation suites for the skills in this repository, in
 - `tasks/negative-trigger-*.yaml` — off-topic prompts that must not
   activate the skill. Each suite uses a different off-topic prompt so a
   single shared bias does not silently pass everywhere.
-- `tasks/negative-close-*.yaml` (some suites) — close-domain prompts that
+- `tasks/negative-close-*.yaml` — close-domain prompts that
   look like the skill's target but should still not activate it (e.g. a
   single-lens CSS question for `multi-lens-review`).
 
@@ -45,7 +45,7 @@ grader weighting takes effect.
   - `test-gap-to-test-plan`: 0.55
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks
   only) — requires the named skill via `required_skills` with
-  `mode: any_order`. The waza CLI release in CI (`v0.33.0`) defines
+  `mode: any_order`. The currently released waza CLI (`v0.33.0`) defines
   `skill_invocation` graders as positive-only: they require at least
   one `required_skills` entry and have no "forbidden" mode. Negative
   tasks therefore omit the `skill_invocation` grader entirely;
@@ -73,7 +73,7 @@ grader weighting takes effect.
 
 Upstream waza supports `config.inject_skill_body: false` in `eval.yaml`
 to suppress pasting the SKILL.md body into the agent's system prompt
-during trigger-precision evals. The waza CLI release we run against
+during trigger-precision evals. The currently released waza CLI
 (`v0.33.0`) ships an older bundled YAML schema that rejects the field
 at parse time, so it is intentionally omitted from these eval specs.
 Negative-trigger tasks therefore see the SKILL.md body in the system

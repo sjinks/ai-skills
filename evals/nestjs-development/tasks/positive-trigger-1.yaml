@@ -18,6 +18,8 @@ inputs:
     - Validation must happen via DTOs at the edge; controllers must be thin.
     - Service throws typed exceptions; SKU collisions return 409.
     - Include a unit test for the service.
+    - Put every TypeScript snippet inside fenced code blocks tagged as `ts`
+      or `typescript`.
 
     Return the module layout, code for the module, controller, service, DTOs,
     and one unit test.
