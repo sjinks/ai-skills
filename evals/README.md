@@ -22,8 +22,8 @@ Evaluation suites for the skills in this repository, in
 ## Grader Design
 
 Each task has a baseline set of task-level graders plus one eval-level
-`efficiency` grader. Positive tasks add `skill_invocation`; one
-representative positive per skill adds `task_completion_substance`;
+`efficiency` grader. Positive tasks add `skill_invocation`; seven
+representative positives add `task_completion_substance`;
 `spock-voice` positives add `tone_quality`; and
 `nestjs-development/positive-trigger-1.yaml` adds the `ts_parse`
 `program` grader. Grader names match metric names so `waza`'s metric →
