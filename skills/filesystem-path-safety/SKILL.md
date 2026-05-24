@@ -17,6 +17,7 @@ Run this skill against a target when its diff or current text matches any of:
 - Use of a scratch or working directory shared across tenants, jobs, or requests (for example a system temp dir or shared volume).
 - A symlink/realpath-aware validator that decides whether a path is "inside" a trusted root.
 - Any mkdir, mkdtemp, open, write, rename, symlink, unlink, delete, or shell-out operation whose target argument is the constructed path.
+- A design or implementation request for a component that will turn external input into filesystem paths under a trusted root; the checklist also doubles as the design contract.
 - An auditor or reviewer is responding to a finding in this class and wants to verify the fix covers the rest of the surface, not just the reported site.
 
 Do NOT use this skill for:
@@ -25,6 +26,7 @@ Do NOT use this skill for:
 - Code where the path is generated entirely by a known-safe hashing function with no user-controlled segment.
 - Static or hardcoded paths with no external input.
 - Broader concerns outside path handling (auth, secrets, SQL injection, deserialization).
+- Archive-entry name validation (ZIP-slip / TAR-slip). That is a separate bug class — this skill audits the scratch-directory writer that hosts the extracted files, not the entry-name validation in the extractor itself.
 
 ## Boundaries
 
@@ -38,13 +40,13 @@ Do NOT use this skill for:
 Before judging, the invoking agent must establish:
 
 1. **Target.** File path(s) or diff hunk(s) under review.
-2. **Trusted root.** The directory the target claims to confine paths within (for example a temp root, configured work directory, or mounted volume). If the target does not declare one, the first finding is trusted-root-undeclared.
-3. **External-input surface.** Which fields flow into the path (for example tenant id, branch name, filename, archive entry, request parameter). If the surface is unclear from the diff and immediate callers, the first finding is external-input-surface-undeclared.
+2. **Trusted root.** The directory the target claims to confine paths within (for example a temp root, configured work directory, or mounted volume). If the target does not declare one, this triggers insufficient-context mode; use the label `trusted-root-undeclared` as the Trigger value of the single Open question finding.
+3. **External-input surface.** Which fields flow into the path (for example tenant id, branch name, filename, request parameter). If the surface is unclear from the diff and immediate callers, this triggers insufficient-context mode; use the label `external-input-surface-undeclared` as the Trigger value.
 4. **Operation kind.** Read, create, mutate, delete, or several. Each has different required guards (see Checklist sections C–D).
 
 If any of these four are missing and cannot be inferred from the target with confidence, emit a single Open question finding naming what is missing and stop. Do not guess. A guessed trusted root or input surface produces guessed findings.
 
-Insufficient-context mode: when required context is missing, emit exactly one `Open question` finding using the insufficient-context template in Output Format and stop; do not emit checklist evidence, checklist coverage counts (A-F), cross-cutting recommendations, or residual risk in this mode.
+Insufficient-context mode: when required context is missing, emit `Verdict: BLOCK` with exactly one `Open question` finding using the insufficient-context template in Output Format and stop; do not emit checklist evidence, checklist coverage counts (A-F), cross-cutting recommendations, or residual risk in this mode.
 
 ## The Checklist
 
@@ -52,9 +54,9 @@ Every applicable item must be answered "yes, anchored at <file>:<line>" or "N/A 
 
 ### A. Input validation at the trust boundary
 
-- **A1. Whitelist regex per component.** Each segment that comes from external input passes a positive-match pattern, not a blocklist. Multi-segment inputs are split on the separator and each subsegment validated.
-- **A2. Length bound.** Each segment has a maximum length (`255` is a sensible filesystem-derived ceiling).
-- **A3. No leading `-`.** No segment starts with `-`. This blocks downstream CLI flag injection into `git`, `tar`, `rsync`, `find`, `cp`, and any other shelled-out tool.
+- **A1. Whitelist regex per component.** Each segment that comes from external input passes a positive-match pattern, not a blocklist. Multi-segment inputs are split on every path separator valid on the target platform (`/` on POSIX; `/` and `\` on Windows-cross-compatible inputs) and each subsegment validated. Apply the regex after Unicode NFC normalization.
+- **A2. Length bound.** Each segment has a maximum length (`255` (UTF-8 byte length, matching the typical POSIX `NAME_MAX`; specify the unit explicitly when documenting your validator) is a sensible filesystem-derived ceiling).
+- **A3. No leading `-`.** No segment starts with `-` or `+`, and no segment contains NUL, newline, or tab. Mark N/A when the code performs no shell-out and the path is consumed only by syscalls. CLI-argument-injection defense additionally requires spawn-array invocation (not a shell string) and `--` end-of-options separator before user input.
 - **A4. No `.` or `..` segments.** Reject after splitting, not before; a value like `feature/../escape` must fail at the subsegment check.
 - **A5. Type and emptiness check.** External input is a string, non-empty, and not coerced from `null`/`undefined`/a number that stringifies into a path.
 - **A6. Validation runs before any cache key, lock key, hash, or shared-resource computation derived from the same input.** If a derived key computed from untrusted input precedes validation, a malformed input can churn shared state before being rejected.
@@ -63,20 +65,21 @@ Every applicable item must be answered "yes, anchored at <file>:<line>" or "N/A 
 
 - **B1. realpath once, store once.** The trusted root is canonicalized at the boundary (see appendix for language equivalents) and the canonical value is what every subsequent check compares against. Avoid unnecessary re-canonicalization; if canonicalization is repeated per operation, ensure consistent semantics and document why.
 - **B2. The root is a real directory.** `lstat(root)` rejects symlinks and non-directories. The root being a symlink is a deployment misconfiguration that should fail loud, not silently follow.
-- **B3. Containment uses platform-aware canonical path semantics.** Compare canonical target and canonical root using the platform's path model (separator rules, case sensitivity, volume/device boundaries, normalization behavior) so containment cannot be bypassed by representation differences. In environments where string-prefix checks are known-safe with canonicalized inputs and explicit separator handling, an example is `resolved_target === resolved_root || resolved_target.startsWith(resolved_root + sep)`. Comparing unresolved and resolved forms is rejected. A parent of `/tmp/repos/Acme/repo` must not match `/tmp/repos/Acme/repo-EVIL`.
+- **B3. Containment uses platform-aware canonical path semantics.** Compare canonical target and canonical root using the platform's path model (separator rules, case sensitivity, volume/device boundaries, normalization behavior) so containment cannot be bypassed by representation differences. In environments where string-prefix checks are known-safe with canonicalized inputs and explicit separator handling, an example is `resolved_target === resolved_root || resolved_target.startsWith(resolved_root + sep)` (pseudo-code; see the Language Appendix Node/TS row for the exact JS idiom). On case-insensitive filesystems (APFS default, NTFS), compare case-folded canonical forms. On macOS, normalize both target and root to a single Unicode form (NFC or NFD) before string compare. The `===`/`startsWith` form above is correct only on Linux ext4/xfs. Comparing unresolved and resolved forms is rejected. A parent of `/tmp/repos/Acme/repo` must not match `/tmp/repos/Acme/repo-EVIL`.
 
 ### C. Walk and gate
 
 - **C1. Per-component walk.** Containment is enforced not just on the final path, but on every component from root → target. Each component is `lstat`ed at least once per validation pass. Re-validation passes required by D4/E2 are expected to repeat these checks immediately before mutation.
 - **C2. Reject links at path components regardless of target reachability.** A link-type component is rejected without resolving its target (for example, a symlink/reparse-point check in environments that expose it). Dangling links must be rejected, not skipped via an existence-check guard.
 - **C3. Reject non-directory existing components.** Regular files, devices, sockets, FIFOs at an intermediate segment must be rejected. Without this, the next iteration's `lstat` on a joined child throws raw `ENOTDIR` and breaks the error contract.
-- **C4. Map filesystem failure classes to the public contract.** Missing-component errors are treated as "not yet existing, continue." Non-directory-intermediate errors are mapped to the documented `invalid_*_path` (or equivalent) error. Permission-denied and link-resolution-loop failures are mapped explicitly. Raw OS-specific error details must not leak out of the validator.
+- **C4. Map filesystem failure classes to the public contract.** Missing-component errors are treated as "not yet existing, continue." Non-directory-intermediate errors are mapped to the validator's documented invalid-path error class. Permission-denied and link-resolution-loop failures are mapped explicitly. Raw OS-specific error details must not leak out of the validator.
+- **C5. Hardlink at the leaf.** `lstat` cannot distinguish a hardlink to an outside-root inode from a regular file under the trusted root. For **create**, use `O_CREAT | O_EXCL` (or the platform equivalent) so a planted leaf fails the create. For **mutate or delete** on an existing leaf, open the leaf via anchor-relative ops (`openat` / `dir_fd=fd`) against a fd opened on the canonical parent directory — do not re-traverse the leaf by name. Where the operation reads or exposes file contents, optionally compare `(st_dev, st_ino)` against an explicit deny-list. Where the trusted root resides on a filesystem the runtime user cannot create hardlinks into (e.g. tmpfs-per-tenant, dedicated mount), this item may be marked N/A with the mount/policy as the compensating control.
 
-### D. Mutating operations (when applicable)
+### D. Open and mutation guards (apply per operation kind)
 
 - **D1. No recursive parent creation on user-derived paths.** Recursive create can follow links at intermediate segments. Use per-segment directory creation (without recursive mode) plus per-segment no-follow metadata checks instead. Tolerate "already exists" only when the existing segment is verified as a real directory, not a link.
-- **D2. No-follow open flag (or equivalent) where supported.** When opening an existing or new file under the trusted root, use a symlink-refusing flag. On platforms lacking this guard, document the platform limitation and compensating controls.
-- **D3. Atomic-rename pattern for writes.** If a new file is being written, write to a sibling temp name under the same realpathed parent and `rename` into place. Do not write through a path that crosses an intermediate component an attacker could swap.
+- **D2. No-follow open flag (or equivalent) where supported.** When opening an existing or new file under the trusted root, use a symlink-refusing flag. On Linux, `O_NOFOLLOW` only refuses the final pathname component — intermediate-component protection still relies on C1's per-component walk (or `openat` from a fd opened on an already-validated directory). On platforms lacking this guard, document the platform limitation and compensating controls. D2 applies to both read and write opens — opening an existing file for read can follow a symlink just as easily as opening for write.
+- **D3. Atomic-rename pattern for writes.** If a new file is being written, write to a sibling temp name under the same realpathed parent and `rename` into place. Do not write through a path that crosses an intermediate component an attacker could swap. Use an unguessable temp name (e.g. random suffix or `mkstemp`-family) created with `O_CREAT | O_EXCL | O_NOFOLLOW`, not a fixed `.tmp` suffix.
 - **D4. No chmod/chown/unlink/delete via a path that has not been re-validated immediately before the call.** For especially sensitive deletes, prefer anchor-relative operations (openat/unlinkat family) where the language exposes them.
 
 ### E. Resource ordering
@@ -89,7 +92,7 @@ Every applicable item must be answered "yes, anchored at <file>:<line>" or "N/A 
 
 - **F1. Per-test isolated temp dir.** Use a per-test isolated temp directory, not a shared fixed-name temp path. Parallel test runners make shared paths race-prone.
 - **F2. Time-dependent path segments use a frozen clock.** If the constructed path includes date-based segments, tests freeze time so production code and assertions compute the same value.
-- **F3. Coverage for each applicable gate.** At minimum one regression test for each of: symlink at path component (C2), dangling symlink (C2), regular-file intermediate component (C3), planted symlink between validation and mutation (D1+E2), asymmetric branch gating (E3), and lock-not-held-on-throw (E1). Tests that only cover happy paths or simple ".." traversal do not satisfy this item.
+- **F3. Coverage for each applicable gate.** At minimum one regression test per applicable A–E gate, including: traversal attempt via `..` segment (A4), root configured as a symlink (B2), symlink at path component (C2), dangling symlink (C2), regular-file intermediate component (C3), leaf-hardlink-to-outside-root (C5), planted symlink between validation and mutation (D1+E2), asymmetric branch gating (E3), and lock-not-held-on-throw (E1). Tests that only cover happy paths or simple ".." traversal do not satisfy this item.
 
 ## Procedure
 
@@ -106,14 +109,18 @@ Every applicable item must be answered "yes, anchored at <file>:<line>" or "N/A 
   - MEDIUM: meaningful robustness or safety weakness, usually around incomplete hardening or missing regression coverage.
   - LOW: clarity, maintainability, or defensive-hardening gap with limited direct impact.
   Default mapping:
-  - C2, C3, D1, D2, E1, E3 -> CRITICAL when externally reachable with no compensating control; otherwise HIGH.
+  - C2, C3, C5, D1, D2, E1, E3 -> CRITICAL when externally reachable with no compensating control; otherwise HIGH.
   - A1-A6, B1-B3, C1, C4, D3, D4, E2 -> HIGH unless a compensating control is documented and verifiable.
   - F1-F3 -> MEDIUM (test-gap class).
   - Severity may be adjusted up or down by one level based on external reachability, privilege boundary crossing, operation destructiveness, and verifiable compensating controls.
-5. Deduplicate findings — if the same missing helper triggers multiple checklist items, file one finding with the full list of failing item IDs.
-6. Emit findings in the Output Format below.
+5. Map findings to the overall verdict:
+  - BLOCK: any Confirmed CRITICAL finding, any HIGH finding without a documented compensating control or owner-accepted tradeoff, OR insufficient-context mode (required context cannot be established).
+  - CONCERNS: HIGH or MEDIUM findings remain but each is either non-externally-reachable, has a documented compensating control, or is owner-accepted.
+  - CLEAN: every applicable item is anchored AND F3 regression coverage exists per applicable A-E gate. (See also the existing CLEAN constraint at the end of Output Format.)
+6. Deduplicate findings — if the same missing helper triggers multiple checklist items, file one finding with the full list of failing item IDs.
+7. Emit findings in the Output Format below.
 
-Insufficient-context mode output rule: when step 1 cannot establish required context with confidence, emit exactly one `Open question` finding using the insufficient-context template and stop; skip checklist evidence, the A-F coverage summary, cross-cutting recommendations, and residual risk.
+Insufficient-context mode output rule: when step 1 cannot establish required context with confidence, emit `Verdict: BLOCK` with exactly one `Open question` finding using the insufficient-context template and stop; skip checklist evidence, the A-F coverage summary, cross-cutting recommendations, and residual risk.
 
 ## Output Format
 
@@ -154,7 +161,7 @@ Residual risk: <e.g. filesystem-level TOCTOU between consecutive lstat checks re
 Insufficient-context mode template (deterministic):
 
 ```text
-Verdict: CONCERNS
+Verdict: BLOCK
 Target: <file or diff>
 
 Findings:
@@ -171,22 +178,22 @@ Findings:
 
 In insufficient-context mode, do not emit checklist evidence, coverage summary, cross-cutting recommendations, or residual risk.
 
-`CLEAN` is permitted when every applicable item has an anchor and at least one regression test per applicable gate exists.
+`CLEAN` is permitted when every applicable item has an anchor and at least one regression test per applicable A-E gate exists.
 
 ## Language Appendix
 
 The checklist is language-agnostic. The table below presents common equivalents across languages as peers.
 
-| Concern | Node / TypeScript | Python | Go | Rust | C | C++ |
-| --- | --- | --- | --- | --- | --- | --- |
-| Canonicalize root | `fs.realpathSync` / `fs.promises.realpath` | `os.path.realpath` | `filepath.EvalSymlinks` | `std::fs::canonicalize` | `realpath(3)` | `std::filesystem::canonical` |
-| `lstat` (no follow) | `fs.lstatSync` / `fs.promises.lstat` | `os.lstat` | `os.Lstat` | `std::fs::symlink_metadata` | `lstat(2)` | `::lstat` (POSIX) / `std::filesystem::symlink_status` |
-| Symlink check | `stats.isSymbolicLink()` | `stat.S_ISLNK(st_mode)` | `mode & fs.ModeSymlink != 0` | `metadata.file_type().is_symlink()` | `S_ISLNK(st.st_mode)` | `std::filesystem::is_symlink(std::filesystem::symlink_status(p))` |
-| Directory check | `stats.isDirectory()` | `stat.S_ISDIR(st_mode)` | `info.IsDir()` | `metadata.is_dir()` | `S_ISDIR(st.st_mode)` | `std::filesystem::is_directory(std::filesystem::symlink_status(p))` |
-| Open without follow | `fs.openSync(p, fs.constants.O_RDWR \| fs.constants.O_NOFOLLOW)` | `os.open(..., os.O_NOFOLLOW)` | `unix.O_NOFOLLOW` | `OpenOptions::custom_flags(libc::O_NOFOLLOW)` | `open(path, flags \| O_NOFOLLOW, mode)` | `::open(path.c_str(), flags \| O_NOFOLLOW, mode)` |
-| Non-recursive mkdir | `fs.mkdirSync(p)` (no `recursive`) | `os.mkdir(p)` | `os.Mkdir(p, mode)` | `std::fs::create_dir(p)` | `mkdir(path, mode)` | `std::filesystem::create_directory` |
-| Per-job temp dir | `fs.mkdtempSync(prefix)` | `tempfile.mkdtemp(prefix=)` | `os.MkdirTemp(dir, prefix)` | `tempfile::TempDir::new_in` | `mkdtemp(template)` | `mkdtemp` via wrapper / `std::filesystem::temp_directory_path` + unique suffix |
-| Anchor-relative ops | n/a (no `*at` in stdlib) | `os.openat`, `os.mkdirat`, `os.unlinkat` | `unix.Openat`, `unix.Mkdirat`, `unix.Unlinkat` | `openat` crate | `openat`, `mkdirat`, `unlinkat` | `::openat`, `::mkdirat`, `::unlinkat` |
+| Concern | Node / TypeScript | Python | Go | Rust | C | C++ | Windows (Win32 / .NET) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Canonicalize root | `fs.realpathSync` / `fs.promises.realpath` | `os.path.realpath` | `filepath.EvalSymlinks` | `std::fs::canonicalize` | `realpath(3)` | `std::filesystem::canonical` | `GetFinalPathNameByHandle` / `Path.GetFullPath` |
+| `lstat` (no follow) | `fs.lstatSync` / `fs.promises.lstat` | `os.lstat` | `os.Lstat` | `std::fs::symlink_metadata` | `lstat(2)` | `::lstat` (POSIX) / `std::filesystem::symlink_status` | `GetFileAttributesExW` (check `FILE_ATTRIBUTE_REPARSE_POINT`) / `File.GetAttributes` |
+| Symlink check | `stats.isSymbolicLink()` | `stat.S_ISLNK(st_mode)` | `mode & fs.ModeSymlink != 0` | `metadata.file_type().is_symlink()` | `S_ISLNK(st.st_mode)` | `std::filesystem::is_symlink(std::filesystem::symlink_status(p))` | `attr & FILE_ATTRIBUTE_REPARSE_POINT != 0` |
+| Directory check | `stats.isDirectory()` | `stat.S_ISDIR(st_mode)` | `info.IsDir()` | `metadata.is_dir()` | `S_ISDIR(st.st_mode)` | `std::filesystem::is_directory(std::filesystem::symlink_status(p))` | `attr & FILE_ATTRIBUTE_DIRECTORY != 0` |
+| Open without follow | `fs.openSync(p, fs.constants.O_RDWR \| fs.constants.O_NOFOLLOW)` | `os.open(..., os.O_NOFOLLOW)` | `unix.O_NOFOLLOW` | `OpenOptions::custom_flags(libc::O_NOFOLLOW)` | `open(path, flags \| O_NOFOLLOW, mode)` | `::open(path.c_str(), flags \| O_NOFOLLOW, mode)` | `CreateFileW` with `FILE_FLAG_OPEN_REPARSE_POINT` |
+| Non-recursive mkdir | `fs.mkdirSync(p)` (no `recursive`) | `os.mkdir(p)` | `os.Mkdir(p, mode)` | `std::fs::create_dir(p)` | `mkdir(path, mode)` | `std::filesystem::create_directory` | `CreateDirectoryW` |
+| Per-job temp dir | `fs.mkdtempSync(prefix)` | `tempfile.mkdtemp(prefix=)` | `os.MkdirTemp(dir, prefix)` | `tempfile::TempDir::new_in` | `mkdtemp(template)` | `mkdtemp` via wrapper / `std::filesystem::temp_directory_path` + unique suffix | `GetTempPathW` + `CreateDirectoryW` with unique suffix |
+| Anchor-relative ops | n/a (no `*at` in stdlib) | `os.open(..., dir_fd=fd)`, `os.mkdir(..., dir_fd=fd)`, `os.unlink(..., dir_fd=fd)` (see `os.supports_dir_fd`) | `unix.Openat`, `unix.Mkdirat`, `unix.Unlinkat` | `openat` crate | `openat`, `mkdirat`, `unlinkat` | `::openat`, `::mkdirat`, `::unlinkat` | n/a (no `*at` family on Win32) |
 
 ## Anti-Patterns
 

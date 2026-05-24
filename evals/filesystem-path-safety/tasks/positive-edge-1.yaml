@@ -4,7 +4,7 @@ name: Insufficient-context mode on a bare path question
 description: |
   A short prompt that omits the trusted root and the external-input
   surface. The skill must enter insufficient-context mode: a single
-  `Open question` finding (severity LOW), a `Verdict: CONCERNS`, and NO
+  `Open question` finding (severity LOW), a `Verdict: BLOCK`, and NO
   checklist evidence / coverage summary / cross-cutting recommendations /
   residual risk sections.
 tags:
@@ -41,7 +41,7 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - "(?i)Verdict:\\s*CONCERNS"
+        - "(?i)Verdict:\\s*BLOCK"
         - "(?i)Open question"
         - "(?i)(trusted root|external[-\\s]?input|operation kind).{0,60}(missing|undeclared|unknown|not\\s+(declared|specified|provided))"
       not_contains:
