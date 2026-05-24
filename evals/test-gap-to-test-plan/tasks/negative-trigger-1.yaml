@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/main/schemas/task.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 id: negative-trigger-001
 name: Off-topic temperature conversion
 description: Unrelated everyday question must not activate test-gap-to-test-plan.
@@ -21,5 +21,6 @@ graders:
       not_contains:
         - "Verdict: PLAN-READY"
         - "Verdict: PLAN-PARTIAL"
+        - "Verdict: BLOCK"
         - "Test cases:"
         - "Coverage summary:"
