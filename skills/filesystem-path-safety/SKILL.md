@@ -9,6 +9,8 @@ user-invocable: true
 
 A read-only audit checklist for code that turns external identifiers into filesystem paths and then reads, creates, or mutates files under them. This is a high-yield bug class in systems that process tenant data, uploads, repositories, archives, or per-job scratch directories. Treat the checklist as a gate: every applicable item must be answered "yes, anchored at <file>:<line>" or "N/A because <reason>" before the path is considered safe.
 
+A pathname is a lookup recipe, not a file. Every check on the path string is presumptive; the authoritative checks are descriptor-based (`fstat`, `fchmod`, `fchown`, `ftruncate`, `write`) on the fd you actually opened.
+
 ## When to Use
 
 Run this skill against a target when its diff or current text matches any of:
@@ -34,6 +36,8 @@ Do NOT use this skill for:
 - Reasoning is rooted in the diff or the current file text plus narrowly cited supporting context (helper definitions, callers, related tests).
 - Do not emit exploit recipes; describe the failure class and the missing guard, not how to weaponize it.
 - Language-agnostic checklist. Do not treat any single language as canonical.
+- The trusted-root containment check (B3) is a canonical-path policy, not a mount-identity check. A privileged actor in a separate mount namespace, or an unprivileged actor inside a user namespace with `CLONE_NEWNS`, can present an attacker-controlled filesystem at the configured path that satisfies every checklist item. Mount-namespace integrity is a deployment-layer concern (init-system unit options, seccomp filters denying namespace creation, MAC policy) and is out of scope for this code-review checklist; note it as residual risk when it applies.
+- The checklist assumes a local POSIX filesystem (typically `tmpfs`, `ext4`, `xfs`, `apfs`, `ntfs`). On NFS, FUSE, or `overlayfs`, advisory-lock semantics (`F_OFD_SETLK` may degrade to `F_SETLK` or be unsupported), durability guarantees (`fsync`), and `O_NOFOLLOW` correctness on the final component may differ. Validate behavior on the target filesystem before relying on these guards.
 
 ## Required Input Context
 
@@ -71,16 +75,17 @@ Every applicable item must be answered "yes, anchored at <file>:<line>" or "N/A 
 
 - **C1. Per-component walk.** Containment is enforced not just on the final path, but on every component from root → target. Each component is `lstat`ed at least once per validation pass. Re-validation passes required by D4/E2 are expected to repeat these checks immediately before mutation.
 - **C2. Reject links at path components regardless of target reachability.** A link-type component is rejected without resolving its target (for example, a symlink/reparse-point check in environments that expose it). Dangling links must be rejected, not skipped via an existence-check guard.
-- **C3. Reject non-directory existing components.** Regular files, devices, sockets, FIFOs at an intermediate segment must be rejected. Without this, the next iteration's `lstat` on a joined child throws raw `ENOTDIR` and breaks the error contract.
+- **C3. Reject non-regular components.** At every intermediate segment, regular files, devices, sockets, and FIFOs must be rejected — the next iteration's `lstat` on a joined child otherwise throws raw `ENOTDIR` and breaks the error contract. At the leaf, sensitive control files (PID files, lock files, configs the daemon writes through) must additionally pass `S_ISREG` on `fstat(fd)` after open: a pre-existing FIFO/socket/device at the destination passes a symlink check but is still a hazard.
 - **C4. Map filesystem failure classes to the public contract.** Missing-component errors are treated as "not yet existing, continue." Non-directory-intermediate errors are mapped to the validator's documented invalid-path error class. Permission-denied and link-resolution-loop failures are mapped explicitly. Raw OS-specific error details must not leak out of the validator.
 - **C5. Hardlink at the leaf.** `lstat` cannot distinguish a hardlink to an outside-root inode from a regular file under the trusted root. For **create**, use `O_CREAT | O_EXCL` (or the platform equivalent) so a planted leaf fails the create. For **mutate or delete** on an existing leaf, open the leaf via anchor-relative ops (`openat` / `dir_fd=fd`) against a fd opened on the canonical parent directory — do not re-traverse the leaf by name. Where the operation reads or exposes file contents, optionally compare `(st_dev, st_ino)` against an explicit deny-list. Where the trusted root resides on a filesystem the runtime user cannot create hardlinks into (e.g. tmpfs-per-tenant, dedicated mount), this item may be marked N/A with the mount/policy as the compensating control.
 
 ### D. Open and mutation guards (apply per operation kind)
 
 - **D1. No recursive parent creation on user-derived paths.** Recursive create can follow links at intermediate segments. Use per-segment directory creation (without recursive mode) plus per-segment no-follow metadata checks instead. Tolerate "already exists" only when the existing segment is verified as a real directory, not a link.
-- **D2. No-follow open flag (or equivalent) where supported.** When opening an existing or new file under the trusted root, use a symlink-refusing flag. On Linux, `O_NOFOLLOW` only refuses the final pathname component — intermediate-component protection still relies on C1's per-component walk (or `openat` from a fd opened on an already-validated directory). On platforms lacking this guard, document the platform limitation and compensating controls. D2 applies to both read and write opens — opening an existing file for read can follow a symlink just as easily as opening for write.
+- **D2. No-follow open flag (or equivalent) where supported.** When opening an existing or new file under the trusted root, use a symlink-refusing flag. On Linux, `O_NOFOLLOW` only refuses the final pathname component — intermediate-component protection still relies on C1's per-component walk (or `openat` from a fd opened on an already-validated directory). On platforms lacking this guard, document the platform limitation and compensating controls. When opening an attacker-influenced filename for validation, use a non-blocking open variant where available (`O_NONBLOCK` on POSIX) so the open cannot hang on a hostile FIFO before `fstat` rejects non-regular files; clear the non-blocking flag after the file type is verified for a regular file. D2 applies to both read and write opens — opening an existing file for read can follow a symlink just as easily as opening for write.
 - **D3. Atomic-rename pattern for writes.** If a new file is being written, write to a sibling temp name under the same realpathed parent and `rename` into place. Do not write through a path that crosses an intermediate component an attacker could swap. Use an unguessable temp name (e.g. random suffix or `mkstemp`-family) created with `O_CREAT | O_EXCL | O_NOFOLLOW`, not a fixed `.tmp` suffix.
 - **D4. No chmod/chown/unlink/delete via a path that has not been re-validated immediately before the call.** For especially sensitive deletes, prefer anchor-relative operations (openat/unlinkat family) where the language exposes them.
+- **D5. Mutate via the validated fd, not by re-opening the path.** Once a file has been opened and validated, subsequent operations on that file must go through the descriptor: `fstat` not `stat`, `fchmod` not `chmod`, `fchown` not `chown`, `ftruncate` not `truncate`, `write(fd)` not reopen-by-path. Path-based operations re-traverse the filesystem from the root and reintroduce TOCTOU. Where the language exposes anchor-relative `*at` (`openat`, `unlinkat`, `mkdirat`) operations, prefer those for any operation that takes a name relative to an already-validated directory fd.
 
 ### E. Resource ordering
 
@@ -110,7 +115,7 @@ Every applicable item must be answered "yes, anchored at <file>:<line>" or "N/A 
   - LOW: clarity, maintainability, or defensive-hardening gap with limited direct impact.
   Default mapping:
   - C2, C3, C5, D1, D2, E1, E3 -> CRITICAL when externally reachable with no compensating control; otherwise HIGH.
-  - A1-A6, B1-B3, C1, C4, D3, D4, E2 -> HIGH unless a compensating control is documented and verifiable.
+  - A1-A6, B1-B3, C1, C4, D3, D4, D5, E2 -> HIGH unless a compensating control is documented and verifiable.
   - F1-F3 -> MEDIUM (test-gap class).
   - Severity may be adjusted up or down by one level based on external reachability, privilege boundary crossing, operation destructiveness, and verifiable compensating controls.
 5. Map findings to the overall verdict:
@@ -202,4 +207,7 @@ The checklist is language-agnostic. The table below presents common equivalents 
 - **Do not restate the diff as a finding.** "The code calls `mkdirSync`" is not a finding; "the code calls `mkdirSync({ recursive: true })` on a user-derived path with no per-segment `lstat`" is.
 - **Do not widen scope beyond path safety.** If the target also has auth, secrets, or business-logic concerns, capture them separately; this skill is only for filesystem path safety.
 - **Do not produce a `CLEAN` verdict when only happy-path tests exist.** F3 specifically requires regression tests anchored to each applicable gate.
+- **Do not open with `O_TRUNC` before validation.** Truncate-on-open clobbers the file before `fstat` and the lock acquisition can decide it's the wrong file. Open without `O_TRUNC`, validate (`S_ISREG`, ownership, mode, `st_nlink == 1`), acquire any required lock, then `ftruncate(fd, 0)` through the validated descriptor.
+- **Do not gate an open on `access()`.** `access(2)` uses the real UID/GID rather than the effective UID/GID, and the file the kernel checks may not be the file you later open. Open with the minimum-privilege flags, then validate via `fstat(fd)`. The same applies to `stat(path)` before `open(path)`: any check on the pathname before the open is presumptive — only `fstat` on the resulting descriptor is authoritative.
+- **Do not `chmod`/`chown` by path after open.** `chmod(path, ...)` and `chown(path, ...)` re-traverse the filesystem from the root and can land on a different inode than the one your fd refers to. Use `fchmod(fd, ...)` and `fchown(fd, ...)` (see D5).
 
