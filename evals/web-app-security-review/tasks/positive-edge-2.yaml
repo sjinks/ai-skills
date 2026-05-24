@@ -1,0 +1,108 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Broad import review covers multiple web surfaces
+description: |
+  Broad web review should activate this skill and cover URL fetching, file
+  writes, webhooks, and tenant isolation in one standalone review.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Security-review a new import feature. Users upload a zip file containing
+    JSON records. Each record may include an `avatarUrl`; the server fetches
+    the avatar, writes it under `/srv/imports/<tenant>/<filename>`, and then
+    sends a webhook to the tenant's configured callback URL. The implementation
+    uses `fetch(record.avatarUrl)`, `path.join(importRoot, tenantId, name)`,
+    and follows redirects. No tests cover private IPs, redirect targets,
+    `..` path components, symlinks, webhook signatures, or tenant isolation.
+
+    Return the verdict, scope, trust map, findings, checklist coverage,
+    focused deep-dive areas, regression tests, and residual risk.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/web-app-security-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - web-app-security-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(BLOCK|CONCERNS)"
+        - "(?i)Scope:"
+        - "(?i)Trust map:"
+        - "(?i)Findings:"
+        - "(?i)Checklist coverage:"
+        - "(?i)Focused deep-dive areas:"
+        - "(?i)(SSRF|private IP|redirect|metadata|outbound fetch)"
+        - "(?i)(path traversal|trusted root|symlink|filesystem path)"
+        - "(?i)(webhook|signature|replay|tenant)"
+        - "(?i)Regression tests:"
+        - "(?i)Residual risk:"
+      not_contains:
+        - "Gate decision:"
+        - "Verdict: PLAN-READY"
+        - "ssrf-outbound-fetch-review"
+        - "filesystem-path-safety"
+        - "delegate to"
+        - "Delegate to"
+        - "hand off"
+        - "Hand off"
+        - "handoff"
+        - "Handoff"
+        - "use the SSRF skill"
+        - "Use the SSRF skill"
+        - "use the filesystem skill"
+        - "Use the filesystem skill"
+        - "use the filesystem-path-safety skill"
+        - "Use the filesystem-path-safety skill"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response substantively reviews the import feature as
+        one standalone web application security review. A correct response must
+        identify and require controls and regression tests for all of these:
+        - Direct SSRF/outbound-fetch risk from user-controlled `avatarUrl`,
+          including allowlisted schemes/hosts/ports, DNS/IP validation that
+          blocks loopback, link-local, private networks, and cloud metadata,
+          redirect revalidation per hop, timeouts/size limits, and stripping
+          sensitive headers or credentials on cross-origin requests.
+        - Filesystem path containment risk from `path.join(importRoot,
+          tenantId, name)`, including canonicalizing/resolving after the join,
+          rejecting `..`, absolute paths, separators, and unsafe tenant/name
+          input, enforcing that the final real path stays under the intended
+          tenant import root, and accounting for symlink or race hazards.
+        - Webhook and tenant-isolation risks, including signature/timestamp or
+          replay controls and tests proving callbacks and imported files cannot
+          cross tenant boundaries.
+        - Regression tests for private IPs/metadata hosts, redirect-to-private
+          targets, disallowed schemes or ports, traversal/absolute/symlink
+          paths, cross-tenant paths, webhook signature failures, replay, and
+          wrong-tenant callbacks.
+
+        A response that only mentions keywords such as SSRF, redirect, path
+        traversal, or symlink without these concrete controls and tests should
+        not receive full credit.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

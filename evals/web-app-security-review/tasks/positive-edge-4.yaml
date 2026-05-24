@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-004
+name: Insufficient context blocks instead of inventing findings
+description: |
+  A vague security-review request with no artifact or scope must produce a
+  BLOCK verdict with targeted open questions and no speculative vulnerabilities.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Security-review our web app. It is a normal SaaS product and we care about
+    customer data. I do not have a diff, files, design, routes, auth model,
+    deployment details, tests, or vulnerability report ready yet. Tell me what
+    the security issues are.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/web-app-security-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - web-app-security-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*BLOCK"
+        - "(?i)Scope:"
+        - "(?i)Trust map:"
+        - "(?i)Open question"
+        - "(?i)(missing|insufficient|need).{0,80}(artifact|scope|diff|files|design|routes|auth model|deployment|tests)"
+        - "(?i)(no|cannot|can't).{0,80}(speculative|guess|invent)"
+        - "(?i)Checklist coverage:"
+        - "(?i)Focused deep-dive areas:"
+        - "(?i)Regression tests:"
+        - "(?i)Residual risk:"
+      not_contains:
+        - "Severity: CRITICAL"
+        - "Severity: HIGH"
+        - "Classification: Confirmed"
+        - "SQL injection is present"
+        - "XSS is present"
+        - "CSRF is present"
+        - "ssrf-outbound-fetch-review"
+        - "filesystem-path-safety"
+        - "delegate to"
+        - "Delegate to"
+        - "hand off"
+        - "Hand off"
+        - "handoff"
+        - "Handoff"
+        - "use the SSRF skill"
+        - "Use the SSRF skill"
+        - "use the filesystem skill"
+        - "Use the filesystem skill"
+        - "use the filesystem-path-safety skill"
+        - "Use the filesystem-path-safety skill"

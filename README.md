@@ -15,6 +15,7 @@ skills/
 At the moment, the repository contains these skills:
 
 - `adversarial-review`: guidance for challenging specs, designs, implementations, workflows, and test plans with evidence-based failure-mode review and risk-focused verification.
+- `web-app-security-review`: guidance for defensive web application security review of code, PRs, designs, vulnerability reports, and fixes across access control, auth, browser, API, data-flow, supply-chain, cloud, and abuse-risk surfaces.
 - `ssrf-outbound-fetch-review`: guidance for reviewing, designing, implementing, and testing SSRF protections around outbound HTTP fetches, from egress policy contracts through transport and redirect behavior.
 - `spock-voice`: guidance for adopting a Spock-inspired, precise, analytical, restrained, and lightly dry conversational register.
 - `nestjs-code-review`: guidance for reviewing NestJS applications with severity-classified findings covering modules, DI, controllers, DTOs, guards, exception handling, persistence, testing, API design, performance, and microservices.
@@ -37,6 +38,17 @@ It helps an assistant:
 - distinguish confirmed issues, likely risks, open questions, accepted tradeoffs, and test gaps
 - convert top risks into adversarial tests, mitigations, or acceptance criteria
 - return `BLOCK`, `CONCERNS`, or `CLEAN` verdicts without inventing findings
+
+### `web-app-security-review`
+
+This skill is aimed at web application security reviews where the assistant needs to evaluate code, pull requests, designs, vulnerability reports, or fix validation with a defensive and evidence-based workflow.
+
+It helps an assistant:
+
+- set safe-use boundaries for static review, explicitly authorized active testing, and untrusted external report content
+- map trust boundaries, actors, tenants, entry points, sensitive data, and downstream systems before judging
+- review access control, auth and sessions, OAuth / OIDC / JWT, XSS, CSRF, injection, XXE, SSRF, CORS, browser headers, file uploads, GraphQL, WebSockets, webhooks, secrets, dependencies, cloud IAM, containers, ReDoS, and DoS
+- classify findings with severity, confidence, evidence standards, false-positive discipline, and regression-test expectations
 
 ### `ssrf-outbound-fetch-review`
 
