@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Design a safe per-tenant scratch directory writer
+description: |
+  Design / implementation framing for an archive-extraction worker's per-
+  tenant scratch directory writer. Squarely in scope (path safety policy
+  + required guards), with the archive-extraction work explicitly out of
+  scope so the model must not pivot into ZIP-slip or decompression-bomb
+  territory.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Design a safe per-tenant scratch directory writer for an archive
+    extraction worker. The worker receives a `tenantId` and a
+    `relativePath` per archive entry and must create the necessary
+    directories and write each entry's bytes under a configured trusted
+    root (for example `/srv/scratch`). Tenants are mutually distrustful.
+
+    Cover the path-safety policy and the required guards: input
+    validation at the trust boundary, trusted-root handling, per-
+    component walk and gate, mutating-operation guards (mkdir / open /
+    write / rename), resource ordering, and the regression tests the
+    implementation needs.
+
+    Archive extraction itself — entry name traversal inside the archive,
+    decompression sizing, and unpacking semantics — is handled by a
+    separate component and is OUT of scope for this design. Focus on
+    the path-safety contract of the scratch directory writer that the
+    extractor calls into.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/filesystem-path-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - filesystem-path-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(realpath|canonicaliz)"
+        - "(?i)(per[-\\s]?segment|per[-\\s]?component)"
+        - "(?i)(lstat|no-?follow|O_NOFOLLOW|symlink_metadata|FILE_FLAG_OPEN_REPARSE_POINT)"
+        - "(?i)(atomic|rename)"
+        - "(?i)(allowlist|positive[-\\s]?match|whitelist)"
+        - "(?i)(Coverage summary|Checklist|Output Format|Findings):"
+      not_contains:
+        - "Egress policy:"
+        - "Adversarial tests:"
+        - "Gate decision:"
+        - "Lenses applied:"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"
+        - "zip slip"
+        - "zip-slip"
+        - "decompression bomb"

@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Insufficient-context mode on a bare path question
+description: |
+  A short prompt that omits the trusted root and the external-input
+  surface. The skill must enter insufficient-context mode: a single
+  `Open question` finding (severity LOW), a `Verdict: CONCERNS`, and NO
+  checklist evidence / coverage summary / cross-cutting recommendations /
+  residual risk sections.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    I have a function that builds a path and writes a file — is this safe?
+
+    ```ts
+    function write(name, body) {
+      const p = base + '/' + name;
+      fs.writeFileSync(p, body);
+    }
+    ```
+
+    That's all I can share right now. What do you think?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/filesystem-path-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - filesystem-path-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*CONCERNS"
+        - "(?i)Open question"
+        - "(?i)(trusted root|external[-\\s]?input|operation kind).{0,60}(missing|undeclared|unknown|not\\s+(declared|specified|provided))"
+      not_contains:
+        - "Coverage summary:"
+        - "Checklist evidence"
+        - "Cross-cutting recommendations:"
+        - "Residual risk:"

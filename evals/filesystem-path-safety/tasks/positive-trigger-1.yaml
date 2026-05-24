@@ -1,0 +1,111 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Review of a tenant-controlled scratch writer
+description: |
+  Per-tenant scratch writer that joins tenant + relPath under a trusted
+  root and recursively creates directories and writes a file with no
+  per-segment validation, no canonicalize-and-contain check, no per-
+  component lstat walk, no no-follow open, and no atomic-rename — squarely
+  in the filesystem-path-safety review scope.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this Node 20 worker that materializes per-tenant scratch trees
+    from a webhook payload.
+
+    ```ts
+    import { mkdirSync, writeFileSync } from 'node:fs';
+    import { join } from 'node:path';
+
+    const ROOT = '/var/data/tenants';
+
+    export function writeTenantFile(tenant: string, relPath: string, body: Buffer) {
+      const target = join(ROOT, tenant, relPath);
+      mkdirSync(join(ROOT, tenant), { recursive: true });
+      writeFileSync(target, body);
+    }
+    ```
+
+    - Trusted root: `/var/data/tenants`
+    - External-input surface: `tenant` and `relPath`, both taken from the
+      webhook payload.
+    - Operation kind: create + mutate (mkdir then write).
+
+    Return the full structured output: verdict, trusted root, external-
+    input surface, operation kind, findings, checklist evidence, coverage
+    summary, cross-cutting recommendations, and residual risk.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/filesystem-path-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - filesystem-path-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(BLOCK|CONCERNS|CLEAN)"
+        - "(?i)Trusted root:"
+        - "(?i)External-input surface:"
+        - "(?i)Operation kind:"
+        - "(?i)Findings:"
+        - "(?i)Coverage summary:"
+        - "(?i)(realpath|canonicaliz)"
+        - "(?i)(lstat|symlink|no-?follow|O_NOFOLLOW)"
+        - "(?i)(\\.\\.|traversal|whitelist|allowlist|positive[-\\s]?match)"
+        - "(?i)(recursive|mkdir).{0,60}(mkdir|create_dir|recursive)"
+      not_contains:
+        - "Egress policy:"
+        - "Adversarial tests:"
+        - "Gate decision:"
+        - "Lenses applied:"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response identifies at least these risks:
+        - Missing per-segment whitelist regex / length bound / leading-dash
+          check / `.` / `..` rejection on both `tenant` and `relPath`
+          (Checklist A — A1, A2, A3, A4).
+        - Missing realpath/canonicalize-and-contain logic anchored on the
+          trusted root `/var/data/tenants` (Checklist B — B1, B3).
+        - Missing per-component `lstat` walk and rejection of symlink or
+          non-directory intermediate components (Checklist C — C1, C2,
+          C3).
+        - Recursive `mkdirSync({ recursive: true })` on a user-derived
+          path will follow symlinks at intermediate segments (D1); the
+          subsequent `writeFileSync` uses no no-follow open (D2) and no
+          atomic-rename pattern (D3).
+        - Missing regression tests for symlink at a path component,
+          dangling symlink, planted symlink between validation and
+          mutation, and asymmetric branch gating (F3).
+        - Verdict should be `BLOCK`; a conservative `CONCERNS` that still
+          lists the above guards as required is acceptable.
+        A correct response uses the skill's structured sections (Verdict,
+        Trusted root, External-input surface, Operation kind, Findings,
+        Checklist evidence, Coverage summary, Cross-cutting
+        recommendations, Residual risk).
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent
