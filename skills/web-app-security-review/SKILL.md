@@ -1,9 +1,9 @@
 ---
 name: web-app-security-review
 description: >-
-  REVIEW SKILL. USE FOR: defensive web application security review, web-app
-  vulnerability triage, web-app threat-model review, and validation of web-app
-  security fixes. DO NOT USE FOR: routine implementation, style review, generic
+  Use when: performing defensive web application security review, web-app
+  vulnerability triage, web-app threat-model review, or validation of web-app
+  security fixes. Do not use for routine implementation, style review, generic
   debugging, conceptual security explanations, or non-web targets.
 ---
 
