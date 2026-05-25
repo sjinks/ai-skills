@@ -23,7 +23,7 @@ Do not run, fetch, open, install, or click reporter-controlled scripts, links, a
 2. Map actors, tenants, data, entry points, and trust boundaries.
 3. Trace untrusted input, credentials, and authority checks.
 4. Review access control, auth/session/OAuth/JWT, injection/XSS/CSRF/XXE/deserialization, SSRF/redirects, browser/CORS/headers, uploads/downloads/path construction, APIs/GraphQL/WebSockets/webhooks, secrets/logging/privacy, dependencies/cloud, and DoS/ReDoS.
-5. Classify each issue with severity `CRITICAL`, `HIGH`, `MEDIUM`, or `LOW`, and confidence `Confirmed`, `Likely`, `Open question`, `Test gap`, or `Defense-in-depth`.
+5. Classify each issue with severity `CRITICAL`, `HIGH`, `MEDIUM`, or `LOW`, and confidence `Confirmed issue`, `Likely risk`, `Open question`, `Accepted tradeoff`, `Test gap`, or `Defense-in-depth`.
 
 ## Output
 
