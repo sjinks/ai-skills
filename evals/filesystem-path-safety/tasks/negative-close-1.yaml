@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Static config-file read with no external input
+description: |
+  A path-handling question with NO external-input surface — the path is
+  a known static location in a Go service's config layout. Per the
+  SKILL.md "Do NOT use this skill for ... static or hardcoded paths
+  with no external input" rule, the skill should not activate.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    What's the cleanest way to read a static config file from a known
+    path in my Go service? The file always lives at
+    `/etc/myservice/config.yaml`, the path is compiled in, and no part
+    of it comes from a request, env var, or any other external source.
+    I just want a tidy idiomatic Go read with sensible error handling.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/filesystem-path-safety/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Verdict: CLEAN"
+        - "Trusted root:"
+        - "External-input surface:"
+        - "Coverage summary:"

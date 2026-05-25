@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Windows-only path review, D2 N/A and reparse-point equivalent
+description: |
+  Path-handling code on a Windows-only path. Per the SKILL.md anti-
+  pattern, D2 (O_NOFOLLOW) must be marked N/A on Windows and the
+  reviewer must accept `FILE_FLAG_OPEN_REPARSE_POINT` (or the equivalent
+  reparse-point-aware open) as the compensating guard rather than
+  falsely flagging the missing `O_NOFOLLOW`. Full required input
+  context is supplied so the skill does not fall into insufficient-
+  context mode.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Review this Windows-only TypeScript handler that creates a per-job
+    subfolder under `C:\ProgramData\AppName\jobs\` and writes a request
+    payload into it. The service runs on Windows Server 2022 only; there
+    is no POSIX deployment.
+
+    ```ts
+    import { promises as fs } from 'node:fs';
+    import { join } from 'node:path';
+
+    const ROOT = 'C:\\ProgramData\\AppName\\jobs';
+
+    export async function writeJobPayload(jobId: string, relativePath: string, body: Buffer): Promise<void> {
+      const dir = join(ROOT, jobId);
+      await fs.mkdir(dir, { recursive: true });
+      const target = join(dir, relativePath);
+      await fs.writeFile(target, body);
+    }
+    ```
+
+    - Trusted root: `C:\ProgramData\AppName\jobs`
+    - External-input surface: `jobId` and `relativePath`, both taken
+      from an authenticated service-to-service request body.
+    - Operation kind: create + mutate.
+
+    Windows-only deployment. Return the full structured output and be
+    explicit about which checklist items are N/A on Windows and what
+    the platform-native equivalent guard is.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/filesystem-path-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - filesystem-path-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:"
+        - "(?i)(N/A|not\\s+applicable|FILE_FLAG_OPEN_REPARSE_POINT|reparse[-\\s]?point)"
+        - "(?i)(Windows|win32)"
+        - "(?i)(realpath|canonicaliz|GetFinalPathNameByHandle)"
+        - "(?i)Findings:"
+      not_contains:
+        - "Egress policy:"
+        - "Gate decision:"
+        - "Lenses applied:"

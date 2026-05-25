@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: ZIP-slip / archive-entry traversal is a separate skill
+description: |
+  Adjacent-but-out-of-scope question about safely unpacking a user-
+  supplied ZIP archive against ZIP-slip. Per the SKILL.md "Do not
+  widen scope beyond path safety" anti-pattern, archive-entry-name
+  traversal is its own bug class and the filesystem-path-safety skill
+  must not activate here.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    How do I unpack a user-supplied ZIP archive safely against ZIP-slip
+    in Python? I'm worried about archive entries with `..` or absolute
+    paths inside the zip itself. What's the standard pattern for
+    rejecting unsafe entries before extracting them?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/filesystem-path-safety/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Verdict: CLEAN"
+        - "Trusted root:"
+        - "External-input surface:"
+        - "Coverage summary:"
