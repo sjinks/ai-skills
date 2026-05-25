@@ -9,7 +9,7 @@ This supporting workflow expands the standalone `SKILL.md` entry point for defen
 - Vague approval such as "go ahead" or "try the repro" is insufficient for active testing. Require an explicit target, environment, accounts, timing, test type, and command provenance, plus confirmation that no secrets or production data are involved.
 - Do not perform destructive live-target testing, credential attacks, account takeover attempts, data exfiltration, service disruption, broad scanning, or attempts to bypass rate limits on real systems.
 - Do not provide weaponized payload collections. Describe the vulnerable pattern, missing control, safe reproduction shape, and regression-test expectation.
-- Separate confirmed issues from likely risks, open questions, defense-in-depth recommendations, and test gaps.
+- Separate confirmed issues from likely risks, open questions, accepted tradeoffs, defense-in-depth recommendations, and test gaps.
 
 ## Required Context
 
@@ -41,9 +41,10 @@ If required context is absent, return `Verdict: BLOCK` with targeted `Open quest
 
 ## Finding Types
 
-- `Confirmed`: code, config, tests, or supplied evidence directly demonstrates the issue.
-- `Likely`: strong signal exists but one dependency, caller, deployment control, or business rule is not visible.
+- `Confirmed issue`: code, config, tests, or supplied evidence directly demonstrates the issue.
+- `Likely risk`: strong signal exists but one dependency, caller, deployment control, or business rule is not visible.
 - `Open question`: necessary context is missing.
+- `Accepted tradeoff`: the gap is real but the project has documented a deviation with an explicit owner and rationale; record the gap, do not re-litigate it.
 - `Test gap`: behavior may be safe, but coverage does not prove the control.
 - `Defense-in-depth`: current behavior is not clearly vulnerable, but a guard would reduce blast radius or drift.
 
