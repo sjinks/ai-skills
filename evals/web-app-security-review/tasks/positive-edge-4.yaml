@@ -45,7 +45,7 @@ graders:
       not_contains:
         - "Severity: CRITICAL"
         - "Severity: HIGH"
-        - "Classification: Confirmed issue"
+        - "Classification: Confirmed"
         - "SQL injection is present"
         - "XSS is present"
         - "CSRF is present"

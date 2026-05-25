@@ -9,7 +9,7 @@ This supporting workflow expands the standalone `SKILL.md` entry point for defen
 - Vague approval such as "go ahead" or "try the repro" is insufficient for active testing. Require an explicit target, environment, accounts, timing, test type, and command provenance, plus confirmation that no secrets or production data are involved.
 - Do not perform destructive live-target testing, credential attacks, account takeover attempts, data exfiltration, service disruption, broad scanning, or attempts to bypass rate limits on real systems.
 - Do not provide weaponized payload collections. Describe the vulnerable pattern, missing control, safe reproduction shape, and regression-test expectation.
-- Separate confirmed issues from likely risks, open questions, defense-in-depth recommendations, and test gaps.
+- Separate confirmed issues from likely risks, open questions, accepted tradeoffs, defense-in-depth recommendations, and test gaps.
 
 ## Required Context
 
