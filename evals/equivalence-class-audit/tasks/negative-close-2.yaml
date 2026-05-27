@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Initial general code review request
+description: |
+  A broad initial review with no specific finding should not trigger an
+  equivalence-class audit. The audit comes after a concrete defect exists.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Please review this helper for any issues:
+
+    ```python
+    def clamp(value, minimum, maximum):
+        return max(minimum, min(maximum, value))
+    ```
+
+    I do not have a bug report or reviewer finding yet; just tell me if it
+    looks reasonable.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/equivalence-class-audit/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Equivalence-Class Audit Report"
+        - "Defects to fix now"
+        - "Deferred follow-ups"
+        - "Out-of-scope candidates"
+        - "Blocking questions"
+        - "Test/doc implications"
+        - "Gate decision:"
+        - "Findings matrix:"
+        - "Trusted root:"
+        - "Egress policy:"

@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Greenfield design without triggering defect
+description: |
+  General design guidance with no concrete defect or finding should not
+  activate the equivalence-class-audit skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    I am designing a new retry configuration for a service. What fields should
+    I include for max retries, delay, jitter, timeout, and cancellation? Please
+    give general advice and tradeoffs, not an audit.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/equivalence-class-audit/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Equivalence-Class Audit Report"
+        - "Defects to fix now"
+        - "Deferred follow-ups"
+        - "Out-of-scope candidates"
+        - "Blocking questions"
+        - "Test/doc implications"
+        - "Gate decision:"
+        - "Lenses applied:"
+        - "PLAN-PARTIAL"
+        - "Adversarial tests:"

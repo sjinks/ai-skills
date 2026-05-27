@@ -36,6 +36,7 @@ grader weighting takes effect.
   style rather than the `USE FOR: "..."` phrase block the trigger
   grader scores most strongly against. Calibrated thresholds:
   - `adversarial-review`: 0.30
+  - `equivalence-class-audit`: 0.45
   - `multi-lens-review`: 0.40
   - `nestjs-code-review`: 0.50
   - `nestjs-development`: 0.50
@@ -106,8 +107,10 @@ checks:
   verdicts, lens conflict resolution, regression-during-fix-cycle,
   trusted private-target opt-in, untestable risks, the
   PLAN-PARTIAL-on-missing-owner case, untrusted vulnerability-report
-  triage boundaries, multi-surface web-app review, and narrow-skill
-  handoff from broad web security review.
+  triage boundaries, multi-surface web-app review, narrow-skill
+  handoff from broad web security review, explicit equivalence-class
+  `n/a` rows for empty or inapplicable axes, and blocked handling for
+  critical unresolved audit clarifications.
 - `nestjs-development/positive-trigger-1.yaml` runs a `program` grader
   that pipes the generated TypeScript through `tsc --noEmit` so syntax
   errors fail the task.

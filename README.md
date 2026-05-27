@@ -15,6 +15,7 @@ skills/
 At the moment, the repository contains these skills:
 
 - `adversarial-review`: guidance for challenging specs, designs, implementations, workflows, and test plans with evidence-based failure-mode review and risk-focused verification.
+- `equivalence-class-audit`: guidance for turning one concrete defect, incident, review finding, test failure, or bug report into a locked-scope audit of equivalent defects across sibling fields, mirror use sites, bounds, contracts, paths, modes, tests, docs, and projections.
 - `web-app-security-review`: guidance for defensive web application security review of code, PRs, designs, vulnerability reports, and fixes across access control, auth, browser, API, data-flow, supply-chain, cloud, and abuse-risk surfaces.
 - `filesystem-path-safety`: guidance for auditing external-input filesystem path construction under trusted roots, including traversal, symlink, TOCTOU, containment, and mutation-safety checks.
 - `ssrf-outbound-fetch-review`: guidance for reviewing, designing, implementing, and testing SSRF protections around outbound HTTP fetches, from egress policy contracts through transport and redirect behavior.
@@ -39,6 +40,20 @@ It helps an assistant:
 - distinguish confirmed issues, likely risks, open questions, accepted tradeoffs, and test gaps
 - convert top risks into adversarial tests, mitigations, or acceptance criteria
 - return `BLOCK`, `CONCERNS`, or `CLEAN` verdicts without inventing findings
+
+### `equivalence-class-audit`
+
+This skill is aimed at situations where a concrete defect, incident, review finding, test failure, or bug report suggests a wider class of equivalent defects that need to be audited in one bounded pass.
+
+For the expanded catalogue, output contract, anti-patterns, and worked example, see [skills/equivalence-class-audit/WORKFLOW.md](skills/equivalence-class-audit/WORKFLOW.md).
+
+It helps an assistant:
+
+- lock the audit scope before expanding from the triggering finding
+- enumerate candidate equivalents across bounds, sibling fields, mirror use sites, inverse operations, paths, modes, contracts, authorization surfaces, tests, docs, and source-of-truth projections
+- record evidence-based `present`, `absent`, `n/a`, and `blocked` presence verdicts without guessing
+- assign explicit dispositions for present defects: fix now, defer with owner, or block on clarification
+- return one structured audit report with rows for every applicable axis or candidate, plus fix-now defects, deferred follow-ups, out-of-scope candidates, blocking questions, and test/doc implications
 
 ### `filesystem-path-safety`
 

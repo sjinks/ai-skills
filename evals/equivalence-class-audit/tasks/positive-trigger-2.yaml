@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Authorization incident implies equivalent resource audit
+description: |
+  Security/authorization finding should trigger an audit across equivalent
+  endpoints, resource surfaces, observability, tests, and docs.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Run equivalence-class-audit for this incident.
+
+    Triggering finding: INC-44 showed that `GET /projects/{id}/export` checked
+    organization membership but did not check project-level `can_export`.
+
+    Locked audit scope: `routes/projects.yml`, `controllers/project_export.go`,
+    `controllers/project_archive.go`, `controllers/project_report.go`,
+    `policies/project_permissions.rego`, `tests/project_permissions_test.go`,
+    and the "Project exports" API documentation section.
+
+    Known facts:
+    - `/projects/{id}/archive` uses the same project resource but checks only
+      organization admin.
+    - `/projects/{id}/report` checks `can_view_report`, so it is not affected.
+    - Audit logs exist for successful exports but not denied exports.
+    - Permission tests cover export success but not denied export/archive.
+    - The public docs list export and archive as organization-admin actions.
+
+    Return the single audit report with dispositions.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/equivalence-class-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - equivalence-class-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Equivalence-Class Audit Report'
+        - '(?i)\|\s*Axis\s*\|\s*Candidate\s*\|\s*Presence\s*\|\s*Disposition\s*\|\s*Evidence\s*\|'
+        - '(?i)Presence'
+        - '(?i)Disposition'
+        - '(?i)Evidence'
+        - '(?i)Permission/Authorization Class'
+        - '(?i)(archive|can_export|organization admin).*(present|fix-now)'
+        - '(?i)(report|can_view_report).*(absent|n/a)'
+        - '(?i)Observability Twin'
+        - '(?i)Test Mirror'
+        - '(?i)Documentation/Spec Prose Twin'
+        - '(?i)(defer-with-owner|fix-now|blocked)'
+      not_contains:
+        - "Gate decision:"
+        - "Lenses applied:"
+        - "Adversarial tests:"
+        - "Egress policy:"
+        - "Trusted root:"
+        - "PLAN-PARTIAL"

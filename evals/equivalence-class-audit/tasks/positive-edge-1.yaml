@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: No candidate axes must be explicit n/a rows
+description: |
+  Even when an axis has no candidates or cannot structurally apply, the report
+  must record that fact instead of omitting the axis.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use equivalence-class-audit.
+
+    Triggering finding: bug BUG-221 found that the `timeoutSeconds` field in a
+    single-file YAML configuration accepted `0` and made the health checker
+    spin.
+
+    Locked audit scope: only `config/healthcheck.yml` and its "Health check
+    timeout" docs section.
+
+    Known facts:
+    - This artifact has no inverse operation, no async/sync variants, no cache
+      or projection, no allocated resource, and no authorization surface.
+    - There is only one field in the locked scope.
+    - The docs still mention `0` as allowed.
+
+    Return the audit. Do not omit axes just because there are no candidates;
+    every catalogue axis must appear at least once, either with one row per
+    candidate or with an explicit n/a row and reason.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/equivalence-class-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - equivalence-class-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Equivalence-Class Audit Report'
+        - '(?i)\|\s*Axis\s*\|\s*Candidate\s*\|\s*Presence\s*\|\s*Disposition\s*\|\s*Evidence\s*\|'
+        - '(?i)Presence'
+        - '(?i)Disposition'
+        - '(?i)Evidence'
+        - '(?i)n/a\s+—\s+structurally inapplicable'
+        - '(?i)n/a\s+—\s+no candidates in scope'
+        - '(?i)Opposite Bound'
+        - '(?i)Sibling Parameter/Field'
+        - '(?i)Mirror Call Site/Use Site'
+        - '(?i)Inverse Operation'
+        - '(?i)Type/Schema Narrowing'
+        - '(?i)Validation vs Normalization/Sanitization'
+        - '(?i)Happy/Error/Retry/Cancel Path Twin'
+        - '(?i)Race/Shared-State Twin'
+        - '(?i)Permission/Authorization Class'
+        - '(?i)Observability Twin'
+        - '(?i)Resource Cleanup'
+        - '(?i)Contract Symmetry'
+        - '(?i)Equivalence by Naming'
+        - '(?i)Test Mirror'
+        - '(?i)Empty/Sentinel Equivalence'
+        - '(?i)Async/Sync or Mode Twin'
+        - '(?i)Documentation/Spec Prose Twin.*present'
+        - '(?i)Cache/Projection/Source-of-Truth Twin'
+      not_contains:
+        - "Gate decision:"
+        - "Checklist evidence"
+        - "Egress policy:"
+        - "Adversarial tests:"
+        - "PLAN-READY"
