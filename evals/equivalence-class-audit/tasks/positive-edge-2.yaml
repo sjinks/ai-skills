@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Critical unresolved clarification blocks rather than guesses
+description: |
+  When locked scope exists but a critical authorization fact or policy spec is
+  outside scope, the report must block the affected row instead of assuming
+  enforcement.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Apply equivalence-class-audit.
+
+    Triggering finding: a security/authorization review found that
+    `DELETE /teams/{teamId}` checks organization membership but does not show a
+    tenant ownership check.
+
+    Locked audit scope: `src/routes/team.routes.ts`,
+    `src/controllers/team.controller.ts`, and `tests/team.controller.spec.ts`.
+
+    Known facts:
+    - The route, controller, and test files above are in scope.
+    - The missing `tenantGuard` implementation and tenant ownership policy spec
+      are not in scope.
+    - The equivalent `GET /teams/{teamId}/members` handler in the same
+      controller calls `tenantGuard(teamId)`.
+    - DELETE tests cover organization membership but are missing tenant
+      mismatch coverage.
+    - GET members tests include tenant mismatch coverage.
+
+    Produce the audit and mark the unresolved critical authorization row blocked
+    rather than guessing whether tenantGuard or the policy applies to DELETE.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/equivalence-class-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - equivalence-class-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Equivalence-Class Audit Report'
+        - '(?i)\|\s*Axis\s*\|\s*Candidate\s*\|\s*Presence\s*\|\s*Disposition\s*\|\s*Evidence\s*\|'
+        - '(?i)Permission/Authorization Class'
+        - '(?i)Test Mirror'
+        - '(?i)blocked\s+—\s+clarification needed'
+        - '(?i)\|[^\n|]*\|[^\n|]*\|\s*blocked\s+—\s+clarification needed\s*\|\s*blocked\s*\|'
+        - '(?i)Blocking questions'
+        - '(?i)tenantGuard'
+        - '(?i)tenant ownership'
+        - '(?i)policy spec'
+        - '(?i)GET /teams/\{teamId\}/members'
+        - '(?i)tenant mismatch'
+      not_contains:
+        - "probably enforced"
+        - "assume tenantGuard"
+        - "Gate decision:"
+        - "Lenses applied:"
+        - "Adversarial tests:"
+        - "Egress policy:"
+        - "Trusted root:"
+        - "PLAN-READY"
+        - "PLAN-PARTIAL"

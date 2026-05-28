@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Review finding implies equivalent validation defects
+description: |
+  Canonical case: one concrete review finding suggests equivalent defects
+  across sibling fields, opposite bounds, use sites, sentinels, docs, and tests.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Apply equivalence-class-audit.
+
+    Triggering finding: a reviewer found that `maxRetries` in
+    `config/retry.yml` accepts `0`, which silently disables retries and caused
+    incident INC-17.
+
+    Locked audit scope: `config/retry.yml`, `src/retry_policy.py`,
+    `tests/test_retry_policy.py`, and the Retry Configuration section of
+    `docs/operations.md`.
+
+    Known facts:
+    - `maxRetries` has no upper bound.
+    - `retryDelaySeconds` is in the same config block and also accepts `0`.
+    - `src/retry_policy.py` normalizes missing values but not explicit nulls.
+    - Tests cover `maxRetries=0` only.
+    - The docs still say `0` means "retry forever" and are tracked in
+      ticket DOC-22, but no named owner or owning team is available.
+
+    Produce the audit report and identify what should be fixed now versus
+    deferred. Do not treat DOC-22 alone as enough for defer-with-owner.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/equivalence-class-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - equivalence-class-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Equivalence-Class Audit Report'
+        - '(?i)\|\s*Axis\s*\|\s*Candidate\s*\|\s*Presence\s*\|\s*Disposition\s*\|\s*Evidence\s*\|'
+        - '(?i)Presence'
+        - '(?i)Disposition'
+        - '(?i)Evidence'
+        - '(?i)(Opposite Bound|opposite bound).*(present|fix-now)'
+        - '(?i)(Sibling Parameter/Field|sibling).*(retryDelaySeconds|present|fix-now)'
+        - '(?i)(Empty/Sentinel Equivalence|sentinel).*(null|present|fix-now|blocked)'
+        - '(?i)(Documentation/Spec Prose Twin|docs).*(present).*(fix-now|blocked)'
+        - '(?i)Defects to fix now'
+        - '(?i)Deferred follow-ups'
+      not_contains:
+        - "defer-with-owner"
+        - "Gate decision:"
+        - "Verdict: BLOCK"
+        - "Adversarial tests:"
+        - "Egress policy:"
+        - "Trusted root:"
+        - "PLAN-READY"

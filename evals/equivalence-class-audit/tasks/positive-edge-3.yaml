@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Missing locked scope blocks before enumeration
+description: |
+  A concrete finding without a locked audit scope should return the report
+  sections with a blocking question, not inferred candidates or invented scope.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Apply equivalence-class-audit.
+
+    Triggering finding: a security review found that `DELETE /teams/{teamId}`
+    checks organization membership but may not check tenant ownership.
+
+    No locked audit scope is provided. The reporter mentioned that route files,
+    controllers, policies, and tests probably exist somewhere, but did not name
+    exact files, modules, API surfaces, specs, tests, or artifacts to inspect.
+
+    Produce the audit report header and sections, but do not enumerate axes or
+    candidates until the locked scope is supplied. Ask for the smallest missing
+    input needed to proceed.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/equivalence-class-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - equivalence-class-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Equivalence-Class Audit Report'
+        - '(?i)Triggering finding'
+        - '(?i)(missing|not provided).*locked audit scope|locked audit scope.*(missing|not provided)'
+        - '(?i)Defects to fix now'
+        - '(?i)Deferred follow-ups'
+        - '(?i)Out-of-scope candidates discovered'
+        - '(?i)Blocking questions'
+        - '(?i)Test/doc implications'
+        - '(?i)(exact files|modules|API surfaces|specs|tests|artifacts|locked scope)'
+      not_contains:
+        - "| Axis | Candidate | Presence | Disposition | Evidence |"
+        - "| Opposite Bound |"
+        - "| Sibling Parameter/Field |"
+        - "| Permission/Authorization Class |"
+        - "| Test Mirror |"
+        - "Gate decision:"
+        - "Lenses applied:"
+        - "Checklist evidence"
+        - "Verdict: BLOCK"
+        - "Adversarial tests:"
+        - "Egress policy:"
+        - "Trusted root:"
+        - "PLAN-READY"
+        - "PLAN-PARTIAL"
