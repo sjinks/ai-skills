@@ -13,7 +13,7 @@ Trigger: one concrete finding implies equivalent defects in a locked scope. Not 
 
 Must have: Triggering finding and locked audit scope. If missing, do not enumerate/invent scope/candidates; return only report sections with Blocking questions. Other unknowns: Presence `blocked — clarification needed`, Disposition `blocked`.
 
-Defaults: present in-scope defects are `fix-now` unless boundary says otherwise. `defer-with-owner` needs named owner/team and reason (ticket alone not enough). Every axis must be represented.
+Defaults: present in-scope defects are `fix-now` unless boundary says otherwise. `defer-with-owner` needs named owner/team and reason (ticket alone not enough). Once locked scope supports the table, represent every axis.
 
 Presence: `present`, `absent`, `n/a — structurally inapplicable`, `n/a — no candidates in scope`, `blocked — clarification needed`.
 Disposition: `fix-now`, `defer-with-owner`, `n/a`, `blocked`.

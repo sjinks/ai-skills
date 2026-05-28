@@ -11,7 +11,7 @@ The deliverable is one audit report. This skill package is standalone and does n
 - The audit scope is locked before candidate enumeration. Do not silently expand it. If an equivalent candidate is discovered outside the locked scope, record it under **Out-of-scope candidates discovered** with provenance.
 - If no disposition boundary is provided, default in-scope present defects to `fix-now`.
 - `defer-with-owner` requires a named owner or owning team and a reason. A ticket, issue, or reference alone is not enough.
-- Every catalogue axis must be represented at least once in the table. If an axis has no candidates or is structurally inapplicable, include one explicit `n/a` row with evidence or a reason.
+- Every catalogue axis should be represented at least once in the table when the table is included (i.e., only after both the triggering finding and locked audit scope are available). If an axis has no candidates or is structurally inapplicable, include one explicit `n/a` row with evidence or a reason.
 
 ## When to Use
 
@@ -51,7 +51,7 @@ If another critical fact is missing after the triggering finding and locked audi
 2. If the triggering finding or locked audit scope is missing, stop before candidate enumeration and ask the smallest blocking question in the report sections.
 3. Walk every axis in the catalogue below.
 4. For each axis, enumerate candidates inside the locked scope.
-5. Every catalogue axis must be represented in the table at least once.
+5. When the table is included after the triggering finding and locked audit scope are available, represent every catalogue axis at least once.
 6. If an axis has candidates, add one row per candidate.
 7. If an axis has no candidates or is structurally inapplicable, add one explicit `n/a` row with evidence or a reason.
 8. For each candidate, decide **Presence** from evidence, not probability.
@@ -221,7 +221,7 @@ Locked audit scope: <files/modules/API surfaces/specs/tests/artifacts>
 - <test, documentation, spec, migration, or contract implications, or `None`>
 ```
 
-Every catalogue axis must be represented in the table at least once. If an axis has candidates, add one row per candidate. If an axis has no candidates or is structurally inapplicable, add one explicit `n/a` row with evidence explaining why.
+When the table is included after both the triggering finding and locked audit scope are available, every catalogue axis must be represented in the table at least once. If an axis has candidates, add one row per candidate. If an axis has no candidates or is structurally inapplicable, add one explicit `n/a` row with evidence explaining why.
 
 ## Anti-Patterns
 
