@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Windows and Unicode archive-entry normalization
+description: |
+  Edge case focused on platform path forms and normalized duplicates.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Review this ZIP extraction policy draft. It rejects entries containing
+    `../`, but the service runs on both Linux and Windows workers and accepts
+    uploaded ZIPs from customers. The policy does not mention Windows drive
+    paths, UNC paths, backslash separators, absolute POSIX paths, Unicode
+    normalization, or duplicate names after normalization. Destination root is
+    a fresh per-job temp directory. Only regular files and directories are
+    intended. Resource limits are file count 500, total decompressed size 200
+    MB, max compression ratio 100:1, and no nested archives.
+
+    Return the archive extraction safety verdict and checklist status.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/archive-extraction-safety/SKILL.md
+      mode: positive
+      threshold: 0.50
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - archive-extraction-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(BLOCK|CONCERNS)"
+        - "(?i)(Windows|drive|UNC|backslash)"
+        - "(?i)(absolute|POSIX)"
+        - "(?i)(Unicode|normalization|duplicate)"
+        - "(?i)Checklist status:"
+      not_contains:
+        - "Egress policy:"
+        - "Trusted root:"

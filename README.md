@@ -15,6 +15,7 @@ skills/
 At the moment, the repository contains these skills:
 
 - `adversarial-review`: guidance for challenging specs, designs, implementations, workflows, and test plans with evidence-based failure-mode review and risk-focused verification.
+- `archive-extraction-safety`: guidance for reviewing safe ZIP/TAR/archive extraction, including traversal, symlinks, hardlinks, absolute and Windows paths, Unicode normalization, decompression limits, nested archives, permissions, overwrite policy, containment, cleanup, and parser mismatch.
 - `equivalence-class-audit`: guidance for turning one concrete defect, incident, review finding, test failure, or bug report into a locked-scope audit of equivalent defects across sibling fields, mirror use sites, bounds, contracts, paths, modes, tests, docs, and projections.
 - `web-app-security-review`: guidance for defensive web application security review of code, PRs, designs, vulnerability reports, and fixes across access control, auth, browser, API, data-flow, supply-chain, cloud, and abuse-risk surfaces.
 - `filesystem-path-safety`: guidance for auditing external-input filesystem path construction under trusted roots, including traversal, symlink, TOCTOU, containment, and mutation-safety checks.
@@ -40,6 +41,17 @@ It helps an assistant:
 - distinguish confirmed issues, likely risks, open questions, accepted tradeoffs, and test gaps
 - convert top risks into adversarial tests, mitigations, or acceptance criteria
 - return `BLOCK`, `CONCERNS`, or `CLEAN` verdicts without inventing findings
+
+### `archive-extraction-safety`
+
+This skill is aimed at code and designs that extract untrusted or semi-trusted archives into a destination directory.
+
+It helps an assistant:
+
+- define the extraction contract, accepted formats, destination root, allowed entry types, overwrite policy, and resource limits
+- review ZIP/TAR traversal, absolute paths, Windows drive/UNC paths, Unicode/path normalization, symlinks, hardlinks, special files, executable bits, permission/ownership restoration, parser mismatch, and destination containment
+- check file count, decompressed size, compression ratio, nested archive depth, and partial extraction cleanup
+- return `BLOCK`, `CONCERNS`, or `CLEAN` with findings, checklist status, tests, and residual risk
 
 ### `equivalence-class-audit`
 

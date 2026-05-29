@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Archive compression tuning question
+description: Unrelated archive creation/tuning question must not activate archive-extraction-safety.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "What compression level should I use when creating a ZIP backup so it balances speed and file size?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/archive-extraction-safety/SKILL.md
+      mode: negative
+      threshold: 0.50
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Archive format/parser:"
+        - "Destination root:"
+        - "Allowed entry types:"
+        - "Checklist status:"
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Verdict: CLEAN"

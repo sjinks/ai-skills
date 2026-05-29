@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Archive manifest listing with no filesystem writes
+description: |
+  Close-domain archive prompt, but it asks only to list metadata from an
+  archive manifest and does not extract or write entries.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    I have a trusted internal ZIP file and want to print a sorted list of its
+    entry names and compressed sizes for a report. Do not extract anything or
+    write files; just show a simple way to list metadata from the archive.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/archive-extraction-safety/SKILL.md
+      mode: negative
+      threshold: 0.50
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Archive format/parser:"
+        - "Destination root:"
+        - "Allowed entry types:"
+        - "Checklist status:"
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Verdict: CLEAN"

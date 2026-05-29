@@ -45,6 +45,7 @@ grader weighting takes effect.
   - `ssrf-outbound-fetch-review`: 0.45
   - `web-app-security-review`: 0.45
   - `test-gap-to-test-plan`: 0.55
+  - `archive-extraction-safety`: 0.50
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks
   only) — requires the named skill via `required_skills` with
   `mode: any_order`. The currently released waza CLI (`v0.33.0`) defines
