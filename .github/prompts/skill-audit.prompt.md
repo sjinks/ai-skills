@@ -1,7 +1,7 @@
 ---
 name: "skill-audit"
 description: "Audit a skill draft for consistency, cohesion, coherence, and completeness before implementation"
-argument-hint: "Skill text, selected skill, or path to SKILL.md"
+argument-hint: "Skill text, selected editor content, or path to SKILL.md"
 agent: "agent"
 ---
 
@@ -21,7 +21,5 @@ For each category, provide:
 - `Rating`: a score from 1 to 5, where 1 means poor and 5 means excellent.
 - `Findings`: specific observations grounded in the skill text.
 - `Recommendations`: actionable changes that would improve the skill.
-
-End with `Top 5 Changes`, ranked by expected impact. Focus on changes that would most improve the skill's usefulness, reliability, and ease of implementation.
-
+End each audited skill’s report with `Top 5 Changes`, ranked by expected impact. Focus on changes that would most improve the skill's usefulness, reliability, and ease of implementation.
 Do not implement or rewrite the full skill unless explicitly asked. Keep the audit direct, concrete, and evidence-based.
