@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: TAR restore design with symlink and parser-mismatch risks
+description: |
+  TAR extraction design that validates member names separately from the
+  extractor and allows archive metadata restoration.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this backup-restore design for safe TAR extraction.
+
+    Design notes:
+    - Accept `.tar.gz` uploads from organization admins.
+    - A custom pre-scan rejects member names containing `../`.
+    - Extraction then calls the runtime tar library's `extractAll(dest)`.
+    - Symlink and hardlink entries are currently permitted because backups may
+      contain links.
+    - Archive uid/gid, mode bits, and executable bits are restored.
+    - Existing files are overwritten.
+    - Destination is `/srv/restore/current`, reused between restore attempts.
+    - Limits exist for compressed upload size only; no file count, total
+      decompressed size, compression ratio, or nested archive policy exists.
+    - Failed restores leave the partially extracted tree for debugging.
+
+    Produce the archive extraction safety output and include test expectations.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/archive-extraction-safety/SKILL.md
+      mode: positive
+      threshold: 0.50
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - archive-extraction-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(BLOCK|CONCERNS)"
+        - "(?i)(parser mismatch|same parser|validation.*extraction)"
+        - "(?i)(symlink|hardlink)"
+        - "(?i)(uid|gid|ownership|permission|executable)"
+        - "(?i)(overwrite|partial extraction|cleanup)"
+        - "(?i)(file count|decompressed size|compression ratio|nested archive)"
+      not_contains:
+        - "Egress policy:"
+        - "Trusted root:"
+        - "PLAN-READY"

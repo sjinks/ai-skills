@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Missing destination root blocks extraction verdict
+description: |
+  Required input context is missing; the skill should not guess the
+  destination root or allowed entry types.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    I need an archive extraction safety review for a package importer.
+
+    Known context: it extracts ZIP files from tenant uploads. I do not have
+    the destination root, allowed entry-type policy, overwrite behavior, or
+    cleanup behavior yet.
+
+    Return the verdict and the smallest context needed to proceed.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/archive-extraction-safety/SKILL.md
+      mode: positive
+      threshold: 0.50
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - archive-extraction-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*BLOCK"
+        - "(?i)(destination root|allowed entry types|missing context|cannot be inferred)"
+        - "(?i)Findings:"
+      not_contains:
+        - "Egress policy:"
+        - "Trusted root:"
+        - "PLAN-READY"
