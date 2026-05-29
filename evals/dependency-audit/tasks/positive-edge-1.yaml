@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Missing lockfile blocks meaningful dependency audit
+description: |
+  A dependency audit request where the manifest exists but the lockfile and
+  scanner provenance needed for a meaningful conclusion are missing.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use dependency-audit for a release decision on this Ruby service.
+
+    I can provide `Gemfile`, but `Gemfile.lock` is missing from the branch and
+    nobody can tell whether production uses the checked-in bundle, a container
+    image, or a deployment-time install. A pasted scanner screenshot says
+    "critical dependency issue" but does not show the tool name, data source,
+    timestamp, dependency path, affected version, or advisory ID.
+
+    Return the verdict and the smallest evidence needed before this audit can
+    be trusted.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/dependency-audit/SKILL.md
+      mode: positive
+      threshold: 0.50
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - dependency-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*BLOCK"
+        - "(?i)(Target|Scope):"
+        - "(?i)Findings:"
+        - "(?i)(tooling-evidence-gap|supply-chain-integrity)"
+        - '(?i)(Gemfile\.lock|lockfile|scanner provenance|timestamp|advisory|dependency path)'
+        - "(?i)(Open question|Test gap|Evidence)"
+      not_contains:
+        - "Verdict: CLEAN"
+        - "Egress policy:"
+        - "Zip Slip"

@@ -1,0 +1,81 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: CVE and license audit for a production Node service
+description: |
+  A dependency audit prompt with manifests, lockfile evidence, known advisory
+  context, production reachability, and license distribution context.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Use dependency-audit to review this Node service dependency change before
+    release.
+
+    Scope: production Docker image for a SaaS API. `package.json` adds
+    `fast-xml-parser` and `left-pad-forked-example`; `package-lock.json`
+    resolves `fast-xml-parser@4.2.4` and `xmlbuilder@15.1.1`. Our scanner
+    report from 2026-05-28 cites GHSA-xxxx-yyyy for `fast-xml-parser <4.4.1`
+    with prototype pollution when parsing attacker-controlled XML. The new API
+    endpoint parses uploaded XML from authenticated customers. The scanner also
+    says `left-pad-forked-example` has `license: UNKNOWN` and is included in
+    the production dependency set.
+
+    Return the audit verdict, target/scope, findings with severity and
+    classification, evidence, remediation, tests/checks, and residual risk.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/dependency-audit/SKILL.md
+      mode: positive
+      threshold: 0.50
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - dependency-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(BLOCK|CONCERNS)"
+        - "(?i)(Target|Scope):"
+        - "(?i)Findings:"
+        - "(?i)(CRITICAL|HIGH|MEDIUM|LOW)"
+        - "(?i)(Confirmed issue|Likely risk|Open question|Accepted tradeoff|Test gap)"
+        - "(?i)(Evidence|Impact|Action):"
+        - "(?i)(known-vulnerability|license-risk)"
+        - "(?i)(fast-xml-parser|GHSA|prototype pollution|package-lock)"
+        - "(?i)(license|UNKNOWN|owner|legal|review)"
+      not_contains:
+        - "Egress policy:"
+        - "Gate decision:"
+        - "Verdict: PLAN-READY"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response performs dependency-audit triage correctly:
+        - Blocks or otherwise treats as release-blocking the reachable
+          production `fast-xml-parser` advisory, tying the finding to installed
+          version, advisory/source evidence, and attacker-controlled XML.
+        - Flags the UNKNOWN production license as a license-risk that needs
+          owner/legal review rather than giving legal advice.
+        - Uses the skill's output contract with Verdict, Target or Scope,
+          Findings, severity, classification, evidence, action, checks/tests,
+          and residual risk.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

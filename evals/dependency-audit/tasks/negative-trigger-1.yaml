@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: General install and version help
+description: General package installation/version help should not activate dependency-audit.
+tags:
+  - negative-trigger
+inputs:
+  prompt: |
+    How do I install React 19 with npm, and what command shows the installed
+    version afterward?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/dependency-audit/SKILL.md
+      mode: negative
+      threshold: 0.50
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "known-vulnerability"
+        - "license-risk"
+        - "supply-chain-integrity"

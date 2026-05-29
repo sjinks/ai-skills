@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Package manager troubleshooting without audit scope
+description: Close-domain package-manager troubleshooting should not activate dependency-audit.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    pnpm says "Cannot resolve workspace protocol" after I moved a package in
+    my monorepo. Help me debug the workspace configuration and explain what the
+    error means. This is not a dependency risk review.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/dependency-audit/SKILL.md
+      mode: negative
+      threshold: 0.50
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "known-vulnerability"
+        - "license-risk"
+        - "supply-chain-integrity"
+        - "tooling-evidence-gap"
