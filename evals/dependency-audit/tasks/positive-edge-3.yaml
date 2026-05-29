@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Lifecycle script and registry-source drift audit
+description: |
+  Supply-chain integrity review should cover lifecycle script changes,
+  registry-source drift, and dependency-confusion exposure.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use dependency-audit for a release decision on this private Node service.
+
+    `package.json` depends on `@acme/config-loader` for production startup.
+    `package-lock.json` resolves `@acme/config-loader@2.3.1` from
+    `https://registry.npmjs.org/`, but Acme private packages are supposed to
+    resolve only from `https://npm.acme.internal/`. The previous lockfile used
+    the internal registry. The new package metadata adds
+    `postinstall: node scripts/collect-build-env.js`, and CI currently allows
+    package lifecycle scripts. A public package with the same scope/name showed
+    up this week. No one has run the release build yet.
+
+    Return the dependency audit with verdict, evidence sufficiency, findings,
+    and the checks needed before release.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/dependency-audit/SKILL.md
+      mode: positive
+      threshold: 0.50
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - dependency-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*BLOCK"
+        - "(?i)Target:"
+        - "(?i)Scope:"
+        - "(?i)Evidence reviewed:"
+        - "(?i)Evidence sufficiency:"
+        - "(?i)Findings:"
+        - "(?im)^\\s*Category:\\s*supply-chain-integrity"
+        - "(?i)(CRITICAL|HIGH|MEDIUM|LOW)"
+        - "(?i)(Confirmed issue|Likely risk|Open question|Accepted tradeoff|Test gap)"
+        - "(?i)(supply-chain-integrity|tooling-evidence-gap)"
+        - "(?i)(registry-source drift|registry source|dependency-confusion|public package|internal registry)"
+        - "(?i)(postinstall|lifecycle script|collect-build-env)"
+        - "(?im)^\\s*Evidence:"
+        - "(?im)^\\s*Impact:"
+        - "(?im)^\\s*Action:"
+        - "(?im)^\\s*(Owner/question:|Open questions:)"
+        - "(?i)Checks and tests:"
+        - "(?i)Residual risk:"
+      not_contains:
+        - "Verdict: CLEAN"
+        - "Egress policy:"
+        - "Gate decision:"

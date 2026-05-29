@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-003
+name: Ordinary bundle size and maintenance comparison
+description: |
+  Close-domain package comparison mentions bundle size, popularity, and
+  maintenance, but has no dependency audit, removal, release, risk, or policy
+  intent and no explicit disclaimer.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Compare lodash-es, remeda, and just for a frontend utility library choice.
+    I care about bundle size, tree-shaking, API style, documentation quality,
+    npm popularity, maintenance cadence, TypeScript ergonomics, and runtime
+    performance in the browser. Recommend which one fits a small dashboard app.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/dependency-audit/SKILL.md
+      mode: negative
+      threshold: 0.50
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Evidence sufficiency:"
+        - "Category:"
+        - "known-vulnerability"
+        - "license-risk"
+        - "maintenance-health"
+        - "dependency-bloat"
+        - "supply-chain-integrity"
