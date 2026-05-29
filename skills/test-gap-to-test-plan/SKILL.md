@@ -1,7 +1,7 @@
 ---
 name: test-gap-to-test-plan
 description: "Use when: converting review findings, identified test gaps, or unverified behaviors into a concrete, prioritized test plan with assertions, layer choice, ownership, and a merge-gate-ready evidence trail."
-argument-hint: "Findings list with severity, changed files or modules, existing test coverage signals, and any prior review output."
+argument-hint: "Findings list with location and severity labels when available, changed files or modules, existing test coverage signals, and any prior review output."
 user-invocable: true
 ---
 
@@ -11,7 +11,7 @@ Use this skill to turn an existing list of review findings and unverified behavi
 
 ## When to Use
 
-Use this skill after an upstream review has produced findings with severity, and those findings now need to become a concrete test plan before merge. Use it before a fix cycle when a downstream merge-gate workflow will require test evidence (or an explicit no-test rationale) for every functional fix.
+Use this skill after an upstream review has produced findings, with severity labels when available, and those findings now need to become a concrete test plan before merge. Use it before a fix cycle when a downstream merge-gate workflow will require test evidence (or an explicit no-test rationale) for every functional fix.
 
 This skill plans tests; it does not execute them and does not perform review itself. It consumes upstream findings; it does not re-judge them or invent new ones.
 
@@ -29,7 +29,7 @@ This skill plans tests; it does not execute them and does not perform review its
 
 Collect the narrowest useful context before planning:
 
-- Findings list with severity and location (file, module, workflow step, or behavior name).
+- Findings list with location (file, module, workflow step, or behavior name) and severity labels when available. Missing per-finding severity labels are allowed when the case can still be planned with `Priority: unmapped` under the severity normalization rules.
 - Changed files or modules under review.
 - Current test coverage signals: which suites already exist for the touched areas, which behaviors are already exercised, and any known gaps.
 - Intended behavior of the change when known, separate from the failure modes raised by the findings.
@@ -86,7 +86,7 @@ Map severity to priority:
 
 - `CRITICAL` and `HIGH` → `must-have`.
 - `MEDIUM` → `should-have`.
-- `LOW` → `nice-to-have`, unless the test is trivially cheap to write and run, in which case it may be promoted to `should-have` with a one-line rationale recorded on the test case.
+- `LOW` → `nice-to-have`.
 
 ### Compatibility With The 3-Level Scheme
 
@@ -96,7 +96,7 @@ When upstream findings use a 3-level `High` / `Medium` / `Low` vocabulary, map t
 - `Medium` → `should-have`.
 - `Low` → `nice-to-have`.
 
-Priority is determined by upstream severity, never by how easy or hard the test is to write. Ease of authoring may justify promoting a `LOW` / `Low` finding to `should-have`, but it never demotes a `HIGH` / `High` finding.
+Priority is determined by upstream severity, never by how easy or hard the test is to write. A cheap test may still be proposed for a `LOW` / `Low` finding, but its priority remains `nice-to-have`.
 
 ### Compatibility With The Critical / Warning / Suggestion Rubric
 
@@ -106,7 +106,7 @@ When upstream findings use the `Critical` / `Warning` / `Suggestion` rubric (exa
 - `Warning` → `should-have`.
 - `Suggestion` → `nice-to-have`.
 
-This rubric does not distinguish a separate top-of-scale and high-impact-but-not-top tier the way the 4-level vocabulary does; `Critical` covers both. The `LOW` → `should-have` promotion clause does not apply to `Suggestion`; treat `Suggestion` findings as `nice-to-have` regardless of test cost, since the rubric already encodes that the finding is advisory.
+This rubric does not distinguish a separate top-of-scale and high-impact-but-not-top tier the way the 4-level vocabulary does; `Critical` covers both. Treat `Suggestion` findings as `nice-to-have` regardless of test cost, since the rubric already encodes that the finding is advisory.
 
 Severity labels are matched case-sensitively against the declared vocabularies. Labels outside these vocabularies remain `unmapped` and must not be guessed. Mixed recognized vocabularies in one input are allowed; preserve each original label and normalize each finding independently.
 
@@ -197,7 +197,7 @@ Replace empty sections with `None`. When no waivers exist, render the entire `Wa
 
 When emitting `BLOCK` for insufficient input, distinguish full absence from partial gaps:
 
-- *Full absence*: when no finding can be planned (for example because findings, severities, or the change set are missing), use `Pending - input incomplete` for `Test cases`, `Untestable risks`, `Waivers`, and `Coverage summary`, and name the missing context on the `Inputs considered:` line.
+- *Full absence*: when no finding can be planned (for example because findings or the change set are missing, or because every finding is blocked by missing or unmapped high-impact severity context), use `Pending - input incomplete` for `Test cases`, `Untestable risks`, `Waivers`, and `Coverage summary`, and name the missing context on the `Inputs considered:` line.
 - *Partial gaps*: when some findings can be planned but others cannot (per the partial-availability rule in `### BLOCK On Insufficient Input`), include the planned `Test cases`, `Untestable risks`, and `Waivers` for the disambiguated findings, populate `Coverage summary` for those findings only, and on the `Inputs considered:` line name both the planned findings and the specific blocked findings together with the missing context that blocks them.
 
 ## Worked Example
@@ -235,7 +235,7 @@ The test is integration-layer because the failure only manifests when the redire
 
 - Writing "needs tests" without naming the specific unverified behavior the test should catch.
 - Inventing findings to justify additional test cases.
-- Treating priority as a function of how expensive the test is to write instead of the upstream severity, except for the bounded `LOW` → `should-have` promotion permitted in `## Local Severity Vocabulary And Priority Mapping`.
+- Treating priority as a function of how expensive the test is to write instead of the upstream severity.
 - Collapsing `must-have` and `should-have` into a single backlog so the merge gate cannot tell what is blocking.
 - Proposing a live-system or production-data test as the only coverage for a finding instead of recording it under `Untestable risks`.
 - Omitting `Owner` on a `must-have` case so the plan cannot actually be executed.

@@ -44,12 +44,9 @@ graders:
     config:
       regex_match:
         - "(?i)Verdict:\\s*(PLAN-READY|PLAN-PARTIAL)"
-        - "(?m)^\\s*Original severity label:\\s*HIGH\\b"
-        - "(?m)^\\s*Original severity label:\\s*Warning\\b"
-        - "(?m)^\\s*Original severity label:\\s*Low\\b"
-        - "(?i)Priority:\\s*must-have"
-        - "(?i)Priority:\\s*should-have"
-        - "(?i)Priority:\\s*nice-to-have"
+        - "(?s)Original severity label:\\s*HIGH\\b.{0,600}[Pp]riority\\s*:\\s*must-have\\b"
+        - "(?s)Original severity label:\\s*Warning\\b.{0,600}[Pp]riority\\s*:\\s*should-have\\b"
+        - "(?s)Original severity label:\\s*Low\\b.{0,600}[Pp]riority\\s*:\\s*nice-to-have\\b"
         - "(?i)Coverage summary:.*unmapped"
       not_contains:
         - "ask the upstream to normalize"
