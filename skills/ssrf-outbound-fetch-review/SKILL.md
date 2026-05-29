@@ -59,9 +59,13 @@ Before implementation, define the contract in concrete terms:
 - **Redirect policy:** Who owns redirect following: the wrapper or the lower-level HTTP client? Are checks repeated for every hop?
 - **Header policy:** Which headers are allowed on initial outbound requests, and which headers are stripped on cross-origin or cross-scheme redirects?
 - **Trusted private-target opt-in policy:** Are private targets denied by default and allowed only through explicit trusted callsite options? Who is allowed to set that option?
-- **Response policy:** Are timeout, response-size, content-type, decompression behavior, and body cleanup handled where relevant? If downloaded content is an archive, hand off to a separate archive-safety review for extraction paths, symlinks, file count, decompressed size, and compression ratio.
+- **Response policy:** Are timeout, response-size, content-type, decompression behavior, and body cleanup handled where relevant? If downloaded content is later extracted, treat extraction paths, links, file count, decompressed size, and compression ratio as separate review concerns outside this SSRF checklist.
 - **Defense-in-depth policy:** Which infrastructure-level egress controls, metadata-service protections, firewall rules, or service-mesh policies exist, and are they only compensating controls or an explicitly accepted primary control?
 - **Testability policy:** How can tests fake DNS and HTTP separately without hiding real validation behavior?
+
+## Output Depth
+
+Default to `standard`. `quick` still reports missing required context, blockers, unmitigated HIGH/CRITICAL findings, and target-specific concerns; it only omits non-applicable checklist expansion. `standard` covers the applicable egress checklist with concise evidence. `exhaustive` enumerates the full checklist and adversarial matrix only when asked or when the risk surface warrants it. If the user asks for `quick` or `exhaustive`, name the selected depth in the report.
 
 ## Implementation Checklist
 
@@ -244,7 +248,7 @@ Adapt this matrix to the runtime and policy. Mark each item as covered, not appl
 
 - Response body size limit, timeout, and abort behavior are covered where relevant.
 - Error paths clean up response bodies and timers.
-- Archive download callsites confirm handoff to a separate archive-safety review for extraction paths, symlinks, file count, decompressed size, and compression ratio.
+- Archive download callsites document that any later extraction path, link, file-count, decompressed-size, and compression-ratio controls are separate from SSRF egress policy.
 
 ## Review Procedure
 

@@ -107,28 +107,40 @@ checks:
   documented "hard" behaviors — BLOCK on insufficient input, CLEAN
   verdicts, lens conflict resolution, regression-during-fix-cycle,
   trusted private-target opt-in, untestable risks, the
-  PLAN-PARTIAL-on-missing-owner case, untrusted vulnerability-report
-  triage boundaries, multi-surface web-app review, narrow-skill
-  handoff from broad web security review, explicit equivalence-class
-  `n/a` rows for empty or inapplicable axes, and blocked handling for
-  critical unresolved audit clarifications.
+  PLAN-PARTIAL-on-missing-owner case, mixed recognized severity
+  normalization, unmapped severity preservation, untrusted vulnerability-report
+  triage boundaries, multi-surface web-app review, separate narrow-skill
+  coverage alongside broad web security review, quick output-depth behavior
+  that still reports blockers and target-specific high-risk findings,
+  explicit equivalence-class `n/a` rows for empty or inapplicable axes,
+  and blocked handling for critical unresolved audit clarifications.
 - `nestjs-development/positive-trigger-1.yaml` runs a `program` grader
   that pipes the generated TypeScript through `tsc --noEmit` so syntax
   errors fail the task.
 
 ## Running these evals
 
-No CI workflow ships in this repo. The waza CLI's `copilot-sdk`
-executor rejects the default GitHub Actions `GITHUB_TOKEN` ("GitHub
-App Server-To-Server Tokens are not supported"), so a matrix workflow
-cannot be added until a user-scoped Copilot PAT is configured. For
-now the suite is run either:
+No CI workflow ships in this repo. The non-secret baseline validation is
+schema/spec validation only:
+
+```bash
+waza check skills/<skill>
+```
+
+`waza check` does not execute a model and is the default validation path for
+frontmatter, token budget, and eval presence checks.
+
+Model evals are optional and require local Copilot authentication or a
+user-scoped GitHub Copilot PAT. The waza CLI's `copilot-sdk` executor rejects
+the default GitHub Actions `GITHUB_TOKEN` ("GitHub App Server-To-Server Tokens
+are not supported"), so no workflow is provided without explicit credential and
+provider details. Run model evals only when one of these is true:
 
 - locally by a maintainer with `copilot login` configured, or
-- in a workflow that injects a user-scoped GitHub Copilot PAT and
-  accepts the per-leg quota consumption.
+- in an explicitly configured workflow that injects a user-scoped GitHub
+  Copilot PAT and accepts the per-leg quota consumption.
 
-Until that workflow is added, run the suite manually with:
+Manual model eval command:
 
 ```bash
 waza run evals/<skill>/eval.yaml \
@@ -137,7 +149,3 @@ waza run evals/<skill>/eval.yaml \
   --reporter junit:junit.xml \
   -v
 ```
-
-The `waza check evals/<skill>/eval.yaml` subcommand validates the spec
-without executing any model, which is useful for catching schema-drift
-when upstream waza releases ship.

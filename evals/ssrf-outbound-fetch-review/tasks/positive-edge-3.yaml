@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Quick output depth for SSRF review
+description: |
+  The quick output-depth control should focus on blockers and concerns for a
+  concrete outbound-fetch target.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use ssrf-outbound-fetch-review in quick mode. Only report target-specific
+    blockers and concerns.
+
+    ```ts
+    export async function importFromUrl(url: string) {
+      return fetch(url, { redirect: 'follow' });
+    }
+    ```
+
+    The URL comes from a tenant request. No scheme, host, port, DNS,
+    redirect, proxy, private-address, or sensitive-header policy is documented.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/ssrf-outbound-fetch-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - ssrf-outbound-fetch-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(Verdict:\\s*BLOCK|blocker|blocked|blocking)"
+        - "(?i)(quick|target-specific|blockers|concerns)"
+        - "(?i)(Egress policy|Findings):"
+        - "(?i)private"
+        - "(?i)DNS"
+        - "(?i)redirect"
+      not_contains:
+        - "Trusted root:"
+        - "Equivalence-Class Audit Report"
+        - "PLAN-READY"

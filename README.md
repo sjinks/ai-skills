@@ -65,6 +65,7 @@ It helps an assistant:
 - enumerate candidate equivalents across bounds, sibling fields, mirror use sites, inverse operations, paths, modes, contracts, authorization surfaces, tests, docs, and source-of-truth projections
 - record evidence-based `present`, `absent`, `n/a`, and `blocked` presence verdicts without guessing
 - assign explicit dispositions for present defects: `fix-now`, `defer-with-owner`, or `blocked` (use `n/a` only where appropriate)
+- support local output depth (`quick`, `standard`, or `exhaustive`), while `quick` still reports missing context, blockers, high-risk concerns, and target-specific findings
 - return one structured audit report with rows for every applicable axis or candidate, plus fix-now defects, deferred follow-ups, out-of-scope candidates, blocking questions, and test/doc implications
 
 ### `filesystem-path-safety`
@@ -76,6 +77,7 @@ It helps an assistant:
 - establish the target, trusted root, external-input surface, and operation kind before judging
 - audit validation, canonicalization, containment, symlink, hardlink, TOCTOU, and mutation-ordering controls
 - distinguish static safe paths from externally influenced paths that need a trusted-root contract
+- support local output depth (`quick`, `standard`, or `exhaustive`), while `quick` still reports missing context, blockers, high-risk concerns, and target-specific findings
 - return anchored findings, insufficient-context blocks, and test expectations without broader web-app review structure
 
 ### `web-app-security-review`
@@ -91,7 +93,7 @@ It helps an assistant:
 - review high-value areas such as broken access control / IDOR, auth and sessions, OAuth / OIDC / JWT, XSS, CSRF, injection, XXE, SSRF, CORS, browser headers, file uploads, GraphQL, WebSockets, webhooks, secrets, dependencies, cloud IAM, containers, ReDoS, and DoS
 - use concrete grep and review heuristics without relying on weaponized payload lists
 - classify findings with severity, confidence, evidence standards, false-positive discipline, and regression-test expectations
-- route narrow outbound-fetch and filesystem path construction work to `ssrf-outbound-fetch-review` and `filesystem-path-safety` when those specialized contracts apply
+- recognize narrow outbound-fetch and filesystem path construction as separate review concerns when those specialized contracts apply
 
 ### `ssrf-outbound-fetch-review`
 
@@ -104,6 +106,7 @@ It helps an assistant:
 - reason about proxy behavior and transport semantics such as SNI, Host, and certificate verification
 - assess redirect safety, sensitive-header handling, and trusted private-target opt-ins
 - build realistic adversarial tests for SSRF-related edge cases
+- support local output depth (`quick`, `standard`, or `exhaustive`), while `quick` still reports missing context, blockers, high-risk concerns, and target-specific findings
 - return findings in a consistent, review-ready format
 
 The skill covers both implementation concerns and review discipline, including boundaries, required input context, a definition of done, and a structured output contract.
@@ -165,7 +168,7 @@ This skill is aimed at changes that span more than one concern (correctness, sec
 It helps an assistant:
 
 - walk a target through Intent / Spec, Design, Implementation, Security & Privacy, Adversarial, and Verification lenses, skipping any lens that does not add value
-- delegate to focused skills such as `adversarial-review`, `ssrf-outbound-fetch-review`, or `nestjs-code-review` when a lens falls squarely in their scope
+- recognize when a lens falls squarely inside a focused review concern while keeping each skill independently discoverable by its own scope
 - record findings with severity, confidence, classification, concrete trigger, evidence, and suggested fix, separated from one-line per-lens summaries
 - run an explicit Synthesis step to deduplicate, reconcile lens conflicts by naming the winning tradeoff, and split required actions from follow-ups
 - emit a `BLOCK`, `CONCERNS`, or `CLEAN` verdict with residual risk
@@ -173,17 +176,17 @@ It helps an assistant:
 
 ### `test-gap-to-test-plan`
 
-This skill is aimed at the step that comes after a review skill has produced findings: turning those findings into a concrete, prioritized, owned test plan that a merge gate can verify. It consumes upstream review output rather than re-judging it, and stays stack-neutral so it can sit behind `adversarial-review`, `multi-lens-review`, or an external review.
+This skill is aimed at the step that comes after a review has produced findings: turning those findings into a concrete, prioritized, owned test plan that a merge gate can verify. It consumes upstream review output rather than re-judging it, and stays stack-neutral so it can work from any source that supplies findings with enough context.
 
 It helps an assistant:
 
-- consume findings with severity from any of three declared vocabularies — the 4-level `CRITICAL` / `HIGH` / `MEDIUM` / `LOW` scheme from `adversarial-review`, the 3-level `High` / `Medium` / `Low` scheme from `review-cycle-gatekeeper`, or the `Critical` / `Warning` / `Suggestion` rubric — and map them to `must-have` / `should-have` / `nice-to-have` priority
+- consume findings with severity labels when available from any of three declared local vocabularies — the 4-level `CRITICAL` / `HIGH` / `MEDIUM` / `LOW` vocabulary, the 3-level `High` / `Medium` / `Low` vocabulary, or the `Critical` / `Warning` / `Suggestion` rubric — and map them to `must-have` / `should-have` / `nice-to-have` priority, preserving missing or unrecognized labels as `unmapped`
 - restate each finding as one specific unverified behavior before proposing a test
 - pick the smallest faithful test layer (unit, integration, or e2e) and record it on the case
-- write each case against a fixed template covering finding reference, target suite, scenario, input/setup, expected behavior, failure signal, layer, priority, owner, and status
+- write each case against a fixed template covering finding reference, original severity label, target suite, scenario, input/setup, expected behavior, failure signal, layer, priority, owner, and status
 - group cases by finding rather than by file so traceability survives deduplication
 - record live-system or production-data dependencies under `Untestable risks` instead of forcing them into the plan
-- return `BLOCK`, `PLAN-PARTIAL`, or `PLAN-READY` so the result feeds directly into `review-cycle-gatekeeper` Gate Rule 4 once the plan's `must-have` cases are `landed`, and plans the test coverage that `adversarial-review` `Adversarial tests` / `verification-gap` findings call for rather than closing them on the strength of a proposed plan
+- return `BLOCK`, `PLAN-PARTIAL`, or `PLAN-READY` so downstream merge gates can distinguish proposed coverage from landed test evidence
 - refuse to fabricate findings, severities, or owners; emit `BLOCK` when required input context is missing
 
 ## Skill Format

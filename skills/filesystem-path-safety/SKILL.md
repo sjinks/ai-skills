@@ -39,6 +39,10 @@ Do NOT use this skill for:
 - The trusted-root containment check (B3) is a canonical-path policy, not a mount-identity check. A privileged actor in a separate mount namespace, or an unprivileged actor inside a user namespace with `CLONE_NEWNS`, can present an attacker-controlled filesystem at the configured path that satisfies every checklist item. Mount-namespace integrity is a deployment-layer concern (init-system unit options, seccomp filters denying namespace creation, MAC policy) and is out of scope for this code-review checklist; note it as residual risk when it applies.
 - The checklist assumes a local POSIX filesystem (typically `tmpfs`, `ext4`, `xfs`, `apfs`, `ntfs`). On NFS, FUSE, or `overlayfs`, advisory-lock semantics (`F_OFD_SETLK` may degrade to `F_SETLK` or be unsupported), durability guarantees (`fsync`), and `O_NOFOLLOW` correctness on the final component may differ. Validate behavior on the target filesystem before relying on these guards.
 
+## Output Depth
+
+Default to `standard`. `quick` still reports missing required context, blockers, unmitigated HIGH/CRITICAL findings, and target-specific concerns; it only omits non-applicable checklist expansion. `standard` covers applicable checklist areas with concise evidence. `exhaustive` enumerates the full checklist only when asked or when the risk surface warrants it. If the user asks for `quick` or `exhaustive`, name the selected depth in the report.
+
 ## Required Input Context
 
 Before judging, the invoking agent must establish:

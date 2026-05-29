@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Mixed recognized severity vocabularies still produce a plan
+description: |
+  Recognized severity labels from different upstream vocabularies should be
+  normalized per finding instead of blocking the whole plan.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Convert these review findings into a concrete test plan.
+
+    Findings:
+    1. F-101 Severity HIGH. Behavior: redirect target must be revalidated on
+       every hop. Location: `src/fetch/redirect.ts`.
+    2. F-102 Severity Warning. Behavior: retry budget should stop after the
+       configured maximum. Location: `src/retry/budget.ts`.
+    3. F-103 Severity Low. Behavior: log messages should redact query
+       fragments. Location: `src/log/redact.ts`.
+
+    Change set: `src/fetch/redirect.ts`, `src/retry/budget.ts`,
+    `src/log/redact.ts`. Project uses Vitest with unit and integration
+    suites. Owner: self.
+
+    Return the verdict, test cases, coverage summary, and handoff.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-gap-to-test-plan/SKILL.md
+      mode: positive
+      threshold: 0.55
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - test-gap-to-test-plan
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(PLAN-READY|PLAN-PARTIAL)"
+        - "(?s)Original severity label:\\s*HIGH\\b.{0,600}[Pp]riority\\s*:\\s*must-have\\b"
+        - "(?s)Original severity label:\\s*Warning\\b.{0,600}[Pp]riority\\s*:\\s*should-have\\b"
+        - "(?s)Original severity label:\\s*Low\\b.{0,600}[Pp]riority\\s*:\\s*nice-to-have\\b"
+        - "(?i)Coverage summary:.*unmapped"
+      not_contains:
+        - "ask the upstream to normalize"
+        - "Egress policy:"
+        - "Gate decision:"
