@@ -16,6 +16,7 @@ At the moment, the repository contains these skills:
 
 - `adversarial-review`: guidance for challenging specs, designs, implementations, workflows, and test plans with evidence-based failure-mode review and risk-focused verification.
 - `archive-extraction-safety`: guidance for reviewing safe ZIP/TAR/archive extraction, including traversal, symlinks, hardlinks, absolute and Windows paths, Unicode normalization, decompression limits, nested archives, permissions, overwrite policy, containment, cleanup, and parser mismatch.
+- `dependency-audit`: guidance for auditing application and tooling dependencies for known vulnerabilities, license risk, maintenance health, abandoned packages, unused dependencies, dependency bloat, transitive risk, and supply-chain integrity.
 - `equivalence-class-audit`: guidance for turning one concrete defect, incident, review finding, test failure, or bug report into a locked-scope audit of equivalent defects across sibling fields, mirror use sites, bounds, contracts, paths, modes, tests, docs, and projections.
 - `web-app-security-review`: guidance for defensive web application security review of code, PRs, designs, vulnerability reports, and fixes across access control, auth, browser, API, data-flow, supply-chain, cloud, and abuse-risk surfaces.
 - `filesystem-path-safety`: guidance for auditing external-input filesystem path construction under trusted roots, including traversal, symlink, TOCTOU, containment, and mutation-safety checks.
@@ -52,6 +53,18 @@ It helps an assistant:
 - review ZIP/TAR traversal, absolute paths, Windows drive/UNC paths, Unicode/path normalization, symlinks, hardlinks, special files, executable bits, permission/ownership restoration, parser mismatch, and destination containment
 - check file count, decompressed size, compression ratio, nested archive depth, and partial extraction cleanup
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with findings, checklist status, tests, and residual risk
+
+### `dependency-audit`
+
+This skill is aimed at dependency risk reviews where manifests, lockfiles, scanner reports, advisory records, license context, and deployment reachability need to be reconciled into a practical release or merge verdict.
+
+It helps an assistant:
+
+- start from existing manifests, lockfiles, CI files, scanner reports, and project evidence rather than running package scripts or networked scanners by default
+- classify known vulnerabilities, license risk, maintenance health, abandoned packages, transitive risk, unused dependencies, dependency bloat, supply-chain integrity concerns, and tooling evidence gaps
+- distinguish confirmed production risk from scanner-only or dev-only findings that need reachability evidence before blocking
+- apply false-positive discipline for unused dependency claims, including CLI tools, build plugins, framework auto-discovery, dynamic imports, peer dependencies, tests, generated code, and consumer-facing exports
+- return `BLOCK`, `CONCERNS`, or `CLEAN` with severity, classification, evidence, remediation, checks, and residual risk
 
 ### `equivalence-class-audit`
 

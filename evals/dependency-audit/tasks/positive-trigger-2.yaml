@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Abandoned package and transitive risk audit
+description: |
+  A dependency audit prompt focused on abandoned direct dependencies,
+  vulnerable transitives, and maintenance-health evidence.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Please run a dependency-audit style review of this Python worker before we
+    merge the dependency refresh.
+
+    Evidence:
+    - `pyproject.toml` depends on `legacy-job-runner==0.8.0` for production
+      queue processing.
+    - `poetry.lock` shows `legacy-job-runner==0.8.0` pulls
+      `urllib3==1.26.6` transitively.
+    - The package registry page says `legacy-job-runner` was archived by its
+      maintainer in 2024 and recommends `modern-job-runner`.
+    - The scanner report dated 2026-05-27 flags a HIGH advisory for
+      `urllib3<1.26.18`, but our service only makes outbound calls to internal
+      APIs through this worker.
+    - Tests cover normal queue processing, but there is no CI dependency audit
+      gate.
+
+    Give me verdict, findings, evidence standard, and what should block merge
+    versus what can be tracked.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/dependency-audit/SKILL.md
+      mode: positive
+      threshold: 0.50
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - dependency-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(BLOCK|CONCERNS)"
+        - "(?i)(Target|Scope):"
+        - "(?i)Findings:"
+        - "(?i)(HIGH|MEDIUM|LOW)"
+        - "(?i)(Confirmed issue|Likely risk|Open question|Test gap)"
+        - "(?i)(abandoned-package|maintenance-health|transitive-risk|known-vulnerability|tooling-evidence-gap)"
+        - '(?i)(legacy-job-runner|urllib3|poetry\.lock|scanner report)'
+        - "(?i)(Evidence|Impact|Action):"
+      not_contains:
+        - "Egress policy:"
+        - "Trust map:"
+        - "PLAN-READY"

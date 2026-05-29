@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Dev-only scanner finding should avoid overblocking
+description: |
+  Scanner-only devDependency finding should be triaged with reachability
+  discipline instead of being treated as automatically release-blocking.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Dependency-audit this scanner result for a frontend app.
+
+    `package.json` lists `vite` and `esbuild` under `devDependencies` only.
+    `pnpm-lock.yaml` resolves `esbuild@0.17.10`. A scanner report from
+    2026-05-25 flags HIGH CVE-2024-99999 in `esbuild` when the dev server is
+    exposed to untrusted networks. Our production deployment serves static
+    files from a CDN; `node_modules` and the Vite dev server are not shipped.
+    CI runs `pnpm build`, but there is no evidence that the vulnerable dev
+    server is reachable by attackers.
+
+    Return the dependency audit. Avoid blocking solely because the scanner says
+    HIGH if the reachability evidence does not support that.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/dependency-audit/SKILL.md
+      mode: positive
+      threshold: 0.50
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - dependency-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(CONCERNS|CLEAN)"
+        - "(?i)(Target|Scope):"
+        - "(?i)Findings:"
+        - "(?i)(MEDIUM|LOW|HIGH)"
+        - "(?i)(Likely risk|Open question|Test gap|Accepted tradeoff)"
+        - "(?i)(known-vulnerability|tooling-evidence-gap|transitive-risk)"
+        - "(?i)(devDependency|dev server|reachability|scanner|pnpm-lock|production)"
+        - "(?i)(Evidence|Impact|Action):"
+      not_contains:
+        - "Verdict: BLOCK"
+        - "Egress policy:"
+        - "Gate decision:"

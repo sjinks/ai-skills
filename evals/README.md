@@ -46,6 +46,7 @@ grader weighting takes effect.
   - `web-app-security-review`: 0.45
   - `test-gap-to-test-plan`: 0.55
   - `archive-extraction-safety`: 0.50
+  - `dependency-audit`: 0.50
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks
   only) — requires the named skill via `required_skills` with
   `mode: any_order`. The currently released waza CLI (`v0.33.0`) defines
@@ -70,7 +71,7 @@ grader weighting takes effect.
 - `efficiency` (eval-level, `behavior`) — `max_tool_calls` and
   `max_tokens` budgets per task. Substance-heavy suites
   (`multi-lens-review`, `ssrf-outbound-fetch-review`,
-  `web-app-security-review`) use 12 000
+  `web-app-security-review`, `dependency-audit`) use 12 000
   tokens; the rest use 8 000; `spock-voice` uses 4 000.
 
 ## Skill-body injection
@@ -113,7 +114,9 @@ checks:
   coverage alongside broad web security review, quick output-depth behavior
   that still reports blockers and target-specific high-risk findings,
   explicit equivalence-class `n/a` rows for empty or inapplicable axes,
-  and blocked handling for critical unresolved audit clarifications.
+  blocked handling for critical unresolved audit clarifications, missing
+  dependency lockfile/provenance evidence, and dev-only scanner findings that
+  should not overblock without reachability evidence.
 - `nestjs-development/positive-trigger-1.yaml` runs a `program` grader
   that pipes the generated TypeScript through `tsc --noEmit` so syntax
   errors fail the task.
