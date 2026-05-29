@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 id: positive-trigger-001
-name: Turn adversarial-review findings into a test plan
+name: Turn review findings into a test plan
 description: |
   Findings with severity + change set + existing coverage — the canonical
   case for converting review output into a concrete, prioritized test plan.
@@ -8,7 +8,7 @@ tags:
   - positive-trigger
 inputs:
   prompt: |
-    Turn these adversarial-review findings into a concrete test plan with
+    Turn these review findings into a concrete test plan with
     assertions, layer, owner, and a coverage summary so the merge gate can
     verify each blocking finding is covered.
 

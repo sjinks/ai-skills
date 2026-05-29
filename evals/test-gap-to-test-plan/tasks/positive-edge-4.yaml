@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-004
+name: Unrecognized and missing severities preserve labels and continue when usable
+description: |
+  Unmapped severities should be preserved rather than guessed, while usable
+  non-blocking findings can still receive proposed tests.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Build a test plan from these review notes.
+
+    Findings:
+    1. F-201 Severity P3. Behavior: empty export result should render a clear
+       empty state. Location: `src/export/view.ts`.
+    2. F-202 Severity missing. Behavior: metrics tag should include the import
+       mode when present. Location: `src/import/metrics.ts`.
+    3. F-203 Severity Medium. Behavior: duplicate import job ids should be
+       rejected. Location: `src/import/jobs.ts`.
+
+    Change set: `src/export/view.ts`, `src/import/metrics.ts`,
+    `src/import/jobs.ts`. Test conventions: Vitest unit tests under `unit/`
+    for view helpers and metrics helpers; integration tests under
+    `integration/` for import jobs. Owner: self.
+
+    Preserve original labels, mark unmapped priorities as unmapped, and return
+    whatever useful plan can be produced.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-gap-to-test-plan/SKILL.md
+      mode: positive
+      threshold: 0.55
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - test-gap-to-test-plan
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(PLAN-READY|PLAN-PARTIAL)"
+        - "(?s)Original severity label:\\s*P3\\b.{0,600}[Pp]riority\\s*:\\s*unmapped\\b"
+        - "(?s)Original severity label:\\s*missing\\b.{0,600}[Pp]riority\\s*:\\s*unmapped\\b"
+        - "(?s)Original severity label:\\s*Medium\\b.{0,600}[Pp]riority\\s*:\\s*should-have\\b"
+        - "(?i)Test cases:"
+      not_contains:
+        - "P3 ->"
+        - "Egress policy:"

@@ -11,7 +11,7 @@ The deliverable is one audit report. This skill package is standalone and does n
 - The audit scope is locked before candidate enumeration. Do not silently expand it. If an equivalent candidate is discovered outside the locked scope, record it under **Out-of-scope candidates discovered** with provenance.
 - If no disposition boundary is provided, default in-scope present defects to `fix-now`.
 - `defer-with-owner` requires a named owner or owning team and a reason. A ticket, issue, or reference alone is not enough.
-- Every catalogue axis should be represented at least once in the table when the table is included (i.e., only after both the triggering finding and locked audit scope are available). If an axis has no candidates or is structurally inapplicable, include one explicit `n/a` row with evidence or a reason.
+- Every catalogue axis should be represented at least once in the table when the table is included (i.e., only after both the triggering finding and locked audit scope are available), except in explicit `quick` mode. If an axis has no candidates or is structurally inapplicable, include one explicit `n/a` row with evidence or a reason.
 
 ## When to Use
 
@@ -45,13 +45,23 @@ If another critical fact is missing after the triggering finding and locked audi
 - **Severity or criticality:** especially whether the defect class affects security, authorization, data integrity, public contracts, or user-visible behavior.
 - **Allowed disposition boundary:** optional. If omitted, default in-scope present defects to `fix-now`. Use `defer-with-owner` only when an explicit named owner or owning team and a reason are available. Use `blocked` only when clarification is needed before deciding safely.
 
+## Output Depth
+
+Default to `standard` unless the user asks for another depth.
+
+- `quick`: include only missing required context, blockers, high-risk concerns, and target-specific applicable axes. Do not enumerate the full catalogue. Add a short omitted-axis summary naming why the remaining axes were not expanded, such as no candidate in locked scope, structurally inapplicable, or not material to the triggering finding.
+- `standard`: represent every catalogue axis at least once when the table is included. Add candidate rows where evidence exists and explicit `n/a` rows for axes with no candidates or structural inapplicability.
+- `exhaustive`: represent every catalogue axis at least once and expand all reasonably discoverable candidates inside the locked scope.
+
+If the user asks for `quick` or `exhaustive`, name the selected depth in the report. If quick mode omits an axis that has a target-specific blocker or high-risk concern, the quick report is incomplete.
+
 ## Procedure
 
 1. Restate the triggering finding and locked audit scope.
 2. If the triggering finding or locked audit scope is missing, stop before candidate enumeration and ask the smallest blocking question in the report sections.
-3. Walk every axis in the catalogue below.
+3. Select output depth. In `quick` mode, identify target-specific blockers, high-risk concerns, and applicable axes, then summarize omitted axes instead of walking the full catalogue in the table. In `standard` and `exhaustive`, walk every axis in the catalogue below.
 4. For each axis, enumerate candidates inside the locked scope.
-5. When the table is included after the triggering finding and locked audit scope are available, represent every catalogue axis at least once.
+5. When the table is included after the triggering finding and locked audit scope are available, represent every catalogue axis at least once unless the selected depth is `quick`.
 6. If an axis has candidates, add one row per candidate.
 7. If an axis has no candidates or is structurally inapplicable, add one explicit `n/a` row with evidence or a reason.
 8. For each candidate, decide **Presence** from evidence, not probability.
@@ -84,7 +94,7 @@ The report table must use only these values.
 
 ## Catalogue
 
-Walk every axis. If an axis has no candidate or cannot apply, record the explicit `n/a` row.
+For `standard` and `exhaustive`, walk every axis. If an axis has no candidate or cannot apply, record the explicit `n/a` row. For `quick`, include only the target-specific applicable axes and summarize omitted axes instead of adding full-catalogue `n/a` rows.
 
 ### Opposite Bound
 
@@ -219,13 +229,16 @@ Locked audit scope: <files/modules/API surfaces/specs/tests/artifacts>
 
 ### Test/doc implications
 - <test, documentation, spec, migration, or contract implications, or `None`>
+
+### Omitted axes (quick mode only)
+- <summary of omitted catalogue axes and why they were not expanded, or `None` when depth is not quick>
 ```
 
-When the table is included after both the triggering finding and locked audit scope are available, every catalogue axis must be represented in the table at least once. If an axis has candidates, add one row per candidate. If an axis has no candidates or is structurally inapplicable, add one explicit `n/a` row with evidence explaining why.
+When the table is included after both the triggering finding and locked audit scope are available, every catalogue axis must be represented in the table at least once for `standard` and `exhaustive` depth. If an axis has candidates, add one row per candidate. If an axis has no candidates or is structurally inapplicable, add one explicit `n/a` row with evidence explaining why. In explicit `quick` mode, include only target-specific applicable axes and add an omitted-axis summary instead of full-axis enumeration.
 
 ## Anti-Patterns
 
-- **Silent omission:** skipping an axis or candidate because it seems unlikely.
+- **Silent omission:** skipping an axis or candidate because it seems unlikely, or using quick mode to omit a target-specific blocker or high-risk concern instead of reporting it.
 - **Speculative presence:** writing "probably", "maybe", or "looks similar" instead of citing evidence.
 - **Scope drift:** adding outside-scope candidates to the main table instead of recording them separately.
 - **Disposition blur:** marking a present defect as `n/a`, deferring it without a named owner or owning team and reason, or treating a ticket/reference alone as an owner.
