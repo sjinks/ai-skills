@@ -1,0 +1,64 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-005
+name: Source artifact mismatch and publisher transfer audit
+description: |
+  Supply-chain integrity review should cover source/artifact mismatch and
+  suspicious publisher or ownership transfer evidence.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use dependency-audit to triage this production dependency before merge.
+
+    `Cargo.toml` adds `image-minify-plus = "3.2.0"` to a service that processes
+    uploaded customer images. `Cargo.lock` resolves `image-minify-plus 3.2.0`.
+    The crate owner was transferred yesterday from the long-time maintainer to
+    a new publisher account with no project history. The registry tarball for
+    3.2.0 contains generated native binaries and a `build.rs` network fetch that
+    are absent from the GitHub source tag. Version 3.1.9 did not contain those
+    artifacts, and the release notes only say "maintenance refresh".
+
+    Return verdict, evidence sufficiency, findings, and recommended checks.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/dependency-audit/SKILL.md
+      mode: positive
+      threshold: 0.50
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - dependency-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*BLOCK"
+        - "(?i)Target:"
+        - "(?i)Scope:"
+        - "(?i)Evidence reviewed:"
+        - "(?i)Evidence sufficiency:"
+        - "(?i)Findings:"
+        - "(?im)^\\s*Category:\\s*supply-chain-integrity"
+        - "(?i)(CRITICAL|HIGH|MEDIUM|LOW)"
+        - "(?i)(Confirmed issue|Likely risk|Open question|Accepted tradeoff|Test gap)"
+        - "(?i)(supply-chain-integrity|tooling-evidence-gap)"
+        - "(?i)(source/artifact mismatch|source.*artifact|artifact.*source|tarball|GitHub source tag)"
+        - "(?i)(publisher|ownership transfer|owner was transferred|new publisher)"
+        - "(?i)(build\\.rs|network fetch|native binaries)"
+        - "(?im)^\\s*Evidence:"
+        - "(?im)^\\s*Impact:"
+        - "(?im)^\\s*Action:"
+        - "(?im)^\\s*(Owner/question:|Open questions:)"
+        - "(?i)Checks and tests:"
+        - "(?i)Residual risk:"
+      not_contains:
+        - "Verdict: CLEAN"
+        - "Egress policy:"
+        - "Gate decision:"

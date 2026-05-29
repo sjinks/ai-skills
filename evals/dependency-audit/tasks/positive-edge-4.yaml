@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-004
+name: Missing release provenance blocks distribution audit
+description: |
+  Release audit for a distributed artifact should treat missing required
+  provenance or attestation evidence as a supply-chain integrity finding.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Dependency-audit this marketplace extension release before publishing.
+
+    The extension is shipped to customers through a public marketplace.
+    `package.json`, `pnpm-lock.yaml`, and an SPDX SBOM are present. The release
+    checklist says marketplace artifacts must have SLSA provenance and a signed
+    in-toto attestation tying the `.vsix` artifact to the reviewed commit and
+    lockfile. For this release, the build artifact exists but there is no
+    provenance bundle, attestation, signature verification output, or CI link
+    proving the artifact was built from the reviewed sources. No CVE scanner
+    finding is currently reported.
+
+    Return the dependency audit and identify what evidence is needed before the
+    distribution decision can be trusted.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/dependency-audit/SKILL.md
+      mode: positive
+      threshold: 0.50
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - dependency-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*BLOCK"
+        - "(?i)Target:"
+        - "(?i)Scope:"
+        - "(?i)Evidence reviewed:"
+        - "(?i)Evidence sufficiency:"
+        - "(?i)Findings:"
+        - "(?im)^\\s*Category:\\s*supply-chain-integrity"
+        - "(?i)(CRITICAL|HIGH|MEDIUM|LOW)"
+        - "(?i)(Confirmed issue|Likely risk|Open question|Accepted tradeoff|Test gap)"
+        - "(?i)(supply-chain-integrity|tooling-evidence-gap)"
+        - "(?i)(provenance|attestation|signature|SLSA|in-toto|artifact)"
+        - "(?i)(marketplace|shipped|distributed|\\.vsix)"
+        - "(?im)^\\s*Evidence:"
+        - "(?im)^\\s*Impact:"
+        - "(?im)^\\s*Action:"
+        - "(?im)^\\s*(Owner/question:|Open questions:)"
+        - "(?i)Checks and tests:"
+        - "(?i)Residual risk:"
+      not_contains:
+        - "Verdict: CLEAN"
+        - "Egress policy:"
+        - "Gate decision:"

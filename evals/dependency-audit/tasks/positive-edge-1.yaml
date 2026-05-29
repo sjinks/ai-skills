@@ -40,7 +40,9 @@ graders:
       regex_match:
         - "(?i)Verdict:\\s*BLOCK"
         - "(?i)(Target|Scope):"
+        - "(?i)Evidence sufficiency:"
         - "(?i)Findings:"
+        - "(?im)^\\s*Category:\\s*(tooling-evidence-gap|supply-chain-integrity)"
         - "(?i)(tooling-evidence-gap|supply-chain-integrity)"
         - '(?i)(Gemfile\.lock|lockfile|scanner provenance|timestamp|advisory|dependency path)'
         - "(?i)(Open question|Test gap|Evidence)"

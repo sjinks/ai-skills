@@ -40,9 +40,11 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - "(?i)Verdict:\\s*(CONCERNS|CLEAN)"
+        - "(?i)Verdict:\\s*CONCERNS"
         - "(?i)(Target|Scope):"
+        - "(?i)Evidence sufficiency:"
         - "(?i)Findings:"
+        - "(?im)^\\s*Category:\\s*(known-vulnerability|tooling-evidence-gap|transitive-risk)"
         - "(?i)(MEDIUM|LOW|HIGH)"
         - "(?i)(Likely risk|Open question|Test gap|Accepted tradeoff)"
         - "(?i)(known-vulnerability|tooling-evidence-gap|transitive-risk)"
@@ -50,5 +52,6 @@ graders:
         - "(?i)(Evidence|Impact|Action):"
       not_contains:
         - "Verdict: BLOCK"
+        - "Verdict: CLEAN"
         - "Egress policy:"
         - "Gate decision:"

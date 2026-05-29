@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-004
+name: Supply-chain education without audit or release framing
+description: |
+  Close-domain supply-chain education should not activate dependency-audit when
+  no dependency risk, audit, release, policy, or troubleshooting decision is
+  requested.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Explain SLSA, in-toto, SBOMs, provenance attestations, and checksums for a
+    team onboarding page. Keep it conceptual and practical: what each term
+    means, how they relate, and everyday situations where developers would
+    encounter them.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/dependency-audit/SKILL.md
+      mode: negative
+      threshold: 0.50
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Evidence sufficiency:"
+        - "Category:"
+        - "known-vulnerability"
+        - "license-risk"
+        - "maintenance-health"
+        - "supply-chain-integrity"

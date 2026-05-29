@@ -47,7 +47,9 @@ graders:
       regex_match:
         - "(?i)Verdict:\\s*(BLOCK|CONCERNS)"
         - "(?i)(Target|Scope):"
+        - "(?i)Evidence sufficiency:"
         - "(?i)Findings:"
+        - "(?ims)^\\s*Category:\\s*[^\\n]*\\b(abandoned-package|maintenance-health)\\b.*^\\s*Category:\\s*[^\\n]*\\b(known-vulnerability|transitive-risk)\\b|^\\s*Category:\\s*[^\\n]*\\b(known-vulnerability|transitive-risk)\\b.*^\\s*Category:\\s*[^\\n]*\\b(abandoned-package|maintenance-health)\\b"
         - "(?i)(HIGH|MEDIUM|LOW)"
         - "(?i)(Confirmed issue|Likely risk|Open question|Test gap)"
         - "(?i)(abandoned-package|maintenance-health|transitive-risk|known-vulnerability|tooling-evidence-gap)"
