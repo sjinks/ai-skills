@@ -30,5 +30,8 @@ graders:
         - "Destination root:"
         - "Allowed entry types:"
         - "Checklist status:"
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Verdict: CLEAN"
         - "Zip Slip"
         - "Tar Slip"
