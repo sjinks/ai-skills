@@ -218,4 +218,4 @@ When adding a new skill, prefer:
 
 ## Next Additions
 
-Natural follow-ups for this repository would be more narrowly scoped engineering skills in adjacent areas, for example request validation, archive safety, egress deployment policy, language-specific secure coding workflows, or review-specific secure coding workflows.
+Natural follow-ups for this repository would be more narrowly scoped engineering skills in adjacent areas, for example request validation, egress deployment policy, language-specific secure coding workflows, or review-specific secure coding workflows.
