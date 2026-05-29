@@ -44,35 +44,35 @@ If destination root, archive format/parser, or allowed entry types are missing a
 
 1. State the extraction contract: accepted formats, destination-root trust model, allowed entry types, overwrite behavior, and resource limits.
 2. Confirm destination-root trust before extraction:
-   - Canonicalize/resolve the root itself, not only entry paths.
-   - Require an extractor-controlled root that is not attacker-writable.
-   - Prefer a fresh per-job destination or staging root.
-   - For shared or reused roots, require explicit locking/isolation and a policy for pre-existing entries.
+	- Canonicalize/resolve the root itself, not only entry paths.
+	- Require an extractor-controlled root that is not attacker-writable.
+	- Prefer a fresh per-job destination or staging root.
+	- For shared or reused roots, require explicit locking/isolation and a policy for pre-existing entries.
 3. Confirm validation and extraction use the same parser, canonicalization rules, and decoded entry names. Parser mismatch is a finding when validation accepts one view and extraction writes another.
 4. Normalize and reject unsafe entry names before touching the destination:
-   - Reject empty names, NUL bytes, control characters, trailing separators that change file type, and ambiguous duplicate names after normalization.
-   - Reject `.` and `..` path segments after splitting on all relevant separators.
-   - Reject absolute POSIX paths, drive paths such as `C:\...`, drive-relative paths, UNC paths such as `\\server\share`, namespace/device paths, reserved device names, alternate data streams, and names changed by trailing dot/space normalization where applicable.
-   - Detect case-insensitive duplicate collisions where the target platform or later consumers are case-insensitive.
-   - Normalize Unicode consistently (for example NFC) before duplicate detection and containment checks.
+	- Reject empty names, NUL bytes, control characters, trailing separators that change file type, and ambiguous duplicate names after normalization.
+	- Reject `.` and `..` path segments after splitting on all relevant separators.
+	- Reject absolute POSIX paths, drive paths such as `C:\...`, drive-relative paths, UNC paths such as `\\server\share`, namespace/device paths, reserved device names, alternate data streams, and names changed by trailing dot/space normalization where applicable.
+	- Detect case-insensitive duplicate collisions where the target platform or later consumers are case-insensitive.
+	- Normalize Unicode consistently (for example NFC) before duplicate detection and containment checks.
 5. Enforce destination containment for every entry by joining against the extraction root, canonicalizing parent paths, and checking the final write remains inside the destination. A string prefix check on raw entry names is insufficient.
 6. Handle links and file types explicitly:
-   - Reject symlink entries unless the product has a documented, contained, no-follow link policy.
-   - Reject hardlink entries unless the target is validated as an already-extracted, contained regular file.
-   - Reject device nodes, FIFOs, sockets, block/char devices, and other special files by default.
-   - Do not follow archive-created links during later extraction steps.
+	- Reject symlink entries unless the product has a documented, contained, no-follow link policy.
+	- Reject hardlink entries unless the target is validated as an already-extracted, contained regular file.
+	- Reject device nodes, FIFOs, sockets, block/char devices, and other special files by default.
+	- Do not follow archive-created links during later extraction steps.
 7. Apply resource limits before and during extraction:
-   - Bound archive entry count, directory count, path length/depth, per-file decompressed size, total decompressed size, sparse-file apparent size, metadata/header size, compression ratio, and CPU/time/memory use.
-   - Bound nested archive recursion and require the same policy at each level.
-   - Stop extraction fail-closed when a limit is exceeded.
+	- Bound archive entry count, directory count, path length/depth, per-file decompressed size, total decompressed size, sparse-file apparent size, metadata/header size, compression ratio, and CPU/time/memory use.
+	- Bound nested archive recursion and require the same policy at each level.
+	- Stop extraction fail-closed when a limit is exceeded.
 8. Apply race-resistant write semantics:
-   - Treat validate-then-write-by-path as insufficient by itself.
-   - Define overwrite policy; reject overwrites by default for externally supplied archives unless explicitly required.
-   - Use no-follow, root-confined, race-resistant writes or an equivalent design.
-   - Revalidate containment and file type at write time, not only during earlier path validation.
-   - Reject pre-existing links in destination paths unless a documented contained link policy permits them.
-   - Use atomic writes where possible and prevent path swaps between validation and write.
-   - Preserve executable bits, permissions, timestamps, and ownership only when explicitly allowed; never restore archive-owned uid/gid by default.
+	- Treat validate-then-write-by-path as insufficient by itself.
+	- Define overwrite policy; reject overwrites by default for externally supplied archives unless explicitly required.
+	- Use no-follow, root-confined, race-resistant writes or an equivalent design.
+	- Revalidate containment and file type at write time, not only during earlier path validation.
+	- Reject pre-existing links in destination paths unless a documented contained link policy permits them.
+	- Use atomic writes where possible and prevent path swaps between validation and write.
+	- Preserve executable bits, permissions, timestamps, and ownership only when explicitly allowed; never restore archive-owned uid/gid by default.
 9. Clean up partial extraction on failure. Rejected entries, timeout, cancellation, and mid-stream parser errors must not leave a partially trusted tree that later code consumes as complete.
 10. Review tests for traversal, absolute paths, drive/UNC/namespace/device paths, reserved device names, alternate data streams, trailing dot/space normalization, case-insensitive duplicate collisions, Unicode normalization collisions, symlinks, hardlinks, special files, duplicates, overwrite attempts, decompressed size, sparse-file apparent size, metadata/header size, compression ratio, path length/depth, CPU/time/memory limits, file count, nested archives, cleanup, and parser mismatch.
 
