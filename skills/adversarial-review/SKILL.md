@@ -17,11 +17,20 @@ Use this skill when performing adversarial review, red-team analysis, edge-case 
 
 Use it for specs, designs, implementations, workflows, migrations, operational procedures, and test plans. Do not reduce the review to code-only comments unless the target is only code.
 
+## Invocation Modes
+
+Use the same evidence standard whether invoked directly or after another workflow.
+
+- **Standalone review:** Ask for, read, or infer the concrete target artifact before judging it. If the target is missing or too vague, follow the blocker path in Required Input Context.
+- **Paired review:** When invoked after another skill, agent, plan, review, or implementation, treat that prior output as the target artifact. Challenge what it produced, identify what it got right, and avoid re-reporting issues it already raised unless the prior output understated the severity, missed evidence, or left the mitigation ambiguous.
+
 ## Boundaries
 
 - Review only artifacts and systems the user is authorized to inspect.
 - Keep findings actionable, evidence-based, and tied to the target.
 - Do not require a fixed number of issues or persona sections. A `CLEAN` verdict is valid when no actionable findings are found after review.
+- Calibrate scrutiny to the target's context: a prototype, local tool, production migration, regulated workflow, and security control do not deserve the same intensity or severity threshold.
+- Apply the "so what?" filter before reporting a concern: if ignoring it has no meaningful user, system, data, security, privacy, operational, or maintainability consequence, drop it.
 - Do not include exploit instructions, weaponizable payloads, live attack steps, or guidance for abusing real systems.
 - Do not exercise the target against live systems, users, or production data; reason from artifacts and non-destructive local inspection only.
 - Clearly separate confirmed defects, likely risks, open questions, accepted tradeoffs, and test gaps.
@@ -30,10 +39,11 @@ Use it for specs, designs, implementations, workflows, migrations, operational p
 
 Collect or read the narrowest useful context before judging:
 
-- Target artifact and content type: spec, design, implementation, workflow, test plan, or other.
+- Target artifact and content type: spec, design, implementation, workflow, test plan, prior skill output, or other.
 - Intended behavior, success criteria, explicit requirements, and non-goals.
 - Actors, users, tenants, permissions, data boundaries, and trust boundaries when relevant.
 - Inputs, outputs, dependencies, lifecycle, state transitions, rollback paths, and error paths.
+- Release context, blast radius, reversibility, and whether the target is prototype, internal, production, regulated, security-sensitive, or safety-sensitive.
 - Existing tests, verification evidence, monitoring, runbooks, or acceptance criteria.
 
 Halt and ask for more context, or report a blocker, when the target is empty, missing, unreadable, or too vague to identify intended behavior. If context is partial but usable, proceed with explicitly listed assumptions and caveats. If the assistant halts to ask for context instead of emitting a verdict, the halt must still include the `Target`, best-effort `Intended behavior`, and the specific missing context; otherwise emit `BLOCK`.
@@ -47,6 +57,7 @@ Apply the lenses that fit the target. Do not force every lens into the output.
 - **Security/privacy:** What permission, identity, tenancy, data exposure, misuse, or trust-boundary failure is plausible?
 - **User/workflow:** Where can a user become stuck, confused, misled, blocked, or lose work?
 - **Verification:** What important behavior is unproved, unobservable, or only tested through an unrealistic mock?
+- **AI-output:** If the target was produced by an AI system, check for happy-path bias, over-acceptance of the requested scope, confidence without evidence, attraction to familiar patterns, reactive patching, and tests rewritten to match implementation instead of intended behavior.
 
 ## Failure-Mode Taxonomy
 
@@ -80,6 +91,8 @@ Use one overall verdict:
 - `CONCERNS`: actionable issues, likely risks, open questions, or behavior-specific test gaps remain, but the target may proceed with mitigation or explicit acceptance.
 - `CLEAN`: no actionable findings found after reviewing the available target and context. Residual caveats may still be listed.
 
+For every non-`CLEAN` verdict, distinguish blocking mitigations from non-blocking watch items. Blocking mitigations are required before relying on, shipping, or merging the target; watch items are lower-risk follow-up, monitoring, or owner-accepted caveats.
+
 ## Evidence Standard
 
 Classify each substantive finding:
@@ -97,22 +110,26 @@ Every substantive finding must name a concrete trigger or scenario. Do not prese
 1. Identify the target artifact and content type.
 2. Read the available artifact and nearby context needed to understand it.
 3. State the intended behavior in one or two sentences.
-4. List assumptions the review depends on, including missing context.
-5. Challenge those assumptions using the relevant lenses and taxonomy.
-6. Deduplicate overlapping findings so the same risk is not reported multiple ways.
-7. Rank findings by severity, impact, likelihood, and confidence.
-8. Convert the top risks into concrete adversarial tests, mitigations, or acceptance criteria.
-9. Assign the overall verdict.
+4. Steel-man the target before challenging it: briefly state what the current approach gets right, why it is reasonable, or what constraints it appears to satisfy.
+5. List assumptions the review depends on, including missing context.
+6. Challenge those assumptions using the relevant lenses and taxonomy.
+7. Deduplicate overlapping findings so the same risk is not reported multiple ways.
+8. Apply the "so what?" filter and drop findings whose ignored consequence is immaterial for the target's context.
+9. Rank findings by severity, impact, likelihood, and confidence.
+10. Convert the top risks into concrete adversarial tests, mitigations, or acceptance criteria.
+11. Mark each mitigation or acceptance criterion as blocking or non-blocking when the distinction matters.
+12. Assign the overall verdict.
 
 ## Output Format
 
-Return a compact review in this shape. Replace each `A | B | C` placeholder with exactly one of the listed values. `Suggested fix` is local to one finding; `Mitigations / acceptance criteria` is the cross-cutting or gating set agreed for the target. Per-finding `Test gap` names the unverified behavior; the footer `Adversarial tests` aggregates the concrete tests proposed for top risks and may reference finding numbers.
+Return a compact review in this shape. Replace each `A | B | C` placeholder with exactly one of the listed values. `What works` is the brief steel-man of the target. `Suggested fix` is local to one finding; `Mitigations / acceptance criteria` is the cross-cutting or gating set agreed for the target and must separate blocking items from non-blocking watch items when both exist. Per-finding `Test gap` names the unverified behavior; the footer `Adversarial tests` aggregates the concrete tests proposed for top risks and may reference finding numbers.
 
 ```text
 Verdict: BLOCK | CONCERNS | CLEAN
 Target: <artifact and content type>
 Intended behavior: <one or two sentences>
 Evidence basis: <files, sections, tests, logs, or context reviewed>
+What works: <brief steel-man of the current approach, or "None identified">
 Assumptions: <explicit assumptions or "None beyond reviewed material">
 
 Findings:
@@ -128,15 +145,16 @@ Findings:
   Suggested fix: <focused mitigation, test, decision, or acceptance criterion>
 
 Adversarial tests: <behavior-specific tests or checks for top risks, may reference finding numbers>
-Mitigations / acceptance criteria: <cross-cutting changes or explicit decisions needed>
+Mitigations / acceptance criteria: <blocking items before reliance, shipping, or merge; non-blocking watch items or "None">
 Residual risk: <remaining caveats after suggested mitigations, or "No material residual risk identified">
 ```
 
-For `CLEAN`, replace each empty section with `None`; `Residual risk` must list caveats or `No material residual risk identified`. For `BLOCK` on a missing, unreadable, or insufficient target, emit a single `Open question` finding describing the blocker and use `Pending - target unavailable` for `Adversarial tests` and `Mitigations / acceptance criteria`.
+For `CLEAN`, replace each empty section with `None`; `What works` should still name the strongest evidence supporting the clean verdict when available; `Residual risk` must list caveats or `No material residual risk identified`. For `BLOCK` on a missing, unreadable, or insufficient target, emit a single `Open question` finding describing the blocker and use `Pending - target unavailable` for `What works`, `Adversarial tests`, and `Mitigations / acceptance criteria`.
 
 ## Anti-Patterns
 
 - Do not invent findings to satisfy a quota.
+- Do not report a concern unless the consequence of ignoring it matters for the target's stated or reasonably inferred context.
 - Do not report cosmetic-only issues unless they create ambiguity, user harm, operational risk, or verification risk.
 - Do not restate the target or intended behavior as if it were a finding.
 - Do not provide exploit steps, weaponizable payloads, or instructions for attacking real systems.
