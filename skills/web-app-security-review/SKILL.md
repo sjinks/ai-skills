@@ -27,4 +27,4 @@ Do not run, fetch, open, install, or click reporter-controlled scripts, links, a
 
 ## Output
 
-Return `Verdict`, `Scope`, `Trust map`, `Findings`, `Checklist coverage`, `Focused deep-dive areas`, `Regression tests`, and `Residual risk`. Verdicts are `BLOCK`, `CONCERNS`, or `CLEAN`; never return `CLEAN` when required context or regression evidence is missing. Use `WORKFLOW.md` for the full checklist and evidence standards.
+Return `Verdict`, `Scope`, `Trust map`, `Findings`, `Checklist coverage`, `Focused deep-dive areas`, `Regression tests`, and `Residual risk`. Verdicts are `BLOCK`, `CONCERNS`, or `CLEAN`; never return `CLEAN` when required context or regression evidence is missing. Use [references/WORKFLOW.md](references/WORKFLOW.md) for the full checklist and evidence standards.

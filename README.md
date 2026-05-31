@@ -113,7 +113,7 @@ It helps an assistant:
 
 This skill is aimed at web application security reviews where the assistant needs to evaluate code, pull requests, designs, vulnerability reports, or fix validation with a defensive and evidence-based workflow.
 
-For the expanded checklist and evidence standards, see [skills/web-app-security-review/WORKFLOW.md](skills/web-app-security-review/WORKFLOW.md).
+For the expanded checklist and evidence standards, see [skills/web-app-security-review/references/WORKFLOW.md](skills/web-app-security-review/references/WORKFLOW.md).
 
 It helps an assistant:
 
