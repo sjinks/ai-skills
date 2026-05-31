@@ -1,6 +1,6 @@
 # Web App Security Review Workflow
 
-Defensive web app review workflow. Treat the user's scope, project code, tests, and framework behavior as source of truth.
+Defensive web app review workflow. Treat the user's scope, project code, tests, and framework behavior as the source of truth.
 
 ## Boundaries
 
