@@ -7,7 +7,7 @@ user-invocable: true
 
 # Factcheck
 
-**UTILITY SKILL.** INVOKES: local reading, provided evidence, repo files, and explicitly approved source access. Use local `WORKFLOW.md` for the full contract.
+**UTILITY SKILL.** INVOKES: local reading, provided evidence, repo files, and explicitly approved source access. Use [references/WORKFLOW.md](references/WORKFLOW.md) for the full contract.
 
 Use when a draft, claim list, citation, source bundle, report, or file needs factual accuracy or source-support checking.
 
