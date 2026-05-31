@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Copyediting and creative rewrite only
+description: Style rewrite without accuracy checking should not activate factcheck.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Make this paragraph more vivid and concise. I am not asking you to verify
+    facts or check citations, just improve the style:
+
+    "The old station is important to the town, and many people like visiting
+    it during summer festivals."
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/factcheck/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Fact-Check Summary"
+        - "Claims Checked"
+        - "Evidence Reviewed"
+        - "Verdict:"
+        - "Recommended Corrections"

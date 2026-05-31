@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Unavailable evidence is marked unverifiable
+description: Private or inaccessible evidence should produce UNVERIFIABLE and limits.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use factcheck for this report sentence. Stay report-only.
+
+    Sentence: "Our internal 2025 incident memo shows that product outages fell
+    by 73% after the migration."
+
+    Evidence available to you: a citation placeholder named "Internal Memo Q4"
+    with no excerpt, no file, no date, and no accessible URL. Do not use outside
+    search; only assess the evidence I provided.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/factcheck/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - factcheck
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Fact-Check Summary"
+        - "(?i)Evidence Reviewed"
+        - "(?i)Findings"
+        - "(?i)Open Questions"
+        - "(?i)Verification Limits"
+        - '(?i)Verdict:\s*UNVERIFIABLE'
+        - '(?i)Confidence:\s*low'
+        - "(?i)(unavailable|inaccessible|not provided|placeholder|no excerpt|no external search)"
+      not_contains:
+        - "Verdict: SUPPORTED"
+        - "Verdict: CONTRADICTED"
+        - "Rewritten draft:"

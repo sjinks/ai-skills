@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-002
+name: Source gathering without claim verification
+description: Finding sources for a topic is not itself a fact-check request.
+tags:
+  - negative-trigger
+inputs:
+  prompt: |
+    Find me good sources about municipal climate adaptation planning. I do not
+    have a draft or specific claims yet; I just need a reading list.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/factcheck/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Fact-Check Summary"
+        - "Claims Checked"
+        - "Verdict: SUPPORTED"
+        - "Verdict: CONTRADICTED"
+        - "Recommended Corrections"

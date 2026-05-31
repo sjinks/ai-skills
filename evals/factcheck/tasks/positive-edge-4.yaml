@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-004
+name: Report-only mode does not rewrite the draft
+description: Explicit report-only request should avoid rewritten copy.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Fact-check this draft paragraph, but do not rewrite it or apply edits.
+
+    Draft: "Venus is the closest planet to the Sun. It has a thick atmosphere
+    dominated by carbon dioxide."
+
+    Return only the fact-check report and any minimal correction proposal tied
+    to claim IDs.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/factcheck/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - factcheck
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Fact-Check Summary"
+        - '(?i)Mode:\s*report-only'
+        - "(?i)Claims Checked"
+        - "(?i)Recommended Corrections"
+        - "(?i)C1"
+        - "(?i)C2"
+        - '(?i)Verdict:\s*CONTRADICTED'
+        - '(?i)Verdict:\s*(SUPPORTED|MOSTLY_SUPPORTED)'
+        - "(?i)(Mercury|closest planet|carbon dioxide)"
+      not_contains:
+        - "Rewritten draft:"
+        - "Corrected draft:"
+        - "Edited paragraph:"
+        - "Here is the revised paragraph"
+        - "I have rewritten"

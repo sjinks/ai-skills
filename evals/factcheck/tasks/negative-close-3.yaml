@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-003
+name: Professional advice without checkable claim
+description: Medical advice request with no specific factual claim should not become a fact-check.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    I have a headache and a meeting soon. Should I take a second dose of my
+    medication now or wait until tonight? I am asking what to do, not whether a
+    specific statement is factual.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/factcheck/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Fact-Check Summary"
+        - "Claims Checked"
+        - "Verdict:"
+        - "Recommended Corrections"
+        - "Evidence Reviewed"

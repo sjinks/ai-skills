@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-008
+name: Approved applied edits stay minimal and claim-tied
+description: Explicit applied-edit approval should correct only contradicted claims and preserve accurate sentences.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use factcheck on this short draft. I explicitly approve applied edits for
+    inaccurate factual claims only. Leave accurate sentences intact; do not
+    style-edit, rewrite the whole draft, or improve the wording beyond the
+    fact-tied correction.
+
+    Draft: "The North River tram opened to riders in 2018. It connects Harbor
+    Station with Pine Market."
+
+    Evidence:
+    - City transit authority history page: "The North River tram opened to
+      riders on May 6, 2020."
+    - Current route map excerpt: "North River tram: Harbor Station to Pine
+      Market."
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/factcheck/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - factcheck
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Fact-Check Summary"
+        - '(?i)Mode:\s*applied edits approved'
+        - "(?i)Claims Checked"
+        - "(?i)Findings"
+        - "(?i)Recommended Corrections"
+        - "(?i)C1"
+        - "(?i)C2"
+        - '(?i)C1[\s\S]{0,240}Verdict:\s*CONTRADICTED'
+        - '(?i)C2[\s\S]{0,240}Verdict:\s*(SUPPORTED|MOSTLY_SUPPORTED)'
+        - "(?i)(2020|May 6, 2020)"
+        - '(?i)Harbor Station(?:\s|[\s\S]{0,80})Pine Market'
+        - "(?i)(applied edit|applied edits|change summary|minimal correction)"
+      not_contains:
+        - "Mode: report-only"
+        - "Mode: correction proposals approved"
+        - "Here is the full rewritten draft"
+        - "Here is a polished version"
+        - "more polished"
+        - "improved flow"
+        - "style-edited"
+        - "rewrote the whole draft"
+        - "rewritten for clarity"
+        - "I improved the wording"
+        - "I changed the accurate sentence"
