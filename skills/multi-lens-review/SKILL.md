@@ -45,7 +45,7 @@ If the target is missing, unreadable, or too vague to identify intended behavior
 
 Apply only the lenses that add value. Each lens has a narrow question, a non-goal, and an expected output.
 
-A lens may delegate to a focused skill, when installed/available, if the target falls squarely in that skill's scope (for example: `adversarial-review` from the Adversarial lens, `ssrf-outbound-fetch-review` or `nestjs-code-review` from the Security & Privacy or Implementation lens). When delegating, record the focused skill's verdict in the lens summary, identify the delegated report by an explicit identifier the caller can resolve (an inline appendix block, a reproduced report immediately following the multi-lens output, or a link to a prior emitted block), and do not duplicate the delegated findings.
+A lens may delegate to an installed/available focused skill if the target falls squarely in that skill's scope (for example: `adversarial-review` from the Adversarial lens, `ssrf-outbound-fetch-review` or `nestjs-code-review` from the Security & Privacy or Implementation lens). When delegating, record the focused skill's verdict in the lens summary, identify the delegated report by an explicit identifier the caller can resolve (an inline appendix block, a reproduced report immediately following the multi-lens output, or a link to a prior emitted block), and do not duplicate the delegated findings.
 
 ### 1. Intent / Spec
 
