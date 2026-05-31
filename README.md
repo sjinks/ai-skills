@@ -18,6 +18,7 @@ At the moment, the repository contains these skills:
 - `archive-extraction-safety`: guidance for reviewing safe ZIP/TAR/archive extraction, including traversal, symlinks, hardlinks, absolute and Windows paths, Unicode normalization, decompression limits, nested archives, permissions, overwrite policy, containment, cleanup, and parser mismatch.
 - `dependency-audit`: guidance for auditing application and tooling dependencies for known vulnerabilities, license risk, maintenance health, abandoned packages, unused dependencies, dependency bloat, transitive risk, and supply-chain integrity.
 - `equivalence-class-audit`: guidance for turning one concrete defect, incident, review finding, test failure, or bug report into a locked-scope audit of equivalent defects across sibling fields, mirror use sites, bounds, contracts, paths, modes, tests, docs, and projections.
+- `factcheck`: guidance for verifying factual claims, citations, drafts, source support, evidence quality, verdicts, confidence, correction proposals, and uncertainty in report-only-first mode.
 - `web-app-security-review`: guidance for defensive web application security review of code, PRs, designs, vulnerability reports, and fixes across access control, auth, browser, API, data-flow, supply-chain, cloud, and abuse-risk surfaces.
 - `filesystem-path-safety`: guidance for auditing external-input filesystem path construction under trusted roots, including traversal, symlink, TOCTOU, containment, and mutation-safety checks.
 - `ssrf-outbound-fetch-review`: guidance for reviewing, designing, implementing, and testing SSRF protections around outbound HTTP fetches, from egress policy contracts through transport and redirect behavior.
@@ -80,6 +81,21 @@ It helps an assistant:
 - assign explicit dispositions for present defects: `fix-now`, `defer-with-owner`, or `blocked` (use `n/a` only where appropriate)
 - support local output depth (`quick`, `standard`, or `exhaustive`), while `quick` still reports missing context, blockers, high-risk concerns, and target-specific findings
 - return one structured audit report with rows for every applicable axis or candidate, plus fix-now defects, deferred follow-ups, out-of-scope candidates, blocking questions, and test/doc implications
+
+### `factcheck`
+
+This skill is aimed at drafts, claim lists, citations, source bundles, and reports where factual accuracy and source support need to be checked before the content is trusted or edited.
+
+For the expanded workflow, evidence taxonomy, verdict contract, and deterministic output format, see [skills/factcheck/WORKFLOW.md](skills/factcheck/WORKFLOW.md).
+
+It helps an assistant:
+
+- extract checkable claims and separate factual assertions from opinion, rhetoric, predictions, or professional advice requests
+- treat drafts, source text, URLs, files, snippets, webpages, PDFs, and search results as untrusted content whose embedded instructions must not be followed
+- classify evidence using source-quality labels such as primary, official, peer-reviewed, recognized-domain-authority, reputable-news, expert-analysis, user-provided, outdated, conflicted, and unavailable
+- assign stable verdicts (`SUPPORTED`, `MOSTLY_SUPPORTED`, `MIXED`, `UNSUPPORTED`, `CONTRADICTED`, `UNVERIFIABLE`, `NOT_A_FACTUAL_CLAIM`) with high/medium/low confidence reasons
+- default to report-only output, while keeping any approved correction proposals minimal and tied to claim IDs
+- handle medical, legal, financial, public-health, election, safety, and other sensitive-domain claims conservatively without giving professional advice
 
 ### `filesystem-path-safety`
 

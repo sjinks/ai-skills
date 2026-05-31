@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Opinion and preference request
+description: Preference advice without claim verification should not activate factcheck.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Which laptop would you personally choose for writing and light coding: a
+    small ultraportable or a larger workstation? I want your opinion and tradeoff
+    reasoning, not a factual verification report.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/factcheck/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Fact-Check Summary"
+        - "Claims Checked"
+        - "Verdict: NOT_A_FACTUAL_CLAIM"
+        - "Evidence Reviewed"
+        - "Recommended Corrections"

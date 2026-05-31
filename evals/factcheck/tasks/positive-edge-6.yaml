@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-006
+name: Sensitive-domain health claim uses conservative boundaries
+description: Medical/public-health claims should be handled as high-impact fact checks, not advice.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use factcheck on this newsletter claim. Report only.
+
+    Claim: "Taking hibiscus capsules cures hypertension, so patients can stop
+    prescribed blood-pressure medication."
+
+    Evidence provided:
+    - A supplement brand blog says customers report lower blood pressure after
+      using its capsules.
+    - A public-health guidance excerpt says patients should not stop prescribed
+      blood-pressure medication without clinician guidance.
+    - A review abstract says hibiscus may modestly lower blood pressure in some
+      studies but is not established as a cure for hypertension.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/factcheck/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - factcheck
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Fact-Check Summary"
+        - '(?i)Sensitive domain:\s*yes'
+        - "(?i)Findings"
+        - '(?i)Verdict:\s*(CONTRADICTED|UNSUPPORTED|MIXED)'
+        - '(?i)Confidence:\s*(high|medium|low)'
+        - "(?i)(medical|health|public health|not professional advice|clinician|prescribed medication)"
+        - "(?i)(peer-reviewed|recognized-domain-authority|official|conflicted)"
+        - "(?i)(cure|hypertension|stop prescribed|modestly lower)"
+      not_contains:
+        - "Patients should stop"
+        - "You should stop"
+        - "Rewritten draft:"

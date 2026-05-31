@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Conflicting sources are surfaced with source taxonomy
+description: Conflicting official and news evidence should not become a flat supported verdict.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use factcheck to verify this launch-date claim. Report only.
+
+    Claim: "Acme Search announced general availability of Atlas Search on
+    April 1, 2026."
+
+    Evidence:
+    - Acme official release notes dated May 2, 2026: "Atlas Search is now
+      generally available. The April 1 preview remains available to beta users."
+    - Reputable Tech Daily article dated April 1, 2026: "Acme launches Atlas
+      Search today," based on a preview briefing.
+    - Acme product blog dated April 1, 2026: "Public preview begins today."
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/factcheck/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - factcheck
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Fact-Check Summary"
+        - "(?i)Evidence Reviewed"
+        - "(?i)Findings"
+        - '(?i)Verdict:\s*(MIXED|CONTRADICTED|MOSTLY_SUPPORTED)'
+        - '(?i)Confidence:\s*(high|medium|low)'
+        - "(?i)(official|reputable-news|conflicted|secondary|primary)"
+        - "(?i)(April 1|May 2|general availability|preview)"
+        - "(?i)(conflict|conflicting|source|release notes)"
+      not_contains:
+        - "Verdict: SUPPORTED"
+        - "Rewritten draft:"

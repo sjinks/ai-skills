@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Citation support review for a draft paragraph
+description: Citation/source-support review should trigger factcheck.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Use factcheck to review whether this citation supports the sentence. Return
+    a report only; do not rewrite.
+
+    Draft sentence: "Malaria is caused by a virus, according to the World
+    Health Organization."
+
+    Citation excerpt supplied by the author: "The World Health Organization
+    describes malaria as a life-threatening disease caused by Plasmodium
+    parasites that are transmitted to people through the bites of infected
+    female Anopheles mosquitoes."
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/factcheck/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - factcheck
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Fact-Check Summary"
+        - "(?i)Claims Checked"
+        - "(?i)Evidence Reviewed"
+        - "(?i)Findings"
+        - "(?i)Recommended Corrections"
+        - '(?i)Verdict:\s*(CONTRADICTED|UNSUPPORTED)'
+        - '(?i)Confidence:\s*(high|medium|low)'
+        - "(?i)(official|recognized-domain-authority|user-provided)"
+        - "(?i)(WHO|World Health Organization|Plasmodium|parasites|virus)"
+        - "(?i)(citation|source|supports?)"
+      not_contains:
+        - "Rewritten draft:"
+        - "Verdict: CLEAN"
+        - "license-risk"

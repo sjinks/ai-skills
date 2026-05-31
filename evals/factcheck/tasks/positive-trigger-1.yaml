@@ -1,0 +1,80 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Direct fact-check request on mixed factual claims
+description: Explicit fact-check request should trigger and produce claim-level verdicts.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Use factcheck to verify these claims for a short museum label. Stay in
+    report-only mode.
+
+    Claims:
+    1. The Eiffel Tower opened to the public in 1889.
+    2. It remained the tallest man-made structure in the world until the
+       Chrysler Building surpassed it in 1930.
+    3. The Eiffel Tower is located in Berlin.
+
+    Use the facts in the prompt plus general historical knowledge if available,
+    but do not rewrite the label.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/factcheck/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - factcheck
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Fact-Check Summary"
+        - "(?i)Scope"
+        - "(?i)Claims Checked"
+        - "(?i)Evidence Reviewed"
+        - "(?i)Findings"
+        - "(?i)Recommended Corrections"
+        - "(?i)Open Questions"
+        - "(?i)Verification Limits"
+        - "(?i)Residual Uncertainty"
+        - "(?i)C1"
+        - "(?i)C2"
+        - "(?i)C3"
+        - '(?i)Verdict:\s*(SUPPORTED|MOSTLY_SUPPORTED)'
+        - '(?i)Verdict:\s*CONTRADICTED'
+        - '(?i)Confidence:\s*(high|medium|low)'
+        - "(?i)(Paris|Berlin)"
+      not_contains:
+        - "Verdict: BLOCK"
+        - "Gate decision:"
+        - "Rewritten label:"
+        - "Rewritten draft:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response correctly fact-checks the three claims:
+        - It extracts each claim with claim IDs.
+        - It marks the 1889 public opening and tallest-structure claim as supported or mostly supported.
+        - It marks the Berlin location claim as contradicted and ties the correction to Paris/France.
+        - It stays in report-only mode and does not rewrite the label.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or misses one required boundary.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent
