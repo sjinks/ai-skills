@@ -46,6 +46,7 @@ grader weighting takes effect.
   - `web-app-security-review`: 0.45
   - `test-gap-to-test-plan`: 0.55
   - `archive-extraction-safety`: 0.50
+  - `auth-claim-contract-review`: 0.45
   - `dependency-audit`: 0.50
   - `factcheck`: 0.45
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks

@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-003
+name: Broad auth architecture review with no claim-contract question
+description: |
+  A broad auth architecture prompt asks for high-level tradeoffs and explicitly
+  excludes claim contracts, tokens, sessions, dependencies, filesystem, archive,
+  SSRF, password-reset UX, and other unrelated security surfaces.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Please give a broad architecture review of whether our new app should use a
+    hosted identity provider, passkeys, or a traditional username/password flow.
+    Keep it at the product and system-design level: account lifecycle,
+    onboarding, recovery flows, admin ownership, and operational tradeoffs.
+
+    I am not asking about claim contracts, token/session claim semantics,
+    missing-vs-invalid behavior, issuer/validator/consumer drift, dependency audit,
+    filesystem/archive handling, SSRF, password-reset copy, or any code evidence
+    review.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/auth-claim-contract-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Verdict: CLEAN"
+        - "Target/claim contract context:"
+        - "Missing-vs-invalid semantics"
+        - "Checklist status:"
+        - "Residual risk:"
