@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Generic JWT library selection and policy debate without audit context
+description: |
+  A library-choice and product-policy question mentions JWTs but asks only for
+  API ergonomics, maintenance, and rollout tradeoffs, not claim-contract
+  review, security semantics, implementation/design/test review, or evidence
+  review.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    I am choosing a JWT library for a small internal prototype and deciding
+    whether the product policy should prefer a hosted identity provider or a
+    self-managed one. Compare three TypeScript libraries for API ergonomics,
+    documentation quality, rollout tradeoffs, and how easy they are to mock in
+    unit tests. I am not asking for a security review or any claim-contract
+    analysis yet, and there is no implementation, design, test, or evidence review
+    to perform.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/auth-claim-contract-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Verdict: CLEAN"
+        - "Target/claim contract context:"
+        - "Checklist status:"
+        - "Residual risk:"

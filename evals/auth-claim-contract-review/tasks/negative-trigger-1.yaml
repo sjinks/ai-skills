@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: General release-note wording request
+description: Unrelated writing task must not activate auth-claim-contract-review.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "Rewrite these release notes to sound clearer and more concise for a developer changelog."
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/auth-claim-contract-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Verdict: CLEAN"
+        - "Target/claim contract context:"
+        - "Checklist status:"
+        - "Residual risk:"

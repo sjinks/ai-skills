@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Clean claim contract still names residual assumptions
+description: |
+  A design review prompt with explicit parser, fallback, propagation,
+  revocation, and tests. The skill may return CLEAN, but must explicitly say
+  no claim-contract issues were found and name residual assumptions.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use auth-claim-contract-review on this design. We have no code diff yet.
+
+    - Source: OIDC access token from the corporate IdP.
+    - Claims: `sub`, `iss`, `aud`, `tenant_id`, `scope`, `exp`, `nbf`, `iat`,
+      `auth_time`, `revocation_version`.
+    - Validators reject wrong issuer, wrong audience, wrong token type, expired,
+      not-yet-valid, stale auth_time, missing required tenant_id, blank tenant_id,
+      malformed tenant_id, and revocation-version mismatch.
+    - Missing optional `scope` maps to an empty permission set. Present malformed
+      scopes reject.
+    - Parsed state includes issuer, origin, tenant_id, scope list, expiry,
+      auth_time, and revocation_version. Session serialization stores all parsed
+      state and rechecks max age and revocation_version on restore.
+    - Tests cover valid, missing optional scope, malformed scope, missing tenant,
+      wrong tenant, wrong issuer/audience, expired token, stale auth_time,
+      revoked version, and restored-session behavior.
+
+    Return the standard structured output. Name anything that remains assumed or
+    unverified.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/auth-claim-contract-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - auth-claim-contract-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*CLEAN"
+        - "(?i)Findings:\\s*(None|None - no claim-contract issues found)"
+        - "(?i)no claim-contract issues found"
+        - "(?i)Target/claim contract context:"
+        - "(?i)Checklist status:"
+        - "(?i)Assumptions and unverified areas:"
+        - "(?i)Residual risk:"
+      not_contains:
+        - "send me the token"
+        - "paste the Authorization header"
+        - "Trusted root:"
+        - "Egress policy:"

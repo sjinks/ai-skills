@@ -16,6 +16,7 @@ At the moment, the repository contains these skills:
 
 - `adversarial-review`: guidance for challenging specs, designs, implementations, workflows, and test plans with evidence-based failure-mode review and risk-focused verification.
 - `archive-extraction-safety`: guidance for reviewing safe ZIP/TAR/archive extraction, including traversal, symlinks, hardlinks, absolute and Windows paths, Unicode normalization, decompression limits, nested archives, permissions, overwrite policy, containment, cleanup, and parser mismatch.
+- `auth-claim-contract-review`: guidance for reviewing auth/security claim contracts across JWT, OIDC, SAML, token, and session flows, including optional claims, missing-vs-invalid semantics, issuer-validator-consumer drift, authorization mapping, propagation, serialization, revocation, freshness, fallback defaults, and confused-deputy risks.
 - `dependency-audit`: guidance for auditing application and tooling dependencies for known vulnerabilities, license risk, maintenance health, abandoned packages, unused dependencies, dependency bloat, transitive risk, and supply-chain integrity.
 - `equivalence-class-audit`: guidance for turning one concrete defect, incident, review finding, test failure, or bug report into a locked-scope audit of equivalent defects across sibling fields, mirror use sites, bounds, contracts, paths, modes, tests, docs, and projections.
 - `factcheck`: guidance for verifying factual claims, citations, drafts, source support, evidence quality, verdicts, confidence, correction proposals, and uncertainty in report-only-first mode.
@@ -54,6 +55,18 @@ It helps an assistant:
 - review ZIP/TAR traversal, absolute paths, Windows drive/UNC paths, Unicode/path normalization, symlinks, hardlinks, special files, executable bits, permission/ownership restoration, parser mismatch, and destination containment
 - check file count, decompressed size, compression ratio, nested archive depth, and partial extraction cleanup
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with findings, checklist status, tests, and residual risk
+
+### `auth-claim-contract-review`
+
+This skill is aimed at auth and security claim contracts where issuer, validator, consumer, missing-vs-invalid, propagation, or restoration behavior affects authorization or session safety.
+
+It helps an assistant:
+
+- map claim source, validators, consumers, and intended missing-vs-invalid semantics before judging
+- review optional claims, JWT/OIDC/SAML/session/token claims, role/scope/permission/tenant/org/account mappings, origin markers, fallback defaults, and confused-deputy risks
+- check serialization, cache/session restoration, token refresh, revocation, freshness, lifetime, and propagation boundaries for contract drift
+- keep sensitive-data boundaries explicit by using redacted or synthetic examples instead of raw tokens, auth headers, secrets, credentials, private keys, customer PII, or private raw data
+- return `BLOCK`, `CONCERNS`, or `CLEAN` with findings, checklist status, assumptions, unverified areas, and residual risk
 
 ### `dependency-audit`
 

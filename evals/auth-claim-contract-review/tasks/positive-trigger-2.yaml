@@ -1,0 +1,96 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Session restore drops freshness and origin markers
+description: |
+  A cache/session restoration change where serialized auth state drops
+  origin, revocation version, and auth_time before downstream consumers use
+  restored permissions.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Please review this session-cache optimization for claim-contract issues.
+    The input is sanitized sample code; do not ask for real tokens.
+
+    ```ts
+    interface ParsedClaims {
+      sub: string;
+      issuer: 'idp-a' | 'idp-b';
+      permissions: string[];
+      authTime: number;
+      revocationVersion: number;
+      origin: 'oidc-id-token' | 'saml-assertion';
+    }
+
+    export function serializeSession(claims: ParsedClaims) {
+      return JSON.stringify({ sub: claims.sub, permissions: claims.permissions });
+    }
+
+    export function restoreSession(serialized: string) {
+      const restored = JSON.parse(serialized);
+      return { ...restored, issuer: 'idp-a', origin: 'restored-session' };
+    }
+    ```
+
+    Consumers trust `permissions` after restore. Policy requires `authTime` max
+    age and `revocationVersion` checks on every request, and downstream services
+    need the original issuer and origin to decide whether permission claims are
+    authoritative. Return verdict, findings, checklist status, assumptions, and
+    residual risk.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/auth-claim-contract-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - auth-claim-contract-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(BLOCK|CONCERNS)"
+        - "(?i)Target/claim contract context:"
+        - "(?i)(authTime|auth_time|max age|freshness)"
+        - "(?i)(revocationVersion|revocation)"
+        - "(?i)(origin|issuer).{0,80}(drop|lost|default|restored|preserve)"
+        - "(?i)(serialization|session|restore|cache)"
+        - "(?i)Tests:"
+        - "(?i)Checklist status:"
+      not_contains:
+        - "Egress policy:"
+        - "Trusted root:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response identifies at least these risks:
+        - Serialization drops authTime and revocationVersion, so restored
+          sessions can bypass freshness and revocation checks.
+        - Original issuer and origin are lost/defaulted, which can make
+          downstream permission consumers trust claims under the wrong source.
+        - Restored permissions must be revalidated or stored with enough parsed
+          state to preserve the claim contract.
+        - Tests should cover restored sessions, stale authTime, revoked version,
+          wrong issuer/origin, and permission use after restore.
+        A correct response avoids asking for raw tokens or secrets and uses the
+        required structured output.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

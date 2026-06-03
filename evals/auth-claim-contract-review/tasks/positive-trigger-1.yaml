@@ -1,0 +1,103 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Optional tenant claim fallback widens authorization
+description: |
+  A review request where a missing optional tenant claim falls back to a
+  request parameter, and malformed present values also hit that fallback.
+  This is squarely in auth-claim-contract-review scope.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this change with auth-claim-contract-review. We accept an OIDC ID
+    token from our identity provider, validate issuer/audience elsewhere, and
+    then build app authorization state here.
+
+    ```ts
+    type Claims = {
+      sub: string;
+      tenant_id?: string | null;
+      roles?: string[];
+    };
+
+    export function buildAuthz(claims: Claims, requestTenant: string) {
+      const tenantId = claims.tenant_id || requestTenant;
+      return {
+        subject: claims.sub,
+        tenantId,
+        roles: claims.roles || ['viewer'],
+      };
+    }
+    ```
+
+    Intended policy: `tenant_id` is optional only for legacy single-tenant
+    accounts. If the claim is present but blank, null, malformed, or conflicts
+    with the request tenant, the request must fail. Missing legacy tenants may
+    use a server-side account record, not a request parameter. Please return
+    the full structured output.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/auth-claim-contract-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - auth-claim-contract-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(BLOCK|CONCERNS)"
+        - "(?i)Target/claim contract context:"
+        - "(?i)Findings:"
+        - "(?i)Severity:\\s*(CRITICAL|HIGH)"
+        - "(?i)Classification:\\s*(Confirmed issue|Likely risk)"
+        - "(?i)(missing[-\\s]?vs[-\\s]?invalid|malformed|blank|null)"
+        - "(?i)(tenant|requestTenant|request parameter)"
+        - "(?i)(fallback|default).{0,80}(widen|privilege|authorization|access|tenant)"
+        - "(?i)Checklist status:"
+        - "(?i)Residual risk:"
+      not_contains:
+        - "Trusted root:"
+        - "Egress policy:"
+        - "Archive format/parser:"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response identifies at least these risks:
+        - `claims.tenant_id || requestTenant` treats missing, null, blank, and
+          otherwise invalid present values the same.
+        - The request-controlled tenant fallback can widen tenant access or
+          create a confused-deputy authorization path.
+        - Missing legacy tenant handling should use a server-side account record
+          or explicit policy, not request input.
+        - Role defaults should be explicit least-privilege policy and tested,
+          not a silent fallback that hides absent claim semantics.
+        - Tests should cover valid, missing legacy, blank/null/malformed,
+          conflicting tenant, and serialization/restoration if auth state is
+          stored.
+        A correct response uses the skill's structured sections including
+        Verdict, Target/claim contract context, Findings, Checklist status,
+        Assumptions and unverified areas, and Residual risk.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

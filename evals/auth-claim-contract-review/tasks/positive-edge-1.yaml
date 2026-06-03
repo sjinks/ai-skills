@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Missing claim-source context must not be invented
+description: |
+  A sparse claim-contract prompt that omits issuer policy and consumer
+  expectations. The skill should still activate but report open questions or
+  needs-more-evidence instead of inventing semantics.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use auth-claim-contract-review. I found code that does this:
+
+    ```ts
+    if (claims.scope?.includes('billing:write')) {
+      canEditBilling = true;
+    }
+    ```
+
+    I cannot share the identity provider policy, token type, issuer, audience,
+    or which services consume `canEditBilling`. Please tell me whether the
+    claim handling is safe, but do not ask for raw tokens or production auth
+    headers.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/auth-claim-contract-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - auth-claim-contract-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*BLOCK"
+        - "(?i)(Open question|Needs more evidence)"
+        - "(?i)(issuer|audience|token type|consumer|identity provider)"
+        - "(?i)(do not|without).{0,80}(raw tokens|production auth headers|secrets)"
+        - "(?i)Target/claim contract context:"
+        - "(?i)Assumptions and unverified areas:"
+      not_contains:
+        - "Verdict: CONCERNS"
+        - "Verdict: CLEAN"
+        - "decode the token"
+        - "send me the token"
+        - "paste the Authorization header"
+        - "private key"
