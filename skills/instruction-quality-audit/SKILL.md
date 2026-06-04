@@ -244,7 +244,9 @@ Suggestion: A concrete rewrite, consolidation, deletion, or single-source-of-tru
 ````markdown
 ## Coverage Analysis
 
-Overall Coverage: `comprehensive`, `adequate`, `limited`, or `minimal`
+Overall Coverage: <selected coverage value>
+
+Emit the selected coverage value as bare text without Markdown backticks. Allowed values are `comprehensive`, `adequate`, `limited`, and `minimal`. For blocked, unreadable, invalid, or empty inputs, the expected line is exactly: `Overall Coverage: minimal`.
 
 ### Coverage Gaps
 
