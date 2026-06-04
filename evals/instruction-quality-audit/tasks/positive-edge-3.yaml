@@ -47,7 +47,7 @@ graders:
     config:
       regex_match:
         - "(?m)^# Instruction Analysis Report:\\s*artifact-a\\.prompt\\.md"
-        - "Duplicate sources:.*artifact-a.*artifact-b"
+        - "Duplicate sources:[\\s\\S]*artifact-a[\\s\\S]*artifact-b"
         - "(?m)^Provenance:"
         - "(?m)^## Contradictions"
         - "(?m)^## Ambiguity Issues"

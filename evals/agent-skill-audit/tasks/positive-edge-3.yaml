@@ -59,7 +59,7 @@ graders:
     config:
       regex_match:
         - "(?m)^Audit:.*artifact-a/SKILL\\.md"
-        - "Duplicate (of|sources):.*artifact-b/SKILL\\.md"
+        - "Duplicate (of|sources):[\\s\\S]*artifact-b/SKILL\\.md"
         - "(?m)^## Consistency"
         - "(?m)^## Cohesion"
         - "(?m)^## Coherence"
