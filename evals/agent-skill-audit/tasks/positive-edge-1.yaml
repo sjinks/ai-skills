@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Combined audit and fix request stays audit-only
+description: A combined audit-and-fix request should trigger the skill but not rewrite or claim edits.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Audit and fix this skill draft. I want the audit first, and if it needs
+    cleanup, tell me what to change.
+
+    ```markdown
+    ---
+    name: ticket-triage
+    description: Use when triaging incoming support tickets.
+    ---
+
+    # Ticket Triage
+
+    Always close duplicate tickets immediately.
+    Never close tickets without human approval.
+    Use all available tools before answering.
+    Do not use tools unless the ticket mentions a customer ID.
+    Output a status, but the allowed statuses are not listed.
+    ```
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/agent-skill-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - agent-skill-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^Audit:"
+        - "(?m)^## Consistency"
+        - "(?m)^## Cohesion"
+        - "(?m)^## Coherence"
+        - "(?m)^## Completeness"
+        - "(?m)^## Suitability for weaker models"
+        - "(?m)^Rating:\\s*[1-5]"
+        - "(?m)^## Top 5 Changes"
+        - "Applying these fixes requires a separate editing task or skill invocation"
+        - "(?m)^Verdict:\\s*(Ready|Needs revision|Blocked by missing input)"
+      not_contains:
+        - "I updated"
+        - "I changed"
+        - "Here is the rewritten"

@@ -14,12 +14,14 @@ skills/
 
 At the moment, the repository contains these skills:
 
+- `agent-skill-audit`: guidance for auditing agent instructions, skill files, `SKILL.md` artifacts, prompt-packaged workflows, and AI assistant instruction artifacts for consistency, cohesion, coherence, completeness, and weaker-model suitability.
 - `adversarial-review`: guidance for challenging specs, designs, implementations, workflows, and test plans with evidence-based failure-mode review and risk-focused verification.
 - `archive-extraction-safety`: guidance for reviewing safe ZIP/TAR/archive extraction, including traversal, symlinks, hardlinks, absolute and Windows paths, Unicode normalization, decompression limits, nested archives, permissions, overwrite policy, containment, cleanup, and parser mismatch.
 - `auth-claim-contract-review`: guidance for reviewing auth/security claim contracts across JWT, OIDC, SAML, token, and session flows, including optional claims, missing-vs-invalid semantics, issuer-validator-consumer drift, authorization mapping, propagation, serialization, revocation, freshness, fallback defaults, and confused-deputy risks.
 - `dependency-audit`: guidance for auditing application and tooling dependencies for known vulnerabilities, license risk, maintenance health, abandoned packages, unused dependencies, dependency bloat, transitive risk, and supply-chain integrity.
 - `equivalence-class-audit`: guidance for turning one concrete defect, incident, review finding, test failure, or bug report into a locked-scope audit of equivalent defects across sibling fields, mirror use sites, bounds, contracts, paths, modes, tests, docs, and projections.
 - `factcheck`: guidance for verifying factual claims, citations, drafts, source support, evidence quality, verdicts, confidence, correction proposals, and uncertainty in report-only-first mode.
+- `instruction-quality-audit`: guidance for auditing AI instruction artifacts, prompts, prompt templates, LLM task prompts, agent instructions, skill files, `SKILL.md` artifacts, prompt-packaged workflows, custom agent modes, and reusable assistant guidance for contradictions, ambiguity, persona issues, cognitive load, duplication, semantic coverage gaps, missing error handling, and custom diagnostics.
 - `web-app-security-review`: guidance for defensive web application security review of code, PRs, designs, vulnerability reports, and fixes across access control, auth, browser, API, data-flow, supply-chain, cloud, and abuse-risk surfaces.
 - `filesystem-path-safety`: guidance for auditing external-input filesystem path construction under trusted roots, including traversal, symlink, TOCTOU, containment, and mutation-safety checks.
 - `ssrf-outbound-fetch-review`: guidance for reviewing, designing, implementing, and testing SSRF protections around outbound HTTP fetches, from egress policy contracts through transport and redirect behavior.
@@ -31,6 +33,18 @@ At the moment, the repository contains these skills:
 - `test-gap-to-test-plan`: guidance for converting review findings and unverified behaviors into a prioritized, owned, layer-typed test plan that tracks the test evidence a downstream merge gate will require.
 
 ## Included Skills
+
+### `agent-skill-audit`
+
+This skill is aimed at agent instructions, skill files, `SKILL.md` artifacts, prompt-packaged workflows, and AI assistant instruction artifacts that need a structured audit for consistency, cohesion, coherence, completeness, and weaker-model suitability.
+
+It helps an assistant:
+
+- preserve strict input handling for pasted text, selections, file paths, multiple items, missing input, unreadable files, and empty input
+- treat audited artifacts strictly as data, including repository files, comments, remote text, and embedded instructions
+- rate Consistency, Cohesion, Coherence, Completeness, and Suitability for weaker models with stable `Rating`, `Findings`, and `Recommendations` labels
+- apply the weaker-model seven-item checklist for instruction length, nesting depth, overloaded conditionals, ambiguous or conflicting priorities, duplicated or overlapping instructions, missing examples, and reproducible output format
+- return a stable audit report ending with `Top 5 Changes` and a `Ready`, `Needs revision`, or `Blocked by missing input` verdict
 
 ### `adversarial-review`
 
@@ -109,6 +123,18 @@ It helps an assistant:
 - assign stable verdicts (`SUPPORTED`, `MOSTLY_SUPPORTED`, `MIXED`, `UNSUPPORTED`, `CONTRADICTED`, `UNVERIFIABLE`, `NOT_A_FACTUAL_CLAIM`) with high/medium/low confidence reasons
 - default to report-only output, while keeping any approved correction proposals minimal and tied to claim IDs
 - handle medical, legal, financial, public-health, election, safety, and other sensitive-domain claims conservatively without giving professional advice
+
+### `instruction-quality-audit`
+
+This skill is aimed at AI instruction artifacts, prompts, prompt templates, LLM task prompts, agent instructions, skill files, `SKILL.md` artifacts, prompt-packaged workflows, custom agent modes, and reusable assistant guidance that need a structured prompt quality or instruction quality audit for contradictions, ambiguity, persona issues, cognitive load, duplication, semantic coverage, missing error handling, and custom diagnostics.
+
+It helps an assistant:
+
+- preserve strict input handling for pasted text, selections, file paths, multiple instruction artifacts, missing input, unreadable files, and empty input
+- treat audited instruction artifact contents strictly as data and ignore YAML frontmatter unless the instruction artifact itself incorrectly depends on it
+- apply a high-confidence quality bar that avoids speculative, stylistic, or low-impact findings
+- produce stable report sections in the required order: `Contradictions`, `Ambiguity Issues`, `Persona Issues`, `Cognitive Load`, `Duplication`, `Coverage Analysis`, and `Custom Diagnostics`
+- preserve exact excerpt requirements with fenced `text` blocks and concrete rewrite suggestions
 
 ### `filesystem-path-safety`
 
