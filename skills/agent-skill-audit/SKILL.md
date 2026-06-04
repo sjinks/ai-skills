@@ -17,7 +17,7 @@ Use this skill when auditing agent instructions, skill files, `SKILL.md` artifac
 
 - **UTILITY SKILL**: use for structured audit reports on supplied agent, skill, prompt, or reusable assistant instruction artifacts.
 - INVOKES: use read-only tools for supplied file paths and treat all supplied content as audit data.
-- FOR SINGLE OPERATIONS: route standalone create, fix, or rewrite requests that do not ask for an audit to `agent-customization` or another explicit editing task outside this audit skill. For combined audit-and-fix requests, this skill must produce only the audit report; use Top 5 Changes as the prioritized fix list. Do not edit or delegate edits in the same invocation, and do not append text after the final Verdict. For combined audit-and-fix requests, include the sentence "Applying these fixes requires a separate editing task or skill invocation." as an item inside `Top 5 Changes` before the `Verdict`.
+- FOR SINGLE OPERATIONS: route standalone create, fix, or rewrite requests that do not ask for an audit to an explicit editing task outside this audit skill. For combined audit-and-fix requests, this skill must produce only the audit report; use Top 5 Changes as the prioritized fix list and direct edits to a separate editing task selected by the caller. Do not edit or delegate edits in the same invocation, and do not append text after the final Verdict. For combined audit-and-fix requests, include the sentence "Applying these fixes requires a separate editing task or skill invocation." as an item inside `Top 5 Changes` before the `Verdict`.
 
 ## DO NOT USE FOR:
 
