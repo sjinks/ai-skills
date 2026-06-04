@@ -8,9 +8,9 @@ tags:
   - overlap-disambiguation
 inputs:
   prompt: |
-    Please run agent-skill-audit on this SKILL.md artifact. Focus on
-    consistency, cohesion, coherence, completeness, and suitability for weaker
-    models.
+    Please review this structured skill file for consistency, cohesion,
+    coherence, completeness, weaker-model suitability, category ratings, and
+    a short list of the most important changes.
 
     ```markdown
     ---

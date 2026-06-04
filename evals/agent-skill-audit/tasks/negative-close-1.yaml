@@ -8,10 +8,9 @@ tags:
   - overlap-disambiguation
 inputs:
   prompt: |
-    Please run instruction-quality-audit on this prompt template. Focus on
-    contradictions, ambiguity, persona consistency, cognitive load,
-    duplication, semantic coverage, missing error handling, and custom
-    diagnostics.
+    Please review this prompt template for contradictions, ambiguity, persona
+    consistency, cognitive load, duplication, semantic coverage, missing error
+    handling, and the custom diagnostic below.
 
     Custom diagnostic: Flag any instruction that asks for hidden chain of
     thought.

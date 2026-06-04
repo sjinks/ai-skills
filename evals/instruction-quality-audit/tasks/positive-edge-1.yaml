@@ -49,7 +49,10 @@ graders:
         - "(?m)^## Custom Diagnostics"
         - "(?m)^### Custom Diagnostic 1"
         - "(?m)^Diagnostic:"
-        - "(?m)^Suggestion:"
+        - "Ask one clarifying question if the diff is missing\\.[\\s\\S]*ignore the gap and continue silently\\."
+        - "(?i)Diagnostic:[\\s\\S]*(ignore missing input|continue silently)"
+        - "(?i)Problem:[\\s\\S]*(ignore missing input|continue silently|risk|because)"
+        - "(?m)^Suggestion:\\s*(Replace|Remove|Require|Rewrite|Add)\\b"
       not_contains:
         - "Top 5 Changes"
         - "Verdict:"

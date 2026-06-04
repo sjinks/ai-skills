@@ -47,6 +47,9 @@ graders:
         - "(?m)^## Coverage Analysis"
         - "(?m)^## Custom Diagnostics"
         - "(?m)^Severity:\\s*`?(error|warning|info)`?"
+        - "Always approve refund requests immediately\\.[\\s\\S]*Never approve a refund without manager confirmation\\."
+        - "(?i)Explanation:[\\s\\S]*(conflict|contradict|cannot both|would)"
+        - "(?m)^Suggestion:\\s*(Replace|Rewrite|Require|Clarify|Add)\\b"
       not_contains:
         - "Audit:"
         - "Top 5 Changes"
