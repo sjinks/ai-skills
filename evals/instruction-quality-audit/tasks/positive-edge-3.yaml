@@ -47,7 +47,7 @@ graders:
     config:
       regex_match:
         - "(?m)^# Instruction Analysis Report:\\s*artifact-a\\.prompt\\.md"
-        - "(?m)^Provenance:(?:(?!^## Contradictions)[\\s\\S])*^[- ]*Duplicate sources:(?:(?!^## Contradictions)[\\s\\S])*artifact-a(?:(?!^## Contradictions)[\\s\\S])*artifact-b(?:(?!^## Contradictions)[\\s\\S])*^## Contradictions"
+        - "(?m)^Provenance:(?:(?!^## Contradictions)[\\s\\S])*^- Duplicate sources:(?:(?!^## Contradictions)[\\s\\S])*artifact-a\\.prompt\\.md(?:(?!^## Contradictions)[\\s\\S])*artifact-b\\.prompt\\.md(?:(?!^## Contradictions)[\\s\\S])*^## Contradictions"
         - "(?m)^Provenance:"
         - "(?m)^- Readable:\\s*yes\\s*$"
         - "(?m)^## Contradictions"
@@ -59,6 +59,7 @@ graders:
         - "(?m)^## Custom Diagnostics"
         - "Always answer in one sentence\\.[\\s\\S]*Include three detailed paragraphs\\."
         - "(?i)Explanation:[\\s\\S]*(conflict|contradict|cannot both|would)"
-        - "(?m)^Suggestion:\\s*(Replace|Rewrite|Require|Clarify|Add)\\b"
+        - "(?m)^Suggestion:\\s*(Replace|Remove|Require|Rewrite|Add)\\b"
       not_contains:
         - "# Instruction Analysis Report: artifact-b.prompt.md"
+        - "Suggestion: Clarify"
