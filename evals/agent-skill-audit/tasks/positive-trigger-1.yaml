@@ -51,7 +51,7 @@ graders:
         - "(?m)^Rating:\\s*[1-5]"
         - "customer-facing summary[\\s\\S]*internal implementation detail"
         - "tests failed[\\s\\S]*release is ready"
-        - "(?i)Recommendations:[\\s\\S]*\\b(Remove|Replace|Revise|Clarify|Define)\\b"
+        - "(?i)Recommendations:[\\s\\S]*\\b(Add|Remove|Replace|Revise|Clarify|Define)\\b"
         - "(?i)\\b(conflict|contradict|inconsistent|risk|because)\\b"
         - "(?m)^## Top 5 Changes"
         - "(?m)^Verdict:\\s*(Ready|Needs revision|Blocked by missing input)"
