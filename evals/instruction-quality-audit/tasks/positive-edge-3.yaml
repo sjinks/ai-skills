@@ -47,8 +47,9 @@ graders:
     config:
       regex_match:
         - "(?m)^# Instruction Analysis Report:\\s*artifact-a\\.prompt\\.md"
-        - "Duplicate sources:[\\s\\S]*artifact-a[\\s\\S]*artifact-b"
+        - "(?m)^Provenance:(?:(?!^## Contradictions)[\\s\\S])*^[- ]*Duplicate sources:(?:(?!^## Contradictions)[\\s\\S])*artifact-a(?:(?!^## Contradictions)[\\s\\S])*artifact-b(?:(?!^## Contradictions)[\\s\\S])*^## Contradictions"
         - "(?m)^Provenance:"
+        - "(?m)^- Readable:\\s*yes\\s*$"
         - "(?m)^## Contradictions"
         - "(?m)^## Ambiguity Issues"
         - "(?m)^## Persona Issues"

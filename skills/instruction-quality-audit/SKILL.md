@@ -69,7 +69,9 @@ Perform all of the following analyses:
 Respond with one structured Markdown document containing one report per supplied instruction artifact. Do not wrap the entire response in a code block. Use the exact heading names and labels below so the result is easy for both humans and LLMs to read and parse.
 
 Provenance requirement:
-- Every completed or blocked report must include a short `Provenance` block immediately before the first category section: audited target path or item label, origin, readable status, duplicate sources when any, and confirmation source (explicit user confirmation, single unambiguous input, or blocked/unconfirmed).
+- Every completed or blocked report must include a short `Provenance` block immediately before the first category section: audited target path or item label, origin, `Readable`, duplicate sources when any, and confirmation source (explicit user confirmation, single unambiguous input, or blocked/unconfirmed).
+- `Readable` is a closed enum: use exactly `Readable: yes` or `Readable: no`.
+- Use `Readable: yes` only for target artifacts with a readable, non-empty instruction body. Use `Readable: no` for unreadable, invalid, or empty target artifacts, including blocked/unconfirmed reports.
 - For a confirmed duplicate set, `Audited target` must be the first supplied duplicate artifact path or item label before de-duplication. `Duplicate sources` must list the full confirmed duplicate source set in supplied order, including the representative.
 
 Example Provenance:
@@ -78,7 +80,6 @@ Provenance:
 - Audited target: skills/agent-skill-audit/SKILL.md
 - Origin: attachment
 - Readable: yes
-- Duplicate sources: none
 - Confirmation: explicit user confirmation
 ```
 

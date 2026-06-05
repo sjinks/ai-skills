@@ -39,6 +39,7 @@ graders:
       regex_match:
         - "(?m)^# Instruction Analysis Report"
         - "(?m)^Provenance:"
+        - "(?m)^- Readable:\\s*yes\\s*$"
         - "(?m)^## Contradictions"
         - "(?m)^## Ambiguity Issues"
         - "(?m)^## Persona Issues"

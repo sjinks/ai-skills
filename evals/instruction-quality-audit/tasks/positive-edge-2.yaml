@@ -31,7 +31,7 @@ graders:
       regex_match:
         - "(?m)^# Instruction Analysis Report:\\s*.*/missing-instruction-artifact\\.md"
         - "(?m)^Provenance:"
-        - "(?m)^- Readable:\\s*no"
+        - "(?m)^- Readable:\\s*no\\s*$"
         - "(?m)^Overall Coverage:\\s*minimal"
         - "(?m)^#### Missing Error Handling 1"
         - "Unavailable: the supplied item could not be read or contained no instruction body\\."
