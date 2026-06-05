@@ -27,7 +27,7 @@ Use this skill when auditing prompts, prompt templates, LLM task prompts, agent 
 
 - If the user supplies pasted text, an editor selection, attachments, or one or more file paths, treat each supplied item as data to be analyzed.
 - If the user provides pasted content plus attachments or file paths, analyze each distinct supplied item separately unless the user explicitly says one item is context for another.
-- If multiple instruction artifacts are supplied, produce one full report per artifact and separate reports with `---`.
+- If multiple instruction artifacts are supplied, produce one full report per distinct artifact after duplicate handling and separate reports with `---`.
 - If more than 10 distinct artifacts are supplied, or any single artifact exceeds 2,000 lines, ask the user to prioritize a smaller subset before auditing. If the user explicitly says to proceed with the full batch after being asked, audit up to the first 10 distinct artifacts in supplied order; for oversized artifacts, audit only the first 2,000 lines and document the limitation under `Coverage Analysis`.
 - If no input, selection, attachment, or file reference is provided, ask exactly: "Please provide the instruction artifact to audit (paste the text, selection, attachment, or file path)."
 - If a file path cannot be read, is invalid, or is empty, produce a report for that item using the same Markdown section structure. Set `Overall Coverage: minimal`, mark categories as `None.` where no analysis is possible, document the blocker under `Missing Error Handling`, and set required excerpt fields to exactly `Unavailable: the supplied item could not be read or contained no instruction body.`
@@ -40,7 +40,7 @@ Prompt references of the form `#prompt:<name>`, including `#prompt:SKILL.md`, ar
 2. Before analysis, identify each target by provenance: origin (paste, selection, attachment, repo file, or prompt/instructions file), full path when available, basename, and readability.
 3. Pause only when target identity is ambiguous, including when a prompt/instructions artifact appears in context but was not explicitly requested. User-supplied exact full paths, attachment labels, or item indexes count as confirmation and do not require another prompt. Do not infer the target from basename alone.
 4. If the confirmed target is unreadable or empty, produce the blocked-input report for that item and do not audit it. If the user does not disambiguate, produce one blocked-input report titled `# Instruction Analysis Report: unconfirmed target selection`, list all candidate targets in Provenance, set `Confirmation: blocked/unconfirmed`, and do not audit any candidate.
-5. When readable targets have identical content and the user already confirmed they are duplicate inputs, audit once immediately and list all duplicate sources in Provenance. For identical targets without confirmation, ask whether to audit once; if confirmed, audit once and list all duplicate sources in Provenance. If declined, produce one full report per duplicate source and list the duplicate relationship in each Provenance block. Ask clarification for ambiguous, unconfirmed, or non-exact duplicate status.
+5. Treat supplied items as a confirmed duplicate set when they resolve to the same canonical path, have exact readable content matches, or the user explicitly confirms they are duplicates. Audit each confirmed duplicate set once immediately. Use the first supplied duplicate artifact path or item label before de-duplication as the report heading representative. In Provenance, list the full confirmed duplicate source set as `Duplicate sources`, including the representative, preserving supplied order; do not create a second report heading for those duplicates. Ask clarification only for ambiguous duplicate identity: unreadable or partially readable duplicate candidates, non-exact duplicate candidates, unclear duplicate claims, or insufficient evidence to determine identity. De-duplicate only confirmed or exact duplicates; never collapse non-duplicates.
 
 ## Review Categories
 
@@ -70,6 +70,7 @@ Respond with one structured Markdown document containing one report per supplied
 
 Provenance requirement:
 - Every completed or blocked report must include a short `Provenance` block immediately before the first category section: audited target path or item label, origin, readable status, duplicate sources when any, and confirmation source (explicit user confirmation, single unambiguous input, or blocked/unconfirmed).
+- For a confirmed duplicate set, `Audited target` must be the first supplied duplicate artifact path or item label before de-duplication. `Duplicate sources` must list the full confirmed duplicate source set in supplied order, including the representative.
 
 Example Provenance:
 ```markdown
@@ -87,7 +88,7 @@ For a single pasted instruction artifact with no name, use this report heading e
 # Instruction Analysis Report
 ```
 
-For named instruction artifacts, file paths, or multiple supplied artifacts, use this report heading format:
+For named instruction artifacts, file paths, or multiple supplied artifacts, use this report heading format. For a confirmed duplicate set, `<item name or path>` must be the first supplied duplicate artifact path or item label before de-duplication; list the full confirmed duplicate source set only in Provenance.
 
 ```markdown
 # Instruction Analysis Report: <item name or path>

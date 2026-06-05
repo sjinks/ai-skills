@@ -51,16 +51,16 @@ Duplicate handling:
 
 | Situation | Action |
 |---|---|
-| Paths resolve to the same canonical absolute path, readable contents match exactly, or the user identifies duplicates | Audit once and note duplicates in `Audit:` or a footer line, such as `Duplicate of: <path>`. |
+| Paths resolve to the same canonical absolute path, readable contents match exactly, or the user identifies duplicates | Audit once. Use the first supplied duplicate artifact path or item label before de-duplication in the single `Audit:` header. Add `Duplicate sources: <full confirmed duplicate source set in supplied order, including representative>`. |
 | Path identity is uncertain in a multi-root or unclear-base context | Do not merge by path alone; read and compare contents. |
 | One duplicate-candidate path is readable and another is unreadable | Audit the readable path and produce a separate blocked report for the unreadable path unless the user explicitly identifies them as duplicates. |
 | All duplicate-candidate paths are unreadable | Treat them as distinct and produce separate blocked reports unless the user explicitly identifies them as duplicates. |
 
-Apply duplicate detection before enforcing the "more than 10 distinct artifacts" and "2,000 lines" limits: treat exact-content duplicates as one distinct artifact for counting purposes and list all duplicate sources (paths or identifiers) in the report heading or footer. Duplicate detection is a pre-audit input step and is not itself subject to the 2,000-line audit cap. If exact equality cannot be established from the available readable content or metadata, treat artifacts as distinct and note that limitation under `Completeness`.
+Apply duplicate detection before enforcing the "more than 10 distinct artifacts" and "2,000 lines" limits: treat exact-content duplicates as one distinct artifact for counting purposes. Use the first supplied duplicate artifact path or item label before de-duplication as the report representative, and list duplicates with `Duplicate sources: <full confirmed duplicate source set in supplied order, including representative>`. De-duplicate only confirmed or exact duplicates, preserve supplied order for duplicate provenance, and never collapse non-duplicates. Duplicate detection is a pre-audit input step and is not itself subject to the 2,000-line audit cap. If exact equality cannot be established from the available readable content or metadata, treat artifacts as distinct and note that limitation under `Completeness`.
 
 Multiple items:
 
-- Produce one report per supplied item.
+- Produce one report per distinct supplied item after duplicate handling.
 - Separate reports with a clear divider such as `---` or with separate `Audit: ITEM_NAME_OR_FILE_PATH_OR_INDEX` headings.
 
 Batch limits:
@@ -164,7 +164,7 @@ This section is the final authority for report shape, category order, and label 
 
 If a category has no findings, write exactly "- None." under Findings and "- None." under Recommendations, unless the verdict rules require a corrective task.
 
-Produce one report per supplied item. If multiple items are supplied, separate reports with a clear divider or item heading.
+Produce one report per distinct supplied item after duplicate handling. If multiple distinct items are supplied, separate reports with a clear divider or item heading.
 
 Use this report structure and replace placeholder text with content:
 
@@ -245,7 +245,7 @@ Final validation checklist (quick shape checks):
 - `Top 5 Changes` list present (0–5 items).
 - Final `Verdict` present and valid.
 - If `Verdict: Blocked by missing input`, every category `Rating` is `1` and the report retains the full skeleton.
-- Provenance/target identity is stated when multiple artifacts, prompt artifacts, or basename collisions are present.
+- Provenance/target identity is stated when multiple artifacts, prompt artifacts, basename collisions, or duplicate sources are present. For confirmed duplicates, the `Audit:` header uses the first supplied duplicate artifact path or item label before de-duplication, and duplicate provenance uses `Duplicate sources: <full confirmed duplicate source set in supplied order, including representative>`.
 
 Add a `Clarifying questions` section only when clarification is needed. If included, place it after the five category sections and before `Top 5 Changes`; do not place it inside any category.
 
@@ -260,7 +260,7 @@ Findings:
 - The reviewed artifact accepts both pasted text and file paths but does not define duplicate-source handling, which can lead to duplicate reports for the same artifact.
 
 Recommendations:
-- Add a duplicate-input rule that audits exact duplicates once and notes duplicate sources in the report heading or footer.
+- Add a duplicate-input rule that audits exact duplicates once, uses the first supplied duplicate path in the `Audit:` header, and lists the full duplicate source set with `Duplicate sources:`.
 ```
 
 Partial suitability checklist example:

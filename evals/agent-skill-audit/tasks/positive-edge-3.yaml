@@ -59,7 +59,7 @@ graders:
     config:
       regex_match:
         - "(?m)^Audit:.*artifact-a/SKILL\\.md"
-        - "Duplicate (of|sources):[\\s\\S]*artifact-b/SKILL\\.md"
+        - "(?m)^Duplicate sources:\\s*[\\s\\S]*artifact-a/SKILL\\.md[\\s\\S]*artifact-b/SKILL\\.md"
         - "(?m)^## Consistency"
         - "(?m)^## Cohesion"
         - "(?m)^## Coherence"
@@ -72,7 +72,7 @@ graders:
         - "(?i)Recommendations:[\\s\\S]*\\b(Remove|Replace|Revise|Clarify|Define)\\b"
         - "(?i)\\b(conflict|contradict|inconsistent|risk|because)\\b"
       not_contains:
-        - "Audit: artifact-b/SKILL.md"
+        - "Audit: artifact-b"
         - "I updated"
         - "I changed"
         - "Here is the rewritten"
