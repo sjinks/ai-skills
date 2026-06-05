@@ -166,10 +166,11 @@ If a category has no findings, write exactly "- None." under Findings and "- Non
 
 Produce one report per distinct supplied item after duplicate handling. If multiple distinct items are supplied, separate reports with a clear divider or item heading.
 
-Use this report structure and replace placeholder text with content:
+Use this report structure and replace placeholder text with content. Include `Duplicate sources:` only for confirmed duplicate source sets; omit it for non-duplicate audits. Its value must be the full confirmed duplicate source set in supplied order, including the representative item.
 
 ```markdown
 Audit: ITEM_NAME_OR_FILE_PATH_OR_INDEX
+Duplicate sources: FULL_CONFIRMED_DUPLICATE_SOURCE_SET_IN_SUPPLIED_ORDER_INCLUDING_REPRESENTATIVE
 
 ## Consistency
 
