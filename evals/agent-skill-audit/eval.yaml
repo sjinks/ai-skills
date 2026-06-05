@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
+name: agent-skill-audit-eval
+description: |
+  Evaluates the agent-skill-audit skill: it activates for structured audits of
+  agent, skill, SKILL.md, and reusable assistant instruction artifacts; stays
+  silent on implementation, rewrite-only, general code, and instruction-quality
+  audit prompts; and emits the five-category audit contract with ratings,
+  prioritized changes, and a final verdict.
+skill: agent-skill-audit
+version: "1.0"
+config:
+  trials_per_task: 2
+  timeout_seconds: 300
+  parallel: true
+  workers: 4
+  executor: copilot-sdk
+  model: claude-sonnet-4.6
+  max_attempts: 2
+metrics:
+  - name: trigger_accuracy
+    weight: 0.30
+    threshold: 0.8
+    description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected mode.
+  - name: skill_invocation
+    weight: 0.15
+    threshold: 0.9
+    description: Skill is invoked on positive tasks that should activate it.
+  - name: task_completion
+    weight: 0.40
+    threshold: 0.8
+    description: Output carries the agent-skill-audit contract and respects audit-only routing boundaries.
+  - name: efficiency
+    weight: 0.15
+    threshold: 0.7
+    description: Stays within tool-call and total-token budgets.
+graders:
+  - type: behavior
+    name: efficiency
+    config:
+      max_tool_calls: 8
+      max_tokens: 8000
+tasks:
+  - "tasks/*.yaml"

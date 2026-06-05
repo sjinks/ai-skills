@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Agent skill audit of a synthetic skill
+description: Explicit request to audit a short SKILL.md artifact should trigger the skill.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Please audit this short SKILL.md artifact for consistency, cohesion,
+    coherence, completeness, and suitability for weaker models.
+
+    ```markdown
+    ---
+    name: release-note-helper
+    description: Use when drafting release notes from a completed change.
+    ---
+
+    # Release Note Helper
+
+    Always produce a short customer-facing summary.
+    Include every internal implementation detail so nothing is omitted.
+    If tests failed, say the release is ready anyway.
+    Output should be concise, but also include all commits and all files.
+    Ask clarifying questions when input is missing.
+    ```
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/agent-skill-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - agent-skill-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^Audit:"
+        - "(?m)^## Consistency"
+        - "(?m)^## Cohesion"
+        - "(?m)^## Coherence"
+        - "(?m)^## Completeness"
+        - "(?m)^## Suitability for weaker models"
+        - "(?m)^Rating:\\s*[1-5]"
+        - "customer-facing summary[\\s\\S]*internal implementation detail"
+        - "tests failed[\\s\\S]*release is ready"
+        - "(?i)Recommendations:[\\s\\S]*\\b(Add|Remove|Replace|Revise|Clarify|Define)\\b"
+        - "(?i)\\b(conflict|contradict|inconsistent|risk|because)\\b"
+        - "(?m)^## Top 5 Changes"
+        - "(?m)^Verdict:\\s*(Ready|Needs revision|Blocked by missing input)"
+      not_contains:
+        - "# Instruction Analysis Report"
+        - "Provenance:"

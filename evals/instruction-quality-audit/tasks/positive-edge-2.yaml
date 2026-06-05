@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Instruction audit ignores prompt reference for blocked file input
+description: Prompt references should not be treated as instruction artifact targets when the real path is unreadable.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Run an instruction quality audit for /tmp/missing-instruction-artifact.md.
+    The prompt context also includes #prompt:SKILL.md, but that reference is
+    not the instruction artifact to audit.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/instruction-quality-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - instruction-quality-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^# Instruction Analysis Report:\\s*.*/missing-instruction-artifact\\.md"
+        - "(?m)^Provenance:"
+        - "(?m)^- Readable:\\s*no\\s*$"
+        - "(?m)^Overall Coverage:\\s*minimal"
+        - "(?m)^#### Missing Error Handling 1"
+        - "Unavailable: the supplied item could not be read or contained no instruction body\\."
+      not_contains:
+        - "# Instruction Analysis Report: #prompt:SKILL.md"
+        - "Audit:"

@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Agent skill audit overlap request
+description: Explicit agent-skill-audit framing should route to that skill, not instruction-quality-audit.
+tags:
+  - negative-trigger
+  - close-domain
+  - overlap-disambiguation
+inputs:
+  prompt: |
+    Please review this structured skill file for consistency, cohesion,
+    coherence, completeness, weaker-model suitability, category ratings, and
+    a short list of the most important changes.
+
+    ```markdown
+    ---
+    name: incident-summary
+    description: Use when writing incident summaries from a completed review.
+    ---
+
+    # Incident Summary
+
+    Always include the timeline and customer impact.
+    Never include customer impact because it may be sensitive.
+    Use a short final summary.
+    The output format is flexible.
+    ```
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/instruction-quality-audit/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "# Instruction Analysis Report"
+        - "Provenance:"
+        - "## Contradictions"
+        - "## Ambiguity Issues"
+        - "## Persona Issues"
+        - "## Cognitive Load"
+        - "## Duplication"
+        - "## Coverage Analysis"
+        - "## Custom Diagnostics"

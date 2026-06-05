@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Documentation copyedit request
+description: General documentation copyediting and summarization should not trigger the instruction audit skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: |
+    Please copyedit and summarize this documentation paragraph. Keep the meaning
+    the same, tighten the wording, and return a clean version.
+
+    Our dashboard lets teams review weekly usage trends, compare the latest
+    deployment with the previous one, and export a CSV for finance reporting.
+    The current draft is too wordy and repeats the same idea in several places,
+    so it should be shorter and easier to scan.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/instruction-quality-audit/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "# Instruction Analysis Report"
+        - "Provenance:"
+        - "## Contradictions"
+        - "## Ambiguity Issues"
+        - "## Custom Diagnostics"

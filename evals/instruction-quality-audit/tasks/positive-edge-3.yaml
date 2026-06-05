@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Instruction audit deduplicates confirmed duplicate sources
+description: Confirmed duplicate prompt artifacts should be audited once with duplicate provenance.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Run an instruction quality audit on these two prompt artifacts. They are
+    confirmed duplicate sources, so audit once and list both source names.
+
+    artifact-a.prompt.md
+    ```markdown
+    You are a status-update assistant.
+    Always answer in one sentence.
+    Include three detailed paragraphs.
+    Ask one clarifying question if the project name is missing.
+    If the project name is missing, continue silently.
+    ```
+
+    artifact-b.prompt.md
+    ```markdown
+    You are a status-update assistant.
+    Always answer in one sentence.
+    Include three detailed paragraphs.
+    Ask one clarifying question if the project name is missing.
+    If the project name is missing, continue silently.
+    ```
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/instruction-quality-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - instruction-quality-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^# Instruction Analysis Report:\\s*artifact-a\\.prompt\\.md"
+        - "(?m)^Provenance:(?:(?!^## Contradictions)[\\s\\S])*^- Duplicate sources:(?:(?!^## Contradictions)[\\s\\S])*artifact-a\\.prompt\\.md(?:(?!^## Contradictions)[\\s\\S])*artifact-b\\.prompt\\.md(?:(?!^## Contradictions)[\\s\\S])*^## Contradictions"
+        - "(?m)^Provenance:"
+        - "(?m)^- Readable:\\s*yes\\s*$"
+        - "(?m)^## Contradictions"
+        - "(?m)^## Ambiguity Issues"
+        - "(?m)^## Persona Issues"
+        - "(?m)^## Cognitive Load"
+        - "(?m)^## Duplication"
+        - "(?m)^## Coverage Analysis"
+        - "(?m)^## Custom Diagnostics"
+        - "Always answer in one sentence\\.[\\s\\S]*Include three detailed paragraphs\\."
+        - "(?i)Explanation:[\\s\\S]*(conflict|contradict|cannot both|would)"
+        - "(?m)^Suggestion:\\s*(Replace|Remove|Require|Rewrite|Add)\\b"
+      not_contains:
+        - "# Instruction Analysis Report: artifact-b.prompt.md"
+        - "Suggestion: Clarify"
