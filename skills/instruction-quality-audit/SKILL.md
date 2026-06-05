@@ -40,7 +40,7 @@ Prompt references of the form `#prompt:<name>`, including `#prompt:SKILL.md`, ar
 2. Before analysis, identify each target by provenance: origin (paste, selection, attachment, repo file, or prompt/instructions file), full path when available, basename, and readability.
 3. Pause only when target identity is ambiguous, including when a prompt/instructions artifact appears in context but was not explicitly requested. User-supplied exact full paths, attachment labels, or item indexes count as confirmation and do not require another prompt. Do not infer the target from basename alone.
 4. If the confirmed target is unreadable or empty, produce the blocked-input report for that item and do not audit it. If the user does not disambiguate, produce one blocked-input report titled `# Instruction Analysis Report: unconfirmed target selection`, list all candidate targets in Provenance, set `Confirmation: blocked/unconfirmed`, and do not audit any candidate.
-5. When readable targets have identical content, ask whether to audit once; if confirmed, audit once and list all duplicate sources in Provenance. If declined, produce one full report per duplicate source and list the duplicate relationship in each Provenance block.
+5. When readable targets have identical content and the user already confirmed they are duplicate inputs, audit once immediately and list all duplicate sources in Provenance. For identical targets without confirmation, ask whether to audit once; if confirmed, audit once and list all duplicate sources in Provenance. If declined, produce one full report per duplicate source and list the duplicate relationship in each Provenance block. Ask clarification for ambiguous, unconfirmed, or non-exact duplicate status.
 
 ## Review Categories
 
