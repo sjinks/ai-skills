@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Asio side of a Beast timeout bug
+description: |
+  Beast appears in the prompt, but the requested decision is Asio timeout,
+  cancellation, and executor ownership.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    I have a Boost.Beast HTTP server, but the bug is in our Asio timeout wrapper:
+    a `steady_timer` sometimes fires after `http::async_read` has completed and
+    cancels the next operation on the same socket. Answer concisely from this
+    scenario only; do not inspect files. Analyze the Asio-side race and propose
+    a generation/state pattern, cancellation behavior, executor/strand behavior,
+    and deterministic tests. Do not focus on HTTP parsing policy.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/boost-asio/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(timer|steady_timer|timeout)"
+        - "(?i)(generation|state|race)"
+        - "(?i)(cancel|operation_aborted)"
+        - "(?i)(executor|strand|affinity)"
+        - "(?i)(deterministic test|fake timer|loopback|test)"
+      not_contains:
+        - "request smuggling"
+        - "Strictness gate:"

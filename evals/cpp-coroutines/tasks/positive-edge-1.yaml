@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Symmetric transfer and allocation review
+description: |
+  Edge case that should activate cpp-coroutines because it asks about language
+  mechanics promised by the skill metadata.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Review a C++20 coroutine library change that adds symmetric transfer from
+    `final_suspend` to a continuation and a custom `operator new` for coroutine
+    frames. What invariants must hold for continuation lifetime, exception
+    propagation, allocation failure, frame-size overhead, and tests? Answer
+    concisely from this scenario only; do not inspect files.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-coroutines/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(symmetric transfer|final_suspend)"
+        - "(?i)(continuation lifetime|continuation)"
+        - "(?i)(exception propagation|exception)"
+        - "(?i)(operator new|allocation failure|frame allocation)"
+        - "(?i)(frame size|overhead|performance)"
+        - "(?i)(Tests|deterministic)"

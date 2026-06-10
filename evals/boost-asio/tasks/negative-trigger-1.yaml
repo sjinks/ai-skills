@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Generic C++ thread pool question
+description: |
+  Ordinary C++ concurrency without Asio should not activate boost-asio.
+tags:
+  - negative-trigger
+inputs:
+  prompt: |
+    Explain how to implement a simple C++20 thread pool with a mutex,
+    condition_variable, and a queue of `std::function<void()>` work items.
+    There is no networking library dependency.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/boost-asio/SKILL.md
+      mode: negative
+      threshold: 0.60
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "io_context"
+        - "co_spawn"
+        - "use_awaitable"
+        - "operation_aborted"

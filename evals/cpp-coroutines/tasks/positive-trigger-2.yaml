@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Design callback-backed awaiter
+description: |
+  Awaiter design task requiring awaiter lifetime, cancellation, scheduler, and
+  exception/result behavior.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Design a C++20 awaiter that adapts a callback-based async API into
+    `co_await`. The callback may run on another thread after the awaiting
+    coroutine has been canceled. I need the ownership model, awaiter lifetime,
+    single-resume invariant, cancellation behavior, scheduler/thread-affinity
+    strategy, result/error model, and tests. Answer concisely from this scenario
+    only; do not inspect files. Use these section labels exactly: Awaiter
+    lifetime, Single resume, Cancellation, Scheduler, Tests.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-coroutines/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(Awaiter lifetime|shared state|ownership)"
+        - "(?i)(await_suspend|await_resume|await_ready)"
+        - "(?i)(single-resume|double resume)"
+        - "(?i)(cancellation|canceled|cancelled)"
+        - "(?i)(scheduler|thread-affinity|resume context)"
+        - "(?i)(result|error|exception)"
+        - "(?i)(Tests|fake scheduler|deterministic)"

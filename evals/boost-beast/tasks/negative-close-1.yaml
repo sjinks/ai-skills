@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Generic REST API design
+description: |
+  HTTP-adjacent but no Beast, parser, serializer, or C++ protocol boundary.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Design a REST API for managing invoices in a SaaS product. Include routes,
+    JSON request/response shapes, status codes, pagination, and idempotency
+    keys. This is a product/API design question, not C++ and not Boost.Beast.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/boost-beast/SKILL.md
+      mode: negative
+      threshold: 0.60
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Boost.Beast"
+        - "http::parser"
+        - "body_limit"
+        - "strictness gate"

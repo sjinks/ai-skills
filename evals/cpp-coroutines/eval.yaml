@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
+name: cpp-coroutines-eval
+description: |
+  Evaluates the cpp-coroutines skill: it activates for C++20 coroutine frame,
+  promise, awaiter, handle, generator, scheduler, cancellation, symmetric
+  transfer, and lifetime tasks; stays silent on pure Asio I/O and ordinary
+  callback/thread-pool questions; and produces output that preserves coroutine
+  ownership, suspension, exception, cancellation, scheduler, and test evidence.
+skill: cpp-coroutines
+version: "1.0"
+config:
+  trials_per_task: 1
+  timeout_seconds: 600
+  parallel: true
+  workers: 2
+  executor: copilot-sdk
+  model: claude-sonnet-4.6
+  max_attempts: 2
+metrics:
+  - name: trigger_accuracy
+    weight: 0.35
+    threshold: 0.8
+    description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected mode.
+  - name: task_completion
+    weight: 0.45
+    threshold: 0.8
+    description: Output applies coroutine ownership, awaiter lifetime, suspension, cancellation, scheduler, and test-planning guidance.
+  - name: efficiency
+    weight: 0.20
+    threshold: 0.7
+    description: Stays within tool-call and total-token budgets.
+graders:
+  - type: behavior
+    name: efficiency
+    config:
+      max_tool_calls: 10
+      max_tokens: 150000
+tasks:
+  - "tasks/*.yaml"
