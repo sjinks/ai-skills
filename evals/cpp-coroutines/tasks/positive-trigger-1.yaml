@@ -27,6 +27,12 @@ graders:
       skill_path: skills/cpp-coroutines/SKILL.md
       mode: positive
       threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-coroutines
+      mode: any_order
   - type: text
     name: task_completion
     config:
