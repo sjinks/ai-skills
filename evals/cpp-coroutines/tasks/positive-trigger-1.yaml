@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Review custom task promise type
+description: |
+  Canonical C++ coroutine review involving promise, frame ownership, final
+  suspend, exception storage, cancellation, and tests.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this C++20 `task<T>` coroutine abstraction. The return object stores
+    a raw `std::coroutine_handle<promise_type>`, destroys it in the destructor,
+    supports move construction, stores exceptions in `unhandled_exception`, and
+    resumes a continuation from `final_suspend`. I am worried about frame
+    ownership, double-destroy, continuation lifetime, swallowed exceptions, and
+    early destruction while an awaited callback may still resume the coroutine.
+
+    Answer from this scenario only; do not inspect files. Keep the response
+    concise. Use these section labels exactly: Frame ownership, Final suspend,
+    Exceptions, Early destruction, Tests. Include concrete fixes under each.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-coroutines/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-coroutines
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(promise_type|promise)"
+        - "(?i)(coroutine_handle|handle)"
+        - "(?i)(Frame ownership|destroy|double-destroy|lifetime)"
+        - "(?i)(Final suspend|final_suspend|continuation)"
+        - "(?i)(exception|unhandled_exception)"
+        - "(?i)(early destruction|callback|resume)"
+        - "(?i)(Tests|deterministic)"

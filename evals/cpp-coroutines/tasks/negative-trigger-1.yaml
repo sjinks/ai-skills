@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Ordinary callback API design
+description: |
+  Callback-oriented C++ API with no coroutine mechanics or migration request.
+tags:
+  - negative-trigger
+inputs:
+  prompt: |
+    Design a C++ callback API for a file watcher. It should let users register
+    a lambda for create, modify, and delete events, and unregister by token.
+    Keep it synchronous and do not use language-level suspension.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-coroutines/SKILL.md
+      mode: negative
+      threshold: 0.60
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "co_await"
+        - "promise_type"
+        - "coroutine_handle"
+        - "await_suspend"

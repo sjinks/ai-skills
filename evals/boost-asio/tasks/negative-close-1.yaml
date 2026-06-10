@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Pure Beast parser hardening
+description: |
+  Close domain but Beast-specific parser policy should route to boost-beast,
+  not boost-asio.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Review this Boost.Beast HTTP request parser adapter for request smuggling
+    risk. Focus on conflicting Content-Length, Transfer-Encoding handling,
+    body_limit, header_limit, keep-alive reuse after rejected pipelined input,
+    and the strictness gate before creating application request objects.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/boost-asio/SKILL.md
+      mode: negative
+      threshold: 0.75
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "executor model"
+        - "strand"
+        - "io_context"
+        - "work guard"

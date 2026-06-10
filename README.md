@@ -18,6 +18,9 @@ At the moment, the repository contains these skills:
 - `adversarial-review`: guidance for challenging specs, designs, implementations, workflows, and test plans with evidence-based failure-mode review and risk-focused verification.
 - `archive-extraction-safety`: guidance for reviewing safe ZIP/TAR/archive extraction, including traversal, symlinks, hardlinks, absolute and Windows paths, Unicode normalization, decompression limits, nested archives, permissions, overwrite policy, containment, cleanup, and parser mismatch.
 - `auth-claim-contract-review`: guidance for reviewing auth/security claim contracts across JWT, OIDC, SAML, token, and session flows, including optional claims, missing-vs-invalid semantics, issuer-validator-consumer drift, authorization mapping, propagation, serialization, revocation, freshness, fallback defaults, and confused-deputy risks.
+- `boost-asio`: guidance for designing, implementing, reviewing, debugging, and testing Boost.Asio async I/O, executors, strands, timers, sockets, cancellation, backpressure, TLS streams, and coroutine flows.
+- `boost-beast`: guidance for Boost.Beast HTTP/WebSocket parser, serializer, body, stream, TLS, protocol-adapter, limits, strictness, lifecycle, and testing work.
+- `cpp-coroutines`: guidance for C++20 coroutine types, promises, awaiters, handles, generators, frame lifetime, scheduler bridges, cancellation, symmetric transfer, allocation behavior, and tests.
 - `dependency-audit`: guidance for auditing application and tooling dependencies for known vulnerabilities, license risk, maintenance health, abandoned packages, unused dependencies, dependency bloat, transitive risk, and supply-chain integrity.
 - `equivalence-class-audit`: guidance for turning one concrete defect, incident, review finding, test failure, or bug report into a locked-scope audit of equivalent defects across sibling fields, mirror use sites, bounds, contracts, paths, modes, tests, docs, and projections.
 - `factcheck`: guidance for verifying factual claims, citations, drafts, source support, evidence quality, verdicts, confidence, correction proposals, and uncertainty in report-only-first mode.
@@ -81,6 +84,39 @@ It helps an assistant:
 - check serialization, cache/session restoration, token refresh, revocation, freshness, lifetime, and propagation boundaries for contract drift
 - keep sensitive-data boundaries explicit by using redacted or synthetic examples instead of raw tokens, auth headers, secrets, credentials, private keys, customer PII, or private raw data
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with findings, checklist status, assumptions, unverified areas, and residual risk
+
+### `boost-asio`
+
+This skill is aimed at Boost.Asio networking and concurrency work where executor affinity, operation lifetime, cancellation, timeout behavior, backpressure, and deterministic shutdown matter.
+
+It helps an assistant:
+
+- distinguish Asio execution, transport, and cancellation concerns from Beast protocol policy and generic C++ coroutine mechanics
+- design or review accept loops, socket sessions, timers, write queues, TLS streams, `co_spawn` flows, strands, thread pools, and shutdown models
+- identify common async bugs such as raw `this` captures, stack-buffer lifetime, overlapping stream operations, unobserved detached coroutine failures, timeout races, and unbounded queues
+- route to focused references for patterns, debugging, testing, observability, Beast/TLS integration, and migration work
+
+### `boost-beast`
+
+This skill is aimed at Boost.Beast HTTP and WebSocket work where parser/serializer policy, resource limits, stream ownership, EOF behavior, protocol upgrades, and security-sensitive framing need explicit handling.
+
+It helps an assistant:
+
+- separate Beast protocol boundaries from lower-level Asio executor concerns and generic HTTP/API design
+- design or review HTTP parsers, serializers, body types, WebSocket sessions, TLS stream behavior, parser adapters, and protocol-facing tests
+- enforce body/header limits, strictness gates, parser differential handling, close/drain/keep-alive policy, and request-smuggling-resistant framing decisions
+- use role-specific, debugging, hardening, testing, and observability references without overloading the main skill file
+
+### `cpp-coroutines`
+
+This skill is aimed at standalone C++20 coroutine mechanics where coroutine frame ownership, promise behavior, awaiter lifetime, scheduler interaction, exception propagation, cancellation, and allocation behavior determine correctness.
+
+It helps an assistant:
+
+- distinguish language-level coroutine design from Boost.Asio `awaitable` I/O flow and Beast protocol work
+- design or review `task`, `generator`, custom awaiters, callback adapters, `promise_type`, `final_suspend`, continuation chaining, symmetric transfer, and custom frame allocation
+- identify lifetime bugs such as dangling frames, dangling awaiters, double resume, missed resume, swallowed exceptions, detached work, and scheduler surprises
+- plan deterministic tests for suspension, resumption, cancellation, early destruction, exception paths, scheduler hops, and frame-lifetime invariants
 
 ### `dependency-audit`
 

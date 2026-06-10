@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Beast EOF and TLS close debugging
+description: |
+  Debugging prompt where Asio/TLS are present, but the core issue is Beast HTTP
+  EOF, parser state, and connection lifecycle.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Debug a Boost.Beast HTTPS client where `http::async_read` sometimes returns
+    `end_of_stream` after a complete HTTP/1.1 response and sometimes returns an
+    SSL short-read error. Answer concisely from this scenario only; do not
+    inspect files. Provide a hypothesis table that separates Beast parser state,
+    EOF after complete response, TLS shutdown behavior, keep-alive/close headers,
+    and tests with partial wire input.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/boost-beast/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - boost-beast
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(hypothesis|Symptom|Evidence to collect)"
+        - "(?i)(parser state|complete response)"
+        - "(?i)(end_of_stream|EOF)"
+        - "(?i)(TLS|SSL|short-read|shutdown)"
+        - "(?i)(keep-alive|connection close)"
+        - "(?i)(partial|wire input|fixture|test)"

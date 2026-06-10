@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Boost.Asio awaitable socket flow
+description: |
+  Coroutine syntax appears, but the task is specifically Asio executor, socket,
+  timer, and cancellation flow.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    In one sentence, explain why a Boost.Asio `net::awaitable<void>` TCP echo
+    session using `co_spawn`, `this_coro::executor`, socket reads/writes, and
+    timeout cancellation is an Asio flow rather than a custom coroutine-type
+    design task. Do not write code.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-coroutines/SKILL.md
+      mode: negative
+      threshold: 0.75
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "promise_type"
+        - "std::coroutine_handle"
+        - "symmetric transfer"
+        - "custom awaiter"

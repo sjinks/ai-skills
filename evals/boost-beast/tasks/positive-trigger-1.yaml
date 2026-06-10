@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Review Beast parser strictness
+description: |
+  Canonical Beast parser hardening review covering limits, framing, strictness,
+  keep-alive, and request-smuggling exposure.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this Boost.Beast HTTP/1.1 parser adapter for security and correctness.
+    It reads untrusted client requests with `http::request_parser<dynamic_body>`,
+    does not set `body_limit`, accepts both `Content-Length` and
+    `Transfer-Encoding`, builds our public request object directly from raw
+    Beast headers, and keeps the connection alive after rejected requests if
+    `parser.keep_alive()` is true.
+
+    Answer from this scenario only; do not inspect files. Keep the response
+    concise. Use these section labels exactly: Parser policy, Strictness gate,
+    Close and reuse, Tests. Include concrete fixes under each.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/boost-beast/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - boost-beast
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(body_limit|header_limit|limit)"
+        - "(?i)(Content-Length|Transfer-Encoding|framing)"
+        - "(?i)(Strictness gate|validate|normalize)"
+        - "(?i)(keep-alive|close|drain|reuse)"
+        - "(?i)(request smuggling|parser differential|ambiguous)"
+        - "(?i)(Tests|fixture|malformed|pipelined)"

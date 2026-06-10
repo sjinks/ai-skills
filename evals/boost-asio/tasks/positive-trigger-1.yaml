@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Review an Asio coroutine session
+description: |
+  A concrete Asio coroutine session review with lifetime, timeout, cancellation,
+  overlapping operations, and backpressure risks.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this Boost.Asio C++20 session sketch. It runs on a multi-threaded
+    `io_context` and each accepted socket is wrapped in `std::shared_ptr<Session>`.
+
+    ```cpp
+    net::awaitable<void> Session::run() {
+      auto ex = co_await net::this_coro::executor;
+      net::steady_timer timer(ex);
+      std::array<char, 4096> buf{};
+
+      timer.expires_after(30s);
+      timer.async_wait([this](boost::system::error_code ec) {
+        if (!ec) socket_.cancel();
+      });
+
+      for (;;) {
+        auto n = co_await socket_.async_read_some(net::buffer(buf), net::use_awaitable);
+        outgoing_.push_back(std::string(buf.data(), n));
+        net::co_spawn(ex, write_all(), net::detached);
+      }
+    }
+    ```
+
+    Answer from this snippet only; do not inspect files. Keep the response
+    concise. Use these section labels exactly: Executor model, Lifetime,
+    Cancellation, Backpressure, Tests. Identify concrete fixes under each.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/boost-asio/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - boost-asio
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(Executor model|executor|strand|io_context)"
+        - "(?i)(lifetime|shared_from_this|raw\\s+this)"
+        - "(?i)(cancel|operation_aborted|timeout)"
+        - "(?i)(seriali[sz]e|write.*queue|overlapping writes|concurrent writes|single writer)"
+        - "(?i)(Backpressure|bounded|queue limit)"
+        - "(?i)(test|loopback|timer|disconnect|shutdown)"

@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
+name: boost-asio-eval
+description: |
+  Evaluates the boost-asio skill: it activates for Asio executor, socket,
+  timer, strand, cancellation, coroutine, and backpressure tasks; stays silent
+  on generic C++ concurrency or Beast-specific protocol tasks; and produces
+  output that preserves Asio lifetime, cancellation, executor, and verification
+  invariants.
+skill: boost-asio
+version: "1.0"
+config:
+  trials_per_task: 2
+  timeout_seconds: 300
+  parallel: true
+  workers: 4
+  executor: copilot-sdk
+  model: claude-sonnet-4.6
+  max_attempts: 2
+metrics:
+  - name: trigger_accuracy
+    weight: 0.30
+    threshold: 0.8
+    description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected mode.
+  - name: skill_invocation
+    weight: 0.15
+    threshold: 0.9
+    description: Skill is invoked on positive tasks that should activate it.
+  - name: task_completion
+    weight: 0.40
+    threshold: 0.8
+    description: Output applies Asio executor, lifetime, cancellation, backpressure, and test-planning guidance.
+  - name: efficiency
+    weight: 0.15
+    threshold: 0.7
+    description: Stays within tool-call and total-token budgets.
+graders:
+  - type: behavior
+    name: efficiency
+    config:
+      max_tool_calls: 10
+      max_tokens: 8000
+tasks:
+  - "tasks/*.yaml"
