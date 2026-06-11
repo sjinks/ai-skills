@@ -49,10 +49,10 @@ Default `standard`. `quick` still reports missing context, blockers, unmitigated
 
 ### Missing-vs-Invalid Example
 
-Wrong — truthiness collapses missing, empty, and malformed into one branch, and a malformed present value falls back to a default role:
+Wrong — truthiness collapses missing and falsy-but-present values (empty string, `0`, `false`) into one fallback branch, while truthy malformed values (wrong type, contradictory content) pass straight through unvalidated:
 
 ```ts
-const roles = token.claims.roles || ["viewer"]; // malformed/empty/missing all become viewer
+const roles = token.claims.roles || ["viewer"]; // missing/empty -> viewer; truthy garbage passes through
 if (!token.claims.tenant_id) ctx.tenant = DEFAULT_TENANT; // missing AND blank both defaulted
 ```
 

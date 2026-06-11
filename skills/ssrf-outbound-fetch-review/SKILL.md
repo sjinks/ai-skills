@@ -270,9 +270,9 @@ Intended behavior: <one or two sentences>
 Egress policy:
 - <scheme, host, port, private-network, DNS, connection-time, proxy, redirect, header, trusted private-target opt-in, and response policies>
 
-Findings:
+Findings (ordered by severity):
 1. <short title>
-  Severity: <ordered by severity>
+  Severity: CRITICAL | HIGH | MEDIUM | LOW
   Classification: <blocker | required test | accepted tradeoff | follow-up | not applicable>
   Location: <file:line or design reference>
   Issue: <what is wrong>
