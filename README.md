@@ -369,7 +369,7 @@ This skill is aimed at feature specs, user stories, and behavior descriptions be
 
 It helps an assistant:
 
-- sweep eight edge-case dimensions: empty-and-boundary, error-paths, permissions, concurrency, time, locale-and-text, limits, and lifecycle, with explicit `n/a` reasons for skipped dimensions
+- sweep eight edge-case dimensions: empty-and-boundary, error-paths, permissions, concurrency, time, locale-and-text, limits, and lifecycle, reporting case-less dimensions as `n/a` with a reason or as swept with no plausible cases
 - phrase each case as a concrete scenario and give it exactly one disposition: `spec-decision`, `spec-stated`, `implementation-detail`, or `flag-for-deep-review`
 - present options with user-visible consequences for spec decisions while leaving the choice to the owner
 - record supplied edge-case decisions as `spec-stated` even under disagreement, noting disagreement as a remark

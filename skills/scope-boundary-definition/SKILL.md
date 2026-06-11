@@ -16,6 +16,7 @@ Use when a feature, spec, project, or task needs its scope made explicit or an e
 ## Required Inputs
 
 - The feature description, spec, or task text.
+- In audit mode, the existing scope statement to audit.
 - Known constraints (deadline, team size, dependencies, compliance) when supplied.
 - Stakeholder asks or adjacent requests already floating around the work, when supplied.
 

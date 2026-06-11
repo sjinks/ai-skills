@@ -16,15 +16,17 @@ Use when drafting acceptance criteria, rewriting existing draft AC, or auditing 
 Input modes:
 
 - Audit/rewrite mode: draft criteria supplied. The table and Criteria section cover them.
-- Drafting mode: no draft criteria, but a feature description is supplied. Write the table and Criteria section as `None` and emit every drafted criterion under `### Proposed additions`, each meeting the criterion contract with a `Verify by` line.
+- Drafting mode: no draft criteria, but a feature description is supplied. Write the table and Criteria section as `None` and emit every drafted criterion under `### Proposed additions`, each meeting the criterion contract with its nested `Verify by` line.
 - Criteria-only mode: draft criteria supplied without a feature description. Run the per-criterion audit only; mark every coverage category `n/a (no feature description supplied)` and write `None` under Proposed additions.
 
 ## Required Inputs
 
-- The draft acceptance criteria, as text.
-- The feature description or spec they belong to, when available; used to spot coverage gaps, never to invent new requirements beyond it.
+At least one of the following must be supplied:
 
-If no criteria and no feature description are provided, emit the BLOCK template; do not fabricate criteria.
+- The draft acceptance criteria, as text (absent in drafting mode).
+- The feature description or spec they belong to (absent in criteria-only mode); used to spot coverage gaps and to draft additions, never to invent new requirements beyond it.
+
+If neither is provided, emit the BLOCK template; do not fabricate criteria.
 
 ## Criterion Contract
 
@@ -66,6 +68,7 @@ For each criterion numbered as in the table:
 ### Proposed additions (coverage gaps)
 
 - <category>: <proposed criterion derived from the feature description>
+  - Verify by: <one-line objective check>
 
 ### Coverage
 

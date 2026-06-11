@@ -22,7 +22,7 @@ If no description is provided, emit the BLOCK template; do not invent the featur
 
 ## Edge Case Dimensions
 
-Sweep the described behavior once per dimension. Skip a dimension only with an explicit `n/a` and reason.
+Sweep the described behavior once per dimension. Mark a dimension `n/a` (with a reason) only when it does not apply to the described behavior; an applicable dimension that yields nothing is reported as swept with no plausible cases.
 
 1. `empty-and-boundary`: empty, null, zero, one, maximum, just-over-maximum inputs and collections.
 2. `error-paths`: each named operation's failure modes — what the user or caller observes, and whether partial effects persist.
@@ -74,12 +74,13 @@ For each, numbered as in the table:
 
 - <case #, one-line disagreement remark>
 
-### Dimensions marked n/a
+### Dimensions without cases
 
-- <dimension>: <reason>
+- <dimension>: n/a — <reason it does not apply>
+- <dimension>: swept, no plausible cases
 ```
 
-Empty sections are written with `None`. `spec-stated` and `implementation-detail` cases appear in the table only (plus, for `spec-stated`, any remark under `### Remarks on supplied decisions`). A dimension that applies but was swept with no plausible cases is not `n/a`; list it as `- <dimension>: swept, no plausible cases` under `### Dimensions marked n/a`.
+Empty sections are written with `None`. `spec-stated` and `implementation-detail` cases appear in the table only (plus, for `spec-stated`, any remark under `### Remarks on supplied decisions`). `### Dimensions without cases` lists every dimension with no table rows, in exactly one of its two line forms: `n/a — <reason>` for a dimension that does not apply, or `swept, no plausible cases` for an applicable dimension that yielded nothing.
 
 The report has no verdict line; `Verdict: BLOCK` appears only in the insufficient-input template below.
 
@@ -117,4 +118,4 @@ Under `### Spec decisions needed`:
 
 ## Definition of Done
 
-All eight dimensions are represented by cases or an explicit `n/a` with reason, every case is a concrete scenario with exactly one disposition, every `spec-decision` carries options with consequences, and no decision was made on the owner's behalf.
+All eight dimensions are represented by table cases or a line under `### Dimensions without cases` (`n/a — <reason>` or `swept, no plausible cases`), every case is a concrete scenario with exactly one disposition, every `spec-decision` carries options with consequences, and no decision was made on the owner's behalf.
