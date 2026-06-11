@@ -19,6 +19,8 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Verdict:"
+        - "Findings:"
         - "Project shape:"
         - "Dependency policy:"
         - "Checklist status:"

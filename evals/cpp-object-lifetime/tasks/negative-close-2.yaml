@@ -24,6 +24,7 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Findings:"
         - "Owners:"
         - "Borrowers:"
         - "Checklist status:"

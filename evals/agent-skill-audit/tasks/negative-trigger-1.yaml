@@ -34,6 +34,7 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Findings:"
         - "Audit:"
         - "## Consistency"
         - "## Suitability for weaker models"

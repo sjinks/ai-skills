@@ -27,6 +27,7 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Findings:"
         - "Lenses applied:"
         - "Lens findings:"
         - "Required actions:"

@@ -19,6 +19,8 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Verdict:"
+        - "Findings:"
         - "Shared state:"
         - "Thread topology:"
         - "Checklist status:"

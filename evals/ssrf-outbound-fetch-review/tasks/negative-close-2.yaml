@@ -22,6 +22,7 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Findings:"
         - "Egress policy:"
         - "Adversarial tests:"
         - "Checklist status:"
