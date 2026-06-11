@@ -52,7 +52,7 @@ Default `standard`. `quick` still reports missing context, blockers, unmitigated
 Wrong — truthiness collapses missing and falsy-but-present values (empty string, `0`, `false`) into one fallback branch, while truthy malformed values (wrong type, contradictory content) pass straight through unvalidated:
 
 ```ts
-const roles = token.claims.roles || ["viewer"]; // missing/empty -> viewer; truthy garbage passes through
+const roles = token.claims.roles || ["viewer"]; // falsy (missing/null/"") -> viewer; truthy garbage (e.g. "admin", {}) passes through
 if (!token.claims.tenant_id) ctx.tenant = DEFAULT_TENANT; // missing AND blank both defaulted
 ```
 
