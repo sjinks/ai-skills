@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Review generic-heavy domain behavior
+description: Generic domain code with hidden behavior assumptions should trigger type-safe-design review.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this domain-layer design for type-safe architecture risks. Do not
+    inspect files; answer from the snippet only.
+
+    ```ts
+    class EntityService<T> {
+      async process(entity: T) {
+        if ((entity as any).kind === 'invoice') {
+          await this.repository.save(entity);
+          await this.bus.publish('invoice.processed', entity);
+        }
+        if ((entity as any).validate?.() === false) throw new Error('invalid');
+      }
+    }
+    ```
+
+    Use these exact sections: Current contract risk, Recommended contract
+    shape, Change-locality impact, Verification plan.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/type-safe-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - type-safe-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Current contract risk'
+        - '(?i)Recommended contract shape'
+        - '(?i)Change-locality impact'
+        - '(?i)Verification plan'
+        - '(?i)(generic|T|type parameter).*(behavior|contract|assumption)|(behavior|contract|assumption).*(generic|T|type parameter)'
+        - '(?i)(interface|protocol|Renderable|Processable|InvoiceProcessor|domain contract|behavioral contract)'
+        - '(?i)(O\(n\)|change.*central|runtime type checks|OCP|Open/Closed)'
+        - '(?i)(test|substitution|boundary|contract|compile)'
+      not_contains:
+        - 'No material findings'

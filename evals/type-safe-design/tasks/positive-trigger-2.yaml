@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Design validation as trusted types
+description: Raw-vs-validated data modeling should trigger type-safe-design design guidance.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Design a type-safe boundary for uploaded CSV import rows. Today every
+    service accepts `ImportRow` and repeats checks for required columns,
+    account ownership, numeric quantity, and normalized SKU. We keep forgetting
+    one check in downstream services.
+
+    We use a statically typed language with classes and factory functions. Give
+    concise design guidance using the skill's design/implementation output
+    shape.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/type-safe-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - type-safe-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Current contract risk'
+        - '(?i)Recommended contract shape'
+        - '(?i)Change-locality impact'
+        - '(?i)Verification plan'
+        - '(?i)(raw|untrusted).*ImportRow|ImportRow.*(raw|untrusted)'
+        - '(?i)(Validated|Trusted|Parsed|Normalized).*Row|Row.*(Validated|Trusted|Parsed|Normalized)'
+        - '(?i)(factory|smart constructor|parser|tryCreate|parse)'
+        - '(?i)(boundary|downstream|invalid state|precondition)'
+        - '(?i)(unit test|boundary test|factory test|compile|cannot construct)'

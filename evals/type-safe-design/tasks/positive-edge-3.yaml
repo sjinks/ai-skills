@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Action preconditions and deferred execution
+description: Action systems with reusable checks and deferred execution should get checker/request guidance.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Design a type-safe command system for warehouse actions. Each action has
+    reusable preconditions: operator is certified, pallet is unlocked, scanner
+    is online, and item count is within policy. Some actions execute
+    immediately; others wait for supervisor confirmation. Avoid copy-paste
+    checks and keep execution separate from validation.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/type-safe-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - type-safe-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Current contract risk'
+        - '(?i)Recommended contract shape'
+        - '(?i)Change-locality impact'
+        - '(?i)Verification plan'
+        - '(?i)(checker|checkers|precondition|validation chain|Chain of Responsibility)'
+        - '(?i)(request|deferred execution|confirmation|terminal)'
+        - '(?i)(copy-paste|reuse|centralized|composable)'
+        - '(?i)(test|precondition failure|execution only after|confirmation)'

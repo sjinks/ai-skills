@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: No material findings review path
+description: Review mode must allow a clean result without inventing findings.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Review this type-safety design and do not invent issues if it is sound.
+
+    Raw payloads are parsed only by `ValidatedOrder.tryCreate(raw, tenant)`.
+    The constructor is private. Services accept `ValidatedOrder` only. Runtime
+    schema validation rejects missing SKU, wrong tenant, and non-positive
+    quantity. Tests cover invalid payloads, successful construction, and a
+    compile-time check that services cannot accept `RawOrder`.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/type-safe-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - type-safe-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)No material findings'
+        - '(?i)(residual risks|assumptions|validation gaps)'
+        - '(?i)(private constructor|tryCreate|ValidatedOrder|RawOrder)'
+        - '(?i)(boundary|schema|compile-time|tests)'
+      not_contains:
+        - 'Severity:'
+        - 'BLOCK'
