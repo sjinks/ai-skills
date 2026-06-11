@@ -51,19 +51,19 @@ Default `standard`. `quick` still reports missing context, blockers, unmitigated
 
 Wrong — truthiness collapses missing and falsy-but-present values (empty string, `0`, `false`) into one fallback branch, while truthy malformed values (wrong type, contradictory content) pass straight through unvalidated:
 
-```ts
+```typescript
 const roles = token.claims.roles || ["viewer"]; // falsy (missing/null/"") -> viewer; truthy garbage (e.g. "admin", {}) passes through
 if (!token.claims.tenant_id) ctx.tenant = DEFAULT_TENANT; // missing AND blank both defaulted
 ```
 
 Right — typed parser states with distinct outcomes; malformed present values reject rather than fall back:
 
-```ts
+```typescript
 const rolesClaim = parseRolesClaim(token.claims.roles);
 // -> { state: "valid", roles } | { state: "missing" } | { state: "malformed" }
 if (rolesClaim.state === "malformed") throw new InvalidTokenError("roles");
 const roles = rolesClaim.state === "missing" ? POLICY.defaultRoles : rolesClaim.roles;
-const tenant = parseRequiredClaim(token.claims.tenant_id); // throws on missing, blank, or wrong type
+const tenant = parseRequiredClaim(token.claims.tenant_id); // required claim: never falls back; rejects with distinct missing vs invalid errors
 ```
 
 ## Severity, Classification, Verdict
