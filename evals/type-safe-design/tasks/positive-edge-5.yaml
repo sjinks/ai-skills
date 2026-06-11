@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-005
+name: Closure carrier for narrow internal access
+description: One-off internal access should use scoped operations or closure carriers instead of API pollution.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    A migration job needs one narrow operation against `ImportantService`'s
+    private cache. The team wants to add `getCache()` to the public interface or
+    cast to `InternalService`. Propose a type-safe design that avoids public API
+    pollution and preserves dependency direction. Include verification.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/type-safe-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - type-safe-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Current contract risk'
+        - '(?i)Recommended contract shape'
+        - '(?i)Change-locality impact'
+        - '(?i)Verification plan'
+        - '(?i)(closure carrier|action interface|CacheAction|scoped operation|perform\()'
+        - '(?i)(public API pollution|getter|getCache|interface pollution)'
+        - '(?i)(dependency direction|stable abstraction|DIP|depends on abstraction)'
+        - '(?i)(test|stub|migration job|cache action|no public getter)'
+      not_contains:
+        - 'just expose getCache'

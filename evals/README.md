@@ -50,6 +50,7 @@ grader weighting takes effect.
   - `dependency-audit`: 0.50
   - `factcheck`: 0.45
   - `source-to-skill`: 0.45
+  - `type-safe-design`: 0.45
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks
   only) — requires the named skill via `required_skills` with
   `mode: any_order`. The currently released waza CLI (`v0.33.0`) defines

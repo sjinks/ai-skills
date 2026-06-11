@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Broad architecture discussion without contract design
+description: General architecture tradeoff advice should not activate type-safe-design when no type contract/change-locality task is present.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    We are deciding whether to split a reporting dashboard into microservices
+    or keep it as a monolith. Discuss deployment, team ownership, observability,
+    and operational complexity. Do not focus on type systems.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/type-safe-design/SKILL.md
+      mode: negative
+      threshold: 0.60
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - 'validation-as-types'
+        - 'Validated'
+        - 'generic misuse'
+        - 'reflection boundary'
+        - 'Current contract risk'
+        - 'Change-locality impact'
+        - 'Rule:'
+        - 'Verification:'

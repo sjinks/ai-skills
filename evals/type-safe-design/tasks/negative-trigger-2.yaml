@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-002
+name: Auth claim security contract belongs elsewhere
+description: Specialized JWT/auth-claim review should not primarily activate type-safe-design.
+tags:
+  - negative-trigger
+inputs:
+  prompt: |
+    Review this JWT tenant-claim validation flow for confused-deputy risk.
+    The issuer sometimes omits `tenant_id`; the API falls back to the tenant in
+    the URL path; cached sessions restore roles from an older token. Focus on
+    auth/security claim contract semantics.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/type-safe-design/SKILL.md
+      mode: negative
+      threshold: 0.60
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - 'Current contract risk'
+        - 'Recommended contract shape'
+        - 'Severity: high'
+        - 'Severity: medium'
+        - 'Rule:'
+        - 'Verification:'
+        - 'Change-locality'
+        - 'ValidatedTenant'
+        - 'Change-locality impact'
+        - 'Generics generalize data'

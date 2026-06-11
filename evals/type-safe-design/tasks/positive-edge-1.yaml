@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Ambiguous make this type safe stops and asks
+description: Vague type-safety requests should trigger but ask for missing contract details.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use type-safe-design. Make this type safe:
+
+    ```ts
+    function handle(value: any) {
+      return value.id;
+    }
+    ```
+
+    Do not assume the domain. I need the right clarifying questions before a
+    recommendation.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/type-safe-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - type-safe-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(stop|ask|clarify|before recommending|missing)'
+        - '(?i)(contract boundary|boundary)'
+        - '(?i)(language|runtime|TypeScript|allowed.*features|sealed|metadata)'
+        - '(?i)(invalid state|what.*prevent|invariant|precondition)'
+      not_contains:
+        - 'ValidatedValue.tryCreate'
+        - 'Use reflection'
+        - 'enum registry'

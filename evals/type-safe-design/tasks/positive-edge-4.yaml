@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-004
+name: Reflection as constrained runtime boundary
+description: Reflection/deserialization guidance should keep dynamic data at a typed boundary.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    We deserialize third-party webhook JSON into domain objects. The current
+    helper returns `Any` and downstream services reflect on field names by
+    string. Design a type-safe boundary that can use runtime metadata or
+    reflection internally, but should not let unchecked reflective access leak
+    into domain services. Include tests we should add.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/type-safe-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - type-safe-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Current contract risk'
+        - '(?i)Recommended contract shape'
+        - '(?i)Change-locality impact'
+        - '(?i)Verification plan'
+        - '(?i)(reflection|runtime metadata|schema|deseriali[sz]ation)'
+        - '(?i)(boundary|parser|factory|validated|typed)'
+        - '(?i)(Any|unknown|untyped|unchecked)'
+        - '(?i)(domain services|downstream).*not.*(reflect|reflection|field names)|(reflection|field names).*not.*(domain|downstream)'
+        - '(?i)(malformed|missing field|wrong type|boundary test|schema test)'

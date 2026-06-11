@@ -35,6 +35,7 @@ At the moment, the repository contains these skills:
 - `multi-lens-review`: guidance for structuring a multi-lens review (intent, design, implementation, security, adversarial, verification) and synthesizing the lens findings into a single integrated decision with required actions and residual risk.
 - `source-to-skill`: guidance for converting books, articles, documentation, notes, transcripts, and other source material into reusable agent skills with extraction, rights, provenance, and validation gates. Inspired by [book-to-skill](https://github.com/virgiliojr94/book-to-skill/blob/master/SKILL.md).
 - `test-gap-to-test-plan`: guidance for converting review findings and unverified behaviors into a prioritized, owned, layer-typed test plan that tracks the test evidence a downstream merge gate will require.
+- `type-safe-design`: guidance for designing, reviewing, refactoring, and test-planning type-safe architecture where contracts, validation states, generics, reflection, factories, and compiler feedback affect correctness and change locality.
 
 ## Included Skills
 
@@ -306,6 +307,19 @@ It helps an assistant:
 - record live-system or production-data dependencies under `Untestable risks` instead of forcing them into the plan
 - return `BLOCK`, `PLAN-PARTIAL`, or `PLAN-READY` so downstream merge gates can distinguish proposed coverage from landed test evidence
 - refuse to fabricate findings, severities, or owners; emit `BLOCK` when required input context is missing
+
+### `type-safe-design`
+
+This skill is aimed at architecture and code changes where correctness should be enforced through contracts, types, compiler feedback, or narrow runtime boundaries instead of scattered discipline and defensive checks.
+
+It helps an assistant:
+
+- review change-locality risks using Big O-style reasoning for rigidity, fragility, immobility, and viscosity
+- model raw, validated, trusted, authenticated, readable, serialized, or behavior-capable states as explicit contracts
+- decide when generics are appropriate infrastructure tools and when behavior needs named interfaces or protocols
+- evaluate reflection, deserialization, polymorphic factories, enum registries, and constructor contracts as constrained boundaries
+- avoid public API pollution for one-off internal access by using scoped operations or dedicated closure-carrier abstractions
+- plan compiler-guided refactors and verification through boundary tests, substitution tests, completeness checks, and fail-fast construction paths
 
 ## Skill Format
 
