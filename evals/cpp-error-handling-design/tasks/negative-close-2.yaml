@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Retry and backoff policy question
+description: |
+  Distributed resilience policy (retries, backoff, circuit breakers) is out
+  of scope for the error-handling design skill.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Our C++ service calls a flaky downstream HTTP API. What retry strategy
+    should we use — exponential backoff with jitter, a circuit breaker, or
+    both? How many attempts before giving up?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-error-handling-design/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Error policy:"
+        - "Checklist status:"

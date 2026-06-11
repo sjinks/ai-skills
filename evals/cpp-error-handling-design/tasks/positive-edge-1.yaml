@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Throwing move disables container guarantees
+description: |
+  Review must catch a copyable type whose move constructor allocates (and
+  thus throws), causing vector reallocation to copy via move_if_noexcept
+  instead of moving.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Why is std::vector<Record> copying my elements on reallocation instead
+    of moving them, and is this an error-handling design problem?
+
+    ```cpp
+    class Record {
+    public:
+      Record(const Record& other);            // expensive deep copy
+      Record(Record&& other)
+        : data_(std::make_unique<Blob>(*other.data_)) {} // also deep-copies, may throw
+      // no noexcept anywhere
+    private:
+      std::unique_ptr<Blob> data_;
+    };
+    ```
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-error-handling-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-error-handling-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(noexcept)[\s\S]{0,250}(move|vector|realloc)|(move)[\s\S]{0,200}noexcept'
+        - '(?i)(move_if_noexcept|strong guarantee|fall(s)?\s*back|copy)'
+        - '(?i)(transfer|steal|std::move\(other\.data_\)|move\s+the\s+unique_ptr)'
+        - '(?i)Findings:'

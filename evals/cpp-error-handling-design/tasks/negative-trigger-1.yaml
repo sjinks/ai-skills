@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Off-topic fitness question
+description: Unrelated everyday question must not activate the error-handling skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "How many rest days per week should a beginner runner take?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-error-handling-design/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Error policy:"
+        - "Checklist status:"

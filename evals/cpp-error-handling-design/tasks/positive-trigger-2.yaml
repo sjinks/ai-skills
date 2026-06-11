@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Choosing between exceptions and expected for a parser
+description: |
+  Design question must activate: error-channel choice for a parsing library
+  with exceptions banned in one consumer.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    We are designing a configuration parser library. Parse errors are
+    frequent and expected (user-edited files). One consumer builds with
+    -fno-exceptions; another uses exceptions heavily. Should parse() throw,
+    return std::expected<Config, ParseError>, or take a std::error_code&
+    out-parameter? How do we keep one core implementation?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-error-handling-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-error-handling-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(expected|result type)'
+        - '(?i)(frequent|domain|expected\s+failure|-fno-exceptions|banned)'
+        - '(?i)(wrapper|adapter|translat|throw[\s\S]{0,80}on top|layer)'
+        - '(?i)(policy|channel)'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response recommends the correct architecture: the
+        core parser reports via std::expected<Config, ParseError> (parse
+        errors are frequent/domain-level and one consumer bans exceptions),
+        with a thin throwing wrapper layered on top for the exception-using
+        consumer. A response that recommends exceptions as the core channel,
+        or error_code out-parameters as the primary API, is wrong.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent
