@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Lock-order deadlock between two accounts
+description: |
+  Review must activate on opposite-order mutex acquisition and propose
+  scoped_lock or a global order.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Two threads call transfer(a, b) and transfer(b, a) concurrently and the
+    process hangs. Review for deadlock.
+
+    ```cpp
+    void transfer(Account& from, Account& to, int amount) {
+      std::lock_guard l1(from.mtx);
+      std::lock_guard l2(to.mtx);
+      from.balance -= amount;
+      to.balance += amount;
+    }
+    ```
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-concurrency-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-concurrency-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)(deadlock|lock order|inversion)'
+        - '(?i)(scoped_lock|std::lock|address|global order|consistent order)'
+        - '(?i)Findings:'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response correctly diagnoses a lock-order deadlock:
+        transfer(a, b) and transfer(b, a) acquire the two account mutexes in
+        opposite orders, so each thread can hold one mutex and wait forever
+        for the other. The fix is std::scoped_lock on both mutexes at once or
+        a fixed global acquisition order (e.g. by address or account id). A
+        response that calls this only a data race on balances, or proposes a
+        single global mutex without naming the ordering problem, is at most
+        partially correct.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

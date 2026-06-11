@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Lost wakeup and unprotected flag
+description: |
+  Review must activate on a CV protocol where the predicate state is mutated
+  outside the mutex, producing a lost wakeup and a data race.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this producer/consumer handoff for concurrency bugs.
+
+    ```cpp
+    std::mutex m;
+    std::condition_variable cv;
+    bool ready = false;
+    Payload payload;
+
+    void producer(Payload p) {
+      payload = std::move(p);   // no lock
+      ready = true;             // no lock
+      cv.notify_one();
+    }
+
+    void consumer() {
+      std::unique_lock lk(m);
+      cv.wait(lk, [] { return ready; });
+      consume(payload);
+    }
+    ```
+
+    Return the verdict, shared state, findings, checklist status, and
+    residual risk.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-concurrency-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-concurrency-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Shared state:'
+        - '(?i)(data race|race)'
+        - '(?i)(outside|without).{0,80}(lock|mutex)|(lock|mutex).{0,80}(not held|missing)'
+        - '(?i)(lost wakeup|missed (notify|wakeup)|sleep)'
+        - '(?i)Checklist status:'
+      not_contains:
+        - "Owners:"
+        - "Text contract:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response identifies both bugs:
+        - payload and ready are written without holding the mutex while the
+          consumer reads them under it: a data race, and the wait predicate
+          can miss the update (lost wakeup ordering issue).
+        - The fix is to mutate payload/ready under the same mutex before
+          notify.
+        A correct response uses the skill's structured sections and reaches
+        Verdict: BLOCK.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent
