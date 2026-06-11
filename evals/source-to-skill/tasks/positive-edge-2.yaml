@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: URL source unavailable reports limitation
+description: URL source generation must stop and report network/access limitations instead of inventing content.
+tags:
+  - positive-trigger
+  - positive-edge
+  - url-source
+inputs:
+  prompt: |
+    Use source-to-skill to create a skill from this URL source:
+    https://example.invalid/private/facilitation-playbook
+
+    For this eval, network access and authentication are unavailable. Do not
+    invent the source content. Tell me what mode or stop condition applies and
+    what you would need before generating files.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/source-to-skill/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - source-to-skill
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(URL source|URL)'
+        - '(?i)(network access|authentication|unavailable|access limitation)'
+        - '(?i)(stop|blocker|cannot generate|do not generate)'
+        - '(?i)(do not invent|without inventing|not invent)'
+        - '(?i)(retrieval date|access limitation|source access|approved fetch)'
+        - '(?i)(need|requires|missing).*(source|access|authentication|content)'
+      not_contains:
+        - "Skill path: .agents/skills/"
+        - "Files changed: .agents/skills/"
+        - "Generated SKILL.md"
+        - "Here is the generated skill"

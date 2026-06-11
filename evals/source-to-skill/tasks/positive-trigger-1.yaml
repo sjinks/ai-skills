@@ -1,0 +1,87 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Generate new skill from source material
+description: Explicit request to create a reusable skill from source material should trigger generation mode.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Use source-to-skill to create a reusable agent skill from this source
+    material. Use the default destination unless the skill tells you otherwise,
+    and include the generated SKILL.md content plus the normal completion
+    report.
+
+    Source material: Incident Review Facilitation Notes
+
+    Core workflow:
+    - Start by listing the incident timeline and the strongest unknowns.
+    - Separate contributing factors from blame language.
+    - Convert every corrective action into an owner, due date, verification
+      signal, and rollback or mitigation plan.
+    - If evidence is missing, mark the action as tentative instead of writing a
+      confident root cause.
+    - End with follow-up risks and a check date.
+
+    Decision rules:
+    - When timeline evidence conflicts, preserve both versions and label the
+      source of each one.
+    - When a proposed action has no owner, treat it as not actionable.
+    - When the incident involved customer data, include a privacy-review gate.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/source-to-skill/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - source-to-skill
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Skill path:\s*\.agents/skills/[a-z0-9-]+/'
+        - '(?i)\.agents/skills/[a-z0-9-]+/SKILL\.md'
+        - '(?i)Source material:'
+        - '(?i)Files changed:'
+        - '(?i)Trigger terms:'
+        - '(?i)Validation:'
+        - '(?i)Use when:'
+        - '(?i)(Workflow|Decision rules|Checklist)'
+        - '(?i)(Provenance|Source map|Source material used)'
+      not_contains:
+        - ".github/skills/"
+        - "skills/source-to-skill/scripts/extract.py"
+        - "No material findings"
+        - "Fact-Check Summary"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response correctly follows generate-new-skill mode:
+        - It creates or presents an operational generated SKILL.md rather than
+          only summarizing the source.
+        - It uses the default destination under .agents/skills/SKILL_SLUG/.
+        - It includes frontmatter with a specific Use when: description.
+        - It converts the incident-review source into behavior-shaping
+          workflow, decision rules, validation, and provenance guidance.
+        - It reports source material, changed files, trigger terms,
+          validation, and limitations.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or misses one required boundary.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

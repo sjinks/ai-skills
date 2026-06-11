@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Plain source summary without skill creation
+description: Summarizing source material into notes should not activate source-to-skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Summarize this article excerpt into five study notes. I am not creating a
+    reusable agent skill, not asking for extraction, and not asking for an
+    analysis report.
+
+    Excerpt: Teams make better decisions when they state the option chosen,
+    options rejected, evidence quality, owner, and review date.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/source-to-skill/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Source inventory"
+        - "Candidate skill slug"
+        - "Core frameworks and decision rules"
+        - "Recommendation: generate"
+        - "Skill path: .agents/skills/"
+        - "Files changed:"
+        - "scripts/extract.py"

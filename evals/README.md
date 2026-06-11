@@ -49,6 +49,7 @@ grader weighting takes effect.
   - `auth-claim-contract-review`: 0.45
   - `dependency-audit`: 0.50
   - `factcheck`: 0.45
+  - `source-to-skill`: 0.45
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks
   only) — requires the named skill via `required_skills` with
   `mode: any_order`. The currently released waza CLI (`v0.33.0`) defines
@@ -119,6 +120,10 @@ checks:
   blocked handling for critical unresolved audit clarifications, missing
   dependency lockfile/provenance evidence, and dev-only scanner findings that
   should not overblock without reachability evidence.
+- `source-to-skill` coverage exercises generate-new-skill destination
+  defaults, analyze-only mode, extract-only helper resolution relative to the
+  installed `SKILL.md`, unavailable URL-source handling, and update-existing
+  public-contract preservation.
 - `nestjs-development/positive-trigger-1.yaml` runs a `program` grader
   that pipes the generated TypeScript through `tsc --noEmit` so syntax
   errors fail the task.

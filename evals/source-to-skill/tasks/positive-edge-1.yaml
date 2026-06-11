@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Extract-only helper resolves relative to installed SKILL.md
+description: Extract-only mode must use scripts/extract.py relative to the current SKILL.md location.
+tags:
+  - positive-trigger
+  - positive-edge
+  - extract-only
+inputs:
+  prompt: |
+    Use source-to-skill extract-only mode for a local directory of source files:
+    `/tmp/workshop-notes/*.docx`. Do not generate a skill or an analysis
+    report. Show the preflight, list, and extraction commands you would run,
+    then describe the metadata you would report after reading metadata.json.
+
+    Important: the source-to-skill SKILL.md might be installed anywhere. Resolve
+    the extraction helper relative to the current SKILL.md location; do not use
+    a repository checkout path or assume a fixed .agents/skills/source-to-skill
+    directory. After resolving SKILL.md, show the helper commands using the
+    placeholder `<this-skill-directory>/scripts/extract.py`.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/source-to-skill/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - source-to-skill
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(relative to|beside|current).*SKILL\.md'
+        - '<this-skill-directory>/scripts/extract\.py'
+        - 'python3\s+<this-skill-directory>/scripts/extract\.py\s+--check'
+        - 'python3\s+<this-skill-directory>/scripts/extract\.py\s+[^\n]*--list'
+        - 'python3\s+<this-skill-directory>/scripts/extract\.py\s+[^\n]*--mode\s+text'
+        - '(?i)metadata\.json'
+        - '(?i)(output directory|files written|source count|failures|skipped inputs|estimated tokens)'
+      not_contains:
+        - "python ./scripts/extract.py"
+        - "python3 ./scripts/extract.py"
+        - "python scripts/extract.py"
+        - "python3 scripts/extract.py"
+        - "./scripts/extract.py --"
+        - ".agents/skills/source-to-skill/scripts/extract.py"
+        - "skills/source-to-skill/scripts/extract.py"
+        - "/home/volodymyr/work/ai-skills"
+        - "Skill path: .agents/skills/"
+        - "Files changed:"
