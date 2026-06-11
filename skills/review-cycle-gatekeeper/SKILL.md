@@ -35,6 +35,8 @@ Use these severity levels consistently:
 - `Medium`: likely regression, contract mismatch, weak error handling, or meaningful operational risk.
 - `Low`: maintainability or clarity issue with limited near-term risk. Advisory only.
 
+Input mapping: when supplied findings use a four-level vocabulary (`CRITICAL`/`HIGH`/`MEDIUM`/`LOW`), collapse it for the gate as `CRITICAL` → `High`, `HIGH` → `High`, `MEDIUM` → `Medium`, `LOW` → `Low`. Record the original label in the findings matrix `id` or `evidence` column when the distinction matters for a waiver decision.
+
 ## Finding States
 
 Each finding must be in exactly one explicit state:
