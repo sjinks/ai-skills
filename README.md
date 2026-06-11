@@ -21,6 +21,7 @@ At the moment, the repository contains these skills:
 - `boost-asio`: guidance for designing, implementing, reviewing, debugging, and testing Boost.Asio async I/O, executors, strands, timers, sockets, cancellation, backpressure, TLS streams, and coroutine flows.
 - `boost-beast`: guidance for Boost.Beast HTTP/WebSocket parser, serializer, body, stream, TLS, protocol-adapter, limits, strictness, lifecycle, and testing work.
 - `cmake-build-review`: guidance for reviewing target-based CMake builds, including PUBLIC/PRIVATE/INTERFACE propagation, find_package vs FetchContent policy, install/export and package config correctness, generator expressions, multi-config behavior, and sanitizer/LTO/warning configuration.
+- `cpp-api-abi-review`: guidance for reviewing C++ library public headers and binary interfaces, including ABI stability classification, ODR risk from inlined code, noexcept contracts, extern "C" boundaries, symbol visibility, and versioning/migration mechanisms.
 - `cpp-concurrency-review`: guidance for reviewing C++ multithreaded code using standard primitives, including data races, lock ordering and deadlock, condition-variable protocols, atomic memory ordering, thread lifecycle, and shutdown semantics.
 - `cpp-coroutines`: guidance for C++20 coroutine types, promises, awaiters, handles, generators, frame lifetime, scheduler bridges, cancellation, symmetric transfer, allocation behavior, and tests.
 - `cpp-object-lifetime`: guidance for reviewing C++ object lifetime and ownership, including dangling pointers/references/views, iterator and reference invalidation, lambda capture lifetime, use-after-move, smart-pointer boundaries, and async handoff safety.
@@ -125,6 +126,19 @@ It helps an assistant:
 - review install/export setups: export sets, config and version files, BUILD_INTERFACE/INSTALL_INTERFACE include paths
 - keep configuration logic multi-config-safe with generator expressions and make sanitizers/LTO/warnings opt-in, per-target, compile-and-link consistent
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with project shape, findings, checklist status, verification expectations, and an insufficient-context template
+
+### `cpp-api-abi-review`
+
+This skill is aimed at C++ library boundaries that other code compiles or links against, where the question is which changes break source compatibility, binary compatibility, or behavioral contracts, and how breaks are versioned.
+
+It helps an assistant:
+
+- identify the public/installed surface, the stated compatibility promise, and its toolchain assumptions before classifying any change
+- classify changes as API-breaking, ABI-breaking, both, or neither, using accurate layout/vtable/signature rules and the safe-addition cases
+- treat inline functions, templates, constexpr variables, and default arguments as compiled-into-consumers, with ODR and mixed-version analysis
+- review boundary contracts: noexcept as a one-way promise, exceptions stopped at extern "C", export-macro and visibility discipline
+- require a loud break mechanism (soname/major bump, inline-namespace version, symbol versioning) for every break, plus ABI-diff or link-test verification
+- return `BLOCK`, `CONCERNS`, or `CLEAN` with the promise, findings, checklist status, verification expectations, and an insufficient-context template
 
 ### `cpp-concurrency-review`
 

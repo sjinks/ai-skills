@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: CMake install rules question
+description: |
+  Build-system packaging mechanics are out of scope for the API/ABI skill
+  even when a shared library is involved.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    In CMake, how do I install my shared library's public headers into a
+    versioned include directory and generate a config package so consumers
+    can find_package(widget 3.0)? I'm not changing any header content.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-api-abi-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Compatibility promise:"
+        - "Checklist status:"
