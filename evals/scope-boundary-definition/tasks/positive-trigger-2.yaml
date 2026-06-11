@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Audit an existing scope statement
+description: |
+  An existing scope statement with items in the wrong lists is audited;
+  items are marked kept, moved, or split, and unresolved placements
+  become boundary decisions.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Audit this scope statement for our data-export project. I suspect some
+    items are in the wrong buckets.
+
+    In scope:
+    - CSV export of contacts
+    - "Future-proof export architecture"
+    - Export scheduling (maybe? sales asked for it)
+
+    Out of scope:
+    - Excel export
+
+    There's nothing under non-goals or deferred yet. The project brief only
+    commits to one-off CSV export of contacts from the contacts page.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/scope-boundary-definition/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - scope-boundary-definition
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Scope Boundary Report'
+        - '(?i)\[(kept|moved from|split)'
+        - '(?i)Boundary decisions needed'
+        - '(?i)(scheduling)'
+      not_contains:
+        - "Scope Slice Plan"
+        - "Requirements Ambiguity Report"

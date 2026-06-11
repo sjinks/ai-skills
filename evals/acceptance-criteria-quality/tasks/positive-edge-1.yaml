@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: needs-owner-input instead of invented thresholds
+description: |
+  A criterion that cannot be made testable without a product decision
+  must be marked needs-owner-input with the decision named, not given an
+  invented threshold.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Audit this acceptance criterion. Do not make up numbers we never
+    agreed on.
+
+    Feature: search results page.
+
+    Acceptance criteria:
+    1. Search results load fast enough that users don't abandon the page.
+
+    Nobody has decided a latency target yet.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/acceptance-criteria-quality/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - acceptance-criteria-quality
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Acceptance Criteria Quality Report'
+        - '(?i)needs-owner-input'
+        - '(?i)Open questions'
+        - '(?i)(latency|target|threshold|decision)'
+      not_contains:
+        - "Requirements Ambiguity Report"

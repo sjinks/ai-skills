@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Post-incident analysis is not pre-build surfacing
+description: |
+  A request to analyze why a finished deployment failed is retrospective
+  incident analysis, not pre-build assumption surfacing, and must not
+  activate the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Our avatar migration to S3 already shipped last week and broke for
+    users with non-ASCII filenames. Write the incident retrospective:
+    what failed, the timeline, and the remediation we already applied.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/assumption-surfacing/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Assumption Surfacing Report"
+        - "verify-before-build"
+        - "Earliest signal"

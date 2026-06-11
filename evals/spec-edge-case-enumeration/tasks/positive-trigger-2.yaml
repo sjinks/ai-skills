@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Edge cases for a scheduled-publishing story
+description: |
+  A story with strong time and lifecycle surfaces is swept; time-zone,
+  expiry-during-operation, and entity-state cases are enumerated as
+  concrete scenarios.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    What edge cases does this story need to settle before implementation?
+    Walk the spec, not the code.
+
+    Story: authors can schedule a post to publish at a future date and
+    time. The post stays in "scheduled" state until publish time, then
+    becomes public. Scheduled posts can be edited or unscheduled before
+    they go live.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spec-edge-case-enumeration/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - spec-edge-case-enumeration
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Edge Case Enumeration Report'
+        - '(?i)(time|lifecycle)'
+        - '(?i)spec-decision'
+        - '(?i)(timezone|time zone|DST|past date|publish time|while|during)'
+        - '(?i)Options:'
+      not_contains:
+        - "Assumption Surfacing Report"
+        - "Requirements Ambiguity Report"

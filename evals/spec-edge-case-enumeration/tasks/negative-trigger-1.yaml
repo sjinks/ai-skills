@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Unrelated everyday prompt
+description: Unrelated everyday request must not activate the spec-edge-case-enumeration skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "Suggest stretches for someone who sits at a desk eight hours a day."
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spec-edge-case-enumeration/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Edge Case Enumeration Report"
+        - "spec-decision"
+        - "flag-for-deep-review"
+        - "Spec decisions needed"

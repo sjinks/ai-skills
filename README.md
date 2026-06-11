@@ -16,7 +16,9 @@ At the moment, the repository contains these skills:
 
 - `agent-skill-audit`: guidance for auditing agent instructions, skill files, `SKILL.md` artifacts, prompt-packaged workflows, and AI assistant instruction artifacts for consistency, cohesion, coherence, completeness, and weaker-model suitability.
 - `adversarial-review`: guidance for challenging specs, designs, implementations, workflows, and test plans with evidence-based failure-mode review and risk-focused verification.
+- `acceptance-criteria-quality`: guidance for writing, rewriting, and auditing acceptance criteria against a five-property contract — testable, observable, single, scoped, and implementation-neutral — plus a five-category coverage check, so each criterion can be objectively verified before work starts.
 - `archive-extraction-safety`: guidance for reviewing safe ZIP/TAR/archive extraction, including traversal, symlinks, hardlinks, absolute and Windows paths, Unicode normalization, decompression limits, nested archives, permissions, overwrite policy, containment, cleanup, and parser mismatch.
+- `assumption-surfacing`: guidance for sweeping a spec, plan, design, or estimate for implicit assumptions across data, ordering, scale, auth-context, environment, compatibility, dependency-behavior, and people-process categories, classifying each as verify-before-build or accept-with-risk.
 - `auth-claim-contract-review`: guidance for reviewing auth/security claim contracts across JWT, OIDC, SAML, token, and session flows, including optional claims, missing-vs-invalid semantics, issuer-validator-consumer drift, authorization mapping, propagation, serialization, revocation, freshness, fallback defaults, and confused-deputy risks.
 - `boost-asio`: guidance for designing, implementing, reviewing, debugging, and testing Boost.Asio async I/O, executors, strands, timers, sockets, cancellation, backpressure, TLS streams, and coroutine flows.
 - `boost-beast`: guidance for Boost.Beast HTTP/WebSocket parser, serializer, body, stream, TLS, protocol-adapter, limits, strictness, lifecycle, and testing work.
@@ -41,10 +43,13 @@ At the moment, the repository contains these skills:
 - `nestjs-development`: guidance for designing, scaffolding, implementing, refactoring, and testing NestJS features with idiomatic patterns, anti-patterns, and a structured build workflow.
 - `pr-scope-slicer`: guidance for deciding whether a change set is too large or mixed to review in one pass and planning ordered, independently reviewable slices along mechanical/semantic, refactor/behavior, dependency, subsystem, and risk axes.
 - `pre-review-self-audit`: guidance for author-side pre-review self-checks covering diff hygiene, scope, tests, contracts, commit atomicity, description accuracy, discovered project checks, and reviewer anticipation, so the predictable first review round disappears.
+- `requirements-ambiguity-audit`: guidance for auditing draft specs, requirements, and user stories for ambiguity across eight classes — vague quantifiers, undefined terms, missing actors, conflicting requirements, placeholders, unspecified paths, ambiguous references, and untestable wording — with quotes, plausible readings, and proposed rewrites.
 - `review-cycle-gatekeeper`: guidance for enforcing review/fix cycle closure gates so findings are explicitly resolved, verified, owned, or waived before merge.
 - `review-disagreement-resolution`: guidance for resolving stalled reviewer-author disputes by classifying each part as fact, standard, or preference, anchoring it to a verifiable source, and applying a decision rule that ends review-thread ping-pong.
 - `review-finding-quality`: guidance for writing, rewriting, and auditing review findings against a five-field contract — severity, anchor, problem, fix direction, and an objective `Resolved when` acceptance condition — so each finding closes in one round.
+- `scope-boundary-definition`: guidance for making a work item's boundaries explicit before planning: in-scope, out-of-scope, non-goal, and deferred lists, a smallest valuable slice, surfaced boundary decisions, and scope-creep risks with pre-empting boundary statements.
 - `single-pass-review-completeness`: guidance for making one review round complete by construction: enumerate eight review dimensions up front, sweep the whole diff per dimension, and declare covered, skipped, and gapped coverage explicitly.
+- `spec-edge-case-enumeration`: guidance for sweeping a feature spec across eight edge-case dimensions — empty/boundary, error paths, permissions, concurrency, time, locale and text, limits, and lifecycle — and separating spec decisions from implementation details and deep-review flags.
 - `multi-lens-review`: guidance for structuring a multi-lens review (intent, design, implementation, security, adversarial, verification) and synthesizing the lens findings into a single integrated decision with required actions and residual risk.
 - `source-to-skill`: guidance for converting books, articles, documentation, notes, transcripts, and other source material into reusable agent skills with extraction, rights, provenance, and validation gates. Inspired by [book-to-skill](https://github.com/virgiliojr94/book-to-skill/blob/master/SKILL.md).
 - `test-gap-to-test-plan`: guidance for converting review findings and unverified behaviors into a prioritized, owned, layer-typed test plan that tracks the test evidence a downstream merge gate will require.
@@ -78,6 +83,18 @@ It helps an assistant:
 - convert top risks into adversarial tests, mitigations, or acceptance criteria
 - return `BLOCK`, `CONCERNS`, or `CLEAN` verdicts without inventing findings
 
+### `acceptance-criteria-quality`
+
+This skill is aimed at draft acceptance criteria, definition-of-done lists, and user-story AC that need a quality contract enforced before implementation starts.
+
+It helps an assistant:
+
+- check each criterion against a five-property contract: testable, observable, single, scoped, and implementation-neutral, while keeping mandated contracts (protocols, formats, API shapes) intact
+- mark each criterion `compliant`, `rewritten`, or `needs-owner-input`, with a `Verify by` line for every kept or rewritten criterion
+- run a coverage check across success path, failure/rejection path, empty or boundary input, permission or authorization outcome, and persistence or side-effect visibility
+- propose additions only from the supplied feature description, turning undecided behavior into open questions instead of invented requirements
+- emit a deterministic BLOCK template when neither criteria nor a feature description is supplied
+
 ### `archive-extraction-safety`
 
 This skill is aimed at code and designs that extract untrusted or semi-trusted archives into a destination directory.
@@ -88,6 +105,19 @@ It helps an assistant:
 - review ZIP/TAR traversal, absolute paths, Windows drive/UNC paths, Unicode/path normalization, symlinks, hardlinks, special files, executable bits, permission/ownership restoration, parser mismatch, and destination containment
 - check file count, decompressed size, compression ratio, nested archive depth, and partial extraction cleanup
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with findings, checklist status, tests, and residual risk
+
+### `assumption-surfacing`
+
+This skill is aimed at specs, plans, designs, and estimates about to be committed to, whose implicit assumptions need to become an explicit verification worklist before building starts.
+
+It helps an assistant:
+
+- sweep eight assumption categories: data, ordering, scale, auth-context, environment, compatibility, dependency-behavior, and people-process
+- state each assumption as a falsifiable claim anchored to the plan text that depends on it
+- classify each assumption as `verify-before-build` (with a verification step) or `accept-with-risk` (with the risk if wrong and the earliest signal that would reveal it)
+- apply the tie-break that structural damage — schema, contract, security, data loss — forces `verify-before-build` regardless of likelihood
+- produce the worklist without performing the verifications or inventing owners
+- emit a deterministic BLOCK template when no plan or spec text is supplied
 
 ### `auth-claim-contract-review`
 
@@ -333,6 +363,19 @@ It helps an assistant:
 
 The skill covers both implementation concerns and review discipline, including boundaries, required input context, a definition of done, and a structured output contract.
 
+### `spec-edge-case-enumeration`
+
+This skill is aimed at feature specs, user stories, and behavior descriptions being finalized, whose edge cases need systematic enumeration so spec decisions are made before implementation instead of during it.
+
+It helps an assistant:
+
+- sweep eight edge-case dimensions: empty-and-boundary, error-paths, permissions, concurrency, time, locale-and-text, limits, and lifecycle, with explicit `n/a` reasons for skipped dimensions
+- phrase each case as a concrete scenario and give it exactly one disposition: `spec-decision`, `spec-stated`, `implementation-detail`, or `flag-for-deep-review`
+- present options with user-visible consequences for spec decisions while leaving the choice to the owner
+- record supplied edge-case decisions as `spec-stated` even under disagreement, noting disagreement as a remark
+- flag specialized surfaces (security-sensitive text, file parsing, payment idempotency) for dedicated review without performing it
+- emit a deterministic BLOCK template when no feature description is supplied
+
 ### `spock-voice`
 
 This skill is aimed at responses where the user explicitly asks for a Spock-inspired conversational register. It focuses on calm logic, scientific precision, disciplined curiosity, and understated dry humor while keeping the user's goal primary.
@@ -393,6 +436,19 @@ It helps an assistant:
 - classify findings as `High`, `Medium`, or `Low` by whether they would force a review round on their own
 - keep the full checklist table even on the no-findings path
 - return `CLEAN`, `CONCERNS`, or `BLOCK` with findings, outstanding items, and a deterministic insufficient-context template
+
+### `requirements-ambiguity-audit`
+
+This skill is aimed at draft specs, requirements documents, feature requests, user stories, and product briefs that need an ambiguity check before planning or implementation.
+
+It helps an assistant:
+
+- sweep eight ambiguity classes: vague quantifiers, undefined terms, missing actors, conflicting requirements, placeholders, unspecified paths, ambiguous references, and untestable wording
+- quote the exact text, name its location, and state the plausible readings for every finding
+- propose rewrites that preserve intent and turn unknowns into explicit open questions instead of invented values
+- respect supplied glossaries and explicitly delegated flexibility instead of flagging them
+- assign `blocker`, `should-fix`, or `suggestion` severity and return `BLOCK`, `CONCERNS`, or `CLEAN` verdicts
+- emit a deterministic BLOCK template when no spec text is supplied
 
 ### `review-cycle-gatekeeper`
 
@@ -455,6 +511,19 @@ It helps an assistant:
 - run an explicit Synthesis step to deduplicate, reconcile lens conflicts by naming the winning tradeoff, and split required actions from follow-ups
 - emit a `BLOCK`, `CONCERNS`, or `CLEAN` verdict with residual risk
 - avoid role-playing independent reviewers, applying every lens by default, or hiding conflicts behind silent consensus
+
+### `scope-boundary-definition`
+
+This skill is aimed at features, specs, projects, and tasks whose scope needs explicit boundaries — or whose existing scope statement needs an audit — before planning or estimation.
+
+It helps an assistant:
+
+- produce four exclusive boundary lists: in scope, out of scope (with reasons), non-goals, and deferred (with revisit triggers)
+- flag inferred in-scope items, and surface unsettled placements as boundary decisions for the owner instead of guessing
+- identify the smallest valuable slice — what it includes, proves, and leaves for later — or rule one out with a reason
+- list scope-creep vectors with the boundary statement that pre-empts each
+- mark items `kept`, `moved`, or `split` when auditing an existing scope statement so the delta is reviewable
+- emit a deterministic BLOCK template when no work-item description is supplied
 
 ### `source-to-skill`
 

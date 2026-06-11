@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Glossary-defined terms are not findings
+description: |
+  Terms defined in a supplied glossary must not be flagged as
+  undefined-term, and explicitly delegated flexibility must not be
+  flagged as ambiguity.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Audit this requirement set for ambiguity. Use the glossary; don't flag
+    things the glossary already defines.
+
+    Requirements:
+    - R1: Sessions expire after the idle timeout.
+    - R2: The implementation may choose any cache eviction strategy.
+    - R3: Notifications are sent promptly after the event.
+
+    Glossary:
+    - idle timeout: 30 minutes without an authenticated request.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/requirements-ambiguity-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - requirements-ambiguity-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Requirements Ambiguity Report'
+        - '(?i)Verdict:\s*(CONCERNS|BLOCK)'
+        - '(?i)vague-quantifier'
+        - '(?i)promptly'
+      not_contains:
+        - "Finding Quality Report"

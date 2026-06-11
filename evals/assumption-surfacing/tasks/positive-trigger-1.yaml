@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Surface assumptions in a migration plan
+description: |
+  Canonical case: a data-migration plan with silent data, compatibility,
+  and dependency assumptions is swept; assumptions come out as
+  falsifiable claims with dispositions and verification steps.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Surface the implicit assumptions in this plan before we commit to it.
+
+    Plan: migrate user avatars from local disk to S3. Steps:
+    1. Backfill script copies all files from /var/avatars to the bucket,
+       keyed by user ID.
+    2. Deploy code that reads from S3, falling back to disk.
+    3. After a week, remove the fallback and delete local files.
+
+    Estimate: three days of work. Our DBA Marta knows the user table;
+    the platform team owns the S3 account.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/assumption-surfacing/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - assumption-surfacing
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Assumption Surfacing Report'
+        - '(?i)\|\s*#\s*\|\s*Category\s*\|'
+        - '(?i)verify-before-build'
+        - '(?i)Verification:'
+        - '(?i)(filename|user ID|unique|collision|duplicate|orphan|missing file)'
+      not_contains:
+        - "Requirements Ambiguity Report"
+        - "Scope Boundary Report"
+        - "Edge Case Enumeration Report"

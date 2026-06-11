@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Audit a vague feature spec for ambiguity
+description: |
+  Canonical case: a draft spec with vague quantifiers, an undefined term,
+  and a TBD placeholder is audited with quotes, readings, severities,
+  and proposed rewrites.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Run a requirements ambiguity audit on this draft spec before we hand it
+    to the team:
+
+    ## Bulk Export
+
+    1. The export should complete quickly even for large accounts.
+    2. Exports are processed by the worker tier and stored in the archive
+       bucket. (Retention period: TBD.)
+    3. If the user is a guest, the export is handled appropriately.
+    4. The system supports all common file formats.
+    5. The export must respect the account's data residency settings.
+
+    There is no glossary; "worker tier" and "archive bucket" are defined in
+    our infra docs, but "common file formats" is not defined anywhere.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/requirements-ambiguity-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - requirements-ambiguity-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Requirements Ambiguity Report'
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS|CLEAN)'
+        - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Severity\s*\|\s*Location\s*\|'
+        - '(?i)(vague-quantifier|placeholder|untestable-wording|unspecified-path)'
+        - '(?i)Proposed rewrite'
+        - '(?i)(quickly|TBD|appropriately|common file formats)'
+      not_contains:
+        - "Finding Quality Report"
+        - "Scope Slice Plan"
+        - "Gate decision:"

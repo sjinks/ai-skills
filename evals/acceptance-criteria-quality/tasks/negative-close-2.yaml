@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Auditing review findings is not auditing AC
+description: |
+  A request to audit code review findings for quality targets review
+  comments, not acceptance criteria, and must not activate the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Audit my draft code review comments for quality before I post them on
+    the PR:
+
+    1. "This loop is inefficient."
+    2. "Maybe rename this variable?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/acceptance-criteria-quality/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Acceptance Criteria Quality Report"
+        - "needs-owner-input"
+        - "Verify by"

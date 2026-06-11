@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Sweep an estimate for hidden assumptions
+description: |
+  A delivery estimate is swept; people-process and dependency-behavior
+  assumptions the timeline presumes are surfaced and classified.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    What assumptions is this estimate making that we haven't checked?
+    Sweep it before I present the date.
+
+    Estimate: payment-provider switch from Braintree to Stripe in four
+    weeks. Week 1: integration code. Week 2: provider review of our
+    account and webhooks. Week 3: parallel run on 5% of traffic.
+    Week 4: full cutover.
+
+    Context: Stripe account application was submitted yesterday. The
+    checkout team must review our PRs; they are mid-quarter-planning.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/assumption-surfacing/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - assumption-surfacing
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Assumption Surfacing Report'
+        - '(?i)(people-process|dependency-behavior)'
+        - '(?i)verify-before-build'
+        - '(?is)(account|application|approv).{0,300}(Stripe|provider|week)'
+        - '(?i)(checkout team|review)'
+      not_contains:
+        - "Requirements Ambiguity Report"
+        - "Scope Boundary Report"

@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Rewrite vague acceptance criteria
+description: |
+  Canonical case: vague, compound, implementation-coupled draft AC are
+  rewritten into testable, observable, single criteria with Verify by
+  lines and a coverage check.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Audit and rewrite the acceptance criteria for this story before we
+    start the sprint.
+
+    Story: users can upload a profile photo.
+
+    Draft acceptance criteria:
+    1. Photo upload works well on all devices.
+    2. The image is processed by the thumbnail service and the UI feels
+       responsive.
+    3. Invalid files are handled gracefully.
+
+    Feature description: JPEG/PNG up to 5 MB; the photo appears on the
+    profile page after upload; files over the limit or in other formats are
+    rejected with a message naming the allowed formats and size.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/acceptance-criteria-quality/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - acceptance-criteria-quality
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Acceptance Criteria Quality Report'
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS|CLEAN)'
+        - '(?i)\|\s*#\s*\|\s*Status\s*\|\s*Contract gaps\s*\|'
+        - '(?i)rewritten'
+        - '(?i)Verify by'
+        - '(?i)success path'
+        - '(?i)failure/rejection path'
+        - '(?is)(5 ?MB|JPEG|PNG)'
+      not_contains:
+        - "Finding Quality Report"
+        - "Requirements Ambiguity Report"
+        - "Test Plan"

@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Audit AC list for coverage gaps
+description: |
+  An AC list that only covers the success path is audited; gaps in
+  failure, boundary, and permission coverage are proposed as additions
+  derived from the feature description.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Are these acceptance criteria complete? Audit them for quality and
+    coverage.
+
+    Feature: team admins can invite members by email. Invites expire after
+    7 days. Only admins can send invites. An invite to an address that is
+    already a member is rejected.
+
+    Acceptance criteria:
+    1. When an admin submits a valid email, an invite email is sent and the
+       invite appears in the pending list.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/acceptance-criteria-quality/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - acceptance-criteria-quality
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Acceptance Criteria Quality Report'
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS|CLEAN)'
+        - '(?i)Proposed additions'
+        - '(?i)permission or authorization outcome'
+        - '(?i)(expire|7 days)'
+        - '(?i)(already a member|non-admin|not an admin)'
+      not_contains:
+        - "Finding Quality Report"
+        - "Requirements Ambiguity Report"
