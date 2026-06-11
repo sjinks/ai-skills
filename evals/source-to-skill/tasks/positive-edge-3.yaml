@@ -1,0 +1,121 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Update existing skill preserves public contract
+description: Existing-skill updates must read first and preserve public contract unless breaking change is approved.
+tags:
+  - positive-trigger
+  - positive-edge
+  - update-existing
+inputs:
+  prompt: |
+    Use source-to-skill to fold this new source material into an existing skill
+    at `.agents/skills/release-readiness/SKILL.md`. No breaking change is
+    approved, so preserve the skill's public contract.
+
+    Existing SKILL.md:
+    ```markdown
+    ---
+    name: release-readiness
+    description: "Use when: assessing whether a software change is ready to release."
+    user-invocable: true
+    argument-hint: "change summary, validation evidence, risk notes"
+    ---
+    # Release Readiness
+
+    Use this skill to assess whether a software change is ready to release and
+    to explain the evidence behind the readiness call.
+
+    ## Output contract
+
+    Return these fields exactly:
+
+    - Verdict: READY | CONDITIONAL | BLOCKED
+    - Evidence:
+    - Risks:
+
+    ## Validation checklist
+
+    - Confirm the stated validation evidence matches the changed surface.
+    - Confirm rollback or mitigation evidence exists for high-risk changes.
+    - Confirm release risks have owners or are accepted explicitly.
+    ```
+
+    New source notes:
+    - A release is blocked when rollback evidence is missing for a data migration.
+    - If monitoring is absent, mark readiness as conditional and name the owner
+      for adding alerts.
+    - Customer-impact notes must distinguish user-visible regressions from
+      internal cleanup risk.
+
+    Explain the update approach and completion report.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/source-to-skill/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - source-to-skill
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)read the existing skill first'
+        - '(?i)preserve.*public contract'
+        - '(?i)(no breaking change|unless.*approved|breaking change.*not approved)'
+        - '(?i)(additive|additive improvements|fold)'
+        - '(?i)\.agents/skills/release-readiness/SKILL\.md'
+        - '(?i)(name|description|argument-hint|frontmatter)'
+        - '(?i)Verdict:\s*READY\s*\|\s*CONDITIONAL\s*\|\s*BLOCKED'
+        - '(?i)Evidence:'
+        - '(?i)Risks:'
+        - '(?i)Validation checklist'
+        - '(?i)rollback evidence'
+        - '(?i)(monitoring|alerts).*(owner)|(owner).*(monitoring|alerts)'
+        - '(?i)user-visible regressions'
+        - '(?i)internal cleanup risk'
+        - '(?i)Files changed:'
+        - '(?i)Validation:'
+        - '(?i)Provenance'
+      not_contains:
+        - "renamed release-readiness"
+        - "name: release-gatekeeper"
+        - "description: \"Use when: managing deployment pipelines"
+        - "Breaking change approved"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response correctly follows update-existing mode
+        without destructively rewriting the existing release-readiness skill.
+        A correct response must:
+        - Say it reads the existing skill first and preserves the public
+          contract because no breaking change is approved.
+        - Preserve the existing frontmatter identity and the output contract:
+          Verdict: READY | CONDITIONAL | BLOCKED, Evidence:, Risks:, and the
+          Validation checklist.
+        - Add the new source concepts additively: rollback evidence for data
+          migrations, monitoring or alerts owner when absent, and the distinction
+          between user-visible regressions and internal cleanup risk.
+        - Report files changed, validation, and provenance without renaming the
+          skill, replacing the verdict vocabulary, or inventing approval for a
+          breaking change.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or misses one required boundary.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

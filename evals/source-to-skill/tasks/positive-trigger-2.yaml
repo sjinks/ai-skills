@@ -1,0 +1,84 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Analyze-only recommendation without file creation
+description: Analyze/review-first wording should trigger analyze-only mode and avoid creating files.
+tags:
+  - positive-trigger
+  - analyze-only
+inputs:
+  prompt: |
+    Use source-to-skill in analyze-only mode. Review this source excerpt and
+    tell me whether it is worth turning into a reusable skill, but do not
+    create or update files yet. Explicitly state that no files were created
+    and no files were updated.
+
+    Source excerpt:
+    "Meeting Decision Hygiene: before a team records a decision, identify the
+    decision owner, the reversible/irreversible category, the options rejected,
+    the evidence quality, and the date when the decision should be revisited.
+    Avoid recording preferences as decisions. If the team lacks an owner or
+    evidence, mark the item as a pending recommendation instead."
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/source-to-skill/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - source-to-skill
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Source inventory'
+        - '(?i)Intended skill scope'
+        - '(?i)Candidate skill slug'
+        - '(?i)Core frameworks and decision rules'
+        - '(?i)Workflows and checklists'
+        - '(?i)Provenance and confidence notes'
+        - '(?i)Risks and open questions'
+        - '(?i)Recommendation:\s*(generate|narrow scope|split|stop)'
+        - '(?i)no files (were )?created'
+        - '(?i)no files (were )?updated'
+      not_contains:
+        - "Files changed:"
+        - "Skill path: .agents/skills/"
+        - ".agents/skills/meeting-decision-hygiene/SKILL.md"
+        - "Created files"
+        - "Updated files"
+        - "Generated SKILL.md"
+        - "Here is the generated skill"
+        - "user-invocable: true"
+        - "argument-hint:"
+        - "```markdown\n---"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response correctly follows analyze-only mode for the
+        supplied source excerpt. A correct response must:
+        - Provide the analyze-only report sections: source inventory, intended
+          skill scope, candidate slug, frameworks/rules, workflows/checklists,
+          provenance/confidence, risks/open questions, and recommendation.
+        - Explicitly state that no files were created and no files were updated.
+        - Avoid generating SKILL.md content, frontmatter, a skill file path, or
+          a files-changed completion report.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or misses one required boundary.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Direct SKILL.md wording edit without source synthesis
+description: Editing skill wording directly is close-domain customization work, not source-to-skill conversion.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Tighten this SKILL.md wording directly. Keep the same behavior; I only want
+    a shorter rewrite of the paragraph, not source analysis, extraction, or a
+    new generated skill.
+
+    ```markdown
+    # Release Notes Helper
+
+    Use this skill when preparing release notes from an already-completed
+    change. Review the diff, group changes by user impact, and write concise
+    bullets for the changelog.
+    ```
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/source-to-skill/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Source inventory"
+        - "Intended skill scope"
+        - "Candidate skill slug"
+        - "Recommendation: generate"
+        - "Skill path: .agents/skills/"
+        - "Files changed:"
+        - "Provenance and confidence notes"
