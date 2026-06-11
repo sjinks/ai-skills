@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Reviewing code against a spec is not a spec audit
+description: |
+  A request to check whether code implements a spec correctly is code
+  review, not requirements ambiguity auditing, and must not activate
+  the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Our spec says "sessions expire after 30 minutes of inactivity". Does
+    this implementation match the spec?
+
+    ```python
+    def is_expired(session):
+        return time.time() - session.created_at > 1800
+    ```
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/requirements-ambiguity-audit/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Smallest addition to proceed"
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Verdict: CLEAN"
+        - "Requirements Ambiguity Report"
+        - "vague-quantifier"
+        - "Proposed rewrite:"

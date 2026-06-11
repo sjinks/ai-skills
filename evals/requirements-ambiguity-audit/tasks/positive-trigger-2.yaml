@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Conflicting requirements in a user story
+description: |
+  A user story containing two requirements that cannot both hold is
+  audited; the conflict is found, both statements quoted, and a blocker
+  severity assigned.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Check these requirements for ambiguity and conflicts before sprint
+    planning:
+
+    As an admin, I can delete a workspace.
+
+    Requirements:
+    - R1: Deleting a workspace permanently removes all its data immediately.
+    - R2: A deleted workspace can be restored by support within 30 days.
+    - R3: The deletion flow asks for confirmation.
+    - R4: Audit events for the deletion are retained per the audit policy.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/requirements-ambiguity-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - requirements-ambiguity-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Requirements Ambiguity Report'
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)conflicting-requirements'
+        - '(?i)blocker'
+        - '(?is)R1.{0,600}R2'
+      not_contains:
+        - "Finding Quality Report"
+        - "Scope Slice Plan"

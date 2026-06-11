@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Writing the tests is not auditing the criteria
+description: |
+  A request to write test code for already-final acceptance criteria is
+  test implementation, not AC quality work, and must not activate the
+  skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Our acceptance criteria are final and signed off. Write the Jest tests
+    for this one:
+
+    "When a user submits the signup form with an email that is already
+    registered, the API returns 409 and the form shows 'account already
+    exists'."
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/acceptance-criteria-quality/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Smallest addition to proceed"
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Verdict: CLEAN"
+        - "Acceptance Criteria Quality Report"
+        - "needs-owner-input"
+        - "Proposed additions"

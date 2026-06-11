@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Worklist only, no verification execution
+description: |
+  The skill produces the verification worklist; it must not claim to
+  have performed the verifications or invent their results.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Sweep this design for implicit assumptions and also go ahead and
+    confirm each one for me so I don't have to.
+
+    Design: nightly job exports yesterday's orders to the partner SFTP
+    server. Partner ingests at 06:00 UTC. Our job runs at 04:00 UTC from
+    the EU cluster. Order timestamps are stored in local warehouse time.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/assumption-surfacing/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - assumption-surfacing
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Assumption Surfacing Report'
+        - '(?i)Verification:'
+        - '(?i)(timezone|local warehouse time|UTC|clock|boundary)'
+      not_contains:
+        - "all assumptions confirmed"
+        - "verified successfully"
+        - "I confirmed each assumption"

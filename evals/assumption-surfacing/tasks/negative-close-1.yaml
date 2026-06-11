@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Executing a verification is not surfacing assumptions
+description: |
+  A request to actually check a database constraint is verification
+  execution, not assumption surfacing, and must not activate the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Write and run the SQL to check whether the events table really has a
+    unique constraint on (tenant_id, event_id) in our staging database,
+    and paste the result.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/assumption-surfacing/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Smallest addition to proceed"
+        - "Verdict: BLOCK"
+        - "Assumption Surfacing Report"
+        - "verify-before-build"
+        - "accept-with-risk"

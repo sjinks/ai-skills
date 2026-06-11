@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Splitting an oversized PR is not scope definition
+description: |
+  A request to split an already-written diff into reviewable pieces is
+  change-set slicing, not feature scope definition, and must not
+  activate the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    My PR is 2,400 lines across 38 files — it mixes a rename refactor with
+    the new billing logic. How should I split this diff into separate PRs
+    so each one is reviewable?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/scope-boundary-definition/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Smallest addition to proceed"
+        - "Verdict: BLOCK"
+        - "Scope Boundary Report"
+        - "Smallest valuable slice"
+        - "Non-goals"

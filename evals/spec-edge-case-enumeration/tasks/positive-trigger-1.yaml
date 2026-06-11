@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Enumerate edge cases for a comments feature
+description: |
+  Canonical case: a feature description is swept across the eight
+  dimensions; cases come out as concrete scenarios with dispositions
+  and spec decisions carry options with consequences.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Enumerate the edge cases this spec needs to decide before we build it.
+
+    Feature: users can comment on shared documents. Comments support
+    plain text up to 2,000 characters. A comment can be edited by its
+    author within 15 minutes of posting. Document viewers see comments;
+    only users with edit access can post.
+
+    Known decision: deleting a document deletes its comments (already
+    agreed with product).
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spec-edge-case-enumeration/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - spec-edge-case-enumeration
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Edge Case Enumeration Report'
+        - '(?i)\|\s*#\s*\|\s*Dimension\s*\|'
+        - '(?i)spec-decision'
+        - '(?i)spec-stated'
+        - '(?i)Spec decisions needed'
+        - '(?i)Options:'
+        - '(?i)(15 minutes|edit access|2,?000)'
+      not_contains:
+        - "Requirements Ambiguity Report"
+        - "Assumption Surfacing Report"
+        - "Test Plan"

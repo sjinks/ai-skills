@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Backlog prioritization is not scope definition
+description: |
+  A request to prioritize multiple features against each other is
+  backlog prioritization across work items, not boundary definition for
+  one work item, and must not activate the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    We have four candidate features for next quarter: dark mode, CSV
+    import, SSO, and an activity feed. Rank them by expected impact vs
+    effort and tell me which two we should commit to.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/scope-boundary-definition/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Smallest addition to proceed"
+        - "Verdict: BLOCK"
+        - "Scope Boundary Report"
+        - "Creep risks"
+        - "Boundary decisions needed"

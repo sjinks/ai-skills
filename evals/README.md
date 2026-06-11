@@ -65,6 +65,11 @@ grader weighting takes effect.
   - `review-disagreement-resolution`: 0.45
   - `review-finding-quality`: 0.45
   - `single-pass-review-completeness`: 0.45
+  - `acceptance-criteria-quality`: 0.45
+  - `assumption-surfacing`: 0.45
+  - `requirements-ambiguity-audit`: 0.45
+  - `scope-boundary-definition`: 0.45
+  - `spec-edge-case-enumeration`: 0.45
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks
   only) — requires the named skill via `required_skills` with
   `mode: any_order`. The currently released waza CLI (`v0.33.0`) defines

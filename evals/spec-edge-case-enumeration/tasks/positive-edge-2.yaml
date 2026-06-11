@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Present options without deciding for the owner
+description: |
+  Spec-decision cases must present options with user-visible
+  consequences and leave the choice open; existing supplied decisions
+  are recorded as spec-stated even under disagreement.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Sweep this spec for edge cases. One decision is already made: a
+    double-submit of the same transfer is silently deduplicated — we
+    know some people dislike that, but it's decided; record it, don't
+    reopen it. For everything else, give us the options but don't pick
+    for us.
+
+    Feature: peer-to-peer money transfer between accounts in the same
+    currency. Sender picks a contact and an amount; recipient gets the
+    funds instantly.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spec-edge-case-enumeration/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - spec-edge-case-enumeration
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Edge Case Enumeration Report'
+        - '(?is)(double-submit|dedup).{0,400}spec-stated'
+        - '(?i)Spec decisions needed'
+        - '(?i)Options:'
+        - '(?i)(insufficient (funds|balance)|zero|negative|amount)'
+      not_contains:
+        - "Assumption Surfacing Report"

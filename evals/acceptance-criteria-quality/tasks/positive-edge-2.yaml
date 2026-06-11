@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Mandated contract is kept, internal detail is stripped
+description: |
+  When the contract itself is the requirement (a mandated API shape),
+  it stays in the criterion and is not stripped as implementation
+  coupling, while a genuinely internal detail is rewritten out.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Audit these acceptance criteria. Note: returning RFC 7807 problem
+    details is a hard requirement from our public API guidelines, not an
+    implementation choice.
+
+    Feature: public API for order lookup.
+
+    Acceptance criteria:
+    1. A lookup for a missing order returns a 404 with an RFC 7807
+       problem-details body.
+    2. The endpoint uses our internal OrderFetcher class for retrieval.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/acceptance-criteria-quality/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - acceptance-criteria-quality
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Acceptance Criteria Quality Report'
+        - '(?i)compliant'
+        - '(?i)RFC 7807'
+        - '(?is)(OrderFetcher).{0,400}(implementation|rewritten|neutral)'
+      not_contains:
+        - "Requirements Ambiguity Report"

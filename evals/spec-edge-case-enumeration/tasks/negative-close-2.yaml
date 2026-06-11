@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Writing edge-case tests is not enumerating spec cases
+description: |
+  A request to write test cases for already-specified edge behaviors is
+  test implementation, not spec edge-case enumeration, and must not
+  activate the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Our spec already lists the edge cases for the discount calculator:
+    empty cart, 100% coupon, stacked coupons, expired coupon. Write the
+    pytest parametrized test cases for these four behaviors.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spec-edge-case-enumeration/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Smallest addition to proceed"
+        - "Verdict: BLOCK"
+        - "Edge Case Enumeration Report"
+        - "spec-decision"
+        - "flag-for-deep-review"

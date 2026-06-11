@@ -1,0 +1,53 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Define scope for a notifications feature
+description: |
+  Canonical case: a feature description with hovering stakeholder asks is
+  turned into explicit in-scope, out-of-scope, non-goal, and deferred
+  lists with a smallest valuable slice and creep risks.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Define the scope boundaries for this work before we estimate it.
+
+    Feature: in-app notifications for mentions. When a user is @-mentioned
+    in a comment, they see a notification in the bell menu and can mark it
+    read. Unread count shows on the bell.
+
+    Floating around: marketing wants email digests "since we're doing
+    notifications anyway"; mobile team asked whether push notifications
+    are included; one PM mentioned notification preferences/settings.
+
+    Constraints: one backend dev and one frontend dev, six weeks.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/scope-boundary-definition/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - scope-boundary-definition
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Scope Boundary Report'
+        - '(?i)### In scope'
+        - '(?i)### Out of scope'
+        - '(?i)### Non-goals'
+        - '(?i)### Deferred'
+        - '(?i)Smallest valuable slice'
+        - '(?i)Creep risks'
+        - '(?i)(email digest|push notification)'
+      not_contains:
+        - "Scope Slice Plan"
+        - "Requirements Ambiguity Report"
+        - "SPLIT-REQUIRED"

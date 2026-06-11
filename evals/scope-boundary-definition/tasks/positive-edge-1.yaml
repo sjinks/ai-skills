@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Surface decisions instead of making product calls
+description: |
+  When the supplied text does not settle whether an item is in scope,
+  the item must appear under boundary decisions with the owner named,
+  not be silently placed in a list.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Define scope boundaries for this. Don't decide the open question for
+    us — our product lead Dana owns that call.
+
+    Work item: add two-factor authentication at login.
+
+    Open point: nobody has decided whether enforcing 2FA for existing
+    sessions (forcing re-auth) is part of this work or a follow-up. The
+    brief is silent on it.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/scope-boundary-definition/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - scope-boundary-definition
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Scope Boundary Report'
+        - '(?i)Boundary decisions needed'
+        - '(?is)(existing session|re-auth).{0,300}(Dana|product lead)'
+      not_contains:
+        - "Scope Slice Plan"
