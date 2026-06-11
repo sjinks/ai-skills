@@ -45,7 +45,7 @@ graders:
       regex_match:
         - '(?i)Fix Blast Radius Report'
         - '(?i)untraceable'
-        - '(?i)(consumer|caller).*(unknown|list|external)'
+        - '(?is)(consumer|caller).{0,200}(unknown|list|external)'
         - '(?i)(throw|RangeError|contract)'
         - '(?i)Verdict:\s*VERIFY-FIRST'
       not_contains:

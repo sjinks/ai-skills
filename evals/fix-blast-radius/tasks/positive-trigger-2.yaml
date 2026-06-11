@@ -45,7 +45,7 @@ graders:
       regex_match:
         - '(?i)Fix Blast Radius Report'
         - '(?i)Behavioral siblings'
-        - '(?i)(csv_writer|CSV).*(diverge|mismatch|reconcil|differ|risk)'
+        - '(?is)(csv_writer|CSV).{0,200}(diverge|mismatch|reconcil|differ|risk)'
         - '(?i)likelihood:\s*(likely|possible|unlikely)'
         - '(?i)verify:'
         - '(?i)No resolved findings supplied|Regression cross-check'

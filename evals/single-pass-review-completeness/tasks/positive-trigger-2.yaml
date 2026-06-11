@@ -46,10 +46,10 @@ graders:
       regex_match:
         - '(?i)Single-Pass Review Report'
         - '(?i)Coverage declaration'
-        - '(?i)Performance.*skipped'
+        - '(?is)Performance.{0,120}skipped'
         - '(?i)(requester|exclusion|nightly)'
         - '(?i)Coverage gaps'
-        - '(?i)Verdict:\s*(COMPLETE-PASS|PARTIAL-PASS)'
+        - '(?i)Verdict:\s*COMPLETE-PASS'
       not_contains:
         - "Gate decision:"
         - "Scope Slice Plan"

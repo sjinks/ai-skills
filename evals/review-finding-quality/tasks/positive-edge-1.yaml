@@ -39,6 +39,7 @@ graders:
         - '(?i)needs-author-input'
         - '(?i)Needs author input'
         - '(?i)(anchor|file|line|location|screen|call)'
+        - '(?i)Verdict:\s*CONCERNS'
       not_contains:
         - "Gate decision:"
         - "Scope Slice Plan"

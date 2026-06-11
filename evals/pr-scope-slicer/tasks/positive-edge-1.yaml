@@ -39,6 +39,7 @@ graders:
         - '(?i)Scope Slice Plan'
         - '(?i)Size signals'
         - '(?i)Verdict:\s*SINGLE-PASS-OK'
+        - '(?i)No slices needed'
       not_contains:
         - "Verdict: SPLIT-REQUIRED"
         - "Verdict: SPLIT-RECOMMENDED"

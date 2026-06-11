@@ -35,7 +35,7 @@ If the diff is unavailable, emit the BLOCK template.
 ## Procedure
 
 1. Lock the diff under review; later pushes start a new pass, never extend this one.
-2. List all eight dimensions and classify each as `swept`, `skipped — <reason>`, or `n/a — <reason>` before reporting findings. Skipping is allowed only with a stated reason (requester exclusion, no relevant surface, missing expertise or context).
+2. List all eight dimensions and classify each as `swept`, `skipped`, or `n/a` before reporting findings, recording the reason in the coverage table's reason column. Use `n/a` when the diff has no surface for the dimension. Skipping is allowed only for requester exclusion or for missing expertise/context.
 3. Sweep dimension by dimension across the whole diff — not file by file with ad-hoc concerns. Record findings as they are found, tagged with their dimension.
 4. After the sweep, do one anti-increment check: for each `swept` dimension, confirm every file in the diff was considered under it. List any file–dimension pair that was not as an explicit coverage gap, never silently.
 5. Report with the declared-coverage output.
@@ -75,9 +75,9 @@ If the diff is unavailable, emit the BLOCK template.
 Verdict: COMPLETE-PASS | PARTIAL-PASS | BLOCK
 ```
 
-Verdict mapping: `COMPLETE-PASS` — every dimension `swept` or justified `skipped`/`n/a`, and Coverage gaps is `None`. `PARTIAL-PASS` — coverage gaps exist or a dimension is skipped without requester agreement; name what a follow-up pass must cover. `BLOCK` — insufficient input.
+Verdict mapping: `COMPLETE-PASS` — every dimension is `swept`, `n/a`, or skipped for requester exclusion, and Coverage gaps is `None`. `PARTIAL-PASS` — coverage gaps exist, or a dimension is skipped for missing expertise/context (any skip without requester agreement); name what a follow-up pass must cover. `BLOCK` — insufficient input. Emit exactly one value for each enum field; do not copy enum lists or angle-bracket placeholders into the report.
 
-No-findings path: an empty Findings section with full coverage is a valid `COMPLETE-PASS`; write `Findings: none`.
+No-findings path: full coverage with no findings is a valid `COMPLETE-PASS`; keep the `### Findings` heading with the single line `Findings: none` under it.
 
 ### BLOCK Template (insufficient context)
 

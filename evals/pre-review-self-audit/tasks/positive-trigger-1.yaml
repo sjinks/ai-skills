@@ -47,10 +47,10 @@ graders:
       regex_match:
         - '(?i)Pre-Review Self-Audit Report'
         - '(?i)\|\s*#\s*\|\s*Checklist item\s*\|\s*Status\s*\|\s*Notes\s*\|'
-        - '(?i)(High|Medium).*(debug|print)'
-        - '(?i)(Medium|High).*(email|unrelated|scope)'
-        - '(?i)(High|Medium).*(test|TTL|untested)'
-        - '(?i)(description|claim).*(test|match|mismatch|drift|inaccurate)'
+        - '(?is)(High|Medium).{0,200}(debug|print)'
+        - '(?is)(Medium|High).{0,200}(email|unrelated|scope)'
+        - '(?is)(High|Medium).{0,200}(test|TTL|untested)'
+        - '(?is)(description|claim).{0,200}(test|match|mismatch|drift|inaccurate)'
         - '(?i)Verdict:\s*CONCERNS'
       not_contains:
         - "Verdict: CLEAN"

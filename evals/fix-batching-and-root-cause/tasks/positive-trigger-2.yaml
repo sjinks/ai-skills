@@ -43,7 +43,7 @@ graders:
       regex_match:
         - '(?i)Fix Batch Plan'
         - '(?i)symptom-level'
-        - '(?i)Symptom-level justifications'
+        - '(?i)Symptom-level and no-fix justifications'
         - '(?i)(out of scope|scope constraint|shared_lib|library)'
         - '(?i)(platform-core|follow-up)'
         - '(?i)Verdict:\s*BATCH-READY'

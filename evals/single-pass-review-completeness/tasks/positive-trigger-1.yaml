@@ -52,7 +52,7 @@ graders:
         - '(?i)Tests'
         - '(?i)Maintainability'
         - '(?i)Operability'
-        - '(?i)\[security\].*(belong|owner|authoriz)'
+        - '(?is)\[security\].{0,200}(belong|owner|authoriz)'
         - '(?i)\[(concurrency and state|tests)\]'
         - '(?i)Coverage gaps'
         - '(?i)Verdict:\s*(COMPLETE-PASS|PARTIAL-PASS)'

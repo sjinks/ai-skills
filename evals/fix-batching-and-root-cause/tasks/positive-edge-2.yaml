@@ -39,4 +39,5 @@ graders:
       not_contains:
         - "Verdict: BATCH-READY"
         - "Verdict: BATCH-PARTIAL"
-        - "root-cause"
+        - "Shared cause"
+        - "Fix order"

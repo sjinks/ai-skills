@@ -19,7 +19,7 @@ Use after a change is functionally complete and before opening a pull request or
 - The intended behavior of the change, stated by the author.
 - Draft PR description and commit messages, when they exist.
 
-If the diff or change set is unavailable, emit the BLOCK template; do not audit from the description alone.
+If the diff or change set is unavailable, emit the BLOCK template; do not audit from the description alone. If commit messages or a PR description do not exist yet, do not block: mark checklist items 5–6 `n/a` with a note.
 
 ## Workflow
 
@@ -69,9 +69,9 @@ If the diff or change set is unavailable, emit the BLOCK template; do not audit 
 Verdict: CLEAN | CONCERNS | BLOCK
 ```
 
-Verdict mapping: `CLEAN` — all checklist items pass, no findings, ready for review. `CONCERNS` — findings exist; fix or annotate them before requesting review. `BLOCK` — insufficient input or the change is not in a reviewable state.
+Verdict mapping: `CLEAN` — all checklist items pass, no findings, ready for review. `CONCERNS` — findings exist; fix or annotate them before requesting review. `BLOCK` — insufficient input or the change is not in a reviewable state. Emit exactly one value for each enum field; do not copy enum lists or angle-bracket placeholders into the report.
 
-No-findings path: when every item passes, still emit the full table, write `Findings: none`, and return `CLEAN`.
+No-findings path: when every item passes, still emit the full table, keep the `### Findings` heading with the single line `Findings: none` under it, and return `CLEAN`.
 
 ### BLOCK Template (insufficient context)
 
@@ -87,4 +87,4 @@ Verdict: BLOCK
 
 ## Definition of Done
 
-Every checklist item has a status, every `fail` has a finding with severity and action, project checks are run or listed as outstanding, and the verdict line is the last line of the report.
+For non-BLOCK reports: every checklist item has a status, every `fail` has a finding with severity and action, project checks are run or listed as outstanding, and the verdict line is the last line of the report. BLOCK reports follow the BLOCK template exactly.

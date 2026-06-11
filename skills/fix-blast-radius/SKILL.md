@@ -68,7 +68,7 @@ Trace each changed element structurally across all five surfaces. Tools that aut
 Verdict: SAFE-TO-PUSH | VERIFY-FIRST | BLOCK
 ```
 
-Verdict mapping: `SAFE-TO-PUSH` — all five surfaces traced, no `likely` risks, every `possible` risk has a verification the author can run with the push. `VERIFY-FIRST` — at least one `likely` risk, or an untraceable surface that plausibly hides one; name the verifications that must run before pushing. `BLOCK` — insufficient input.
+Verdict mapping: `SAFE-TO-PUSH` — all five surfaces traced (none `untraceable`), no `likely` risks, every `possible` risk has a verification the author can run with the push. `VERIFY-FIRST` — at least one `likely` risk, or any surface marked `untraceable`; name the verifications or missing context to resolve before pushing. `BLOCK` — insufficient input. Emit exactly one value for each enum field; do not copy enum lists or angle-bracket placeholders into the report.
 
 No-findings path: all surfaces `no impact found` is a valid `SAFE-TO-PUSH`; keep the full table.
 

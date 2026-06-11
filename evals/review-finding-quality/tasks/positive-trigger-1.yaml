@@ -44,10 +44,11 @@ graders:
         - '(?i)Finding Quality Report'
         - '(?i)\|\s*#\s*\|\s*Status\s*\|\s*Severity\s*\|\s*Anchor\s*\|'
         - '(?i)rewritten'
-        - '(?i)(blocker|should-fix).*(200|error|S3)'
+        - '(?is)(blocker|should-fix).{0,400}(200|error|S3)'
         - '(?i)Resolved when'
         - '(?i)Questions \(not findings\)'
         - '(?i)(linked list)'
+        - '(?i)Verdict:\s*CONCERNS'
       not_contains:
         - "Gate decision:"
         - "Pre-Review Self-Audit Report"

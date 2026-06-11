@@ -31,4 +31,4 @@ graders:
         - "Fix Batch Plan"
         - "BATCH-READY"
         - "BATCH-PARTIAL"
-        - "Symptom-level justifications"
+        - "Symptom-level and no-fix justifications"

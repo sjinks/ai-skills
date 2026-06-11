@@ -51,7 +51,7 @@ graders:
         - '(?i)Contracts'
         - '(?i)Behavioral siblings'
         - '(?i)Resolved findings'
-        - '(?i)(admin|restore).*(deleted|break|risk)'
+        - '(?is)(admin|restore).{0,200}(deleted|break|risk)'
         - '(?i)(cache|stale)'
         - '(?i)likelihood:\s*(likely|possible|unlikely)'
         - '(?i)verify:'

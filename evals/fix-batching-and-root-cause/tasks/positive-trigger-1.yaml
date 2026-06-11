@@ -47,7 +47,7 @@ graders:
         - '(?i)F4'
         - '(?i)\|\s*Cluster\s*\|\s*Findings\s*\|\s*Shared cause\s*\|\s*Fix depth\s*\|\s*Verification\s*\|'
         - '(?i)root-cause'
-        - '(?i)(validation|validator|schema).*(shared|layer|missing|cause)'
+        - '(?is)(validation|validator|schema).{0,200}(shared|layer|missing|cause)'
         - '(?i)Fix order'
         - '(?i)Verdict:\s*BATCH-READY'
       not_contains:

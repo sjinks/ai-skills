@@ -30,6 +30,7 @@ If no findings are provided, emit the BLOCK template; do not invent findings.
    - `root-cause`: removes the producing cause; all clustered findings close together.
    - `symptom-level`: patches the visible effect only. Allowed only with a stated reason (risk, scope constraint, cause out of scope) and a named follow-up for the cause.
    - `no-fix`: finding declined or deferred; requires reason and owner.
+   - `cause-unknown`: the cause cannot be determined from the available context; no depth is chosen. Name the missing information in the Verification column.
 5. Order the batch: root-cause fixes first (they may absorb or alter symptom fixes), then independent symptom fixes, then cosmetics. State which later fixes depend on earlier ones.
 6. For each cluster, write one verification line: what check or test demonstrates the cause (not just the symptom) is gone.
 
@@ -55,9 +56,9 @@ If no findings are provided, emit the BLOCK template; do not invent findings.
 |---------|----------|--------------|-----------|--------------|
 <Fix depth: root-cause | symptom-level | no-fix | cause-unknown>
 
-### Symptom-level justifications
+### Symptom-level and no-fix justifications
 
-- <cluster>: <reason> — follow-up: <named issue/owner>
+- <cluster>: <depth> — <reason> — follow-up/owner: <named issue or owner>
 
 ### Fix order
 
@@ -66,7 +67,7 @@ If no findings are provided, emit the BLOCK template; do not invent findings.
 Verdict: BATCH-READY | BATCH-PARTIAL | BLOCK
 ```
 
-Verdict mapping: `BATCH-READY` — every finding is in exactly one cluster, no cluster is `cause-unknown`, every `symptom-level` entry has a justification and follow-up. `BATCH-PARTIAL` — at least one `cause-unknown` cluster or an unjustified `symptom-level` entry remains; name what is missing. `BLOCK` — insufficient input.
+Verdict mapping: `BATCH-READY` — every finding is in exactly one cluster, no cluster is `cause-unknown`, every `symptom-level` entry has a justification and follow-up, and every `no-fix` entry has a reason and owner. `BATCH-PARTIAL` — at least one `cause-unknown` cluster, unjustified `symptom-level` entry, or unowned `no-fix` entry remains; name what is missing. `BLOCK` — insufficient input. Emit exactly one value for each enum field; do not copy enum lists or angle-bracket placeholders into the report.
 
 ### BLOCK Template (insufficient context)
 
@@ -81,4 +82,4 @@ Verdict: BLOCK
 
 ## Definition of Done
 
-Every input finding appears in exactly one cluster, every cluster has an evidenced cause or is marked `cause-unknown`, every fix carries an honest depth label, and the order is dependency-justified.
+Every input finding appears in exactly one cluster, every cluster has an evidenced cause or is marked `cause-unknown`, every fix carries an honest depth label, every `symptom-level` and `no-fix` entry is justified in its section, and the order is dependency-justified.

@@ -15,7 +15,7 @@ Use before opening a PR for a large or mixed change, or when an existing PR draw
 
 ## Required Inputs
 
-- Change inventory: files touched, approximate changed lines per file, and which changes are mechanical (renames, formatting, generated) versus semantic.
+- Change inventory: files touched, approximate changed lines per file, and which changes are mechanical (renames, formatting, generated) versus semantic. When the inventory leaves some lines unclassified, treat them as semantic and say so under Size signals.
 - The concerns the change contains (feature, refactor, infra, dependency bump, fix), as stated or as inferable from the inventory.
 - Project-specific thresholds when the user supplies them; otherwise use the defaults below.
 
@@ -69,7 +69,7 @@ Verdict: SINGLE-PASS-OK | SPLIT-RECOMMENDED | SPLIT-REQUIRED | BLOCK
 - <risks of splitting and of not splitting, one line each>
 ```
 
-Verdict mapping: `SINGLE-PASS-OK` — no size signal fires; omit the Slices table and say so. `SPLIT-RECOMMENDED` — exactly one size signal fires, or the split materially improves review at modest cost. `SPLIT-REQUIRED` — multiple signals fire or a slice rule is violated by reviewing as-is (for example refactor mixed with behavior change). `BLOCK` — insufficient input.
+Verdict mapping: `SINGLE-PASS-OK` — no size signal fires; replace the Slices table with the line `No slices needed.` and keep Tradeoffs. `SPLIT-RECOMMENDED` — exactly one size signal other than the mixed-concern signal fires. `SPLIT-REQUIRED` — multiple signals fire, or the mixed-concern signal fires (for example refactor mixed with behavior change); when both `SPLIT-RECOMMENDED` and `SPLIT-REQUIRED` conditions apply, `SPLIT-REQUIRED` wins. `BLOCK` — insufficient input. Emit exactly one value for each enum field; do not copy enum lists or angle-bracket placeholders into the report.
 
 ### BLOCK Template (insufficient context)
 

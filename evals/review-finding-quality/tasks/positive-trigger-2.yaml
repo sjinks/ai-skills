@@ -46,7 +46,8 @@ graders:
         - '(?i)rewritten'
         - '(?i)Resolved when'
         - '(?i)Dropped \(non-findings\)'
-        - '(?i)(Prettier|formatter|indentation).*(drop|non-finding)|Dropped.*(indentation|spacing|Prettier)'
+        - '(?is)Dropped \(non-findings\).{0,300}(indentation|spacing|Prettier|formatter)'
+        - '(?i)Verdict:\s*CONCERNS'
       not_contains:
         - "Gate decision:"
         - "Scope Slice Plan"

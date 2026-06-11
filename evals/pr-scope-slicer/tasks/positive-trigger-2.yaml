@@ -45,7 +45,7 @@ graders:
         - '(?i)Size signals'
         - '(?i)Verdict:\s*(SPLIT-RECOMMENDED|SPLIT-REQUIRED)'
         - '(?i)\|\s*Order\s*\|\s*Slice\s*\|\s*Contents\s*\|\s*Review focus\s*\|\s*Depends on\s*\|'
-        - '(?i)(interface|contract|NotificationChannel).*(first|1)'
+        - '(?is)\|\s*1\s*\|.{0,160}(NotificationChannel|interface|contract)'
         - '(?i)Tradeoffs'
       not_contains:
         - "Verdict: SINGLE-PASS-OK"

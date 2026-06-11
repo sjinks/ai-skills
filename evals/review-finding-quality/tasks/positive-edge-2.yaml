@@ -36,6 +36,6 @@ graders:
         - '(?i)Missing input'
         - '(?i)Smallest addition to proceed'
       not_contains:
-        - "rewritten"
-        - "needs-author-input"
+        - "Verdict: CLEAN"
+        - "Verdict: CONCERNS"
         - "Gate decision:"
