@@ -25,6 +25,7 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Findings:"
         - "Archive format/parser:"
         - "Destination root:"
         - "Allowed entry types:"

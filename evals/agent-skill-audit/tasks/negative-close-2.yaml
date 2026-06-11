@@ -35,6 +35,7 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Findings:"
         - "Audit:"
         - "Rating:"
         - "Top 5 Changes"

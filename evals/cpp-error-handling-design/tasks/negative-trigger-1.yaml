@@ -19,5 +19,7 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Verdict:"
+        - "Findings:"
         - "Error policy:"
         - "Checklist status:"

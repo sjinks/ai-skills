@@ -19,6 +19,8 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Verdict:"
+        - "Findings:"
         - "Text contract:"
         - "Unicode text security"
         - "Checklist status:"

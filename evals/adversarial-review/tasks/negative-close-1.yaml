@@ -33,6 +33,7 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Findings:"
         - "Verdict: BLOCK"
         - "Verdict: CONCERNS"
         - "Verdict: CLEAN"

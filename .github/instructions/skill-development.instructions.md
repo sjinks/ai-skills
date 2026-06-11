@@ -45,6 +45,7 @@ Run through this list before opening or updating a skill PR; each item is a recu
 - Code identifiers are fully qualified and code-formatted at every mention (`std::exception_ptr`, not bare `exception_ptr`), including checklists, examples, and references.
 - Items listed under a category heading actually belong to that category (e.g. export/visibility macros are boundary discipline, not a versioning mechanism).
 - Positive eval tasks assert the skill's structured output markers (e.g. `Verdict:`, `Classification:`) in `task_completion`, not only topic keywords.
+- Negative tasks' `not_contains` lists forbid markers from every output template the skill defines, including the reduced insufficient-context template (typically `Verdict:` and `Findings:`), so an over-activated reduced response still fails. When adding required markers to positive tasks, add the same markers to negative tasks' `not_contains` in the same change.
 - Every `###` heading in `README.md` has a blank line before it; verify in the diff, and run `git diff --check` for other whitespace errors.
 - Factual claims about language semantics, ABI behavior, tool defaults, or flags are verified against authoritative documentation (cppreference, ISO wording, vendor docs) before commit; strong claims ("always", "silent", "never breaks") carry their qualifying conditions inline.
 

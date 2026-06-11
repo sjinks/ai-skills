@@ -24,5 +24,7 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Verdict:"
+        - "Findings:"
         - "Compatibility promise:"
         - "Checklist status:"
