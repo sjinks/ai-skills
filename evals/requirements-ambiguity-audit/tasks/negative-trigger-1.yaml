@@ -19,6 +19,10 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Smallest addition to proceed"
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Verdict: CLEAN"
         - "Requirements Ambiguity Report"
         - "vague-quantifier"
         - "Proposed rewrite:"

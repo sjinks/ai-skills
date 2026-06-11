@@ -27,6 +27,10 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Smallest addition to proceed"
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Verdict: CLEAN"
         - "Acceptance Criteria Quality Report"
         - "needs-owner-input"
         - "Verify by"

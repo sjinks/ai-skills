@@ -82,7 +82,7 @@ List the 3–5 most likely scope-creep vectors: stakeholder asks already hoverin
 
 Empty sections are written with `None`. When no smaller subset is valuable, replace the three `### Smallest valuable slice` bullets with the single line `- No smaller valuable slice: <reason>`. Append exactly ` (inferred)` to any in-scope item not read directly from the description; items read directly carry no `(inferred)` suffix.
 
-Audit mode (an existing scope statement was supplied): append a delta mark to each existing item inside its list — ` [kept]`, ` [moved from <list>]`, or ` [split: → items <n>, <m>]`; items produced by a split are listed as normal items with ` [from split of <original item>]`. New items you add carry no delta mark. When an item earns both suffixes, `(inferred)` comes first, then the delta mark: `- <item> (inferred) [moved from in-scope]`.
+Audit mode (an existing scope statement was supplied): append a delta mark to each existing item inside its list — ` [kept]`, ` [moved from <list>]`, or ` [split: → items <n>, <m>]`; `<list>` is one of the exact heading labels `in scope`, `out of scope`, `non-goals`, `deferred`. Items produced by a split are listed as normal items with ` [from split of <original item>]`. New items you add carry no delta mark. When an item earns both suffixes, `(inferred)` comes first, then the delta mark: `- <item> (inferred) [moved from in scope]`.
 
 The report has no verdict line; `Verdict: BLOCK` appears only in the insufficient-input template below.
 
@@ -108,7 +108,7 @@ Work item: in-app notifications for @-mentions. Marketing has asked for email di
 - Deferred: notification preferences — revisit when more than one notification type exists.
 - Creep risk: email digests — pre-empted by: "this work delivers in-app delivery only; email is a separate decision."
 
-Audit-mode line: `- CSV export of contacts [kept]` / `- Export scheduling [moved from in-scope] — sales ask, owner undecided`.
+Audit-mode line: `- CSV export of contacts [kept]` / `- Export scheduling [moved from in scope] — sales ask, owner undecided`.
 
 ## Anti-Patterns
 
