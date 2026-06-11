@@ -82,9 +82,9 @@ When no smaller subset is valuable, replace the three bullets with `- No smaller
 - <vector> — pre-empted by: <boundary statement>
 ```
 
-Empty sections are written with `None`. Append exactly ` (inferred)` to any in-scope item not read directly from the description; all other items carry no suffix.
+Empty sections are written with `None`. Append exactly ` (inferred)` to any in-scope item not read directly from the description; items read directly carry no `(inferred)` suffix.
 
-Audit mode (an existing scope statement was supplied): append a delta mark to each existing item inside its list — ` [kept]`, ` [moved from <list>]`, or ` [split: → items <n>, <m>]`; items produced by a split are listed as normal items with ` [from split of <original item>]`. New items you add carry no mark.
+Audit mode (an existing scope statement was supplied): append a delta mark to each existing item inside its list — ` [kept]`, ` [moved from <list>]`, or ` [split: → items <n>, <m>]`; items produced by a split are listed as normal items with ` [from split of <original item>]`. New items you add carry no delta mark. When an item earns both suffixes, `(inferred)` comes first, then the delta mark: `- <item> (inferred) [moved from in-scope]`.
 
 The report has no verdict line; `Verdict: BLOCK` appears only in the insufficient-input template below.
 

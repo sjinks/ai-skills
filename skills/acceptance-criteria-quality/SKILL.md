@@ -16,7 +16,7 @@ Use when drafting acceptance criteria, rewriting existing draft AC, or auditing 
 Input modes:
 
 - Audit/rewrite mode: draft criteria supplied. The table and Criteria section cover them.
-- Drafting mode: no draft criteria, but a feature description is supplied. Write the table and Criteria section as `None` and emit every drafted criterion under `### Proposed additions`, each meeting the criterion contract with its nested `Verify by` line.
+- Drafting mode: no draft criteria, but a feature description is supplied. Write the table and Criteria section as `None` and emit every drafted criterion under `### Proposed additions` prefixed with `drafted`, each meeting the criterion contract with its nested `Verify by` line.
 - Criteria-only mode: draft criteria supplied without a feature description. Run the per-criterion audit only; mark every coverage category `n/a (no feature description supplied)` and write `None` under Proposed additions.
 
 ## Required Inputs
@@ -65,9 +65,15 @@ For each criterion numbered as in the table:
 - Final: <compliant original or rewrite; for needs-owner-input, the blocking decision>
 - Verify by: <one-line objective check; omit this line for needs-owner-input>
 
-### Proposed additions (coverage gaps)
+For a split criterion, replace the single `Final:`/`Verify by:` pair with one pair per split part, each `Final:` prefixed by the part label:
+- Final (3a): <first split criterion>
+- Verify by: <check for 3a>
+- Final (3b): <second split criterion>
+- Verify by: <check for 3b>
 
-- <category>: <proposed criterion derived from the feature description>
+### Proposed additions
+
+- <category or `drafted`>: <proposed criterion derived from the feature description>
   - Verify by: <one-line objective check>
 
 ### Coverage
@@ -84,6 +90,8 @@ For each criterion numbered as in the table:
 ```
 
 The `Contract gaps` cell lists the violated contract property names (`testable`, `observable`, `single`, `scoped`, `implementation-neutral`) and contains exactly `none` for `compliant` rows.
+
+`### Proposed additions` holds coverage-gap criteria in audit/rewrite mode (prefixed with their coverage category) and all drafted criteria in drafting mode (prefixed with `drafted`).
 
 Verdict mapping: `BLOCK` — insufficient input (reduced template below). `CONCERNS` — any criterion is not `compliant`, or any coverage category is `gap`. `CLEAN` — every criterion `compliant` and no coverage gaps; say so immediately after the verdict line and keep the report.
 
