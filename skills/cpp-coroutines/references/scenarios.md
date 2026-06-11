@@ -35,7 +35,7 @@ Use this reference when the user reports a concrete coroutine symptom, code smel
 | Observed pattern | Primary risk | Load first | Then load |
 |---|---|---|---|
 | Coroutine resumes on the wrong thread or executor after `co_await` | Thread-affinity violation | [interoperability](./interoperability.md) | [debugging](./debugging.md), [testing](./testing.md) |
-| Asio awaitable is adapted into a generic task and loses executor affinity | Broken Asio contract | [interoperability](./interoperability.md) | Boost.Asio skill, [review checklist](./review-checklist.md) |
+| Asio awaitable is adapted into a generic task and loses executor affinity | Broken Asio contract | [interoperability](./interoperability.md) | [review checklist](./review-checklist.md) |
 | Future bridge blocks an event loop or I/O thread | Deadlock, latency spike | [interoperability](./interoperability.md) | [decision trees](./decision-trees.md), [testing](./testing.md) |
 | Sender/receiver adapter drops stopped or error channel | Lost cancellation/error signal | [interoperability](./interoperability.md) | [review checklist](./review-checklist.md) |
 

@@ -9,7 +9,7 @@ user-invocable: true
 
 Use this skill for C++ networking work that uses Boost.Beast for HTTP, WebSocket, parser/serializer handling, message bodies, stream wrappers, TLS integration, protocol upgrades, and protocol-facing adapters.
 
-This skill is standalone for Beast-specific design and review. Do not assume any particular repository layout, framework, request type, response type, build system, or house style. Code examples assume Boost.Asio coroutine familiarity with `co_await`, `use_awaitable`, and `as_tuple`; for executor and Asio coroutine foundations, use the Boost.Asio skill. For pure C++20 coroutine language mechanics, use the C++ Coroutines skill. Inspect the local codebase first when editing, then apply these Beast-specific rules through the codebase's existing conventions.
+This skill is standalone for Beast-specific design and review. Do not assume any particular repository layout, framework, request type, response type, build system, or house style. Code examples assume Boost.Asio coroutine familiarity with `co_await`, `use_awaitable`, and `as_tuple`; executor and Asio coroutine foundations, as well as pure C++20 coroutine language mechanics, are out of scope here. Inspect the local codebase first when editing, then apply these Beast-specific rules through the codebase's existing conventions.
 
 ## Routing
 
@@ -17,8 +17,8 @@ This skill is standalone for Beast-specific design and review. Do not assume any
 - INVOKES: inspect local Beast usage first for implementation or review; load reference packs only when the task needs their detail.
 - FOR SINGLE OPERATIONS: answer narrow Beast questions directly after identifying the protocol role, stream stack, parser/serializer policy, and lifecycle risk.
 - Use this skill when Beast is the protocol boundary: HTTP parsing/serialization, WebSocket upgrade and frames, Beast stream wrappers, Beast body types, or Beast-specific error/EOF behavior.
-- Prefer the Boost.Asio skill when the hard part is executor affinity, strands, timers, socket lifecycle, generic cancellation, or non-HTTP Asio transport flow.
-- Prefer the C++ Coroutines skill when the hard part is custom coroutine machinery, awaiter protocol, `promise_type`, generator behavior, or scheduler-independent frame ownership.
+- Out of scope: tasks where the hard part is executor affinity, strands, timers, socket lifecycle, generic cancellation, or non-HTTP Asio transport flow.
+- Out of scope: tasks where the hard part is custom coroutine machinery, awaiter protocol, `promise_type`, generator behavior, or scheduler-independent frame ownership.
 
 ## DO NOT USE FOR:
 

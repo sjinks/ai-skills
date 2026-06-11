@@ -13,7 +13,7 @@ Use this map to load the smallest useful part of the C++ coroutines skill packag
 | Review coroutine code | [review checklist](./review-checklist.md) | [review templates](../assets/review-templates.md), [concepts](./concepts.md), [debugging](./debugging.md) |
 | Debug coroutine lifetime or resume bugs | [debugging](./debugging.md) | [concepts](./concepts.md), [testing](./testing.md) |
 | Plan tests | [testing](./testing.md) | [patterns](./patterns.md), [debugging](./debugging.md) |
-| Bridge to libraries | [interoperability](./interoperability.md) | Boost.Asio skill when async I/O/executors are involved |
+| Bridge to libraries | [interoperability](./interoperability.md) | [decision trees](./decision-trees.md) |
 | Investigate frame size or allocation overhead | [performance](./performance.md) | [concepts](./concepts.md), [interoperability](./interoperability.md) |
 
 ## Overlap Rules

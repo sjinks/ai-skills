@@ -11,7 +11,7 @@ Use this map to load the smallest useful part of the Boost.Asio skill package. S
 | Review Asio code | [review checklist](./review-checklist.md) | [decision trees](./decision-trees.md), [debugging](./debugging.md) |
 | Debug hangs, leaks, timeout races, interleaved writes, or shutdown stalls | [debugging](./debugging.md) | [observability](./observability.md), [testing](./testing.md) |
 | Plan deterministic async tests | [testing](./testing.md) | [examples](./examples.md), [debugging](./debugging.md) |
-| Integrate Beast, TLS, WebSocket, or parser adapters | [Beast and TLS](./beast-and-tls.md) | Boost.Beast skill, [testing](./testing.md) |
+| Integrate Beast, TLS, WebSocket, or parser adapters | [Beast and TLS](./beast-and-tls.md) | [testing](./testing.md) |
 | Add production diagnostics | [observability](./observability.md) | [debugging](./debugging.md) |
 | Harden existing code or migrate sync/callback code | [hardening and migration](./hardening-and-migration.md) | [decision trees](./decision-trees.md), [patterns](./patterns.md) |
 
@@ -20,7 +20,7 @@ Use this map to load the smallest useful part of the Boost.Asio skill package. S
 - Use [decision trees](./decision-trees.md) to choose; use [patterns](./patterns.md) and [examples](./examples.md) to implement.
 - Use [debugging](./debugging.md) when the starting point is observed behavior rather than planned design.
 - Use [testing](./testing.md) for deterministic loopback tests, fake timers, cancellation checks, and sanitizer guidance.
-- Use [Beast and TLS](./beast-and-tls.md) only for Asio-facing transport concerns; use the Boost.Beast skill for HTTP/WebSocket parser and serializer policy.
+- Use [Beast and TLS](./beast-and-tls.md) only for Asio-facing transport concerns; HTTP/WebSocket parser and serializer policy is outside this skill package.
 - Use [observability](./observability.md) after the lifecycle, cancellation, and backpressure model is understood.
 - Use [hardening and migration](./hardening-and-migration.md) when improving existing callback, synchronous, or fragile async code.
 

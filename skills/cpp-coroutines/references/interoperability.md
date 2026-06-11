@@ -4,7 +4,7 @@ Use this reference when C++ coroutine code crosses library, framework, executor,
 
 ## Boost.Asio
 
-- For `boost::asio::awaitable`, `co_spawn`, executors, strands, sockets, timers, or I/O cancellation, use the Boost.Asio skill.
+- `boost::asio::awaitable`, `co_spawn`, executors, strands, sockets, timers, and I/O cancellation specifics are out of scope here; this reference covers only the bridging contract.
 - Preserve executor affinity. Do not adapt an Asio operation into a generic coroutine if resumption might occur on the wrong executor.
 - Treat `operation_aborted` and cancellation according to the Asio operation's contract.
 

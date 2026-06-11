@@ -77,7 +77,7 @@ Provenance requirement:
 Example Provenance:
 ```markdown
 Provenance:
-- Audited target: skills/agent-skill-audit/SKILL.md
+- Audited target: skills/example/SKILL.md
 - Origin: attachment
 - Readable: yes
 - Confirmation: explicit user confirmation

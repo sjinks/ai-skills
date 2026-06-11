@@ -23,10 +23,7 @@ Use this skill when auditing agent instructions, skill files, `SKILL.md` artifac
 
 - Do not use this skill to rewrite, implement, modify, package, install, or execute the audited artifact.
 - Do not use this skill for general code review, product critique, or non-instruction artifacts unless the user supplies them as instruction artifacts to audit.
-
-## Related Skill Routing
-
-- Prefer `instruction-quality-audit` when contradiction, ambiguity, persona, cognitive-load, semantic-coverage, missing-error-handling, or custom-diagnostic review is the user's primary focus. This skill still checks contradiction, ambiguity, and duplication as part of its five-category audit framework.
+- Do not use this skill when the user's primary focus is a category-by-category diagnostic review of contradictions, ambiguity, persona consistency, cognitive load, duplication, semantic coverage, missing error handling, or named custom diagnostics; that request is out of scope for this five-category structural audit. This skill still checks contradiction, ambiguity, and duplication as part of its five-category audit framework.
 
 ## Boundaries
 
@@ -69,7 +66,7 @@ Batch limits:
 
 Caller-side provenance (when invoked alongside another auditor):
 
-- When this audit is run together with another auditor prompt or when the auditor prompt itself is among supplied items, keep the prompt/instructions artifact separate from the intended target artifact. If candidates share a basename such as `SKILL.md`, record the intended audited artifact by full path, attachment label, item index, or other non-content identifier before auditing or delegating to `instruction-quality-audit`. If this cannot be established, pause and ask for disambiguation instead of auditing.
+- When this audit is run together with another auditor prompt or when the auditor prompt itself is among supplied items, keep the prompt/instructions artifact separate from the intended target artifact. If candidates share a basename such as `SKILL.md`, record the intended audited artifact by full path, attachment label, item index, or other non-content identifier before auditing. If this cannot be established, pause and ask for disambiguation instead of auditing.
 
 Missing or blocked input:
 
