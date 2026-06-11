@@ -204,7 +204,7 @@ Cover each applicable class: invalid UTF-8 (overlong, surrogate, truncated forms
 
 ## Examples
 
-- Normalize-after-validate bypass: code rejects `/` then applies NFKC, so fullwidth solidus U+FF0F becomes `/` after the check. Fix: normalize first, then validate the normalized form.
+- Normalize-after-validate bypass: code rejects `/` then applies NFKC, so fullwidth solidus U+FF0F becomes `/` after the check. Fix: normalize first, then validate the normalized form; see the wrong/right example in the Normalization And Matching checklist section.
 - Uniqueness drift: registration compares NFC strings in the app, but the unique index is on the raw column, so `café` (NFC) and `café` (NFD) become two accounts that one login can match. Fix: store and index one named form.
 - Lenient decode bypass: a byte-level filter rejects `0x00` and `../`, then a lenient decoder accepts overlong `0xC0 0xAE` as `.`. Fix: strict-decode first, fail closed on invalid sequences, validate the decoded text.
 

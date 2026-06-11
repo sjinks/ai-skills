@@ -54,7 +54,7 @@ Before implementation, define the contract in concrete terms:
 - **Port policy:** Are only default ports allowed, are custom ports permitted, and are dangerous or internal-service ports blocked or allowlisted?
 - **Private-network policy:** Which private, loopback, link-local, metadata, multicast, reserved, documentation, unspecified, and broadcast ranges are blocked?
 - **DNS policy:** Are hostnames resolved before the request? Are all returned A/AAAA records checked? What happens on empty, failed, mixed public/private, or CNAME-chain answers?
-- **Connection-time policy:** Is the actual connect-time lookup guarded so DNS rebinding cannot bypass preflight checks? Can connection pooling, agents, or dispatchers reuse a connection across policy contexts?
+- **Connection-time policy:** Is the actual connection-time lookup guarded so DNS rebinding cannot bypass preflight checks? Can connection pooling, agents, or dispatchers reuse a connection across policy contexts?
 - **Proxy policy:** Are ambient proxies such as `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY`, and lowercase variants ignored, honored, or explicitly configured? If a proxy performs DNS resolution, how is proxy-side resolution constrained?
 - **Redirect policy:** Who owns redirect following: the wrapper or the lower-level HTTP client? Are checks repeated for every hop?
 - **Header policy:** Which headers are allowed on initial outbound requests, and which headers are stripped on cross-origin or cross-scheme redirects?
@@ -102,7 +102,7 @@ Default to `standard`. `quick` still reports missing required context, blockers,
 - Validate literal IP hosts before any network request.
 - For hostnames, resolve every address family the client may use, usually both A and AAAA, before any request.
 - Define how mixed public/private answers are handled in policy terms; for example, reject the target if any returned A/AAAA answer is blocked when the policy requires all answers to be public, or select only allowed answers when the policy intentionally permits that.
-- Whichever answer-handling rule is chosen, enforce the same selection at connection time so DNS rebinding or unguarded connect-time lookups cannot pick a different answer than preflight validated.
+- Whichever answer-handling rule is chosen, enforce the same selection at connection time so DNS rebinding or unguarded connection-time lookups cannot pick a different answer than preflight validated.
 - Treat CNAME chains as part of the same target resolution decision; final A/AAAA answers must satisfy policy, and CNAME names must not bypass host allowlists or private-suffix rules.
 - Decide whether to reject single-label hostnames, resolver search-domain expansion, and private DNS suffixes such as `.local`, `.internal`, `.svc`, or `.cluster.local`.
 - Treat cloud metadata DNS names and addresses, for example `metadata.google.internal`, `169.254.169.254`, `fd00:ec2::254`, or provider-specific metadata aliases, according to the same private-target policy as link-local metadata IPs.
@@ -177,6 +177,8 @@ Use the full matrix in [references/adversarial-test-matrix.md](./references/adve
 
 ## Output Format
 
+Severity levels: `CRITICAL` for reachable SSRF into private/internal targets or credential leakage with no compensating control; `HIGH` for policy bypass reachable in normal use (redirects, DNS rebinding, proxy bypass) where acceptance must be explicit; `MEDIUM` for bounded gaps such as missing tests for a guarded path or incomplete header stripping with limited exposure; `LOW` for hardening, observability, or documentation gaps.
+
 Use this shape. List findings in severity order, highest first.
 
 ```text
@@ -188,15 +190,25 @@ Egress policy:
 Findings:
 1. <short title>
   Severity: CRITICAL | HIGH | MEDIUM | LOW
-  Classification: <blocker | required test | accepted tradeoff | follow-up | not applicable>
+  Classification: blocker | required test | accepted tradeoff | follow-up | not applicable
   Location: <file:line or design reference>
   Issue: <what is wrong>
   Impact: <what an attacker gains>
   Suggested fix: <specific change>
 
 Checklist status:
-- <area>: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
-  (areas: URL normalization, IP ranges, DNS, connection-time lookup, proxies, ports, transport semantics, redirects, headers, trusted private-target opt-ins, shared policy, tests)
+- URL normalization: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
+- IP ranges: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
+- DNS: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
+- Connection-time lookup: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
+- Proxies: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
+- Ports: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
+- Transport semantics: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
+- Redirects: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
+- Headers: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
+- Trusted private-target opt-ins: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
+- Shared policy: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
+- Tests: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
 
 Adversarial tests: <missing or newly added tests from the matrix>
 
