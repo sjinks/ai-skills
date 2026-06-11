@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Review criticized for drip-feeding findings
+description: |
+  After incremental-review criticism, the skill should run a declared-coverage
+  pass with requester exclusions handled as justified skips.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Use single-pass-review-completeness. My last review of this change got
+    pushback because I kept finding new things in each round on code that
+    had not changed. Do one complete pass this time.
+
+    Change intent: batch the nightly report emails instead of sending one
+    per record.
+
+    Diff:
+    - src/reports/mailer.py: sends one digest email per recipient built from
+      all their records; the per-record send loop was removed.
+    - src/reports/templates/digest.html: new template, escaping done via the
+      template engine's autoescape.
+    - tests/test_mailer.py: tests for batching, empty-record recipients, and
+      template rendering.
+
+    Exclusion from me as the requester: skip the Performance dimension, this
+    job runs once nightly and volume is tiny.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/single-pass-review-completeness/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - single-pass-review-completeness
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Single-Pass Review Report'
+        - '(?i)Coverage declaration'
+        - '(?i)Performance.*skipped'
+        - '(?i)(requester|exclusion|nightly)'
+        - '(?i)Coverage gaps'
+        - '(?i)Verdict:\s*(COMPLETE-PASS|PARTIAL-PASS)'
+      not_contains:
+        - "Gate decision:"
+        - "Scope Slice Plan"
+        - "Fix Batch Plan"

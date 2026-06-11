@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Stalled fact dispute resolved by evidence
+description: |
+  Canonical case: a reviewer-author dispute about what the code actually
+  does is classified as fact and resolved by named evidence, not authority.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Apply review-disagreement-resolution to this stalled thread.
+
+    Reviewer (staff engineer): "This mutex doesn't protect the counter —
+    increment() is also called from the signal handler path, which bypasses
+    the lock. This is a data race."
+
+    Author: "The signal handler path was removed in the previous PR;
+    increment() is only reachable from the worker loop now, which always
+    holds the lock. There is no race."
+
+    Code in question: src/metrics/counter.cpp. Both of you can see the
+    current file; the call graph is checkable. The reviewer has seniority
+    and is pushing to block the PR on this. Neither side has produced a
+    failing test or a call-site listing yet.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/review-disagreement-resolution/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - review-disagreement-resolution
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Disagreement Resolution'
+        - '(?i)Reviewer position'
+        - '(?i)Author position'
+        - '(?i)\|\s*Part\s*\|\s*Classification\s*\|\s*Anchor\s*\|\s*Resolution\s*\|'
+        - '(?i)fact'
+        - '(?i)(call.?site|call graph|grep|search|test|tsan|sanitizer|listing)'
+        - '(?i)Thread disposition:\s*NEEDS-EVIDENCE'
+      not_contains:
+        - "Thread disposition: RESOLVED"
+        - "Gate decision:"
+        - "Finding Quality Report"
+        - "Fix Batch Plan"

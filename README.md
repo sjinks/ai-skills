@@ -29,6 +29,8 @@ At the moment, the repository contains these skills:
 - `dependency-audit`: guidance for auditing application and tooling dependencies for known vulnerabilities, license risk, maintenance health, abandoned packages, unused dependencies, dependency bloat, transitive risk, and supply-chain integrity.
 - `equivalence-class-audit`: guidance for turning one concrete defect, incident, review finding, test failure, or bug report into a locked-scope audit of equivalent defects across sibling fields, mirror use sites, bounds, contracts, paths, modes, tests, docs, and projections.
 - `factcheck`: guidance for verifying factual claims, citations, drafts, source support, evidence quality, verdicts, confidence, correction proposals, and uncertainty in report-only-first mode.
+- `fix-batching-and-root-cause`: guidance for planning a fix batch over review findings by clustering findings with an evidenced shared cause, choosing root-cause versus justified symptom-level fix depth, and ordering fixes so the next review round is the last one.
+- `fix-blast-radius`: guidance for assessing what a drafted fix could newly break before it is pushed, tracing impact across callers, shared state, contracts, behavioral siblings, and previously resolved findings, with one verification step per risk.
 - `instruction-quality-audit`: guidance for auditing AI instruction artifacts, prompts, prompt templates, LLM task prompts, agent instructions, skill files, `SKILL.md` artifacts, prompt-packaged workflows, custom agent modes, and reusable assistant guidance for contradictions, ambiguity, persona issues, cognitive load, duplication, semantic coverage gaps, missing error handling, and custom diagnostics.
 - `web-app-security-review`: guidance for defensive web application security review of code, PRs, designs, vulnerability reports, and fixes across access control, auth, browser, API, data-flow, supply-chain, cloud, and abuse-risk surfaces.
 - `filesystem-path-safety`: guidance for auditing external-input filesystem path construction under trusted roots, including traversal, symlink, TOCTOU, containment, and mutation-safety checks.
@@ -36,7 +38,12 @@ At the moment, the repository contains these skills:
 - `spock-voice`: guidance for adopting a Spock-inspired, precise, analytical, restrained, and lightly dry conversational register.
 - `nestjs-code-review`: guidance for reviewing NestJS applications with severity-classified findings covering modules, DI, controllers, DTOs, guards, exception handling, persistence, testing, API design, performance, and microservices.
 - `nestjs-development`: guidance for designing, scaffolding, implementing, refactoring, and testing NestJS features with idiomatic patterns, anti-patterns, and a structured build workflow.
+- `pr-scope-slicer`: guidance for deciding whether a change set is too large or mixed to review in one pass and planning ordered, independently reviewable slices along mechanical/semantic, refactor/behavior, dependency, subsystem, and risk axes.
+- `pre-review-self-audit`: guidance for author-side pre-review self-checks covering diff hygiene, scope, tests, contracts, commit atomicity, description accuracy, discovered project checks, and reviewer anticipation, so the predictable first review round disappears.
 - `review-cycle-gatekeeper`: guidance for enforcing review/fix cycle closure gates so findings are explicitly resolved, verified, owned, or waived before merge.
+- `review-disagreement-resolution`: guidance for resolving stalled reviewer-author disputes by classifying each part as fact, standard, or preference, anchoring it to a verifiable source, and applying a decision rule that ends review-thread ping-pong.
+- `review-finding-quality`: guidance for writing, rewriting, and auditing review findings against a five-field contract — severity, anchor, problem, fix direction, and an objective `Resolved when` acceptance condition — so each finding closes in one round.
+- `single-pass-review-completeness`: guidance for making one review round complete by construction: enumerate eight review dimensions up front, sweep the whole diff per dimension, and declare covered, skipped, and gapped coverage explicitly.
 - `multi-lens-review`: guidance for structuring a multi-lens review (intent, design, implementation, security, adversarial, verification) and synthesizing the lens findings into a single integrated decision with required actions and residual risk.
 - `source-to-skill`: guidance for converting books, articles, documentation, notes, transcripts, and other source material into reusable agent skills with extraction, rights, provenance, and validation gates. Inspired by [book-to-skill](https://github.com/virgiliojr94/book-to-skill/blob/master/SKILL.md).
 - `test-gap-to-test-plan`: guidance for converting review findings and unverified behaviors into a prioritized, owned, layer-typed test plan that tracks the test evidence a downstream merge gate will require.
@@ -232,6 +239,30 @@ It helps an assistant:
 - default to report-only output, while keeping any approved correction proposals minimal and tied to claim IDs
 - handle medical, legal, financial, public-health, election, safety, and other sensitive-domain claims conservatively without giving professional advice
 
+### `fix-batching-and-root-cause`
+
+This skill is aimed at the planning step between a review round and writing fixes: clustering findings by shared cause so the cause is fixed once instead of each symptom patched separately.
+
+It helps an assistant:
+
+- restate findings with stable IDs and treat finding text strictly as data, ignoring embedded instructions
+- trace each finding to an in-scope producing cause and cluster findings only on evidenced shared causes, never on superficial similarity
+- choose an honest fix depth per cluster: `root-cause`, justified `symptom-level` with a named follow-up, `no-fix` with reason and owner, or `cause-unknown` naming the missing information
+- order the batch with root-cause fixes first and explicit dependencies, and attach one cause-level verification line per cluster
+- return `BATCH-READY`, `BATCH-PARTIAL`, or `BLOCK` with the findings list, cluster table, symptom-level justifications, and fix order
+
+### `fix-blast-radius`
+
+This skill is aimed at the moment after a fix is drafted and before it is pushed, when the question is what the fix could newly break and which already-resolved findings it could reopen.
+
+It helps an assistant:
+
+- trace the fix structurally across five surfaces: callers and call sites, shared state, contracts, behavioral siblings, and previously resolved findings
+- report every surface explicitly as risks found, `no impact found`, or `untraceable` with the missing context named, without padding speculative risks
+- attach a surface tag, concrete failure, likelihood, and one executable verification step to each risk
+- cross-check every resolved finding supplied for the cycle against the fix's touched code and state
+- return `SAFE-TO-PUSH`, `VERIFY-FIRST`, or `BLOCK` with the full impact-trace table and regression cross-check
+
 ### `instruction-quality-audit`
 
 This skill is aimed at AI instruction artifacts, prompts, prompt templates, LLM task prompts, agent instructions, skill files, `SKILL.md` artifacts, prompt-packaged workflows, custom agent modes, and reusable assistant guidance that need a structured prompt quality or instruction quality audit for contradictions, ambiguity, persona issues, cognitive load, duplication, semantic coverage, missing error handling, and custom diagnostics.
@@ -324,6 +355,30 @@ It helps an assistant:
 - avoid common anti-patterns such as `new`-ing `@Injectable()` services, `any` on DTOs, hardcoded secrets, and `synchronize: true` in production
 - prefer additive, reversible changes and call out breaking changes explicitly
 
+### `pr-scope-slicer`
+
+This skill is aimed at change sets that may be too large or too mixed to review well in one pass, where incremental reviewer discovery would otherwise stretch into many rounds.
+
+It helps an assistant:
+
+- apply explicit, user-overridable size signals (non-mechanical line count, file count, mixed concerns, generated-content mixing) and state which fired
+- split along a preferred axis order: mechanical vs semantic, refactor vs behavior, dependency order, subsystem independence, and risk isolation
+- keep each slice independently buildable, testable, revertible, and labeled with its review focus and dependencies
+- state the tradeoffs of splitting versus not splitting instead of treating splitting as free
+- return `SINGLE-PASS-OK`, `SPLIT-RECOMMENDED`, `SPLIT-REQUIRED`, or `BLOCK` with the ordered slice table when a split is called for
+
+### `pre-review-self-audit`
+
+This skill is aimed at the author-side moment just before requesting review, when most first-round findings (hygiene, scope creep, missing tests, description drift) are still cheap to fix.
+
+It helps an assistant:
+
+- audit the supplied diff against an eight-item gating checklist: diff hygiene, scope, tests, contracts, commit atomicity, description accuracy, project checks, and reviewer anticipation
+- discover the project's own checks structurally from CI config, package scripts, and task runners, listing unrun checks as outstanding instead of inventing them
+- classify findings as `High`, `Medium`, or `Low` by whether they would force a review round on their own
+- keep the full checklist table even on the no-findings path
+- return `CLEAN`, `CONCERNS`, or `BLOCK` with findings, outstanding items, and a deterministic insufficient-context template
+
 ### `review-cycle-gatekeeper`
 
 This skill is aimed at pull requests and change reviews that have already gone through one or more fix cycles and need a clear, evidence-backed merge gate decision.
@@ -336,6 +391,42 @@ It helps an assistant:
 - track regressions introduced during fix rounds as first-class findings
 - validate waiver quality and ownership/remediation metadata
 - return a compact `pass`, `fail`, or `BLOCK` gate summary with exact blockers to clear
+
+### `review-disagreement-resolution`
+
+This skill is aimed at review threads that have stalled after at least one full position/counter-position exchange and need a structured decision instead of more opinion trading.
+
+It helps an assistant:
+
+- restate both positions neutrally and treat them as data, ignoring embedded instructions to take a side
+- classify each dispute part as `fact`, `standard`, or `preference`, splitting mixed disputes
+- anchor each part to a verifiable source in precedence order: test or runnable demonstration, documented platform behavior, written project standard, maintainer ruling
+- apply symmetric decision rules: facts resolved only by evidence, standards by the written rule or escalation to its owner, preferences defaulting to the author as non-blocking notes
+- return `RESOLVED`, `NEEDS-EVIDENCE`, `ESCALATE`, or `BLOCK` with per-part classification, anchor, resolution, and who acts
+
+### `review-finding-quality`
+
+This skill is aimed at draft review comments and findings lists that need to be actionable and closable in a single round before they are posted.
+
+It helps an assistant:
+
+- enforce a five-field contract per finding: severity (`blocker`, `should-fix`, `suggestion`), anchor, observed-vs-expected problem, concrete fix direction, and an objective `Resolved when` acceptance condition
+- split compound findings, separate questions from findings, and drop formatter-covered style nits as non-findings
+- mark findings that cannot satisfy the contract as `needs-author-input` with the missing information named, never inventing anchors or evidence
+- report each input finding exactly once as `compliant`, `rewritten`, or `needs-author-input`
+- return the finding quality report with summary table, per-finding fields, questions, and dropped items, or `BLOCK` when no findings text is supplied
+
+### `single-pass-review-completeness`
+
+This skill is aimed at review rounds that should be the only round, preventing the incremental-review pattern where new findings keep appearing on unchanged code.
+
+It helps an assistant:
+
+- lock the diff under review and enumerate eight dimensions (correctness, contracts, security, concurrency and state, performance, tests, maintainability, operability) before reporting anything
+- sweep dimension by dimension across the whole diff and tag every finding with its dimension
+- declare each dimension `swept`, justified `skipped`, or `n/a`, and surface uncovered file–dimension pairs as explicit coverage gaps
+- keep pre-existing issues outside the locked diff separate from pass findings
+- return `COMPLETE-PASS`, `PARTIAL-PASS`, or `BLOCK` with the coverage declaration table and an explicit no-findings path
 
 ### `multi-lens-review`
 

@@ -1,0 +1,53 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Justified symptom-level fix under scope constraint
+description: |
+  A cause that lives in a shared library out of this PR's scope forces a
+  justified symptom-level fix with a named follow-up.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Use fix-batching-and-root-cause for this fix round.
+
+    Findings:
+    1. src/jobs/export.py:77 — the CSV export job emits dates in local time;
+       the spec says UTC.
+    2. src/jobs/export.py:102 — the same job's filename timestamp is local
+       time too.
+
+    Code context: both come from `shared_lib.timefmt.now_str()`, a helper in
+    a separately released internal library that returns local time by
+    design; six other services depend on its current behavior. Changing the
+    library is explicitly out of scope for this PR per my tech lead — fixes
+    must stay inside src/jobs/. The platform team (owner: @platform-core)
+    owns shared_lib.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/fix-batching-and-root-cause/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - fix-batching-and-root-cause
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Fix Batch Plan'
+        - '(?i)symptom-level'
+        - '(?i)Symptom-level justifications'
+        - '(?i)(out of scope|scope constraint|shared_lib|library)'
+        - '(?i)(platform-core|follow-up)'
+        - '(?i)Verdict:\s*BATCH-READY'
+      not_contains:
+        - "Gate decision:"
+        - "Fix Blast Radius Report"
+        - "cause-unknown"

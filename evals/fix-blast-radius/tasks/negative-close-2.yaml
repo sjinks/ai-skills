@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Writing the fix is not assessing its blast radius
+description: |
+  A request to implement a fix for a review finding is implementation work,
+  not impact assessment of a drafted fix.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    A reviewer flagged that our file-upload handler reads the whole file
+    into memory. Please write the fix: stream the upload to disk in chunks
+    with a size limit. I want the code, not an analysis — we'll worry about
+    side effects after it's written.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/fix-blast-radius/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Fix Blast Radius Report"
+        - "Impact trace"
+        - "SAFE-TO-PUSH"
+        - "VERIFY-FIRST"

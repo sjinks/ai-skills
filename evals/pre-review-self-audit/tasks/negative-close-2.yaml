@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Writing the code is not auditing it
+description: |
+  A request to implement a feature, even one mentioning an upcoming PR,
+  is implementation work and must not activate the self-audit skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Help me implement a rate limiter middleware for our Express API: sliding
+    window, 100 requests per minute per API key, Redis-backed. I will open a
+    PR for it later this week, but right now I just need the implementation
+    and a couple of unit tests written.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pre-review-self-audit/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Pre-Review Self-Audit Report"
+        - "Verdict: CLEAN"
+        - "Verdict: CONCERNS"
+        - "Outstanding before requesting review"
+        - "Project checks discovered"

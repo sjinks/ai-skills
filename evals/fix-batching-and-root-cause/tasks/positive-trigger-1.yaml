@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Cluster findings sharing one root cause
+description: |
+  Canonical case: three findings trace to one missing-validation cause and
+  one independent finding stands alone; the plan clusters and orders them.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Apply fix-batching-and-root-cause to plan fixes for this review round.
+
+    Findings:
+    1. src/api/users.ts:34 — POST /users accepts an empty `email` and stores
+       it.
+    2. src/api/users.ts:58 — PATCH /users/:id lets `email` be set to a
+       non-string (object), crashing the mailer later.
+    3. src/api/users.ts:91 — the bulk-import path skips email validation
+       entirely.
+    4. src/api/users.ts:120 — the audit log writes the user's raw password
+       reset token; it should be redacted.
+
+    Code context: there is no shared request-validation layer; each handler
+    does (or forgets) its own checks. A schema validator is available in the
+    project but unused on these routes. No timing constraints.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/fix-batching-and-root-cause/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - fix-batching-and-root-cause
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Fix Batch Plan'
+        - '(?i)F1'
+        - '(?i)F4'
+        - '(?i)\|\s*Cluster\s*\|\s*Findings\s*\|\s*Shared cause\s*\|\s*Fix depth\s*\|\s*Verification\s*\|'
+        - '(?i)root-cause'
+        - '(?i)(validation|validator|schema).*(shared|layer|missing|cause)'
+        - '(?i)Fix order'
+        - '(?i)Verdict:\s*BATCH-READY'
+      not_contains:
+        - "Gate decision:"
+        - "Equivalence-Class Audit Report"
+        - "Fix Blast Radius Report"
+        - "PLAN-READY"

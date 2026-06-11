@@ -1,0 +1,63 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Structure one complete review round
+description: |
+  Canonical case: a reviewer wants a single complete pass over a small diff
+  with the full eight-dimension coverage declaration.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Apply single-pass-review-completeness to this diff. I want one complete
+    round, no drip-feeding findings later.
+
+    Change intent: add an endpoint DELETE /api/keys/:id that revokes an API
+    key.
+
+    Diff:
+    - src/keys/routes.ts: new DELETE handler; looks up the key by id and
+      deletes it; returns 204. No check that the key belongs to the calling
+      user.
+    - src/keys/store.ts: delete() removes the row and clears the in-process
+      key cache for that id only on this node.
+    - tests/keys.test.ts: one happy-path test (existing key returns 204).
+
+    No requester exclusions; sweep everything.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/single-pass-review-completeness/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - single-pass-review-completeness
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Single-Pass Review Report'
+        - '(?i)Coverage declaration'
+        - '(?i)Correctness'
+        - '(?i)Contracts'
+        - '(?i)Security'
+        - '(?i)Concurrency and state'
+        - '(?i)Performance'
+        - '(?i)Tests'
+        - '(?i)Maintainability'
+        - '(?i)Operability'
+        - '(?i)\[security\].*(belong|owner|authoriz)'
+        - '(?i)\[(concurrency and state|tests)\]'
+        - '(?i)Coverage gaps'
+        - '(?i)Verdict:\s*(COMPLETE-PASS|PARTIAL-PASS)'
+      not_contains:
+        - "Gate decision:"
+        - "Pre-Review Self-Audit Report"
+        - "Finding Quality Report"
+        - "Equivalence-Class Audit Report"

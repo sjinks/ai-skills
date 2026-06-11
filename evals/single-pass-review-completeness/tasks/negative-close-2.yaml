@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Verifying fixes after review is not a fresh pass
+description: |
+  Checking that earlier review findings were addressed is fix verification,
+  out of scope for structuring a fresh complete pass.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Last week's review of my PR produced four findings, all marked fixed in
+    the latest push. Check whether each fix actually addresses its finding
+    and whether the evidence (linked commits, test runs) is sufficient to
+    close them. This is about verifying the fixes, not reviewing new code.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/single-pass-review-completeness/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Single-Pass Review Report"
+        - "Coverage declaration"
+        - "COMPLETE-PASS"
+        - "PARTIAL-PASS"

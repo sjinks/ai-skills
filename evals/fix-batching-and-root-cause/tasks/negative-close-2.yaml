@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Hunting equivalent defects is not batching fixes
+description: |
+  Expanding one defect into a search for equivalent defects elsewhere is
+  defect-class hunting, out of scope for fix batching.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    A reviewer found that our date parser accepts a lower bound of year 1900
+    but nobody ever checked the upper bound. I want to find every other
+    place in src/parsers/ where a similar one-sided bound check might exist
+    — sibling fields, the inverse formatter, the tests. Enumerate the
+    equivalent defect candidates; I am not planning any fixes yet.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/fix-batching-and-root-cause/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Fix Batch Plan"
+        - "BATCH-READY"
+        - "BATCH-PARTIAL"
+        - "Fix order"

@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Mixed standard-plus-preference dispute is split
+description: |
+  A thread mixing a written-standard violation with a taste objection is
+  split into parts: the standard part resolved by the rule, the preference
+  part defaulting to the author.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Use review-disagreement-resolution on this thread; we've gone three
+    rounds.
+
+    Reviewer: "Two things. First, this new endpoint returns errors as plain
+    strings; our API guideline doc (docs/api-style.md, section 'Errors')
+    requires the problem+json shape with a `code` field. Second, I'd have
+    written this as three small functions instead of one — it reads badly
+    to me."
+
+    Author: "The error shape is fine, clients can parse strings. And the
+    single function keeps the flow in one place; splitting it is churn."
+
+    Applicable standard: docs/api-style.md exists, is binding for this
+    team, and its Errors section indeed mandates problem+json with `code`.
+    There is no written rule about function decomposition, and the linter
+    has no max-function-length rule enabled.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/review-disagreement-resolution/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - review-disagreement-resolution
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Disagreement Resolution'
+        - '(?i)standard'
+        - '(?i)preference'
+        - '(?i)(api-style|problem\+json|guideline)'
+        - '(?i)(author).{0,80}(choice|default|stands|prevails)|default.{0,40}author'
+        - '(?i)Non-blocking notes'
+        - '(?i)Thread disposition:\s*RESOLVED'
+      not_contains:
+        - "Thread disposition: ESCALATE"
+        - "Gate decision:"
+        - "Finding Quality Report"

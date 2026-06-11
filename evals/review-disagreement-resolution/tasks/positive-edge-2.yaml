@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: BLOCK with only one side of the dispute
+description: |
+  With only the reviewer's position available, the skill must emit the
+  BLOCK template instead of arguing the author's side in absentia.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use review-disagreement-resolution. A reviewer commented on my
+    teammate's PR: "This retry loop will hammer the upstream service;
+    exponential backoff is required here." My teammate disagreed somewhere
+    on Slack but I don't have their reasoning or the thread, and the
+    teammate is on vacation. Resolve the disagreement now and tell me who is
+    right.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/review-disagreement-resolution/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - review-disagreement-resolution
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Disagreement Resolution'
+        - '(?i)Thread disposition:\s*BLOCK'
+        - '(?i)Missing input'
+        - '(?i)Smallest addition to proceed'
+      not_contains:
+        - "Thread disposition: RESOLVED"
+        - "Thread disposition: NEEDS-EVIDENCE"
+        - "Thread disposition: ESCALATE"

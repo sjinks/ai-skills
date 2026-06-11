@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: BLOCK when no diff is available
+description: |
+  The author asks for a self-audit but supplies only a description and no
+  diff; the skill must emit the BLOCK template instead of auditing prose.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use pre-review-self-audit on my change.
+
+    I refactored the billing reconciliation job to be idempotent. I can
+    describe it from memory, but I cannot paste the diff or list the changed
+    files right now, and you have no repository access in this environment.
+
+    Audit it anyway and tell me whether it is ready for review.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pre-review-self-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - pre-review-self-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Pre-Review Self-Audit Report'
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Missing input'
+        - '(?i)Smallest addition to proceed'
+      not_contains:
+        - "Verdict: CLEAN"
+        - "Verdict: CONCERNS"
+        - "Gate decision:"
+        - "Scope Slice Plan"

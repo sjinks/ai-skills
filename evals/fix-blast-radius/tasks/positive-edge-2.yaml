@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Untraceable surface forces VERIFY-FIRST
+description: |
+  When caller context is unavailable for a contract-changing fix, the
+  surface is marked untraceable and the verdict is VERIFY-FIRST.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use fix-blast-radius.
+
+    Finding addressed: F5 — parseAmount() silently truncates fractional
+    cents.
+
+    Fix: lib/money.ts — parseAmount() now throws RangeError on inputs with
+    more than two decimal places instead of truncating.
+
+    Context: lib/money.ts is published as an internal package consumed by an
+    unknown number of services; I have no list of consumers and you cannot
+    search them from here. Within this repo, two call sites exist and both
+    already guard their inputs. No cache or persisted state; no mirrored
+    implementations; no other resolved findings this cycle.
+
+    Be honest about what you cannot trace.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/fix-blast-radius/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - fix-blast-radius
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Fix Blast Radius Report'
+        - '(?i)untraceable'
+        - '(?i)(consumer|caller).*(unknown|list|external)'
+        - '(?i)(throw|RangeError|contract)'
+        - '(?i)Verdict:\s*VERIFY-FIRST'
+      not_contains:
+        - "Verdict: SAFE-TO-PUSH"
+        - "Gate decision:"
+        - "Fix Batch Plan"

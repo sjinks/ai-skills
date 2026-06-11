@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Behavioral sibling divergence risk
+description: |
+  A fix applied to one of two mirrored code paths must surface the
+  behavioral-sibling divergence risk with a verification step.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Use fix-blast-radius on this fix.
+
+    Finding addressed: F7 — the JSON exporter writes NaN for missing
+    numeric metrics, producing invalid JSON.
+
+    Fix: src/export/json_writer.py — missing numeric metrics are now
+    serialized as null.
+
+    Context:
+    - There is a mirrored CSV exporter, src/export/csv_writer.py, that
+      writes the same metrics and currently emits the string "NaN" for
+      missing values; consumers of both formats diff the two outputs in a
+      reconciliation job.
+    - Callers: only the nightly export pipeline calls either writer.
+    - No cache, no schema file, and no other findings were resolved in this
+      cycle.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/fix-blast-radius/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - fix-blast-radius
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Fix Blast Radius Report'
+        - '(?i)Behavioral siblings'
+        - '(?i)(csv_writer|CSV).*(diverge|mismatch|reconcil|differ|risk)'
+        - '(?i)likelihood:\s*(likely|possible|unlikely)'
+        - '(?i)verify:'
+        - '(?i)No resolved findings supplied|Regression cross-check'
+        - '(?i)Verdict:\s*(VERIFY-FIRST|SAFE-TO-PUSH)'
+      not_contains:
+        - "Gate decision:"
+        - "Fix Batch Plan"
+        - "Single-Pass Review Report"

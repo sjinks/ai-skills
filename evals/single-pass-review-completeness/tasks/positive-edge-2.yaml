@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Missing context forces PARTIAL-PASS with named gaps
+description: |
+  When part of the diff is not supplied, the affected file-dimension pairs
+  must surface as explicit coverage gaps with a PARTIAL-PASS verdict.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use single-pass-review-completeness.
+
+    Change intent: introduce role-based access checks on the admin endpoints.
+
+    Diff available to you:
+    - src/admin/middleware.ts: new requireRole('admin') middleware, full
+      content supplied: it reads the role claim from the session and rejects
+      with 403 when absent or different.
+
+    Also in the change but NOT available here: src/admin/routes.ts (where
+    the middleware is supposedly attached to each route) — I could not paste
+    it. Review what you have and be explicit about what you could not cover;
+    do not silently pretend full coverage.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/single-pass-review-completeness/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - single-pass-review-completeness
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Single-Pass Review Report'
+        - '(?i)Coverage declaration'
+        - '(?i)Coverage gaps'
+        - '(?i)routes\.ts'
+        - '(?i)Verdict:\s*PARTIAL-PASS'
+      not_contains:
+        - "Verdict: COMPLETE-PASS"
+        - "Gate decision:"
+        - "Fix Batch Plan"

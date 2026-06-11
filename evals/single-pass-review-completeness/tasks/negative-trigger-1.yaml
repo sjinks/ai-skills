@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Unrelated everyday prompt
+description: Unrelated everyday request must not activate the single-pass-review-completeness skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "What stretches help with lower-back stiffness after long desk days?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/single-pass-review-completeness/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Single-Pass Review Report"
+        - "Coverage declaration"
+        - "COMPLETE-PASS"
+        - "PARTIAL-PASS"
+        - "Coverage gaps"

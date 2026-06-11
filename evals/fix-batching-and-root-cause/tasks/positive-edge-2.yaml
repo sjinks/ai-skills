@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: BLOCK when no findings are provided
+description: |
+  Asking for a fix batch plan without any findings must produce the BLOCK
+  template; findings are never invented.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use fix-batching-and-root-cause. My PR just went through review and I
+    know there were several comments, but I closed the tab and don't have
+    the findings list. Produce the fix batch plan anyway from what you'd
+    expect reviewers to have said about a typical Node.js service.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/fix-batching-and-root-cause/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - fix-batching-and-root-cause
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Fix Batch Plan'
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Missing input'
+        - '(?i)Smallest addition to proceed'
+      not_contains:
+        - "Verdict: BATCH-READY"
+        - "Verdict: BATCH-PARTIAL"
+        - "root-cause"

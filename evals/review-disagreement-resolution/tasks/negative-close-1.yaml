@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Agreeing with a finding is not a dispute
+description: |
+  The author accepts the reviewer's finding and asks for help implementing
+  it; there is no disagreement to resolve.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    A reviewer pointed out that my SQL query is vulnerable to injection
+    because it concatenates the search term. They're right. Help me rewrite
+    it with parameterized queries in Go's database/sql, and draft a short
+    thread reply saying it's fixed.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/review-disagreement-resolution/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Disagreement Resolution"
+        - "Thread disposition:"
+        - "NEEDS-EVIDENCE"
+        - "Reviewer position"

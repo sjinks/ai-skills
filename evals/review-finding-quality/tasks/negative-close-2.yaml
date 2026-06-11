@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Tone-softening a reply is not finding quality
+description: |
+  Asking to make a reply to a reviewer sound friendlier is wording work,
+  not the finding-quality contract, and must not activate the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    A reviewer left a comment on my PR and I drafted this reply: "No, you're
+    wrong, the lock is fine, read the code again." Rewrite my reply so it
+    sounds professional and friendly while keeping my disagreement. Just the
+    wording, please.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/review-finding-quality/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Finding Quality Report"
+        - "Resolved when"
+        - "needs-author-input"
+        - "Dropped (non-findings)"

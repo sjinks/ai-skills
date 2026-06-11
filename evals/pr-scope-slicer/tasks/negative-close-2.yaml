@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Git mechanics of an already-decided split
+description: |
+  Asking how to execute an already-decided split with git commands is
+  out of scope and must not activate the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    I already know how I want to split my branch: commit A and B go into the
+    first PR, commits C through F into the second. Walk me through the exact
+    git commands — interactive rebase, cherry-pick, or whatever fits — to
+    produce the two branches without losing anything.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pr-scope-slicer/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Scope Slice Plan"
+        - "Size signals"
+        - "SPLIT-REQUIRED"
+        - "SPLIT-RECOMMENDED"
+        - "Review focus"

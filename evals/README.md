@@ -57,6 +57,13 @@ grader weighting takes effect.
   - `cpp-concurrency-review`: 0.45
   - `cpp-api-abi-review`: 0.45
   - `cpp-object-lifetime`: 0.45
+  - `fix-batching-and-root-cause`: 0.45
+  - `fix-blast-radius`: 0.45
+  - `pr-scope-slicer`: 0.45
+  - `pre-review-self-audit`: 0.45
+  - `review-disagreement-resolution`: 0.45
+  - `review-finding-quality`: 0.45
+  - `single-pass-review-completeness`: 0.45
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks
   only) — requires the named skill via `required_skills` with
   `mode: any_order`. The currently released waza CLI (`v0.33.0`) defines

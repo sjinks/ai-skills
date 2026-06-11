@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Ambiguous standard escalates to the rule owner
+description: |
+  When the written rule genuinely does not decide the case, the disposition
+  is ESCALATE to the rule's owner with a recorded standards gap.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Apply review-disagreement-resolution.
+
+    Reviewer: "Our security policy (SEC-POL-4) says 'all user input must be
+    validated at the boundary'. A message consumed from our own internal
+    Kafka topic is user input downstream of another service, so this
+    consumer needs full validation."
+
+    Author: "SEC-POL-4 covers HTTP boundaries. Internal topics are produced
+    only by our own validated services; revalidating every field here is
+    pure duplication."
+
+    Applicable standard: SEC-POL-4 exists and is binding, but it defines
+    neither 'user input' nor 'boundary', and it has no examples involving
+    message queues. The policy is owned by the AppSec guild. Both parties
+    agree on all the facts; they disagree only on what the rule covers.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/review-disagreement-resolution/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - review-disagreement-resolution
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Disagreement Resolution'
+        - '(?i)standard'
+        - '(?i)(ambigu|does not define|neither)'
+        - '(?i)(AppSec|rule owner|owner)'
+        - '(?i)Thread disposition:\s*ESCALATE'
+      not_contains:
+        - "Thread disposition: RESOLVED"
+        - "Thread disposition: NEEDS-EVIDENCE"
+        - "Gate decision:"

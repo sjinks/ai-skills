@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Team process debate is not a review-thread dispute
+description: |
+  A general team disagreement about process (trunk-based vs feature
+  branches) is not a stalled code-review thread about a change.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Half my team wants trunk-based development with feature flags, the other
+    half wants long-lived feature branches with release trains. Lay out the
+    tradeoffs and recommend a process for a ten-person team shipping weekly.
+    This is a process debate, not a code review.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/review-disagreement-resolution/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Disagreement Resolution"
+        - "Thread disposition:"
+        - "NEEDS-EVIDENCE"
+        - "Non-blocking notes"

@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Small focused change is SINGLE-PASS-OK
+description: |
+  When no size signal fires, the verdict is SINGLE-PASS-OK and the slices
+  table is omitted with an explicit statement.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Run pr-scope-slicer on this change.
+
+    Change inventory:
+    - src/parser/csv.ts: 45 changed lines fixing quoted-field handling.
+    - tests/parser/csv.test.ts: 60 added lines of tests for the fix.
+
+    Two files, one concern (the CSV quoting bug), all hand-written, no
+    generated content. No custom thresholds. Should I split it?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pr-scope-slicer/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - pr-scope-slicer
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Scope Slice Plan'
+        - '(?i)Size signals'
+        - '(?i)Verdict:\s*SINGLE-PASS-OK'
+      not_contains:
+        - "Verdict: SPLIT-REQUIRED"
+        - "Verdict: SPLIT-RECOMMENDED"
+        - "Gate decision:"
