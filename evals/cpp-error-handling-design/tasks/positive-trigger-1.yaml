@@ -1,0 +1,81 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Broken strong guarantee and throwing destructor
+description: |
+  Review must activate on a claimed-strong operation that mutates in place
+  across throwing calls and a destructor that can throw.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review the error handling and exception safety of this class. Exceptions
+    are our error channel; merge() documents the strong guarantee.
+
+    ```cpp
+    class Settings {
+    public:
+      // Strong guarantee: on failure, *this is unchanged.
+      void merge(const Settings& other) {
+        for (const auto& [key, value] : other.entries_)
+          entries_.insert_or_assign(key, validate(value)); // validate may throw
+      }
+      ~Settings() { persist(); }  // persist() may throw on disk full
+    private:
+      std::map<std::string, Entry> entries_;
+    };
+    ```
+
+    Return the verdict, error policy, findings, checklist status, and
+    residual risk.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-error-handling-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-error-handling-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Error policy:'
+        - '(?i)(strong guarantee)[\s\S]{0,250}(partial|half|broken|not\s+(delivered|met)|violat)|(partial|half-merged)[\s\S]{0,200}(strong|guarantee)'
+        - '(?i)(commit-?rollback|side|temporary|swap)'
+        - '(?i)(destructor)[\s\S]{0,200}(throw|terminate)'
+        - '(?i)Checklist status:'
+      not_contains:
+        - "Compatibility promise:"
+        - "Shared state:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response identifies both bugs:
+        - merge() claims the strong guarantee but mutates entries_ in place
+          across throwing validate() calls, so a mid-loop throw leaves a
+          half-merged map; fix is commit-rollback (build aside, then swap).
+        - ~Settings() calls persist() which may throw; destructors are
+          implicitly noexcept so this terminates; fix is a nothrow destructor
+          plus an explicit flush/persist API.
+        Verdict must be BLOCK.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent
