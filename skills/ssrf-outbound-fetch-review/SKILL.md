@@ -268,7 +268,7 @@ Use this shape. List findings in severity order, highest first.
 Intended behavior: <one or two sentences>
 
 Egress policy:
-- <scheme, host, port, private-network, DNS, connection-time, proxy, redirect, header, trusted private-target opt-in, and response policies>
+- <scheme, host, port, private-network, DNS, connection-time lookup, proxy, redirect, header, trusted private-target opt-in, and response policies>
 
 Findings:
 1. <short title>
