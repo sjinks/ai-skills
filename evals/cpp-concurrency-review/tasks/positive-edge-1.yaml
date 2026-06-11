@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Relaxed-ordering publish protocol review
+description: |
+  Review must reason about acquire/release pairing rather than condemning all
+  non-seq_cst code: the store is release but the load is relaxed, which breaks
+  the publish protocol.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Is this lock-free publish correct? The writer fills the node, then
+    publishes; readers traverse.
+
+    ```cpp
+    std::atomic<Node*> head{nullptr};
+
+    void publish(Node* n) {
+      n->next = head.load(std::memory_order_relaxed);
+      head.store(n, std::memory_order_release);
+    }
+
+    Node* snapshot() {
+      return head.load(std::memory_order_relaxed); // then reads n->value
+    }
+    ```
+
+    Review the memory ordering protocol.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-concurrency-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-concurrency-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(acquire).{0,200}(release)|(release).{0,200}(acquire)'
+        - '(?i)(relaxed).{0,200}(load|snapshot|read)'
+        - '(?i)acquire[\s-]*(load|ordering|semantics)|memory_order_acquire'
+        - '(?i)(Findings|Checklist status):'

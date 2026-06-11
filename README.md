@@ -20,6 +20,7 @@ At the moment, the repository contains these skills:
 - `auth-claim-contract-review`: guidance for reviewing auth/security claim contracts across JWT, OIDC, SAML, token, and session flows, including optional claims, missing-vs-invalid semantics, issuer-validator-consumer drift, authorization mapping, propagation, serialization, revocation, freshness, fallback defaults, and confused-deputy risks.
 - `boost-asio`: guidance for designing, implementing, reviewing, debugging, and testing Boost.Asio async I/O, executors, strands, timers, sockets, cancellation, backpressure, TLS streams, and coroutine flows.
 - `boost-beast`: guidance for Boost.Beast HTTP/WebSocket parser, serializer, body, stream, TLS, protocol-adapter, limits, strictness, lifecycle, and testing work.
+- `cpp-concurrency-review`: guidance for reviewing C++ multithreaded code using standard primitives, including data races, lock ordering and deadlock, condition-variable protocols, atomic memory ordering, thread lifecycle, and shutdown semantics.
 - `cpp-coroutines`: guidance for C++20 coroutine types, promises, awaiters, handles, generators, frame lifetime, scheduler bridges, cancellation, symmetric transfer, allocation behavior, and tests.
 - `dependency-audit`: guidance for auditing application and tooling dependencies for known vulnerabilities, license risk, maintenance health, abandoned packages, unused dependencies, dependency bloat, transitive risk, and supply-chain integrity.
 - `equivalence-class-audit`: guidance for turning one concrete defect, incident, review finding, test failure, or bug report into a locked-scope audit of equivalent defects across sibling fields, mirror use sites, bounds, contracts, paths, modes, tests, docs, and projections.
@@ -109,6 +110,19 @@ It helps an assistant:
 - design or review HTTP parsers, serializers, body types, WebSocket sessions, TLS stream behavior, parser adapters, and protocol-facing tests
 - enforce body/header limits, strictness gates, parser differential handling, close/drain/keep-alive policy, and request-smuggling-resistant framing decisions
 - use role-specific, debugging, hardening, testing, and observability references without overloading the main skill file
+
+### `cpp-concurrency-review`
+
+This skill is aimed at C++ code that shares mutable state across threads with standard primitives, where the question is whether every access is provably ordered and shutdown is deterministic.
+
+It helps an assistant:
+
+- inventory shared mutable state and assign each item a named synchronization regime, then verify every access follows it
+- check lock discipline: global acquisition order or `std::scoped_lock`, bounded hold times, and no calls into unknown code under locks
+- verify condition-variable protocols (predicate loops under the right mutex, notify-after-change, shutdown wakes all waiters)
+- review atomic protocols: acquire/release pairing, when `relaxed` is acceptable, double-checked initialization, ABA and `compare_exchange_weak` loops
+- enforce thread lifecycle rules: join-on-all-paths or justified detach, explicit shutdown order, destruction races prevented by join or `weak_ptr`
+- return `BLOCK`, `CONCERNS`, or `CLEAN` with shared-state inventory, findings, checklist status, test expectations, and an insufficient-context template
 
 ### `cpp-coroutines`
 

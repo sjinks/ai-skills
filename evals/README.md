@@ -52,6 +52,7 @@ grader weighting takes effect.
   - `source-to-skill`: 0.45
   - `type-safe-design`: 0.45
   - `unicode-text-security-review`: 0.45
+  - `cpp-concurrency-review`: 0.45
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks
   only) — requires the named skill via `required_skills` with
   `mode: any_order`. The currently released waza CLI (`v0.33.0`) defines

@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: TSan report triage question
+description: |
+  Interpreting sanitizer tool output is out of scope for this skill; it must
+  not activate on a report-triage request.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    ThreadSanitizer printed a SUMMARY line pointing at libfoo.so+0x4242 in
+    foo::tick() with two stacks I don't understand. How do I read this report
+    format, map the offsets to symbols with llvm-symbolizer, and decide
+    whether to add a suppression-file entry?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-concurrency-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Shared state:"
+        - "Thread topology:"
+        - "Checklist status:"

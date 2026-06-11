@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Insufficient context on a vague race report
+description: |
+  A race report with no code and no shared-state inventory must produce the
+  reduced BLOCK template without guessed topology.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Our service crashes occasionally under load and we think it's a data race
+    between two of the worker threads. I can't share the source. What's the
+    verdict?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-concurrency-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-concurrency-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Open question'
+        - '(?i)(code|source|shared state|topology)'
+        - '(?i)(unknown|missing|cannot|unavailable|not\s+(shared|provided|supplied|shown|available|visible))'
+      not_contains:
+        - "Checklist status:"
+        - "Residual risk:"
