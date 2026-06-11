@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Synchronization design review without a report
+description: |
+  Reviewing mutex/CV design with no sanitizer report in hand is out of scope;
+  the skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Review the locking design of this producer-consumer queue: should the
+    condition variable predicate be checked under the mutex, and is
+    notify_one enough with multiple consumers? No tool findings yet - this is
+    a design review before we write the code.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-sanitizer-triage/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Sanitizer:"
+        - "Root cause:"
+        - "Checklist status:"

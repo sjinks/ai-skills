@@ -1,0 +1,72 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: TSan false-positive claim without an edge
+description: |
+  Triage must reject a timing-based false-positive claim and require a named
+  happens-before mechanism.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Our CI runs TSan and reports a data race on `MetricsRegistry::counters_`
+    between a worker thread writing and a reporter thread reading. A teammate
+    wants to add this suppression:
+
+    ```text
+    race:MetricsRegistry
+    ```
+
+    His argument: "the reporter only runs once per second and we've never
+    seen corruption in production, so it's a false positive." Should we
+    accept the suppression?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-sanitizer-triage/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-sanitizer-triage
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - 'Verdict:'
+        - 'Classification:'
+        - 'Findings:'
+        - '(?i)\b(is a true positive|not a false positive|reject(s|ed)?\s+(the\s+)?suppression)'
+        - '(?i)(happens-before|synchroniz|edge)'
+        - '(?i)(timing|rarity|once per second|never seen)[\s\S]{0,200}(not|reject|insufficient|no\s+edge)'
+        - '(?i)(suppression)[\s\S]{0,250}(narrow|wildcard|first-party|reject|broad)'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response makes the correct triage judgement:
+        - The race report is a true positive: "runs once per second" and
+          "never seen corruption" are timing/rarity arguments, not
+          happens-before edges, so the false-positive claim must be rejected.
+        - The proposed suppression race:MetricsRegistry is too broad
+          (first-party, wildcard-level) and must be rejected; the fix is
+          synchronizing counters_ (mutex or atomics).
+        A response that accepts the suppression, or calls the report a false
+        positive, is wrong.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

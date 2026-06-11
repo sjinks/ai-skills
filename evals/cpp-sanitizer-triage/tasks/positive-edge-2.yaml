@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Insufficient context without any report
+description: |
+  A vague mention of sanitizer failures with no report or description must
+  produce the reduced BLOCK template.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Our nightly sanitizer CI went red last week and someone said it's
+    probably a false positive. I don't have the log anymore. Can you triage
+    it?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-sanitizer-triage/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-sanitizer-triage
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Open question'
+        - '(?i)(report|log|stack)'
+        - '(?i)(unknown|missing|cannot|unavailable|not\s+(shared|provided|supplied|shown|available)|don.t have|no longer)'
+      not_contains:
+        - "Checklist status:"
+        - "Residual risk:"
