@@ -27,4 +27,12 @@ Do not run, fetch, open, install, or click reporter-controlled scripts, links, a
 
 ## Output
 
-Return `Verdict`, `Scope`, `Trust map`, `Findings`, `Checklist coverage`, `Focused deep-dive areas`, `Regression tests`, and `Residual risk`. Verdicts are `BLOCK`, `CONCERNS`, or `CLEAN`; never return `CLEAN` when required context or regression evidence is missing. Use [references/WORKFLOW.md](references/WORKFLOW.md) for the full checklist and evidence standards.
+Return `Verdict`, `Scope`, `Trust map`, `Findings`, `Checklist coverage`, `Focused deep-dive areas`, `Regression tests`, and `Residual risk`.
+
+Verdict mapping:
+
+- `BLOCK`: confirmed `CRITICAL`, uncompensated `HIGH`, unresolved required context, or missing validation for a security-sensitive fix.
+- `CONCERNS`: lower severity, compensated risk, owned follow-up, or non-blocking test/hardening gap.
+- `CLEAN`: no material findings after applicable checklist items and regression evidence are reviewed; never return `CLEAN` when required context or regression evidence is missing.
+
+Use [references/WORKFLOW.md](references/WORKFLOW.md) for the full checklist and evidence standards.
