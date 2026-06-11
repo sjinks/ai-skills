@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Off-topic meal planning request
+description: Unrelated everyday question must not activate the Unicode text security review skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "Plan three quick vegetarian lunches for a busy work week."
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/unicode-text-security-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Text contract:"
+        - "Unicode text security"
+        - "Checklist status:"

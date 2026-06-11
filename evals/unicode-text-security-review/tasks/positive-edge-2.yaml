@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Confusable package identifiers
+description: |
+  Review must distinguish identifier security policy from general Unicode text
+  and require UTS #39-style confusable/mixed-script handling.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    We are adding Unicode package names to an internal registry. Package names
+    appear in install commands, audit logs, and permission grants. The proposed
+    policy allows any `\p{Letter}` or `\p{Number}`, stores the raw name, and
+    prevents duplicates only by exact string match. Review the Unicode security
+    risks around mixed scripts, default-ignorable characters, confusables, and
+    versioned Unicode data.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/unicode-text-security-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - unicode-text-security-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(identifier profile|allowed-character|UTS\s*#?39|General Security Profile)'
+        - '(?i)(confusable|skeleton|mixed[-\s]?script|mixed[-\s]?number)'
+        - '(?i)(default[-\s]?ignorable|bidi|ZWJ|ZWNJ|restricted)'
+        - "(?i)(raw name|exact string|duplicate|collision)"
+        - "(?i)(migration|Unicode data|version)"
+      not_contains:
+        - "Confusable skeletons are display strings"

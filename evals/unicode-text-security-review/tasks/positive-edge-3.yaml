@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Truncation and log-injection in display names
+description: |
+  Review must address the length/truncation and display-injection rule
+  classes: byte-truncated UTF-8, normalization expansion vs limits, and bidi
+  or newline characters reaching audit logs.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Review this display-name handler for Unicode security issues.
+
+    ```ts
+    function setDisplayName(raw: string) {
+      if (raw.length > 64) raw = raw.slice(0, 64); // UTF-16 code units
+      const name = raw.normalize('NFC');           // may expand past 64
+      db.update({ name });                          // column limit is 64 bytes
+      audit.log(`display name changed to: ${name}`); // plain-text log line
+    }
+    ```
+
+    Display names appear in the admin audit log and in security alerts.
+    I am worried about truncation behavior, normalization expansion versus the
+    byte limit, and whether bidi controls, zero-width characters, or newlines
+    can forge or reorder log lines. What are the findings and missing tests?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/unicode-text-security-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - unicode-text-security-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(truncat|slice).{0,120}(surrogate|code unit|byte|grapheme|combining|boundary)'
+        - '(?i)(unit|code units?|bytes?).{0,120}(limit|64|mismatch|differ)'
+        - '(?i)(normaliz).{0,120}(expan|grow|3x|after|before).{0,120}(limit|cap|64)?'
+        - '(?i)(bidi|U\+202|zero-width|newline|U\+2028|U\+2029).{0,120}(log|audit|forge|inject|reorder|strip|escape)'
+        - '(?i)(Findings|Checklist status|Test expectation|Tests):'

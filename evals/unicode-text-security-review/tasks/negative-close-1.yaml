@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Unicode normalization for search UX
+description: |
+  A conceptual Unicode/search question without a security decision should not
+  activate the review skill.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Could you explain the difference between NFC and NFD normalization for a
+    search box that should match accented words more kindly? This is just UX
+    behavior, not authentication, authorization, storage uniqueness, or a
+    security review.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/unicode-text-security-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Checklist status:"
+        - "Security decision:"
