@@ -75,7 +75,7 @@ Classify each evidence item with one or more of these labels:
 - `secondary`: source that interprets, summarizes, or reports on primary material.
 - `tertiary`: encyclopedia, general reference, aggregator, index, or high-level summary.
 - `user-provided`: supplied by the user and not independently authenticated in the current workflow.
-- `outdated`: source may no longer reflect current facts for a time-sensitive claim.
+- `outdated`: source may no longer reflect current facts for a time-sensitive claim. A claim is time-sensitive when its truth can change over time — for example prices, versions, officeholders, employment, rankings, policies, or "latest/current" statements. When a claim is time-sensitive and all available evidence is `outdated`, assign `UNVERIFIABLE` and name the most recent source date in the evidence summary; do not assign `SUPPORTED` from stale evidence alone.
 - `conflicted`: source has a material conflict of interest, advocacy role, commercial stake, or direct incentive around the claim.
 - `unavailable`: source cannot be accessed, is paywalled beyond available excerpt, missing, broken, private, or not provided.
 

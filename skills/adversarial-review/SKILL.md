@@ -110,7 +110,7 @@ Every substantive finding must name a concrete trigger or scenario. Do not prese
 1. Identify the target artifact and content type.
 2. Read the available artifact and nearby context needed to understand it.
 3. State the intended behavior in one or two sentences.
-4. Steel-man the target before challenging it: briefly state what the current approach gets right, why it is reasonable, or what constraints it appears to satisfy.
+4. Steel-man the target before challenging it: briefly state what the current approach gets right, why it is reasonable, or what constraints it appears to satisfy. State this regardless of how many findings follow; if nothing works, write `What works: None identified` rather than inventing strengths to balance the review.
 5. List assumptions the review depends on, including missing context.
 6. Challenge those assumptions using the relevant lenses and taxonomy.
 7. Deduplicate overlapping findings so the same risk is not reported multiple ways.
