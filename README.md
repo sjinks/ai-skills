@@ -26,6 +26,7 @@ At the moment, the repository contains these skills:
 - `cpp-coroutines`: guidance for C++20 coroutine types, promises, awaiters, handles, generators, frame lifetime, scheduler bridges, cancellation, symmetric transfer, allocation behavior, and tests.
 - `cpp-error-handling-design`: guidance for C++ error policy and exception safety, including exceptions vs `std::expected` vs error codes, basic/strong/nothrow guarantees, commit-rollback, `noexcept` and move interactions, destructor rules, and error propagation across module, ABI, thread, and coroutine boundaries.
 - `cpp-object-lifetime`: guidance for reviewing C++ object lifetime and ownership, including dangling pointers/references/views, iterator and reference invalidation, lambda capture lifetime, use-after-move, smart-pointer boundaries, and async handoff safety.
+- `cpp-sanitizer-triage`: guidance for triaging ASan/TSan/UBSan/MSan/LSan reports, including report anatomy, root cause vs symptom separation, true-positive vs tool-limitation vs configuration-artifact classification, suppression-file discipline, and sanitizer build/runtime configuration.
 - `dependency-audit`: guidance for auditing application and tooling dependencies for known vulnerabilities, license risk, maintenance health, abandoned packages, unused dependencies, dependency bloat, transitive risk, and supply-chain integrity.
 - `equivalence-class-audit`: guidance for turning one concrete defect, incident, review finding, test failure, or bug report into a locked-scope audit of equivalent defects across sibling fields, mirror use sites, bounds, contracts, paths, modes, tests, docs, and projections.
 - `factcheck`: guidance for verifying factual claims, citations, drafts, source support, evidence quality, verdicts, confidence, correction proposals, and uncertainty in report-only-first mode.
@@ -189,6 +190,20 @@ It helps an assistant:
 - review lambda captures, stored callbacks, and async handoff so `this` and references cannot be used after their owners are destroyed
 - enforce move-semantics discipline (moved-from objects limited to destruction, assignment, precondition-free operations, and specified post-move states) and smart-pointer ownership boundaries with `weak_ptr` cycle breaks
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with owners/borrowers, findings, checklist status, test expectations, and an insufficient-context template
+
+### `cpp-sanitizer-triage`
+
+This skill is aimed at sanitizer reports (ASan, TSan, UBSan, MSan, LSan) that need disciplined triage: real or not, where the root cause is, and whether the action is a fix, a scoped suppression, or a configuration change.
+
+It helps an assistant:
+
+- read report anatomy: error kind, faulting access, allocation/free/previous-write stacks, shadow bytes, mutex and thread annotations
+- separate the symptom frame from the root-cause frame and route fixes to the contract violation, not the faulting access
+- classify reports as true positives, named tool limitations, or configuration artifacts (partial MSan instrumentation, uninstrumented synchronization for TSan)
+- reject timing/rarity-based false-positive claims and require a named happens-before mechanism
+- enforce suppression discipline: narrowest matcher, comments with issue links, third-party orientation, review notes
+- keep sanitizer configurations compatible and verified (separate builds for TSan/MSan, symbolization working, regression tests under the sanitizer)
+- return `BLOCK`, `CONCERNS`, or `CLEAN` with classification, root cause vs symptom, findings, checklist status, and an insufficient-context template
 
 ### `dependency-audit`
 

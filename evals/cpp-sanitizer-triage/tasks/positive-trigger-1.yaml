@@ -1,0 +1,86 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: ASan use-after-free root cause vs symptom
+description: |
+  Triage must read all three stacks, classify a true positive, and route the
+  fix to the early-free site rather than the faulting access.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Triage this AddressSanitizer report (Clang 17, -O1, full instrumentation,
+    deterministic reproduction):
+
+    ```text
+    ==12345==ERROR: AddressSanitizer: heap-use-after-free on address 0x60c0000041a8
+    READ of size 8 at 0x60c0000041a8 thread T0
+        #0 Render::draw() render.cpp:88
+        #1 Engine::frame() engine.cpp:140
+    freed by thread T0 here:
+        #0 operator delete(void*)
+        #1 Scene::reset() scene.cpp:52
+        #2 Engine::load_level() engine.cpp:97
+    previously allocated by thread T0 here:
+        #0 operator new(unsigned long)
+        #1 Scene::add_node() scene.cpp:31
+    ```
+
+    Render::draw() iterates the render queue, which holds raw Node* pointers
+    handed out by Scene. Is this real, where is the root cause, and who fixes
+    what?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-sanitizer-triage/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-sanitizer-triage
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - 'Verdict:'
+        - 'Findings:'
+        - '(?i)Classification:[\s\S]{0,80}true positive'
+        - '(?i)Root cause:'
+        - '(?i)(Scene::reset|scene\.cpp:52|reset\(\))[\s\S]{0,250}(free|lifetime|retention|queue)|(free|retention)[\s\S]{0,200}(Scene::reset|scene\.cpp)'
+        - '(?i)Symptom:'
+        - '(?i)Checklist status:'
+      not_contains:
+        - "Error policy:"
+        - "Project shape:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response performs correct triage:
+        - Classifies the report as a true positive (full instrumentation,
+          deterministic, all three stacks consistent).
+        - Distinguishes symptom (read in Render::draw at render.cpp:88) from
+          root cause: Scene::reset() frees nodes while the render queue still
+          holds raw Node* pointers - the lifetime/retention contract between
+          Scene and the render queue is the bug.
+        - Routes the fix to the Scene/queue ownership contract (clear or
+          invalidate the queue on reset, or use owning/weak references), not
+          to a null check in draw().
+        A correct response uses the skill's structured sections.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

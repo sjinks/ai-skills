@@ -54,6 +54,7 @@ grader weighting takes effect.
   - `unicode-text-security-review`: 0.45
   - `cmake-build-review`: 0.45
   - `cpp-error-handling-design`: 0.45
+  - `cpp-sanitizer-triage`: 0.45
   - `cpp-concurrency-review`: 0.45
   - `cpp-api-abi-review`: 0.45
   - `cpp-object-lifetime`: 0.45

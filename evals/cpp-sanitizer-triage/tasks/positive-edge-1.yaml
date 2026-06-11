@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: MSan partial-instrumentation configuration artifact
+description: |
+  Triage must recognize an MSan report from a partially instrumented build as
+  a configuration artifact, not a code bug.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    MemorySanitizer reports use-of-uninitialized-value inside
+    std::string::append called from our parser. We build our code with
+    -fsanitize=memory but link the regular system libc++ (not an
+    MSan-instrumented one). Deterministic repro. Is our parser broken?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-sanitizer-triage/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-sanitizer-triage
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - 'Verdict:'
+        - 'Classification:'
+        - 'Findings:'
+        - '(?i)(configuration artifact|partial(ly)? instrument|uninstrumented)'
+        - '(?i)(libc\+\+|standard library)[\s\S]{0,250}(instrument|rebuild|MSan)'
+        - '(?i)(rebuild|instrumented sysroot|libc\+\+ with msan)'
+      not_contains:
+        - "Classification: true positive"
