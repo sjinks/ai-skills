@@ -160,7 +160,7 @@ Checklist status:
 Residual risk: <remaining caveats or None>
 ```
 
-The `Rule:` values `length/truncation`, `encoding-layers`, and `display-injection` map to the `Limits, Layers, And Display` checklist section; the other values map to the same-named checklist sections.
+`Rule:` values map to checklist sections as follows: `decode` -> Decode Boundary; `normalize` and `compare` -> Normalization And Matching; `parser-consumer` -> Parser And Consumer Drift; `identifier` -> Identifiers And Spoofing; `storage/index` -> Storage And Indexes; `encoding-layers`, `length/truncation`, and `display-injection` -> Limits, Layers, And Display.
 
 Use `Findings: None` only with `CLEAN` or when all remaining issues are explicitly accepted tradeoffs. If there are no material issues, say `No material findings` and list assumptions and residual risk instead of inventing findings.
 
