@@ -7,9 +7,11 @@ user-invocable: true
 
 # Equivalence-Class Audit
 
-Standalone; same skill package, no other skill required. Use local `WORKFLOW.md` for the full axis catalogue and report rules.
+Turn one confirmed defect into a locked-scope audit of equivalent defects: for each applicable axis below, enumerate candidate locations in scope, check each, and report presence and disposition. Standalone; same skill package, no other skill required. Use local `WORKFLOW.md` for detailed per-axis guidance and full report rules.
 
 Trigger: one concrete finding implies equivalent defects in a locked scope. Not for greenfield, broad review, formatting-only, isolated typos, or out-of-scope vendor/gen artifacts.
+
+Catalogue axes (18): Opposite Bound; Sibling Parameter/Field; Mirror Call Site/Use Site; Inverse Operation; Type/Schema Narrowing; Validation vs Normalization/Sanitization; Happy/Error/Retry/Cancel Path Twin; Race/Shared-State Twin; Permission/Authorization Class; Observability Twin; Resource Cleanup; Contract Symmetry; Equivalence by Naming; Test Mirror; Empty/Sentinel Equivalence; Async/Sync or Mode Twin; Documentation/Spec Prose Twin; Cache/Projection/Source-of-Truth Twin.
 
 Must have: Triggering finding and locked audit scope. If missing, do not enumerate/invent scope/candidates; return only Blocking questions. Other unknowns: Presence `blocked — clarification needed`, Disposition `blocked`.
 

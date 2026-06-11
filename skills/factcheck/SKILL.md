@@ -22,6 +22,15 @@ Workflow:
 4. Give one verdict/confidence per claim with evidence and reason.
 5. Report corrections, questions, limits, uncertainty.
 
-Verdicts: `SUPPORTED`, `MOSTLY_SUPPORTED`, `MIXED`, `UNSUPPORTED`, `CONTRADICTED`, `UNVERIFIABLE`, `NOT_A_FACTUAL_CLAIM`. Confidence: `high`, `medium`, `low`.
+Verdicts (one per claim):
+- `SUPPORTED`: strong evidence directly supports the claim as written.
+- `MOSTLY_SUPPORTED`: central claim supported; a qualifier, number, date, scope, or wording needs minor correction.
+- `MIXED`: credible evidence supports part and challenges part, or sources conflict without a clear winner.
+- `UNSUPPORTED`: evidence does not support the claim but does not prove the opposite.
+- `CONTRADICTED`: reliable evidence directly conflicts with the claim.
+- `UNVERIFIABLE`: sources missing, inaccessible, insufficient, stale, or too ambiguous to assess.
+- `NOT_A_FACTUAL_CLAIM`: opinion, prediction, value judgment, or other non-checkable statement.
+
+Confidence: `high`, `medium`, `low`, each with a stated reason.
 
 Output sections: `Fact-Check Summary`, `Scope`, `Claims Checked`, `Evidence Reviewed`, `Findings`, `Recommended Corrections`, `Open Questions`, `Verification Limits`, `Residual Uncertainty`.
