@@ -143,7 +143,7 @@ Findings:
   Severity: CRITICAL | HIGH | MEDIUM | LOW
   Classification: Confirmed issue | Likely risk | Open question | Accepted tradeoff | Test gap | Defense-in-depth
   Evidence: <file:line, diff hunk, design sentence, or missing-from-target>
-  Rule: <decode | normalize | compare | identifier | parser-consumer | storage/index | encoding-layers | length/truncation | display-injection rule>
+  Rule: <decode | normalize | compare | identifier | parser-consumer | storage/index | encoding-layers | length/truncation | display-injection>
   Risk: <what bypass, collision, spoof, or drift becomes possible>
   Required guard: <specific change or policy decision>
   Test expectation: <regression test or N/A>
@@ -175,7 +175,7 @@ Findings:
   Severity: LOW
   Classification: Open question
   Evidence: <which required context is missing>
-  Rule: <decode | normalize | compare | identifier | parser-consumer | storage/index | encoding-layers | length/truncation | display-injection rule>
+  Rule: <decode | normalize | compare | identifier | parser-consumer | storage/index | encoding-layers | length/truncation | display-injection>
   Risk: <why no safe conclusion is possible>
   Required guard: <what context must be supplied>
   Test expectation: N/A
