@@ -132,7 +132,10 @@ Each test case records the following fields:
 - `Failure signal this test prevents`: the regression or misbehavior whose recurrence the test should catch.
 - `Layer`: one of `unit`, `integration`, or `e2e`.
 - `Priority`: one of `must-have`, `should-have`, `nice-to-have`, or `unmapped`.
-- `Owner`: the person, team, or `self` (for solo work) responsible for landing the test. Valid values: `self`, `@username`, `@team-name`, or a plain name supplied by the user. Do not invent an owner; if none is supplied, leave `Owner` empty and apply the missing-`Owner` rules in `## Procedure` and `## Blocking Criteria` (a missing `Owner` on a `must-have` case downgrades the verdict; on `should-have` or `nice-to-have` it is noted in the plan).
+- `Owner`: the person, team, or `self` (for solo work) responsible for landing the test.
+  - Valid values: `self`, `@username`, `@team-name`, or a plain name supplied by the user.
+  - Do not invent an owner; if none is supplied, leave `Owner` empty.
+  - Missing-`Owner` effects follow `## Procedure` and `## Blocking Criteria`: on a `must-have` case it downgrades the verdict; on `should-have` or `nice-to-have` it is noted in the plan.
 - `Status`: one of `proposed`, `drafted`, or `landed`. Default is `proposed`.
 
 ## Procedure
@@ -188,7 +191,7 @@ Handoff: <one or two lines on how this plan feeds the downstream merge-gate work
 Verdict rules:
 
 - `BLOCK` when required input context is insufficient (per `## Required Input Context`), when any `CRITICAL` / `HIGH` / `High` / `Critical` finding lacks an unwaived `must-have` test case, or when a high-impact finding cannot be assigned `must-have` / non-`must-have` priority because the original label is missing or unmapped and critical context is absent.
-- `PLAN-PARTIAL` when every blocking finding has at least one `must-have` test case with a decided `Layer`, but one or more `must-have` cases are missing an `Owner`. An undecidable `Layer` on a `must-have` case produces `BLOCK` per `### BLOCK On Insufficient Input`, not `PLAN-PARTIAL`. In the coverage summary, name each gap explicitly using the output's test-case numbering, e.g. `must-have test case 3 has no Owner assigned`.
+- `PLAN-PARTIAL` when every blocking finding has at least one `must-have` test case with a decided `Layer`, but one or more `must-have` cases are missing an `Owner`. An undecidable `Layer` on a `must-have` case produces `BLOCK` per `### BLOCK On Insufficient Input`, not `PLAN-PARTIAL`. On the `Coverage summary:` line of `## Output Format`, name each gap explicitly using the output's test-case numbering, e.g. `must-have test case 3 has no Owner assigned`.
 - `PLAN-READY` otherwise.
 
 A `Waivers:` entry is required for every blocking finding (`CRITICAL` / `HIGH` / `High` / `Critical`) that does not carry a `must-have` test case. A waiver entry must include all four fields (scope, rationale, owner, follow-up); a partial waiver does not satisfy the gate and the verdict downgrades to `BLOCK`.

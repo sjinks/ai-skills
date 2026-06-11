@@ -245,7 +245,9 @@ propose a change of ORM, auth strategy, or test layering just to match a hint be
   NATS, gRPC, RabbitMQ) → integration tests against the project's existing
   broker fixtures or test containers, covering delivery-failure, retry, and
   out-of-order cases the transport allows. Document any handler that is
-  intentionally not idempotent.
+  intentionally not idempotent in a comment or docstring on the handler
+  itself, plus the project's usual decision record (ADR or service README)
+  when one exists.
 
 ## Output Format
 
