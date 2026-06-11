@@ -6,7 +6,7 @@ Read this file when you need provenance for the Type-Safe Design skill's rules, 
 
 - Title: `Type-Safe by Design: Explorations in Software Architecture and Expressiveness`.
 - Author: Mykola Haliullin.
-- Source permalink: https://github.com/SanQri/safe-by-design/blob/a6b7aa22160c2ee3d461df064c0161e87e6a7087/book.pdf.
+- Source permalink: <https://github.com/SanQri/safe-by-design/blob/a6b7aa22160c2ee3d461df064c0161e87e6a7087/book.pdf>
 - SHA-256: `779548d53f895d2e29ab2704fbd7c217b3e2914abe0e57ea1013b0f1ed8dca5e`.
 
 ## Concept Provenance
