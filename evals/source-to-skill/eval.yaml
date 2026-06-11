@@ -5,8 +5,8 @@ description: |
   material into reusable agent skills, analyze-only review, extract-only source
   conversion, URL-source limitations, and update-existing workflows; stays
   silent on plain summaries or direct skill-editing requests; and preserves the
-  documented destination, helper-resolution, provenance, validation, and
-  public-contract rules.
+  documented destination, helper-resolution, concise provenance, validation,
+  path-privacy, and public-contract rules.
 skill: source-to-skill
 version: "1.0"
 config:
@@ -29,7 +29,7 @@ metrics:
   - name: task_completion
     weight: 0.35
     threshold: 0.8
-    description: Output carries the source-to-skill mode, destination, extraction, provenance, validation, and preservation contract.
+    description: Output carries the source-to-skill mode, destination, extraction, concise provenance, validation, path-privacy, and preservation contract.
   - name: task_completion_substance
     weight: 0.10
     threshold: 0.7
