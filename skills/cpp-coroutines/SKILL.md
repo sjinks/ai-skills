@@ -9,7 +9,7 @@ user-invocable: true
 
 Use this skill for standalone C++ coroutine work: coroutine type design, `promise_type`, awaiters, awaitables, tasks, generators, cancellation, scheduler integration, exception propagation, frame lifetime, allocation behavior, and coroutine-heavy control flow.
 
-This skill is standalone. Do not assume Boost.Asio, cppcoro, Folly, Qt, Unreal, or any specific coroutine library unless the local codebase already uses one. Tasks that are specifically about Boost.Asio `awaitable`, executors, strands, sockets, timers, or I/O cancellation are out of scope.
+This skill is standalone. Do not assume Boost.Asio, cppcoro, Folly, Qt, Unreal, or any specific coroutine library unless the local codebase already uses one. Asio implementation details — `boost::asio::awaitable` I/O flow, executor/strand configuration, socket and timer usage, Asio cancellation wiring — are out of scope; coroutine-language work at a library boundary (such as preserving executor affinity when bridging) stays in scope via [interoperability](./references/interoperability.md).
 
 ## Routing
 

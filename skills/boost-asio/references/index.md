@@ -20,7 +20,7 @@ Use this map to load the smallest useful part of the Boost.Asio skill package. S
 - Use [decision trees](./decision-trees.md) to choose; use [patterns](./patterns.md) and [examples](./examples.md) to implement.
 - Use [debugging](./debugging.md) when the starting point is observed behavior rather than planned design.
 - Use [testing](./testing.md) for deterministic loopback tests, fake timers, cancellation checks, and sanitizer guidance.
-- Use [Beast and TLS](./beast-and-tls.md) only for Asio-facing transport concerns; HTTP/WebSocket parser and serializer policy is outside this skill package.
+- Use [Beast and TLS](./beast-and-tls.md) for Asio-facing transport and parser-adapter boundary policy; detailed HTTP/WebSocket protocol semantics and Beast-specific parser/serializer behavior are outside this skill package.
 - Use [observability](./observability.md) after the lifecycle, cancellation, and backpressure model is understood.
 - Use [hardening and migration](./hardening-and-migration.md) when improving existing callback, synchronous, or fragile async code.
 
