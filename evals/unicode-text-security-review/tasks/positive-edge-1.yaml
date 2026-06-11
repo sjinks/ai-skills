@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Compatibility characters checked after allowlist
+description: |
+  Review must address normalization order and NFKC compatibility-character
+  bypasses around syntax-significant separators.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Review this slug validator for Unicode security, especially fullwidth and
+    compatibility characters.
+
+    ```ts
+    function validateSlug(input: string) {
+      if (input.includes('/') || input.includes('..')) throw new Error('bad');
+      const normalized = input.normalize('NFKC');
+      if (!/^[\p{Letter}\p{Number}._/-]+$/u.test(normalized)) throw new Error('bad');
+      return normalized;
+    }
+    ```
+
+    The returned slug selects a tenant-scoped document route. What should be
+    fixed, and what tests are missing?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/unicode-text-security-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - unicode-text-security-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(NFKC|compatibility normalization|compatibility characters)"
+        - "(?i)(normalize|normalization).{0,80}(before|prior to).{0,80}(validation|allowlist|denylist|check)"
+        - '(?i)(fullwidth|halfwidth|U\+FF0E|U\+FF0F|slash|dot)'
+        - "(?i)(tenant|route|security decision)"
+        - "(?i)(Adversarial tests|Test expectation|Tests):"

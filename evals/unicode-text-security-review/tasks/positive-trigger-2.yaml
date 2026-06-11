@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Username uniqueness normalization drift
+description: |
+  Review must activate when canonical equivalence and database uniqueness can
+  create duplicate or inaccessible security identities.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Please review this username registration design for Unicode security.
+
+    The API accepts any Unicode username, rejects exact string matches in the
+    app, stores the raw string in Postgres, and displays `name.normalize('NFC')`
+    in the UI. Login normalizes the submitted username to NFC before lookup, but
+    the unique index is on the raw database column. We also lowercase in the app
+    before checking reserved names, while the database collation is
+    case-sensitive.
+
+    Return the Unicode text contract, findings, checklist status, missing tests,
+    and residual risk.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/unicode-text-security-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - unicode-text-security-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Text contract:"
+        - "(?i)(canonical equivalence|canonically equivalent|NFC)"
+        - "(?i)(unique index|database|Postgres|collation).{0,120}(raw|normalize|case|lookup)"
+        - "(?i)(collision|duplicate|identity|account|username)"
+        - "(?i)(Checklist status|Storage and indexes|Tests):"
+      not_contains:
+        - "Egress policy:"

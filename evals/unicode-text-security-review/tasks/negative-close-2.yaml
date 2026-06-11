@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Routine UnicodeDecodeError troubleshooting
+description: |
+  A generic encoding troubleshooting task without security-sensitive text
+  handling should stay outside this skill.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    My Python script gets `UnicodeDecodeError` while reading a CSV exported from
+    Excel. How can I detect the right encoding and load it for data cleanup?
+    There is no security boundary or identifier policy involved.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/unicode-text-security-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Text contract:"
+        - "Security decision:"
+        - "Verdict: BLOCK"
+        - "Adversarial tests:"

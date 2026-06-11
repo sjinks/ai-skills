@@ -36,6 +36,7 @@ At the moment, the repository contains these skills:
 - `source-to-skill`: guidance for converting books, articles, documentation, notes, transcripts, and other source material into reusable agent skills with extraction, rights, provenance, and validation gates. Inspired by [book-to-skill](https://github.com/virgiliojr94/book-to-skill/blob/master/SKILL.md).
 - `test-gap-to-test-plan`: guidance for converting review findings and unverified behaviors into a prioritized, owned, layer-typed test plan that tracks the test evidence a downstream merge gate will require.
 - `type-safe-design`: guidance for designing, reviewing, refactoring, and test-planning type-safe architecture where contracts, validation states, generics, reflection, factories, and compiler feedback affect correctness and change locality.
+- `unicode-text-security-review`: guidance for reviewing security-sensitive Unicode text handling, including strict UTF-8 decoding, overlong and surrogate rejection, NFC/NFKC normalization order, canonical and compatibility equivalence, byte-vs-character validation drift, identifier spoofing, confusables, storage/index drift, length/truncation units, decode-layer ordering, and display injection.
 
 ## Included Skills
 
@@ -322,6 +323,20 @@ It helps an assistant:
 - evaluate reflection, deserialization, polymorphic factories, enum registries, and constructor contracts as constrained boundaries
 - avoid public API pollution for one-off internal access by using scoped operations or dedicated closure-carrier abstractions
 - plan compiler-guided refactors and verification through boundary tests, substitution tests, completeness checks, and fail-fast construction paths
+
+### `unicode-text-security-review`
+
+This skill is aimed at code, designs, and tests where untrusted text crosses an encoding, normalization, comparison, storage, or display boundary and the result affects a security decision, identifier, lookup, database query, path/URL policy, allowlist, or audit trail.
+
+It helps an assistant:
+
+- state the text contract per field: accepted encodings, decode error behavior, normalization/case policy, identifier profile, and stored forms
+- verify strict UTF-8 decoding before security decisions, rejecting overlong encodings, surrogate code points, truncated sequences, and lenient error modes
+- choose normalization deliberately (NFC for canonical text, NFKC only for restricted identifiers) and run it before allowlists, uniqueness checks, and routing decisions
+- catch parser-consumer drift where validation runs on one representation (bytes, raw text, one normalization form) and a database, filesystem, URL parser, or auth layer consumes another
+- review identifier policy for confusables, mixed scripts, mixed numbers, default-ignorable and bidi characters, with migration plans for Unicode data changes
+- apply decision rules for length-limit units, safe truncation, lone surrogates, decode-layer ordering, log/display injection, regex Unicode semantics, normalization expansion, and canonical hostname comparison
+- return `BLOCK`, `CONCERNS`, or `CLEAN` with findings, checklist status, adversarial test expectations, and residual risk, including a deterministic insufficient-context template
 
 ## Skill Format
 

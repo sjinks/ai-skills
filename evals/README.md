@@ -51,6 +51,7 @@ grader weighting takes effect.
   - `factcheck`: 0.45
   - `source-to-skill`: 0.45
   - `type-safe-design`: 0.45
+  - `unicode-text-security-review`: 0.45
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks
   only) — requires the named skill via `required_skills` with
   `mode: any_order`. The currently released waza CLI (`v0.33.0`) defines
@@ -75,7 +76,8 @@ grader weighting takes effect.
 - `efficiency` (eval-level, `behavior`) — `max_tool_calls` and
   `max_tokens` budgets per task. Substance-heavy suites
   (`multi-lens-review`, `ssrf-outbound-fetch-review`,
-  `web-app-security-review`, `dependency-audit`, `factcheck`) use 12 000
+  `web-app-security-review`, `dependency-audit`, `factcheck`,
+  `unicode-text-security-review`) use 12 000
   tokens; the rest use 8 000; `spock-voice` uses 4 000.
 
 ## Skill-body injection

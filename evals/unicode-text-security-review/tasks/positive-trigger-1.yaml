@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Lenient UTF-8 decoder before path validation
+description: |
+  Review must activate on invalid UTF-8 and overlong byte sequence handling when
+  decoded text later drives a security-sensitive path decision.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this upload gateway for Unicode security issues. The request body is
+    raw bytes from tenants. It rejects `../` and NUL bytes in the byte buffer,
+    then decodes with a legacy helper that accepts overlong UTF-8 and replaces
+    malformed input. The decoded filename is later passed to a storage service
+    that treats it as UTF-8 text and joins it under a tenant prefix.
+
+    I am specifically worried about overlong encodings of dot, slash, and NUL,
+    plus surrogate handling. Return the text contract, findings, checklist
+    status, adversarial tests, and residual risk.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/unicode-text-security-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - unicode-text-security-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Text contract:"
+        - "(?i)Findings:"
+        - "(?i)Checklist status:"
+        - "(?i)Residual risk:"
+        - "(?i)(strict|reject).{0,80}(UTF-8|invalid|overlong|surrogate)"
+        - "(?i)(bytes?|byte buffer).{0,80}(decode|decoded|characters?|text)"
+        - "(?i)(overlong).{0,80}(dot|slash|NUL|null|0x00)"
+      not_contains:
+        - "Egress policy:"
+        - "Gate decision:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response identifies these Unicode text security risks:
+        - Security validation is performed on bytes before lenient decoding,
+          while the downstream storage consumer uses decoded text.
+        - Overlong UTF-8 encodings for dot, slash, or NUL and surrogate
+          encodings must be rejected by a strict UTF-8 decoder before policy
+          checks.
+        - Replacement/ignore decoding is unsafe before path/security decisions.
+        - Tests should include invalid UTF-8, overlong dot/slash/NUL,
+          surrogate encodings, and byte-vs-text parser-consumer drift.
+        A correct response uses the skill's structured sections.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent
