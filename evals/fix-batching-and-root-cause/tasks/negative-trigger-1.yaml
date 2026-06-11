@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Unrelated everyday prompt
+description: Unrelated everyday request must not activate the fix-batching-and-root-cause skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "Which board games work well for a mixed group of adults and two eight-year-olds?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/fix-batching-and-root-cause/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Fix Batch Plan"
+        - "Shared cause"
+        - "symptom-level"
+        - "BATCH-READY"
+        - "BATCH-PARTIAL"

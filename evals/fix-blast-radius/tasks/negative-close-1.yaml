@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Feature impact analysis is not fix blast radius
+description: |
+  Estimating the impact of a planned new feature is product/architecture
+  analysis, not pre-push fix impact assessment.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    We are planning to add multi-currency support to our store next quarter.
+    Analyze the impact of that feature on our data model, pricing pages, and
+    reporting — what would need to change and how risky each area is. This
+    is roadmap planning; there is no fix and no review finding involved.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/fix-blast-radius/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Fix Blast Radius Report"
+        - "SAFE-TO-PUSH"
+        - "VERIFY-FIRST"
+        - "Regression cross-check"

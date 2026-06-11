@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Clean diff still gets full coverage declaration
+description: |
+  A diff with no findings must still produce all eight dimensions, an
+  explicit no-findings statement, and COMPLETE-PASS.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Run single-pass-review-completeness on this diff.
+
+    Change intent: correct the link to the contributing guide in the README.
+
+    Diff: README.md, one line; the relative link `docs/CONTRIBUTING.md`
+    becomes `.github/CONTRIBUTING.md`, where the file actually lives. The
+    target file exists and nothing else changes.
+
+    Even if you find nothing, declare your coverage explicitly for all
+    dimensions rather than skipping the report.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/single-pass-review-completeness/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - single-pass-review-completeness
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Single-Pass Review Report'
+        - '(?i)Coverage declaration'
+        - '(?i)Correctness'
+        - '(?i)Security'
+        - '(?i)Operability'
+        - '(?i)Findings:\s*none'
+        - '(?i)Verdict:\s*COMPLETE-PASS'
+      not_contains:
+        - "Verdict: PARTIAL-PASS"
+        - "Verdict: BLOCK"
+        - "Gate decision:"

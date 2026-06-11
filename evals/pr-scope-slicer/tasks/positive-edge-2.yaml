@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: BLOCK when no change inventory exists
+description: |
+  Asking for a split decision without any change inventory must produce the
+  BLOCK template, not guessed sizes.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use pr-scope-slicer. I have a big branch for our checkout redesign and
+    people keep telling me it will be unreviewable, but I can't list the
+    files or line counts right now and you have no repository access.
+    Decide whether to split it and propose slices anyway.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pr-scope-slicer/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - pr-scope-slicer
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Scope Slice Plan'
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Missing input'
+        - '(?i)Smallest addition to proceed'
+      not_contains:
+        - "Verdict: SPLIT-REQUIRED"
+        - "Verdict: SPLIT-RECOMMENDED"
+        - "Verdict: SINGLE-PASS-OK"

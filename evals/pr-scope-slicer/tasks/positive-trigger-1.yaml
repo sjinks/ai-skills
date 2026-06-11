@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Mixed refactor-plus-feature PR needs slicing
+description: |
+  Canonical case: an oversized change mixing a rename refactor with behavior
+  change should produce a SPLIT-REQUIRED slice plan.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Apply pr-scope-slicer to this change before I open the PR.
+
+    Change inventory:
+    - 22 hand-written files touched, roughly 900 changed lines total.
+    - About 350 of those lines are a mechanical rename of `Account` to
+      `BillingAccount` across the codebase (imports, identifiers, no logic).
+    - About 420 lines add a new proration feature in src/billing/proration.ts
+      plus its tests.
+    - About 130 lines change the invoice rounding rules in
+      src/billing/invoice.ts (behavior change) with updated tests.
+    - package-lock.json also changed because a date library was bumped.
+
+    No project-specific size thresholds; use your defaults. Tell me whether
+    to split and into what.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pr-scope-slicer/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - pr-scope-slicer
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Scope Slice Plan'
+        - '(?i)Size signals'
+        - '(?i)default'
+        - '(?i)Verdict:\s*SPLIT-REQUIRED'
+        - '(?i)\|\s*Order\s*\|\s*Slice\s*\|\s*Contents\s*\|\s*Review focus\s*\|\s*Depends on\s*\|'
+        - '(?i)(rename|mechanical)'
+        - '(?i)proration'
+        - '(?i)(rounding|invoice)'
+        - '(?i)Tradeoffs'
+      not_contains:
+        - "Verdict: SINGLE-PASS-OK"
+        - "Pre-Review Self-Audit Report"
+        - "Gate decision:"
+        - "Equivalence-Class Audit Report"

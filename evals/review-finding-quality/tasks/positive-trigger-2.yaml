@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Audit a findings list before posting
+description: |
+  A mixed findings list: one compliant, one compound to split, one pure
+  formatter-covered style nit to drop.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Use review-finding-quality to audit this findings list before I post it
+    on the PR. The repo runs Prettier in CI on every push.
+
+    Findings:
+    1. "blocker — src/payments/refund.py:88 — refund() divides by
+       `exchange_rate` without checking for zero; a zero rate from the
+       upstream feed crashes the worker. Expected: guard and reject the
+       refund with a typed error. Resolved when a zero-rate input returns
+       RefundRejected and a regression test covers it."
+    2. "src/payments/refund.py — the retry loop swallows the original
+       exception, and while you're there the audit log line should also
+       include the operator id."
+    3. "Indentation in src/payments/util.py is inconsistent, please fix
+       spacing."
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/review-finding-quality/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - review-finding-quality
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Finding Quality Report'
+        - '(?i)compliant'
+        - '(?i)rewritten'
+        - '(?i)Resolved when'
+        - '(?i)Dropped \(non-findings\)'
+        - '(?is)Dropped \(non-findings\).{0,300}(indentation|spacing|Prettier|formatter)'
+        - '(?i)Verdict:\s*CONCERNS'
+      not_contains:
+        - "Gate decision:"
+        - "Scope Slice Plan"
+        - "Single-Pass Review Report"

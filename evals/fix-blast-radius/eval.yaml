@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
+name: fix-blast-radius-eval
+description: |
+  Evaluates the fix-blast-radius skill: it activates on pre-push fix impact
+  assessment, stays silent on fix planning and feature impact analysis, and
+  produces the blast radius report with all five impact surfaces, per-risk
+  likelihood and verification, and verdict labels.
+skill: fix-blast-radius
+version: "1.0"
+config:
+  trials_per_task: 2
+  timeout_seconds: 300
+  parallel: true
+  workers: 4
+  executor: copilot-sdk
+  model: claude-sonnet-4.6
+  max_attempts: 2
+metrics:
+  - name: trigger_accuracy
+    weight: 0.30
+    threshold: 0.8
+    description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected mode.
+  - name: skill_invocation
+    weight: 0.15
+    threshold: 0.9
+    description: Skill is invoked on positive tasks that should activate it.
+  - name: task_completion
+    weight: 0.40
+    threshold: 0.8
+    description: Output carries the blast radius report, five-surface trace table, risks with likelihood and verification, and verdict labels.
+  - name: efficiency
+    weight: 0.15
+    threshold: 0.7
+    description: Stays within tool-call and total-token budgets.
+graders:
+  - type: behavior
+    name: efficiency
+    config:
+      max_tool_calls: 8
+      max_tokens: 8000
+tasks:
+  - "tasks/*.yaml"

@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: CLEAN no-findings path keeps the full table
+description: |
+  A genuinely clean change must still produce the full checklist table,
+  an explicit no-findings statement, and a CLEAN verdict.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Apply pre-review-self-audit.
+
+    Change intent: fix a typo in the user-facing error message for failed
+    CSV imports.
+
+    Diff: exactly one line in src/import/messages.ts changes
+    "occured" to "occurred". One commit, message "fix typo in CSV import
+    error message". PR description: "Fix typo: occured -> occurred in CSV
+    import error message." The string is asserted verbatim in
+    tests/import/messages.test.ts, and that assertion was updated in the same
+    diff. The repository declares `npm test`, which I ran: it passes.
+
+    Audit it. If everything passes, say so explicitly with the full
+    checklist table rather than skipping the report.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pre-review-self-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - pre-review-self-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Pre-Review Self-Audit Report'
+        - '(?i)\|\s*#\s*\|\s*Checklist item\s*\|\s*Status\s*\|\s*Notes\s*\|'
+        - '(?i)Findings:\s*none'
+        - '(?i)Verdict:\s*CLEAN'
+      not_contains:
+        - "Verdict: CONCERNS"
+        - "Verdict: BLOCK"
+        - "Gate decision:"

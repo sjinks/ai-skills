@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Assess a fix's impact before pushing
+description: |
+  Canonical case: a signature-affecting fix with callers, shared state, and
+  a previously resolved finding to cross-check.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Apply fix-blast-radius to this fix before I push it.
+
+    Finding addressed: F3 — getOrders() returns soft-deleted orders.
+
+    Fix (diff summary): src/orders/repo.ts — getOrders(userId) gains a
+    default-true parameter `excludeDeleted` and adds `WHERE deleted_at IS
+    NULL` when it is true.
+
+    Context:
+    - Callers: the orders API handler, the monthly-statement job, and the
+      admin "restore deleted order" screen all call getOrders(). The admin
+      restore screen needs deleted orders to function.
+    - Shared state: a per-user orders cache keyed by userId stores the
+      result; cache entries written before the fix may contain deleted
+      orders.
+    - Resolved earlier in this cycle: F1 — "statement totals must match the
+      ledger" — fixed last week by recomputing totals from getOrders().
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/fix-blast-radius/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - fix-blast-radius
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Fix Blast Radius Report'
+        - '(?i)Impact trace'
+        - '(?i)Callers and call sites'
+        - '(?i)Shared state'
+        - '(?i)Contracts'
+        - '(?i)Behavioral siblings'
+        - '(?i)Resolved findings'
+        - '(?is)(admin|restore).{0,200}(deleted|break|risk)'
+        - '(?i)(cache|stale)'
+        - '(?i)likelihood:\s*(likely|possible|unlikely)'
+        - '(?i)verify:'
+        - '(?i)Regression cross-check'
+        - '(?i)F1'
+        - '(?i)Verdict:\s*(VERIFY-FIRST|SAFE-TO-PUSH)'
+      not_contains:
+        - "Gate decision:"
+        - "Fix Batch Plan"
+        - "Equivalence-Class Audit Report"
+        - "Scope Slice Plan"

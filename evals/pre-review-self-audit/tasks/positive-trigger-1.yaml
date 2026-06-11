@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Author self-audit before opening a PR
+description: |
+  Canonical case: an author asks for a pre-review self-check of a finished
+  diff with leftover debug code and an untested behavior change.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Apply pre-review-self-audit before I open this pull request.
+
+    Change intent: make the password-reset token expire after 30 minutes
+    instead of 24 hours.
+
+    Diff summary:
+    - src/auth/reset.py: TOKEN_TTL changed from 86400 to 1800; a
+      `print("DEBUG ttl", ttl)` line was added during debugging and is still
+      there.
+    - src/auth/email.py: reworded the reset email copy (unrelated to the TTL
+      change, snuck in while I was nearby).
+    - tests/: no test changes; the existing test only checks that a token is
+      issued, not its TTL.
+
+    Draft PR description: "Shorten reset token TTL to 30 minutes and add
+    tests." No CI config or package scripts are available in this excerpt.
+
+    Audit the change and tell me what to fix before requesting review.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pre-review-self-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - pre-review-self-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Pre-Review Self-Audit Report'
+        - '(?i)\|\s*#\s*\|\s*Checklist item\s*\|\s*Status\s*\|\s*Notes\s*\|'
+        - '(?is)(High|Medium).{0,200}(debug|print)'
+        - '(?is)(Medium|High).{0,200}(email|unrelated|scope)'
+        - '(?is)(High|Medium).{0,200}(test|TTL|untested)'
+        - '(?is)(description|claim).{0,200}(test|match|mismatch|drift|inaccurate)'
+        - '(?i)Verdict:\s*CONCERNS'
+      not_contains:
+        - "Verdict: CLEAN"
+        - "Gate decision:"
+        - "Equivalence-Class Audit Report"
+        - "Scope Slice Plan"
+        - "PLAN-READY"

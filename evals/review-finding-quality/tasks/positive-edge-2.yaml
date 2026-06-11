@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: BLOCK when no findings text is provided
+description: |
+  Asking for a finding-quality audit without supplying any findings must
+  produce the BLOCK template, not fabricated findings.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use review-finding-quality. I reviewed a PR earlier today and want my
+    comments cleaned up to your contract, but I don't have the comments with
+    me — I'll paste them later. Produce the report now anyway.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/review-finding-quality/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - review-finding-quality
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Finding Quality Report'
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Missing input'
+        - '(?i)Smallest addition to proceed'
+      not_contains:
+        - "Verdict: CLEAN"
+        - "Verdict: CONCERNS"
+        - "Gate decision:"

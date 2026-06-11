@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Production incident RCA is not a fix batch
+description: |
+  A production incident root-cause analysis with no review findings to
+  batch must not activate the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    We had a 40-minute outage last night: the payment gateway connection
+    pool was exhausted after a deploy. Walk me through a blameless
+    root-cause analysis for the postmortem — timeline, contributing
+    factors, and prevention items. There is no code review involved; this is
+    an incident writeup.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/fix-batching-and-root-cause/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Fix Batch Plan"
+        - "BATCH-READY"
+        - "BATCH-PARTIAL"
+        - "Symptom-level and no-fix justifications"

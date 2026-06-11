@@ -1,0 +1,53 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Reviewer pushback on an existing oversized PR
+description: |
+  An existing PR drew "too big to review" feedback; the skill should plan
+  dependency-ordered slices.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Use pr-scope-slicer. My open PR got a "please split this, I can't review
+    it in one pass" comment.
+
+    Change inventory:
+    - New public interface NotificationChannel in src/notify/channel.ts
+      (~60 lines).
+    - Three implementations: email (~180 lines), SMS (~150 lines), webhook
+      (~170 lines), each with tests.
+    - Call-site adoption in src/orders/events.ts and src/auth/events.ts
+      (~120 lines) switching from direct mailer calls to the new channels.
+
+    All hand-written, about 680 changed lines across 14 files, single
+    concern (the notification abstraction). Our team has no written size
+    thresholds. Propose the slices and their order.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pr-scope-slicer/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - pr-scope-slicer
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Scope Slice Plan'
+        - '(?i)Size signals'
+        - '(?i)Verdict:\s*(SPLIT-RECOMMENDED|SPLIT-REQUIRED)'
+        - '(?i)\|\s*Order\s*\|\s*Slice\s*\|\s*Contents\s*\|\s*Review focus\s*\|\s*Depends on\s*\|'
+        - '(?is)\|\s*1\s*\|.{0,160}(NotificationChannel|interface|contract)'
+        - '(?i)Tradeoffs'
+      not_contains:
+        - "Verdict: SINGLE-PASS-OK"
+        - "Pre-Review Self-Audit Report"
+        - "Thread disposition:"

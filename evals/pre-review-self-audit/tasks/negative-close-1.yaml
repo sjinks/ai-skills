@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Reviewing someone else's PR is not a self-audit
+description: |
+  A request to review another person's pull request is reviewer-side work
+  and must not activate the author-side self-audit skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    A teammate opened a pull request that changes our session-cookie
+    handling. Please review their diff for problems and write review
+    comments I can post. I am the reviewer, not the author.
+
+    Diff: the Set-Cookie call in src/session.ts gains `SameSite=Lax` and
+    drops the explicit `Secure` attribute.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pre-review-self-audit/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Pre-Review Self-Audit Report"
+        - "Verdict: CLEAN"
+        - "Verdict: CONCERNS"
+        - "Outstanding before requesting review"

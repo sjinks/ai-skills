@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Performing the review is not formatting findings
+description: |
+  A request to review code and produce findings from scratch is review
+  work, not finding formatting, and must not activate the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Review this function for problems and tell me what you find:
+
+    ```python
+    def merge_users(primary, duplicate):
+        primary.orders += duplicate.orders
+        duplicate.delete()
+        primary.save()
+    ```
+
+    I have no draft comments yet — you are the reviewer here.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/review-finding-quality/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Finding Quality Report"
+        - "needs-author-input"
+        - "Dropped (non-findings)"

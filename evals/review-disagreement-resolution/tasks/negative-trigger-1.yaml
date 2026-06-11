@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Unrelated everyday prompt
+description: Unrelated everyday request must not activate the review-disagreement-resolution skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "Suggest a fair way for two roommates to split chores when one works from home."
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/review-disagreement-resolution/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Disagreement Resolution"
+        - "Thread disposition:"
+        - "NEEDS-EVIDENCE"
+        - "Non-blocking notes"

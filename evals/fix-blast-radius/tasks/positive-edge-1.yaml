@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Isolated fix is SAFE-TO-PUSH with full table
+description: |
+  A genuinely isolated fix must still trace all five surfaces explicitly,
+  report no impact found, and return SAFE-TO-PUSH without padded risks.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Run fix-blast-radius on this fix.
+
+    Finding addressed: F2 — typo in the log message "conection refused".
+
+    Fix: src/net/dialer.go — the literal string in one log call becomes
+    "connection refused". Context: the string is not parsed by any alerting
+    rule (confirmed: alerts match on the error code field, not the message),
+    not asserted in any test, not part of any API response, and there are no
+    mirrored code paths writing the same message. No other findings were
+    resolved in this cycle.
+
+    Trace all five surfaces explicitly even if the answer is boring; do not
+    invent risks to look thorough.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/fix-blast-radius/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - fix-blast-radius
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Fix Blast Radius Report'
+        - '(?i)Callers and call sites'
+        - '(?i)Shared state'
+        - '(?i)Contracts'
+        - '(?i)Behavioral siblings'
+        - '(?i)Resolved findings'
+        - '(?i)no impact found'
+        - '(?i)Verdict:\s*SAFE-TO-PUSH'
+      not_contains:
+        - "Verdict: VERIFY-FIRST"
+        - "Verdict: BLOCK"
+        - "Gate decision:"

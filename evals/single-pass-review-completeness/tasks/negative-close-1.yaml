@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Quick gut-check is not a structured complete pass
+description: |
+  An explicit request for a quick informal opinion on one aspect must not
+  activate the full single-pass structure.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Quick gut check, nothing formal: does this Python function name read
+    okay to you, or is `process_data_items_list` too clunky? One-line answer
+    is fine, I am not asking for a review of the code itself.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/single-pass-review-completeness/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Single-Pass Review Report"
+        - "Coverage declaration"
+        - "COMPLETE-PASS"
+        - "Coverage gaps"
