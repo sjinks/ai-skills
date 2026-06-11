@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Internal refactor with no exported surface
+description: |
+  A rename inside a private implementation file with no installed or
+  exported surface is out of scope and must not activate the skill.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    I'm renaming a helper class in src/internal/cache_impl.cpp and its
+    anonymous-namespace functions. Nothing in include/ changes and the class
+    is not exported. Any naming convention suggestions for private helpers?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-api-abi-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Compatibility promise:"
+        - "Checklist status:"

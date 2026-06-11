@@ -1,0 +1,53 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: noexcept removal and exception across extern C
+description: |
+  Review must activate on boundary-contract changes: removing noexcept from a
+  published function and letting exceptions reach an extern "C" callback.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Two API changes in our shared library (ABI-stable promise within the
+    major version) need review. First, we removed noexcept from a published
+    function because it can now allocate:
+
+    ```cpp
+    // before: void Buffer::swap(Buffer&) noexcept;
+    void Buffer::swap(Buffer& other);
+    ```
+
+    Second, our extern "C" plugin callback now calls into C++ code that may
+    throw:
+
+    ```cpp
+    extern "C" int plugin_tick(void* ctx) {
+      return static_cast<Engine*>(ctx)->tick(); // tick() may throw
+    }
+    ```
+
+    What breaks and what should we do?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-api-abi-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-api-abi-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)noexcept.{0,200}(remov|break|contract|move)'
+        - '(?i)(extern "C"|extern \"C\"|boundary).{0,200}(exception|throw|terminate)'
+        - '(?i)(catch|noexcept wrapper|error code|return code|translate)'
+        - '(?i)Findings:'

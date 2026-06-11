@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Member added to ABI-stable exported class
+description: |
+  Review must activate on a layout-breaking member addition under a stable
+  soname and classify it as a silent ABI break.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    We ship libwidget.so.3 with an ABI-stable promise within the major
+    version (GCC, libstdc++, Linux only). Review this diff to the installed
+    header:
+
+    ```diff
+     class WIDGET_EXPORT Widget {
+     public:
+       void draw() const;
+       virtual void resize(int w, int h);
+    +  virtual void invalidate();        // new virtual
+     private:
+       int w_, h_;
+    +  bool dirty_ = false;              // new member
+     };
+    ```
+
+    The soname stays libwidget.so.3. Return the verdict, compatibility
+    promise, findings, checklist status, and residual risk.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-api-abi-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-api-abi-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Compatibility promise:'
+        - '(?i)(vtable|virtual).{0,200}(break|layout|order|slot)|(break|layout).{0,200}(vtable|virtual)'
+        - '(?i)(member|size|layout).{0,160}(break|chang|shift)'
+        - '(?i)(soname|major|inline namespace|version)'
+        - '(?i)Checklist status:'
+      not_contains:
+        - "Egress policy:"
+        - "Text contract:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response identifies both silent ABI breaks under the
+        stated stable-soname promise:
+        - Adding the virtual function invalidate() extends the vtable, so
+          components built against the old header (notably downstream derived
+          types) disagree with the new library about vtable size/contents;
+          dispatching the new entry or mixing old and new binaries misbehaves.
+        - Adding the dirty_ member changes the object size/layout.
+        And that it requires a loud break (soname/major bump or inline
+        namespace) or a pimpl-style firewall rather than shipping under
+        libwidget.so.3. Verdict must be BLOCK.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

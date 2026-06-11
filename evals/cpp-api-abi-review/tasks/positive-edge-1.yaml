@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Safe additions under ABI promise must not be condemned
+description: |
+  Review must correctly classify additive, non-layout changes as binary-safe
+  under a documented ABI promise instead of blanket-blocking all change.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Under our documented ABI-stable promise (single toolchain: GCC 13,
+    libstdc++, Linux x86-64), is this diff to an installed header an ABI
+    break?
+
+    ```diff
+     class CORE_EXPORT Engine {
+     public:
+       void start();
+       void stop();
+    +  void pause();                       // new non-virtual member function
+    +  static int api_level() noexcept;    // new static
+     private:
+       Impl* impl_;                        // pimpl unchanged
+     };
+    +class CORE_EXPORT Telemetry { /* entirely new type */ };
+    ```
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-api-abi-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-api-abi-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(CLEAN|CONCERNS)'
+        - '(?i)(binary[- ]safe|ABI[- ](safe|compatible)|\bcompatible\b|not\s+an?\s+ABI\s+break|does\s+not\s+break)'
+        - '(?i)(layout|vtable|size).{0,160}(unchanged|not\s+affect|no\s+change)|(does\s+not|doesn.t|no)\s+(affect|change).{0,80}(layout|vtable|size)'
+      not_contains:
+        - "Verdict: BLOCK"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response correctly classifies the diff as NOT an
+        ABI break under the stated promise: adding a non-virtual non-special
+        member function, a static function, and an entirely new exported type
+        does not change layout, vtables, or existing symbols on common ABIs.
+        Bonus correctness: noting the new overload-resolution/source-compat
+        caveat or recommending an ABI-diff check does not lower the score. A
+        response that calls these additions an ABI break, or emits Verdict:
+        BLOCK, is wrong.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent
