@@ -154,7 +154,7 @@ Extract sources:
 python3 <this-skill-directory>/scripts/extract.py <source-path-or-glob>... --mode text
 ```
 
-The helper writes `full_text.md` (combined extracted text with source boundaries) and `metadata.json` (run metadata, source list, failures, estimated tokens) to a unique working directory printed after extraction.
+The helper writes `full_text.md` (combined extracted text with source boundaries) and `metadata.json` (run metadata, source list, failures, estimated tokens) to its output directory, printed after extraction. By default this is a unique temp working directory; `--output-dir` or `SOURCE_SKILL_WORKDIR` selects a stable or shared location (see the reference).
 
 Read `metadata.json` before generation. If extraction quality is low, stop at Analyze only and report the limitation instead of generating a confident skill. Use only non-sensitive metadata fields as provenance anchors (source title or URL, content hash, line ranges); never copy resolved paths, output directories, or CLI arguments into generated skills or source maps.
 
