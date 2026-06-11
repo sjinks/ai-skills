@@ -262,7 +262,7 @@ Adapt this matrix to the runtime and policy. Mark each item as covered, not appl
 
 ## Output Format
 
-Use this shape:
+Use this shape. List findings in severity order, highest first.
 
 ```text
 Intended behavior: <one or two sentences>
@@ -270,7 +270,7 @@ Intended behavior: <one or two sentences>
 Egress policy:
 - <scheme, host, port, private-network, DNS, connection-time, proxy, redirect, header, trusted private-target opt-in, and response policies>
 
-Findings (ordered by severity):
+Findings:
 1. <short title>
   Severity: CRITICAL | HIGH | MEDIUM | LOW
   Classification: <blocker | required test | accepted tradeoff | follow-up | not applicable>
