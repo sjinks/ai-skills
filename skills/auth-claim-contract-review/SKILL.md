@@ -47,6 +47,25 @@ Default `standard`. `quick` still reports missing context, blockers, unmitigated
 - **Freshness/revocation/lifetime:** enforce `exp`, `nbf`, `iat`, `auth_time`, session max age, revocation version, key rotation, logout, membership/role removal, and account disablement consistently, with explicit clock-skew policy.
 - **Tests/evidence:** cover valid, missing optional, missing required, null, blank, malformed, contradictory, unsupported, expired, stale, revoked, wrong issuer/audience/tenant/org/account/token type, mapping boundaries, confused-deputy cases, serialization/restore, refresh, rechallenge, propagation, and revocation/freshness. Fixtures must be redacted or synthetic.
 
+### Missing-vs-Invalid Example
+
+Wrong — truthiness collapses missing, empty, and malformed into one branch, and a malformed present value falls back to a default role:
+
+```ts
+const roles = token.claims.roles || ["viewer"]; // malformed/empty/missing all become viewer
+if (!token.claims.tenant_id) ctx.tenant = DEFAULT_TENANT; // missing AND blank both defaulted
+```
+
+Right — typed parser states with distinct outcomes; malformed present values reject rather than fall back:
+
+```ts
+const rolesClaim = parseRolesClaim(token.claims.roles);
+// -> { state: "valid", roles } | { state: "missing" } | { state: "malformed" }
+if (rolesClaim.state === "malformed") throw new InvalidTokenError("roles");
+const roles = rolesClaim.state === "missing" ? POLICY.defaultRoles : rolesClaim.roles;
+const tenant = parseRequiredClaim(token.claims.tenant_id); // throws on missing, blank, or wrong type
+```
+
 ## Severity, Classification, Verdict
 
 - `CRITICAL`: direct cross-tenant/account access, admin/service privilege, token/session extension, impersonation/delegation abuse, or invalid/revoked token acceptance in reachable flows.

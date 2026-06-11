@@ -262,15 +262,35 @@ Adapt this matrix to the runtime and policy. Mark each item as covered, not appl
 
 ## Output Format
 
-Return:
+Use this shape:
 
-- **Intended behavior:** One or two sentences.
-- **Egress policy:** Scheme, host, port, private-network, DNS, connection-time, proxy, redirect, header, trusted private-target opt-in, and response policies.
-- **Findings:** Ordered by severity, with classification, location, issue, impact, and suggested fix.
-- **Checklist status:** Mark each area as covered, not applicable, accepted tradeoff, intentionally deferred, or unresolved/blocking for URL normalization, IP ranges, DNS, connection-time lookup, proxies, ports, transport semantics, redirects, headers, trusted private-target opt-ins, shared policy, and tests.
-- **Adversarial tests:** Missing or newly added tests from the matrix.
-- **Compatibility decisions:** Host allowlist or broad public-host policy, with rationale.
-- **Residual risk:** Known gaps, defense-in-depth assumptions, and follow-up work.
+```text
+Intended behavior: <one or two sentences>
+
+Egress policy:
+- <scheme, host, port, private-network, DNS, connection-time, proxy, redirect, header, trusted private-target opt-in, and response policies>
+
+Findings:
+1. <short title>
+  Severity: <ordered by severity>
+  Classification: <blocker | required test | accepted tradeoff | follow-up | not applicable>
+  Location: <file:line or design reference>
+  Issue: <what is wrong>
+  Impact: <what an attacker gains>
+  Suggested fix: <specific change>
+
+Checklist status:
+- <area>: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
+  (areas: URL normalization, IP ranges, DNS, connection-time lookup, proxies, ports, transport semantics, redirects, headers, trusted private-target opt-ins, shared policy, tests)
+
+Adversarial tests: <missing or newly added tests from the matrix>
+
+Compatibility decisions: <host allowlist or broad public-host policy, with rationale>
+
+Residual risk: <known gaps, defense-in-depth assumptions, follow-up work, or None>
+```
+
+If there are no findings, write `Findings: None` and still complete the remaining sections.
 
 ## Definition Of Done
 
