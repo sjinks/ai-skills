@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: C++ source-level lifetime question in a CMake project
+description: |
+  A C++ source bug in a project that happens to use CMake is out of scope;
+  the skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    In our CMake-based project, this function returns a string_view to a
+    local std::string and crashes. Why does this dangle, and what should the
+    function return instead?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cmake-build-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Project shape:"
+        - "Dependency policy:"
+        - "Checklist status:"

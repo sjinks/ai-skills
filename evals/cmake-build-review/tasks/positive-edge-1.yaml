@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Multi-config generator break via CMAKE_BUILD_TYPE
+description: |
+  Review must catch build-type branching that silently does nothing on
+  multi-config generators and propose generator expressions.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Our Windows CI (Visual Studio generator) never gets the VERBOSE_LOG
+    define, but Linux Makefile builds do. Review:
+
+    ```cmake
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+      target_compile_definitions(app PRIVATE VERBOSE_LOG)
+      target_compile_options(app PRIVATE -fsanitize=address)
+    endif()
+    target_link_options(app PRIVATE -fsanitize=address)
+    ```
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cmake-build-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cmake-build-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS)'
+        - '(?i)(multi-config|Visual Studio|Ninja Multi)[\s\S]{0,250}(CMAKE_BUILD_TYPE|empty|not set|does nothing)|(CMAKE_BUILD_TYPE)[\s\S]{0,250}(multi-config|Visual Studio)'
+        - '(?i)\$<\$?<?CONFIG|generator expression'
+        - '(?i)(sanitize|asan)[\s\S]{0,250}(compile|link|both|mismatch)'
+        - '(?i)Findings:'
+        - '(?i)Checklist status:'
