@@ -58,7 +58,9 @@ If the diff is unavailable, emit the BLOCK template.
 
 | Dimension | Status | Reason if not swept |
 |-----------|--------|---------------------|
-<all eight dimensions>
+| <Correctness> | <swept \| skipped \| n/a> | <reason, or empty for swept> |
+
+One row per dimension, all eight dimensions.
 
 ### Findings
 

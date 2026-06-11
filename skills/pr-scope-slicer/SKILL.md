@@ -63,6 +63,7 @@ Verdict: SINGLE-PASS-OK | SPLIT-RECOMMENDED | SPLIT-REQUIRED | BLOCK
 
 | Order | Slice | Contents | Review focus | Depends on |
 |-------|-------|----------|--------------|------------|
+| <1> | <slice name> | <files/changes> | <what the reviewer verifies> | <none \| slice name> |
 
 ### Tradeoffs
 

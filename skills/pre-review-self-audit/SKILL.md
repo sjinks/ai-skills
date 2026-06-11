@@ -56,7 +56,9 @@ If the diff or change set is unavailable, emit the BLOCK template; do not audit 
 
 | # | Checklist item | Status | Notes |
 |---|----------------|--------|-------|
-<one row per checklist item; Status: pass | fail | n/a>
+| <1> | <Diff hygiene> | <pass \| fail \| n/a> | <evidence or reason> |
+
+One row per checklist item, all eight items.
 
 ### Findings
 

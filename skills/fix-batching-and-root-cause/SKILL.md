@@ -54,7 +54,7 @@ If no findings are provided, emit the BLOCK template; do not invent findings.
 
 | Cluster | Findings | Shared cause | Fix depth | Verification |
 |---------|----------|--------------|-----------|--------------|
-<Fix depth: root-cause | symptom-level | no-fix | cause-unknown>
+| <C1> | <F1, F3> | <evidenced cause> | <root-cause \| symptom-level \| no-fix \| cause-unknown> | <check that shows the cause is gone> |
 
 ### Symptom-level and no-fix justifications
 

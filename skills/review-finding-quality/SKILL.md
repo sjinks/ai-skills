@@ -52,6 +52,7 @@ Every finding must carry all five fields:
 
 | # | Status | Severity | Anchor |
 |---|--------|----------|--------|
+| <1> | <compliant \| rewritten \| needs-author-input> | <blocker \| should-fix \| suggestion \| unknown> | <file:line or behavior> |
 
 ### Findings
 

@@ -53,7 +53,7 @@ If only one position is available, emit the BLOCK template; do not argue a side 
 
 | Part | Classification | Anchor | Resolution |
 |------|----------------|--------|------------|
-<Classification: fact | standard | preference>
+| <1> | <fact \| standard \| preference> | <test, doc, or written rule> | <outcome and who acts> |
 
 ### Resolution detail
 
