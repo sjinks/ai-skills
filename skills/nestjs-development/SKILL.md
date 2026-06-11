@@ -240,6 +240,12 @@ propose a change of ORM, auth strategy, or test layering just to match a hint be
 - **Testing:** services → unit tests with mocks; controllers and contracts → e2e
   with Supertest; long-running flows → focused integration tests. Match the
   project's existing test layering and tooling.
+- **Microservices testing:** message handlers → unit tests that assert
+  idempotent handling of redelivered messages; transport contracts (Kafka,
+  NATS, gRPC, RabbitMQ) → integration tests against the project's existing
+  broker fixtures or test containers, covering delivery-failure, retry, and
+  out-of-order cases the transport allows. Document any handler that is
+  intentionally not idempotent.
 
 ## Output Format
 
