@@ -257,7 +257,7 @@ Adapt this matrix to the runtime and policy. Mark each item as covered, not appl
 3. Write or inspect the egress policy contract.
 4. Review implementation against URL normalization, IP policy, DNS, connection-time lookup, proxies, ports, transport semantics, redirects, headers, trusted private-target opt-ins, logging, and response handling.
 5. Review tests against the adversarial matrix and distinguish HTTP-mock coverage from DNS/socket coverage.
-6. Classify findings as blockers, required tests, accepted tradeoffs, follow-ups, or not applicable.
+6. Classify each finding as `blocker`, `required test`, `accepted tradeoff`, `follow-up`, or `not applicable`.
 7. If product compatibility conflicts with a strict host allowlist, document the chosen policy and the compensating runtime guardrails.
 
 ## Output Format
