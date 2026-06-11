@@ -86,7 +86,7 @@ These rules explain rationale; the Checklist below is the gating source of truth
 - The same normalization and casefolding policy is used for validation, storage, lookup, authorization, and display warnings.
 - Concatenating normalized strings is followed by a normalization check when the concatenation result is security-sensitive.
 
-Wrong — validate first, normalize after; NFKC can re-introduce rejected characters:
+Wrong — validate first, normalize after; the check runs on a form that is never stored, and NFKC can map characters that passed validation into restricted or colliding ones:
 
 ```python
 if is_safe_username(raw):          # checks raw form
