@@ -38,6 +38,5 @@ graders:
         - '(?i)(private constructor|tryCreate|ValidatedOrder|RawOrder)'
         - '(?i)(boundary|schema|compile-time|tests)'
       not_contains:
-        - 'Severity: high'
-        - 'Severity: medium'
+        - 'Severity:'
         - 'BLOCK'

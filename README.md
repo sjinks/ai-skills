@@ -312,6 +312,8 @@ It helps an assistant:
 
 This skill is aimed at architecture and code changes where correctness should be enforced through contracts, types, compiler feedback, or narrow runtime boundaries instead of scattered discipline and defensive checks.
 
+Source material: [Type-Safe by Design: Explorations in Software Architecture and Expressiveness](https://github.com/SanQri/safe-by-design/blob/a6b7aa22160c2ee3d461df064c0161e87e6a7087/book.pdf) by Mykola Haliullin.
+
 It helps an assistant:
 
 - review change-locality risks using Big O-style reasoning for rigidity, fragility, immobility, and viscosity
