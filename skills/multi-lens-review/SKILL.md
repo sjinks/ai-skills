@@ -19,7 +19,7 @@ Use this skill when a change is non-trivial enough that one lens alone would mis
 - A change where required fixes and follow-ups must be separated for a merge decision.
 - A review that has to reconcile tradeoffs between lenses (e.g. ergonomics vs. security, speed vs. correctness).
 
-Do not use it for single-lens questions that have an obvious owner (e.g. "is this regex correct?", "does this CSS validate?"). Prefer an installed/available focused skill (`adversarial-review`, `review-cycle-gatekeeper`, `ssrf-outbound-fetch-review`, `nestjs-code-review`, `nestjs-development`) when the work is squarely in its scope; reach for `multi-lens-review` when the work spans several of them.
+Do not use it for single-lens questions that have an obvious owner (e.g. "is this regex correct?", "does this CSS validate?"). When the work is squarely a single concern — one focused security check, one framework-specific review, one gate decision — handle it as a focused single-concern task; reach for `multi-lens-review` when the work spans several concerns.
 
 ## Boundaries
 
@@ -43,9 +43,7 @@ If the target is missing, unreadable, or too vague to identify intended behavior
 
 ## Lenses
 
-Apply only the lenses that add value. Each lens has a narrow question, a non-goal, and an expected output.
-
-A lens may delegate to an installed/available focused skill if the target falls squarely in that skill's scope (for example: `adversarial-review` from the Adversarial lens, `ssrf-outbound-fetch-review` or `nestjs-code-review` from the Security & Privacy or Implementation lens). When delegating, record the focused skill's verdict in the lens summary, identify the delegated report by an explicit identifier the caller can resolve (an inline appendix block, a reproduced report immediately following the multi-lens output, or a link to a prior emitted block), and do not duplicate the delegated findings.
+Apply only the lenses that add value. Each lens has a narrow question, a non-goal, and an expected output. Each lens produces its findings directly within this skill; this skill is standalone and does not delegate to other skills.
 
 ### 1. Intent / Spec
 
@@ -75,8 +73,7 @@ A lens may delegate to an installed/available focused skill if the target falls 
 
 - **Question:** What realistic edge, ordering, timeout, dependency, or misuse condition breaks the promise?
 - **Non-goal:** Hypothetical attacks unmoored from the target.
-- **Output (direct):** Failure modes with concrete triggers, recorded under `Findings:` with `Lens: Adversarial`.
-- **Output (delegated):** When the target warrants the full taxonomy and `adversarial-review` is installed/available, delegate to it; summarize its verdict, the count of its findings, and the worst severity in the `Lens findings:` line. Treat the delegated report as the canonical finding list — do not restate its entries under `Findings:`. The delegated verdict feeds the overall verdict per `## Severity And Verdict`.
+- **Output:** Failure modes with concrete triggers, recorded under `Findings:` with `Lens: Adversarial`.
 
 ### 6. Verification
 
@@ -101,7 +98,7 @@ Use severity for findings:
 - `MEDIUM`: credible but bounded impact; meaningful failure, regression, operational burden, or user harm worth fixing or tracking.
 - `LOW`: low likelihood or limited impact; localized ambiguity or minor maintainability risk worth noting.
 
-MEDIUM uses `credible` instead of `adversarial-review`'s `plausible` because this skill has a separate confidence axis (`medium` confidence is "plausible from the evidence"); reusing `plausible` on both axes would collapse impact and evidentiary strength into the same word. The two skills' severity remain semantically aligned — only the MEDIUM-impact adjective differs.
+MEDIUM uses `credible` for impact because this skill has a separate confidence axis (`medium` confidence is "plausible from the evidence"); using `plausible` on both axes would collapse impact and evidentiary strength into the same word.
 
 Use confidence per finding:
 
@@ -119,7 +116,7 @@ Use one overall verdict:
 
 1. Identify the target, intended behavior, and applicable lenses. State which lenses are skipped and why.
 2. Collect required input context; emit `BLOCK` if it is too thin to evaluate the target.
-3. Walk each selected lens in the order listed above (Intent / Spec → Design → Implementation → Security & Privacy → Adversarial → Verification). For each lens, write findings using its expected output shape. A lens may delegate to a focused skill when installed/available; record the delegated verdict in the lens summary. A lens with no finding records `None` rather than being omitted from the log.
+3. Walk each selected lens in the order listed above (Intent / Spec → Design → Implementation → Security & Privacy → Adversarial → Verification). For each lens, write findings using its expected output shape. A lens with no finding records `None` rather than being omitted from the log.
 4. Run Synthesis when the conditions in `## Synthesis` apply: deduplicate findings, reconcile conflicts (state the tradeoff explicitly and which lens wins), and identify coverage gaps. The synthesis outputs are recorded in the `Conflicts between lenses:`, `Required actions:`, `Follow-ups:`, and `Residual risk:` lines of the Output Format, and feed the overall verdict.
 5. Separate required actions (must clear before merge) from follow-ups (track but do not block).
 6. Assign the overall verdict and state residual risk.
@@ -175,4 +172,4 @@ When `Synthesis: skipped`, render `Conflicts between lenses: None` and populate 
 - Merging required fixes and follow-ups into one list, hiding the merge gate.
 - Stopping at "needs tests"; name the specific unverified behavior and the failure the test should catch.
 - Resolving lens conflicts silently. State the tradeoff and the winner.
-- Using this skill instead of an installed/available focused one when the work is squarely in the focused skill's scope.
+- Using this skill for work that is squarely a single concern; handle that as a focused single-concern task instead.

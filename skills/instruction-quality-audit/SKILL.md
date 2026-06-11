@@ -74,10 +74,10 @@ Provenance requirement:
 - Use `- Readable: yes` only for target artifacts with a readable, non-empty instruction body. Use `- Readable: no` for unreadable, invalid, or empty target artifacts, including blocked/unconfirmed reports.
 - For a confirmed duplicate set, `- Audited target:` must be the first supplied duplicate artifact path or item label before de-duplication. `- Duplicate sources:` must list the full confirmed duplicate source set in supplied order, including the representative.
 
-Example Provenance:
+Example Provenance (`<path-to-supplied-artifact>` is a placeholder for the actual supplied path):
 ```markdown
 Provenance:
-- Audited target: skills/agent-skill-audit/SKILL.md
+- Audited target: <path-to-supplied-artifact>
 - Origin: attachment
 - Readable: yes
 - Confirmation: explicit user confirmation

@@ -9,7 +9,7 @@ user-invocable: true
 
 Use this skill for standalone C++ coroutine work: coroutine type design, `promise_type`, awaiters, awaitables, tasks, generators, cancellation, scheduler integration, exception propagation, frame lifetime, allocation behavior, and coroutine-heavy control flow.
 
-This skill is standalone. Do not assume Boost.Asio, cppcoro, Folly, Qt, Unreal, or any specific coroutine library unless the local codebase already uses one. If the task is specifically about Boost.Asio `awaitable`, executors, strands, sockets, timers, or I/O cancellation, use the Boost.Asio skill.
+This skill is standalone. Do not assume Boost.Asio, cppcoro, Folly, Qt, Unreal, or any specific coroutine library unless the local codebase already uses one. Asio implementation details — `boost::asio::awaitable` I/O flow, executor/strand configuration, socket and timer usage, Asio cancellation wiring — are out of scope; coroutine-language work at a library boundary (such as preserving executor affinity when bridging) stays in scope via [interoperability](./references/interoperability.md).
 
 ## Routing
 
@@ -17,8 +17,8 @@ This skill is standalone. Do not assume Boost.Asio, cppcoro, Folly, Qt, Unreal, 
 - INVOKES: inspect local coroutine abstractions first for implementation or review; load reference packs only when the task needs their detail.
 - FOR SINGLE OPERATIONS: answer narrow coroutine questions directly after identifying frame ownership, suspension/resume behavior, and lifetime risk.
 - Use this skill for language-level C++ coroutine design: custom `promise_type`, awaiters, coroutine handles, frame lifetime, generators, cancellation contracts, scheduler bridges, symmetric transfer, and allocation behavior.
-- Prefer the Boost.Asio skill when the task is mainly about Asio executors, sockets, timers, strands, `co_spawn`, or `boost::asio::awaitable` I/O flow.
-- Prefer the Boost.Beast skill when the task is mainly about Beast HTTP/WebSocket parser, serializer, body, stream, or protocol behavior.
+- Out of scope: tasks mainly about Asio executors, sockets, timers, strands, `co_spawn`, or `boost::asio::awaitable` I/O flow.
+- Out of scope: tasks mainly about Beast HTTP/WebSocket parser, serializer, body, stream, or protocol behavior.
 
 ## DO NOT USE FOR:
 

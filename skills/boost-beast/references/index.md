@@ -14,7 +14,7 @@ Use this map to load the smallest useful part of the Boost.Beast skill package. 
 | Debug Beast behavior | [debugging](./debugging.md) | [error mapping](./error-mapping.md), [observability](./observability.md) |
 | Produce a code review | [review checklist](./review-checklist.md) | [review templates](../assets/review-templates.md), task-specific references |
 | Plan tests | [testing](./testing.md) | [HTTP fixtures](../assets/http-fixtures.md), [threat model](./threat-model.md) |
-| Check version compatibility | [version notes](./version-notes.md) | Boost.Asio skill for executor and coroutine foundations |
+| Check version compatibility | [version notes](./version-notes.md) | Boost release notes for executor and coroutine foundations |
 
 ## Overlap Rules
 

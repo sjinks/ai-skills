@@ -7,9 +7,9 @@ user-invocable: true
 
 # Boost.Asio Skill
 
-Use this skill for C++ networking and concurrency work built on Boost.Asio, including `boost::asio::awaitable`, composed operations, executors, strands, timers, sockets, TLS streams, and sessions. For HTTP, WebSocket, or protocol-specific design, consult the Boost.Beast skill.
+Use this skill for C++ networking and concurrency work built on Boost.Asio, including `boost::asio::awaitable`, composed operations, executors, strands, timers, sockets, TLS streams, and sessions. HTTP and WebSocket protocol semantics and parser/serializer policy are out of scope; transport-layer work that carries those protocols (such as WebSocket/SSE transport flows) stays in scope.
 
-This skill focuses on Asio-specific constructs. The term `awaitable` here refers to `boost::asio::awaitable<T>`, Asio's coroutine return type. For general C++20 awaitable design and awaiter protocol, use the C++ Coroutines skill.
+This skill focuses on Asio-specific constructs. The term `awaitable` here refers to `boost::asio::awaitable<T>`, Asio's coroutine return type. General C++20 awaitable design and the awaiter protocol are out of scope.
 
 ## Routing
 
@@ -17,8 +17,8 @@ This skill focuses on Asio-specific constructs. The term `awaitable` here refers
 - INVOKES: inspect local code patterns first for implementation or review; load reference packs only when the task needs their detail.
 - FOR SINGLE OPERATIONS: answer narrow Asio questions directly after identifying the async boundary, executor model, and lifetime/cancellation risk.
 - Use this skill for Asio execution, I/O, timers, cancellation, socket/stream lifetime, strands, and `boost::asio::awaitable` flows.
-- Prefer the Boost.Beast skill when the hard part is HTTP, WebSocket, parser/serializer policy, request smuggling, body limits, or Beast stream behavior.
-- Prefer the C++ Coroutines skill when the hard part is language-level coroutine mechanics, custom `promise_type`, custom awaiters, generators, symmetric transfer, or frame ownership outside Asio.
+- Out of scope: tasks where the hard part is HTTP, WebSocket, parser/serializer policy, request smuggling, body limits, or Beast stream behavior.
+- Out of scope: tasks where the hard part is language-level coroutine mechanics, custom `promise_type`, custom awaiters, generators, symmetric transfer, or frame ownership outside Asio.
 
 ## DO NOT USE FOR:
 
@@ -32,7 +32,7 @@ This skill focuses on Asio-specific constructs. The term `awaitable` here refers
 - Prefer C++20 coroutine APIs for new asynchronous flows unless the surrounding codebase already uses callback-style composed operations.
 - Keep low-level transport concerns below application or protocol layers. Let the transport layer own Asio objects, sockets, TLS streams, sessions, parser adapters, security limits, streaming primitives, and connection lifecycle.
 - When using Boost.Beast or another protocol parser, place it behind a parser adapter. Normalize parser behavior there, enforce the strictness gate before constructing public application request objects, and keep parser-specific leniency from leaking into higher layers.
-- For pure C++20 coroutine language mechanics, such as `promise_type`, `std::coroutine_handle`, awaiter protocol, suspension points, frame lifetime, and scheduler-agnostic coroutine design, use the C++ Coroutines skill.
+- Pure C++20 coroutine language mechanics — `promise_type`, `std::coroutine_handle`, awaiter protocol, suspension points, frame lifetime, and scheduler-agnostic coroutine design — are out of scope for this skill.
 
 ## When To Use
 
@@ -64,7 +64,6 @@ Load these only when the task needs the extra detail:
 - Use [review checklist](./references/review-checklist.md) for a reusable Asio code-review output template.
 - Use [observability](./references/observability.md) for logs, metrics, traces, close reasons, and async state signals that make Asio failures diagnosable.
 - Use [hardening and migration](./references/hardening-and-migration.md) for failure injection, sync-to-async migration, callback-to-coroutine migration, version notes, and glossary terms.
-- For C++20 coroutine language mechanics, awaiter protocol, and scheduler-independent coroutine design, use the C++ Coroutines skill.
 
 ## Procedure
 
