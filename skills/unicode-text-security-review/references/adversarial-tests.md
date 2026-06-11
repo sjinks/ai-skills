@@ -46,7 +46,7 @@ Adapt each class to the runtime and product policy. In the test plan, mark each 
 - Limits measured in different units (bytes, code units, code points, graphemes) across layers.
 - Truncation inside multibyte sequences, surrogate pairs, or combining clusters.
 - Truncation that removes a blocked suffix or changes validation outcome.
-- Normalization expansion (up to 3x) against length caps, in both limit-then-normalize and normalize-then-limit orders.
+- Normalization and casefolding expansion against length caps, tested in both limit-then-normalize and normalize-then-limit orders for the chosen policy; compatibility mappings (NFKC/NFKD) and full casefolding can expand well beyond canonical-form bounds.
 
 ## Encoding Layers
 

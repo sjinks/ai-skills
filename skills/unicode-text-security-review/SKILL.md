@@ -4,6 +4,7 @@ description: "Use when: reviewing, designing, implementing, or testing security-
 argument-hint: "Describe the text input boundary, encoding/normalization policy, security decision, downstream consumer, and tests."
 user-invocable: true
 ---
+
 # Unicode Text Security Review
 
 Use this skill when untrusted text crosses an encoding, normalization, comparison, storage, or display boundary and the result affects a security decision, identifier, lookup, routing decision, database query, path/URL policy, allowlist, denylist, or audit trail.
@@ -63,7 +64,7 @@ These rules explain rationale; the Checklist below is the gating source of truth
 - When text reaches logs, terminals, diffs, code review, or other plain-text surfaces, treat bidirectional controls (U+202A-U+202E, U+2066-U+2069), zero-width characters, and U+2028/U+2029 line separators as injection-capable: they can reorder display, hide content, forge log lines, or break JS/JSON string contexts.
 - When regexes enforce security policy, verify the engine's Unicode semantics for `\w`, `\d`, `\s`, `.`, anchors, and case-insensitive mode; the same pattern can pass in tests and fail in production on another engine.
 - When regexes run on astral characters (above U+FFFF), verify whether the engine matches them as one code point or two surrogate halves; quantifiers and character classes behave differently in each mode.
-- When normalizing or casefolding untrusted text, bound the input first: NFC/NFD can expand up to 3x in code units and casefolding can grow strings, so normalize-after-limit and limit-after-normalize give different costs and results - pick one ordering and test it.
+- When normalizing or casefolding untrusted text, bound the input first: normalization and casefolding can expand strings multi-fold (canonical forms are bounded, but compatibility mappings such as NFKC and full casefolding can expand much further), so normalize-after-limit and limit-after-normalize give different costs and results - pick one ordering and test it against the specific policy and runtime.
 - When comparing secrets, passwords, or tokens, decide normalization explicitly (for example a SASLprep-like profile or exact bytes); silent normalization differences between enrollment and verification cause both false accepts and lockouts.
 - When hostnames or emails are compared, compare a single canonical form (IDNA/punycode plus lowercase) on both sides; mixing Unicode-form and ACE-form comparisons defeats allowlists.
 
