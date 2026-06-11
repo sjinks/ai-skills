@@ -27,6 +27,15 @@ inputs:
       source of each one.
     - When a proposed action has no owner, treat it as not actionable.
     - When the incident involved customer data, include a privacy-review gate.
+
+    Provenance metadata excerpt from the extraction run, for provenance handling
+    only:
+    - title: Incident Review Facilitation Notes
+    - resolved_path: /home/alex/private/workshop/incident-notes.md
+    - output_dir: /tmp/source_skill_work_sensitive123
+    - workspace_storage: /Users/alex/Library/Application Support/Code/User/workspaceStorage/session
+    - argv: ["/home/alex/private/workshop/incident-notes.md", "--mode", "technical"]
+    - sha256: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
 expected:
   should_trigger: true
 graders:
@@ -60,6 +69,14 @@ graders:
         - "skills/source-to-skill/scripts/extract.py"
         - "No material findings"
         - "Fact-Check Summary"
+        - "/home/"
+        - "/Users/"
+        - "C:\\Users"
+        - "/tmp/source_skill_work"
+        - "workspaceStorage"
+        - "metadata.json argv"
+        - "Source file name:"
+        - "Extraction quality:"
   - type: prompt
     name: task_completion_substance
     config:
@@ -73,6 +90,13 @@ graders:
           workflow, decision rules, validation, and provenance guidance.
         - It reports source material, changed files, trigger terms,
           validation, and limitations.
+        - It does not put local absolute paths, temporary extraction workdirs,
+          workspace storage paths, or extractor CLI argv into generated skill
+          provenance or the completion report.
+        - It keeps generated source provenance concise: no meta-summary line
+          that merely enumerates nearby fields, no standalone source filename
+          when stronger identity exists, and no clean-run extraction method or
+          quality statistics unless they affect confidence or limitations.
 
         Output format (strict):
         - Write one sentence of reasoning on its own line.
