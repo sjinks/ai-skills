@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Broken install export with build-tree paths
+description: |
+  Review must activate on an installed target whose export bakes in
+  build-tree include paths and lacks config/version files.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    External consumers report that find_package(widget) works on my machine
+    but fails on theirs with include paths pointing into /home/me/src. Review
+    the install/export setup:
+
+    ```cmake
+    add_library(widget src/widget.cpp)
+    target_include_directories(widget PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    install(TARGETS widget EXPORT widgetTargets LIBRARY DESTINATION lib)
+    install(EXPORT widgetTargets DESTINATION lib/cmake/widget)
+    # no config file, no version file
+    ```
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cmake-build-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cmake-build-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS)'
+        - '(?i)(BUILD_INTERFACE|INSTALL_INTERFACE)'
+        - '(?i)(absolute|build[- ]tree|source dir)[\s\S]{0,200}(path|export|leak)'
+        - '(?i)(Config\.cmake|config file|configure_package_config_file|version file|ConfigVersion)'
+        - '(?i)Findings:'
+        - '(?i)Checklist status:'

@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Visibility leak and directory-scoped flags
+description: |
+  Review must activate on a PUBLIC over-link of a private dependency and
+  directory-scoped include/flag commands.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this CMakeLists.txt for an installed library (CMake 3.25,
+    consumers use find_package):
+
+    ```cmake
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+    add_definitions(-DCORE_BUILD)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
+
+    add_library(core src/core.cpp src/tls.cpp)
+    # OpenSSL is used only inside tls.cpp, never in public headers
+    target_link_libraries(core PUBLIC OpenSSL::SSL)
+    ```
+
+    Return the verdict, project shape, findings, checklist status, and
+    residual risk.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cmake-build-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cmake-build-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS)'
+        - '(?i)(PUBLIC)[\s\S]{0,250}(PRIVATE|private)'
+        - '(?i)(include_directories|add_definitions|CMAKE_CXX_FLAGS|directory[- ]scope)'
+        - '(?i)(target_include_directories|target_compile_definitions|target_compile_options|target-based)'
+        - '(?i)Checklist status:'
+      not_contains:
+        - "Error policy:"
+        - "Compatibility promise:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response identifies these issues:
+        - OpenSSL::SSL is linked PUBLIC although it is used only in a .cpp
+          file, so every consumer over-links OpenSSL; it must be PRIVATE.
+        - include_directories/add_definitions/CMAKE_CXX_FLAGS edits are
+          directory-scoped global state and must become target_* calls; the
+          include dir on an installed target also needs
+          BUILD_INTERFACE/INSTALL_INTERFACE treatment.
+        - -Werror must not be forced on consumers.
+        A correct response uses the skill's structured sections.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

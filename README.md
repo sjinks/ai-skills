@@ -20,6 +20,7 @@ At the moment, the repository contains these skills:
 - `auth-claim-contract-review`: guidance for reviewing auth/security claim contracts across JWT, OIDC, SAML, token, and session flows, including optional claims, missing-vs-invalid semantics, issuer-validator-consumer drift, authorization mapping, propagation, serialization, revocation, freshness, fallback defaults, and confused-deputy risks.
 - `boost-asio`: guidance for designing, implementing, reviewing, debugging, and testing Boost.Asio async I/O, executors, strands, timers, sockets, cancellation, backpressure, TLS streams, and coroutine flows.
 - `boost-beast`: guidance for Boost.Beast HTTP/WebSocket parser, serializer, body, stream, TLS, protocol-adapter, limits, strictness, lifecycle, and testing work.
+- `cmake-build-review`: guidance for reviewing target-based CMake builds, including PUBLIC/PRIVATE/INTERFACE propagation, find_package vs FetchContent policy, install/export and package config correctness, generator expressions, multi-config behavior, and sanitizer/LTO/warning configuration.
 - `cpp-concurrency-review`: guidance for reviewing C++ multithreaded code using standard primitives, including data races, lock ordering and deadlock, condition-variable protocols, atomic memory ordering, thread lifecycle, and shutdown semantics.
 - `cpp-coroutines`: guidance for C++20 coroutine types, promises, awaiters, handles, generators, frame lifetime, scheduler bridges, cancellation, symmetric transfer, allocation behavior, and tests.
 - `cpp-object-lifetime`: guidance for reviewing C++ object lifetime and ownership, including dangling pointers/references/views, iterator and reference invalidation, lambda capture lifetime, use-after-move, smart-pointer boundaries, and async handoff safety.
@@ -111,6 +112,19 @@ It helps an assistant:
 - design or review HTTP parsers, serializers, body types, WebSocket sessions, TLS stream behavior, parser adapters, and protocol-facing tests
 - enforce body/header limits, strictness gates, parser differential handling, close/drain/keep-alive policy, and request-smuggling-resistant framing decisions
 - use role-specific, debugging, hardening, testing, and observability references without overloading the main skill file
+
+### `cmake-build-review`
+
+This skill is aimed at CMake build configuration where target structure, usage-requirement propagation, dependency sourcing, and install/export correctness determine whether builders and consumers get a working, maintainable build.
+
+It helps an assistant:
+
+- derive PUBLIC/PRIVATE/INTERFACE visibility from the header surface and catch over-linking and propagation leaks
+- replace directory-scoped commands and global flag mutation with target-based equivalents
+- consume dependencies as imported targets under an explicit find_package/FetchContent policy with version constraints
+- review install/export setups: export sets, config and version files, BUILD_INTERFACE/INSTALL_INTERFACE include paths
+- keep configuration logic multi-config-safe with generator expressions and make sanitizers/LTO/warnings opt-in, per-target, compile-and-link consistent
+- return `BLOCK`, `CONCERNS`, or `CLEAN` with project shape, findings, checklist status, verification expectations, and an insufficient-context template
 
 ### `cpp-concurrency-review`
 

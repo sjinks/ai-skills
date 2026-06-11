@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: CI pipeline caching question
+description: |
+  CI pipeline structure (stages, caching, runners) is out of scope even when
+  the project builds with CMake.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Our GitHub Actions workflow rebuilds everything from scratch each run.
+    How should we structure the job matrix and cache (actions/cache vs
+    sccache) so CMake builds reuse artifacts across runs?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cmake-build-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Project shape:"
+        - "Dependency policy:"
+        - "Checklist status:"

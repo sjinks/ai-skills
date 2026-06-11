@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Insufficient context without any CMake code
+description: |
+  A propagation complaint with no CMakeLists supplied must produce the
+  reduced BLOCK template.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Consumers of our library say they don't inherit our include directories
+    through target_link_libraries. I can't paste the CMakeLists right now.
+    What's wrong with it?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cmake-build-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cmake-build-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Open question'
+        - '(?i)(CMakeLists|code|target)'
+        - '(?i)(unknown|missing|cannot|unavailable|not\s+(shared|provided|supplied|shown|available|pasted))'
+      not_contains:
+        - "Checklist status:"
+        - "Residual risk:"
