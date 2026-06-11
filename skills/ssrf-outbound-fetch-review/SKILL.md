@@ -172,20 +172,40 @@ Use the full matrix in [references/adversarial-test-matrix.md](./references/adve
 3. Write or inspect the egress policy contract.
 4. Review implementation against URL normalization, IP policy, DNS, connection-time lookup, proxies, ports, transport semantics, redirects, headers, trusted private-target opt-ins, logging, and response handling.
 5. Review tests against the adversarial matrix and distinguish HTTP-mock coverage from DNS/socket coverage.
-6. Classify findings as blockers, required tests, accepted tradeoffs, follow-ups, or not applicable.
+6. Classify each finding as `blocker`, `required test`, `accepted tradeoff`, `follow-up`, or `not applicable`.
 7. If product compatibility conflicts with a strict host allowlist, document the chosen policy and the compensating runtime guardrails.
 
 ## Output Format
 
-Return:
+Use this shape. List findings in severity order, highest first.
 
-- **Intended behavior:** One or two sentences.
-- **Egress policy:** Scheme, host, port, private-network, DNS, connection-time, proxy, redirect, header, trusted private-target opt-in, and response policies.
-- **Findings:** Ordered by severity, with classification, location, issue, impact, and suggested fix.
-- **Checklist status:** Mark each area as covered, not applicable, accepted tradeoff, intentionally deferred, or unresolved/blocking for URL normalization, IP ranges, DNS, connection-time lookup, proxies, ports, transport semantics, redirects, headers, trusted private-target opt-ins, shared policy, and tests.
-- **Adversarial tests:** Missing or newly added tests from the matrix.
-- **Compatibility decisions:** Host allowlist or broad public-host policy, with rationale.
-- **Residual risk:** Known gaps, defense-in-depth assumptions, and follow-up work.
+```text
+Intended behavior: <one or two sentences>
+
+Egress policy:
+- <scheme, host, port, private-network, DNS, connection-time lookup, proxy, redirect, header, trusted private-target opt-in, and response policies>
+
+Findings:
+1. <short title>
+  Severity: CRITICAL | HIGH | MEDIUM | LOW
+  Classification: <blocker | required test | accepted tradeoff | follow-up | not applicable>
+  Location: <file:line or design reference>
+  Issue: <what is wrong>
+  Impact: <what an attacker gains>
+  Suggested fix: <specific change>
+
+Checklist status:
+- <area>: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
+  (areas: URL normalization, IP ranges, DNS, connection-time lookup, proxies, ports, transport semantics, redirects, headers, trusted private-target opt-ins, shared policy, tests)
+
+Adversarial tests: <missing or newly added tests from the matrix>
+
+Compatibility decisions: <host allowlist or broad public-host policy, with rationale>
+
+Residual risk: <known gaps, defense-in-depth assumptions, follow-up work, or None>
+```
+
+If there are no findings, write `Findings: None` and still complete the remaining sections.
 
 ## Definition Of Done
 

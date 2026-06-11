@@ -86,6 +86,23 @@ These rules explain rationale; the Checklist below is the gating source of truth
 - The same normalization and casefolding policy is used for validation, storage, lookup, authorization, and display warnings.
 - Concatenating normalized strings is followed by a normalization check when the concatenation result is security-sensitive.
 
+Wrong — validate first, normalize after; the check runs on a form that is never stored, and NFKC can map characters that passed validation into restricted or colliding ones:
+
+```python
+if is_safe_username(raw):          # checks raw form
+    name = unicodedata.normalize("NFKC", raw)  # "①admin" -> "1admin" after the check
+    db.create_user(name)
+```
+
+Right — normalize (or reject) at the boundary, then validate and use the same form everywhere:
+
+```python
+name = unicodedata.normalize("NFKC", raw)
+if not is_safe_username(name):     # validates the form that will be stored and compared
+    raise ValidationError("username")
+db.create_user(name)               # storage, lookup, and uniqueness all use `name`
+```
+
 ### Parser And Consumer Drift
 
 - The validator and downstream parser agree on code points for syntax-significant characters such as NUL, quotes, slash, backslash, dot, colon, at-sign, percent, control characters, and whitespace.
