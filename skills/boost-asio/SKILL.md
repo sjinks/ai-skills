@@ -7,7 +7,7 @@ user-invocable: true
 
 # Boost.Asio Skill
 
-Use this skill for C++ networking and concurrency work built on Boost.Asio, including `boost::asio::awaitable`, composed operations, executors, strands, timers, sockets, TLS streams, and sessions. HTTP, WebSocket, and protocol-specific parser/serializer design are out of scope.
+Use this skill for C++ networking and concurrency work built on Boost.Asio, including `boost::asio::awaitable`, composed operations, executors, strands, timers, sockets, TLS streams, and sessions. HTTP and WebSocket protocol semantics and parser/serializer policy are out of scope; transport-layer work that carries those protocols (such as WebSocket/SSE transport flows) stays in scope.
 
 This skill focuses on Asio-specific constructs. The term `awaitable` here refers to `boost::asio::awaitable<T>`, Asio's coroutine return type. General C++20 awaitable design and the awaiter protocol are out of scope.
 
