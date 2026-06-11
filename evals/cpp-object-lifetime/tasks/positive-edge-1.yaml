@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Insufficient context on a bare ownership question
+description: |
+  A prompt with no resolvable owner/borrower relationship must produce the
+  reduced BLOCK template, without guessed owners or checklist status.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Somewhere in our codebase a function stores a `std::span<const char>` in
+    a long-lived registry. I can't share the code. Is that a lifetime bug?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-object-lifetime/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-object-lifetime
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Open question'
+        - '(?i)(owner|backing|storage|code)'
+        - '(?i)(unknown|missing|cannot|unavailable|not\s+(shared|provided|supplied|shown|available|visible))'
+      not_contains:
+        - "Checklist status:"
+        - "Residual risk:"

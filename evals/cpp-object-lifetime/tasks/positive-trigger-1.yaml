@@ -1,0 +1,86 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Escaping string_view and reallocation invalidation
+description: |
+  Review must activate on a view escaping its owner and a reference held
+  across vector reallocation.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this C++ code for object lifetime issues.
+
+    ```cpp
+    class Catalog {
+    public:
+      std::string_view title() const {
+        std::string t = prefix_ + name_;
+        return t; // build full title
+      }
+      void add(Item item) {
+        Item& slot = items_.emplace_back(std::move(item));
+        index_.push_back(&slot);
+        items_.shrink_to_fit();
+      }
+    private:
+      std::string prefix_, name_;
+      std::vector<Item> items_;
+      std::vector<Item*> index_;
+    };
+    ```
+
+    Return the verdict, owners/borrowers, findings, checklist status, and
+    residual risk.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-object-lifetime/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-object-lifetime
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)(Owners|Borrowers):'
+        - '(?i)(dangl|local|temporary)'
+        - '(?i)(string_view|view).{0,200}(return|local|destro)|(return|local|destro).{0,200}(string_view|view)'
+        - '(?i)(realloc|shrink_to_fit|invalidat)'
+        - '(?i)Checklist status:'
+      not_contains:
+        - "Egress policy:"
+        - "Text contract:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response identifies both lifetime bugs:
+        - title() returns a string_view backed by a local std::string that is
+          destroyed at return (dangling view).
+        - add() stores a pointer to an element of items_ and then calls
+          shrink_to_fit(), which may reallocate and dangle every pointer in
+          index_ (and the slot reference).
+        A correct response uses the skill's structured sections and proposes
+        ownership/API fixes (return std::string by value; rebuild or avoid the
+        pointer index across mutation).
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

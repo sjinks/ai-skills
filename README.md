@@ -22,6 +22,7 @@ At the moment, the repository contains these skills:
 - `boost-beast`: guidance for Boost.Beast HTTP/WebSocket parser, serializer, body, stream, TLS, protocol-adapter, limits, strictness, lifecycle, and testing work.
 - `cpp-concurrency-review`: guidance for reviewing C++ multithreaded code using standard primitives, including data races, lock ordering and deadlock, condition-variable protocols, atomic memory ordering, thread lifecycle, and shutdown semantics.
 - `cpp-coroutines`: guidance for C++20 coroutine types, promises, awaiters, handles, generators, frame lifetime, scheduler bridges, cancellation, symmetric transfer, allocation behavior, and tests.
+- `cpp-object-lifetime`: guidance for reviewing C++ object lifetime and ownership, including dangling pointers/references/views, iterator and reference invalidation, lambda capture lifetime, use-after-move, smart-pointer boundaries, and async handoff safety.
 - `dependency-audit`: guidance for auditing application and tooling dependencies for known vulnerabilities, license risk, maintenance health, abandoned packages, unused dependencies, dependency bloat, transitive risk, and supply-chain integrity.
 - `equivalence-class-audit`: guidance for turning one concrete defect, incident, review finding, test failure, or bug report into a locked-scope audit of equivalent defects across sibling fields, mirror use sites, bounds, contracts, paths, modes, tests, docs, and projections.
 - `factcheck`: guidance for verifying factual claims, citations, drafts, source support, evidence quality, verdicts, confidence, correction proposals, and uncertainty in report-only-first mode.
@@ -134,6 +135,18 @@ It helps an assistant:
 - design or review `task`, `generator`, custom awaiters, callback adapters, `promise_type`, `final_suspend`, continuation chaining, symmetric transfer, and custom frame allocation
 - identify lifetime bugs such as dangling frames, dangling awaiters, double resume, missed resume, swallowed exceptions, detached work, and scheduler surprises
 - plan deterministic tests for suspension, resumption, cancellation, early destruction, exception paths, scheduler hops, and frame-lifetime invariants
+
+### `cpp-object-lifetime`
+
+This skill is aimed at C++ code where a pointer, reference, view, iterator, or callback borrows storage owned by another object and the outlives-relationship is not enforced by construction.
+
+It helps an assistant:
+
+- map owners and borrowers, then check every borrow interval against moves, reallocation, container mutation, scope exit, and destruction order
+- catch escaping `string_view`/`span`, references returned to locals, references held across `push_back`/`erase`, and iterator invalidation per container rules
+- review lambda captures, stored callbacks, and async handoff so `this` and references cannot be used after their owners are destroyed
+- enforce move-semantics discipline (moved-from objects limited to destruction, assignment, precondition-free operations, and specified post-move states) and smart-pointer ownership boundaries with `weak_ptr` cycle breaks
+- return `BLOCK`, `CONCERNS`, or `CLEAN` with owners/borrowers, findings, checklist status, test expectations, and an insufficient-context template
 
 ### `dependency-audit`
 
