@@ -1,6 +1,6 @@
 ---
 name: equivalence-class-audit
-description: "Use when: a concrete defect, incident, review finding, test failure, or bug report suggests a class of equivalent defects across sibling fields, mirror use sites, inverse operations, bounds, contracts, authorization surfaces, paths, modes, tests, docs, or source-of-truth projections."
+description: "Use when: a concrete defect, incident, review finding, PR review comment, test failure, or bug report suggests a class of equivalent defects across sibling fields, mirror use sites, inverse operations, bounds, contracts, authorization surfaces, paths, modes, tests, docs, or source-of-truth projections."
 argument-hint: "Triggering finding plus the locked audit scope: files, modules, API surfaces, specs, tests, or artifacts to audit."
 user-invocable: true
 ---

@@ -29,6 +29,12 @@ applyTo: skills/**, evals/**
 - In task YAML, write regexes containing backslashes as single-quoted scalars; double-quoted scalars break on `\+`, `\s`, etc.
 - Register new suites in `evals/README.md`: add the calibrated trigger threshold (default 0.45 for `Use when:`-style descriptions) and the token-budget listing.
 
+## Review-Fix Discipline
+
+- When a review comment flags terminology, label, enum-literal, singular/plural, or section-name drift in a skill, treat it as one instance of a defect class: before pushing, sweep the whole artifact (templates, procedure steps, checklist, references, examples) for the same class — for example by running the `equivalence-class-audit` skill with the comment as the triggering finding. Do not fix only the flagged line.
+- When editing one item in a uniform list or template, re-check the edited item against its siblings' shape (same fields, same `Fix:`/label structure, same placeholder style) before committing.
+- Never change an output label, enum value, or section name as a side effect of another fix; label changes are deliberate contract changes that require an eval-assertion check.
+
 ## Validation
 
 - Run `waza check skills/<name>` and `git diff --check` after changes. Eval schema and all task files must validate.
