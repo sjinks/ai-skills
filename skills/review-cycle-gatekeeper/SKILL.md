@@ -35,7 +35,22 @@ Use these severity levels consistently:
 - `Medium`: likely regression, contract mismatch, weak error handling, or meaningful operational risk.
 - `Low`: maintainability or clarity issue with limited near-term risk. Advisory only.
 
-Input mapping: when supplied findings use a four-level vocabulary (`CRITICAL`/`HIGH`/`MEDIUM`/`LOW`), collapse it for the gate as `CRITICAL` → `High`, `HIGH` → `High`, `MEDIUM` → `Medium`, `LOW` → `Low`. When the distinction matters for a waiver decision, preserve the original label in the findings matrix `evidence` column (e.g., `orig_severity: CRITICAL`); keep the `id` column stable and free of severity annotations.
+### Severity Normalization
+
+When supplied findings use a four-level vocabulary, collapse it for the gate:
+
+| Input label | Gate severity |
+|-------------|---------------|
+| `CRITICAL`  | `High`        |
+| `HIGH`      | `High`        |
+| `MEDIUM`    | `Medium`      |
+| `LOW`       | `Low`         |
+
+Rules:
+
+1. Apply the mapping above before evaluating the Gate Rules.
+2. When the original label matters for a waiver decision, preserve it in the findings matrix `evidence` column (e.g., `orig_severity: CRITICAL`).
+3. Keep the `id` column stable and free of severity annotations.
 
 ## Finding States
 
