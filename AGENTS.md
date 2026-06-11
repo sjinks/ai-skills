@@ -14,3 +14,4 @@ When creating or updating skills:
 - Check persona consistency: identify places where the expected tone, personality, or role contradicts itself.
 - Check cognitive load: simplify deeply nested conditions, too many competing priorities, and unclear precedence.
 - Check semantic coverage: add guidance for scenarios or edge cases where the model would otherwise have to guess.
+- For skill/eval contract changes, align skill wording and eval assertions before finalizing: confirm canonical output labels and exact spelling; representative selection rules such as first supplied item; provenance shape such as full source set vs additional sources only; consistency across skill wording, eval regexes, and negative assertions; and sibling skills/evals with the same contract pattern.
