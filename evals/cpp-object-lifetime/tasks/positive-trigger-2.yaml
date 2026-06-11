@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Lambda capturing this posted to a timer
+description: |
+  Review must activate on a stored callback capturing this that can run after
+  the owner is destroyed.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this class for lifetime safety. `Scheduler::post_delayed` stores
+    the callback and runs it on a background thread after the delay; there is
+    no cancellation API in use here.
+
+    ```cpp
+    class CacheWarmer {
+    public:
+      explicit CacheWarmer(Scheduler& s) : sched_(s) {
+        sched_.post_delayed(std::chrono::seconds(30), [this] { warm(); });
+      }
+      ~CacheWarmer() = default;
+    private:
+      void warm();
+      Scheduler& sched_;
+    };
+    ```
+
+    What are the findings and required guards?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-object-lifetime/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-object-lifetime
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)(capture|\[this\]|`this`|\bthis\b)'
+        - '(?i)(destro|outliv|dangl|use-after)'
+        - '(?i)(weak_ptr|shared_from_this|weak_from_this|cancel|unregister|join)'
+        - '(?i)Findings:'

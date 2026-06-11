@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Use-after-move and erase during iteration
+description: |
+  Review must catch moved-from reads and mid-iteration erase invalidation in
+  one target.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Lifetime review please:
+
+    ```cpp
+    void drain(std::vector<Job>& jobs, Sink& sink) {
+      for (auto it = jobs.begin(); it != jobs.end(); ++it) {
+        sink.submit(std::move(*it));
+        if (it->cancelled()) {        // reads moved-from Job
+          jobs.erase(it);             // invalidates it; ++it then UB
+        }
+      }
+    }
+    ```
+
+    Give findings with severities and the tests you would require.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-object-lifetime/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-object-lifetime
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)(moved?-from|after\s+`?std::move`?|use-after-move)'
+        - '(?i)(erase|invalidat)'
+        - '(?i)(erase-remove|remove_if|return(ed)?\s+iterator|=\s*jobs\.erase)'
+        - '(?i)Severity:\s*(CRITICAL|HIGH|MEDIUM|LOW)'
+        - '(?i)Test expectation:'

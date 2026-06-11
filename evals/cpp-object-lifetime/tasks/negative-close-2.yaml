@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Pure performance question about copies
+description: |
+  A copy-elision/performance question with no lifetime dependency should not
+  activate the lifetime review skill.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Is returning a large std::vector<double> by value slow in C++17, or does
+    copy elision / NRVO make it free? Should I pass an output parameter
+    instead for performance?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-object-lifetime/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Owners:"
+        - "Borrowers:"
+        - "Checklist status:"
+        - "Verdict:"
