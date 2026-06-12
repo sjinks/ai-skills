@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Audit a one-option ADR
+description: |
+  An existing ADR with a single option, no negative consequences, and
+  no revisit triggers is audited; the gaps are listed under Contract
+  gaps rather than silently filled with invented content.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Audit this ADR from our decision log:
+
+    "ADR-014: Adopt Kafka. Context: we need messaging. Decision: we will
+    use Kafka because it is the best fit for our needs. Status: accepted."
+
+    That's the whole document. Tell me what's missing.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/architecture-decision-record/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - architecture-decision-record
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Architecture Decision Record'
+        - '(?i)### Contract gaps'
+        - '(?is)(option).{0,300}(missing|gap|only one|single)'
+        - '(?i)(consequence|revisit)'
+      not_contains:
+        - "Tradeoff Analysis"
+        - "Dependency Choice Review"

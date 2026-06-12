@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: An incident retrospective is not failure design
+description: |
+  Analyzing a failure that already happened is retrospective work, not
+  design-time failure-behavior decisions, and must not activate the
+  skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Last night our checkout was down for 40 minutes because the payment
+    provider timed out and our retries amplified the load. Write the
+    incident retrospective: timeline, root cause, contributing factors,
+    and the action items we already agreed on.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/failure-mode-design/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Failure Mode Design Report"
+        - "queue-and-retry"
+        - "idempotency under retry"
+        - "Verdict: BLOCK"
+        - "Smallest addition to proceed"

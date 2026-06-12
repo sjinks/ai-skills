@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Unknown maintenance facts stay unknown
+description: |
+  When the input supplies no maintenance evidence, the dimension must
+  be scored unknown with a verification step, not guessed from
+  popularity.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Review adopting "fastparse-3000" (a parsing library a teammate
+    found) for our log pipeline. I know nothing about its maintenance,
+    release history, or who runs it — and don't guess from vibes. Our
+    constraint: Apache-2.0/MIT only.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/dependency-choice-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - dependency-choice-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Dependency Choice Review'
+        - '(?i)unknown'
+        - '(?i)### Evidence needed'
+        - '(?i)(changelog|release history|repository|verify|check)'
+      not_contains:
+        - "Tradeoff Analysis"

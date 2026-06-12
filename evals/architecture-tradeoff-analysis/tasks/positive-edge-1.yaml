@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Unstated weights produce no forced winner
+description: |
+  With no weights supplied and split per-attribute outcomes, the
+  analysis must report the split and the deciding question instead of
+  inventing a ranking to force a winner.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Tradeoff analysis please: monolith-internal module vs separate
+    microservice for our new notifications feature. We haven't agreed
+    on what matters more — deployment independence favors the service,
+    operational simplicity favors the module. Don't make up priorities
+    we never stated; tell us what the deciding question is.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/architecture-tradeoff-analysis/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - architecture-tradeoff-analysis
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Architecture Tradeoff Analysis'
+        - '(?i)unstated'
+        - '(?i)deciding question'
+      not_contains:
+        - "Architecture Decision Record"

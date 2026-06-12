@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: No retry on non-idempotent mutation
+description: |
+  A non-idempotent charge operation must not get a retry policy without
+  a duplicate-safety story; the missing idempotency key becomes an open
+  decision rather than an invented mechanism.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Design failure behavior for this single edge: our billing service
+    calls a legacy charge API that has NO idempotency support at all —
+    calling it twice charges the customer twice. The network between us
+    and it is flaky. Don't pretend retries are safe.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/failure-mode-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - failure-mode-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Failure Mode Design Report'
+        - '(?is)(no (automatic )?retr(y|ies)|without retr(y|ies)|not retry|retr(y|ies) (is |are )?(not safe|unsafe)|cannot safely retry)'
+        - '(?is)(double.?charg|duplicate|twice)'
+        - '(?i)### Open decisions'
+      not_contains:
+        - "Interface Contract"

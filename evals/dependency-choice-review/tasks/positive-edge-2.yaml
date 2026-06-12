@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: BLOCK when no capability or candidate is provided
+description: |
+  A request to review dependencies with no capability and no candidate
+  named must produce the BLOCK template, not invented candidates.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Run a dependency choice review for whatever the mobile team is
+    thinking of adopting. I don't know what it is or what it's for —
+    just produce the review.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/dependency-choice-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - dependency-choice-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Dependency Choice Review'
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Missing input'
+        - '(?i)Smallest addition to proceed'
+      not_contains:
+        - "### Exit paths"
+        - "### Reversal triggers"

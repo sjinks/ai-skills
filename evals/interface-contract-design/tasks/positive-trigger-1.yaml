@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Design a contract for an export API
+description: |
+  Canonical case: a new async-export boundary is designed with
+  per-operation inputs, outputs, distinguishable errors, idempotency,
+  and invariant ownership.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Design the interface contract for our new invoice-export service
+    before we implement it.
+
+    Consumers: the billing UI (user clicks "export") and a nightly
+    reconciliation job. Operations needed: start an export for an
+    account and date range, check export status, download the result.
+    Constraint: the reconciliation job retries aggressively on any
+    network error, and exports of more than a year of data are not
+    allowed.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/interface-contract-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - interface-contract-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Interface Contract'
+        - '(?i)### Operations'
+        - '(?i)Idempotency:\s*(idempotent|idempotent-with-key|not-idempotent)'
+        - '(?i)Errors:'
+        - '(?i)\|\s*Invariant\s*\|\s*Owner\s*\|'
+        - '(?i)(retry|retries|idempotency key)'
+      not_contains:
+        - "Architecture Decision Record"
+        - "Failure Mode Design Report"
+        - "Tradeoff Analysis"

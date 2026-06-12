@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Library vs SaaS for PDF rendering
+description: |
+  Canonical case: two candidates with supplied evidence are reviewed on
+  all six dimensions with exit paths, a recommendation, and reversal
+  triggers.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this dependency choice before we commit the design: we need
+    PDF invoice rendering.
+
+    Candidate A: an MIT-licensed library with monthly releases and ~40
+    contributors; rendering runs in our process. Candidate B: a SaaS
+    render API priced per document, with templates in the vendor's
+    proprietary format. Our license policy allows MIT/Apache only for
+    bundled code; budget for rendering is $300/month; invoice volume is
+    ~50k/month.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/dependency-choice-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - dependency-choice-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Dependency Choice Review'
+        - '(?i)\|\s*Dimension\s*\|'
+        - '(?i)lock-in-and-exit'
+        - '(?i)### Exit paths'
+        - '(?i)### Reversal triggers'
+        - '(?is)(proprietary|template).{0,300}(exit|lock|rewrit)'
+      not_contains:
+        - "Architecture Decision Record"
+        - "Tradeoff Analysis"
+        - "Failure Mode Design Report"

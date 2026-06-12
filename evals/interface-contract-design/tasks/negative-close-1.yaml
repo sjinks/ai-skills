@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Implementing an endpoint is not designing its contract
+description: |
+  A request to implement an endpoint against an already-final spec is
+  implementation work, not contract design, and must not activate the
+  skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    The API spec is final and approved. Implement the POST /exports
+    endpoint in our Express app: validate the body against the spec,
+    enqueue the job, return 202 with the export id. Here's the spec
+    excerpt and our router file — write the code.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/interface-contract-design/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Interface Contract"
+        - "### Contract gaps"
+        - "idempotent-with-key"
+        - "Verdict: BLOCK"
+        - "Smallest addition to proceed"

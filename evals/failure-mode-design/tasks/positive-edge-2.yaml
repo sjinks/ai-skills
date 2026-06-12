@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: BLOCK when no design is provided
+description: |
+  A request to design failure behavior with no components or
+  dependencies described must produce the BLOCK template, not an
+  invented system.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Do the failure-mode design for our new platform. The architecture
+    doc isn't written yet — just produce the failure design and we'll
+    make the architecture match.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/failure-mode-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - failure-mode-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Failure Mode Design Report'
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Missing input'
+        - '(?i)Smallest addition to proceed'
+      not_contains:
+        - "queue-and-retry"
+        - "Blast radius"

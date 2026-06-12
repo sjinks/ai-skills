@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Comparing options is not recording a decision
+description: |
+  A request to compare candidate architectures and help choose is
+  tradeoff analysis, not decision recording, and must not activate the
+  skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Help me compare these three approaches for our search feature and
+    figure out which one we should pick: Elasticsearch, Postgres
+    full-text search, or Algolia. We care about operability and cost.
+    Nothing is decided yet — I need the comparison, not a write-up.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/architecture-decision-record/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Architecture Decision Record"
+        - "Revisit triggers"
+        - "Contract gaps"
+        - "Verdict: BLOCK"
+        - "Smallest addition to proceed"

@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Unsettled choices go to Open decisions
+description: |
+  A design question the input does not settle (pagination style) must
+  land under Open decisions with who decides, not be picked silently.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Design the contract for a read-only audit-log query boundary.
+    Consumers: an internal admin UI. One operation: list audit events
+    filtered by actor and time range; result sets can be large. Our
+    team hasn't agreed on cursor vs offset pagination — the API guild
+    owns that call, so leave it to them. Everything else, please decide.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/interface-contract-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - interface-contract-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Interface Contract'
+        - '(?i)### Open decisions'
+        - '(?is)(cursor|offset|pagination).{0,300}(API guild|guild|decide)'
+      not_contains:
+        - "Failure Mode Design Report"

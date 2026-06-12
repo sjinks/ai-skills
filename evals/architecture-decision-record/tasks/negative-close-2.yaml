@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Documenting an as-built system is not an ADR
+description: |
+  A request to document how an existing system works, with no decision
+  in it, is system documentation, not decision recording, and must not
+  activate the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Write an architecture overview document for our existing payments
+    service: the components, how requests flow through them, and where
+    data is stored. It's for onboarding new engineers — nothing is being
+    decided or changed.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/architecture-decision-record/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Architecture Decision Record"
+        - "Decision drivers"
+        - "Revisit triggers"
+        - "Verdict: BLOCK"
+        - "Smallest addition to proceed"

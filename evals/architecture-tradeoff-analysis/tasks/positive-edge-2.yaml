@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Single option gets the do-nothing baseline
+description: |
+  A single supplied option must be compared against the do-nothing
+  baseline, stated explicitly, rather than analyzed alone or blocked.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Analyze the tradeoffs of adopting GraphQL for our public API. There
+    is no concrete alternative proposal on the table — the status quo is
+    our existing REST API, which works but has over-fetching complaints
+    from two mobile teams. Attributes: client flexibility, server
+    complexity, caching.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/architecture-tradeoff-analysis/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - architecture-tradeoff-analysis
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Architecture Tradeoff Analysis'
+        - '(?i)(do-nothing|status quo|baseline|existing REST)'
+        - '(?i)(weak|unknown)'
+        - '(?i)### Recommendation'
+      not_contains:
+        - "Verdict: BLOCK"

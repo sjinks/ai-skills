@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Unrelated everyday prompt
+description: Unrelated everyday request must not activate the interface-contract-design skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "Recommend a strength-training split for someone who can train three days a week."
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/interface-contract-design/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Interface Contract"
+        - "idempotent-with-key"
+        - "### Operations"
+        - "Verdict: BLOCK"
+        - "Smallest addition to proceed"

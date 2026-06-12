@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Upgrading an adopted dependency is not a choice review
+description: |
+  A version-upgrade decision for a dependency already in the codebase
+  is upgrade work, which the skill declares out of scope, and must not
+  activate it.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    We already use TypeORM everywhere. Should we upgrade from 0.2 to
+    0.3 now or wait? Walk me through the breaking changes in the 0.3
+    migration guide and what our upgrade path would look like.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/dependency-choice-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Dependency Choice Review"
+        - "lock-in-and-exit"
+        - "Reversal triggers"
+        - "Verdict: BLOCK"
+        - "Smallest addition to proceed"

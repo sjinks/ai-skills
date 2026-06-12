@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Unrelated everyday prompt
+description: Unrelated everyday request must not activate the failure-mode-design skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "How long should I proof pizza dough in the fridge for the best flavor?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/failure-mode-design/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Failure Mode Design Report"
+        - "queue-and-retry"
+        - "Blast radius"
+        - "Verdict: BLOCK"
+        - "Smallest addition to proceed"
