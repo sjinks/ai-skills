@@ -38,6 +38,7 @@ If the diff or change set is unavailable, emit the BLOCK template; do not audit 
 6. Description accuracy: the PR description matches the actual diff; every claim in it is verifiable from the diff.
 7. Project checks: discovered checks were run and passed, or are listed as outstanding with the exact command.
 8. Reviewer anticipation: spots likely to draw a reviewer question carry a code comment or a PR-description note explaining the choice.
+9. Repeated-pattern consistency: when the diff applies the same templated sentence, snippet, or contract reference (paths, headings, enum values, label casing) across multiple files, the template itself is validated once for correctness, and a search over the whole repository confirms every instance — changed or not — matches the canonical form; unswept instances are findings.
 
 ## Severity Rubric
 
@@ -58,7 +59,7 @@ If the diff or change set is unavailable, emit the BLOCK template; do not audit 
 |---|----------------|--------|-------|
 | <1> | <Diff hygiene> | <pass \| fail \| n/a> | <evidence or reason> |
 
-One row per checklist item, all eight items.
+One row per checklist item, all nine items.
 
 ### Findings
 
