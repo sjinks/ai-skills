@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Templated multi-file edit with a deviating unswept instance
+description: |
+  The diff applies the same templated notice across several files but one
+  repository file deviates from the template; the audit must report the
+  deviating instance under repeated-pattern consistency and route the
+  out-of-diff fix to outstanding follow-up work, not into the current diff.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Run a pre-review self-audit on my change before I open the PR.
+
+    Change intent: add the standard deprecation notice "Deprecated since
+    v3.2; use the /v2/orders endpoint instead." to every legacy order
+    handler doc comment.
+
+    Diff summary:
+    - src/handlers/create-order.ts: notice added, exact template text.
+    - src/handlers/cancel-order.ts: notice added, exact template text.
+    - src/handlers/get-order.ts: notice added, exact template text.
+
+    Repository search results (you cannot run searches yourself, so use
+    these): grepping the repo for "Deprecated since" also shows
+    src/handlers/list-orders.ts, untouched by this diff, carrying the older
+    wording "Deprecated since v3.2, use /v2/orders" (comma, no trailing
+    period, missing "endpoint"). No other instances exist.
+
+    One commit, message "docs: add deprecation notice to legacy order
+    handlers". PR description: "Add the standard deprecation notice to all
+    legacy order handlers." No CI config or package scripts in this excerpt.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pre-review-self-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - pre-review-self-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Pre-Review Self-Audit Report'
+        - '(?i)\|\s*#\s*\|\s*Checklist item\s*\|\s*Status\s*\|\s*Notes\s*\|'
+        - '\|\s*9\s*\|'
+        - '(?is)(Medium|High|Low).{0,250}list-orders'
+        - '(?i)Outstanding before requesting review'
+        - '(?is)outstanding.{0,400}list-orders'
+        - '(?i)Verdict:\s*CONCERNS'
+      not_contains:
+        - "Verdict: CLEAN"
+        - "Verdict: BLOCK"
+        - "Gate decision:"
+        - "Equivalence-Class Audit Report"
+        - "Scope Slice Plan"
