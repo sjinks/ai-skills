@@ -25,7 +25,7 @@ If no failure description is provided, emit the BLOCK template; do not invent sy
 
 Work the loop in order; do not skip ahead to fixes:
 
-1. Reproduce: establish the smallest, fastest reproduction you can and state its reliability (`always`, `1-in-N`, `not yet reproduced`). Without a reproduction, the only valid next steps are experiments that improve reproduction (logging, tighter loops, environment matching) — record them as experiments against reproduction itself.
+1. Reproduce: establish the smallest, fastest reproduction you can and state its reliability (`always`, `1-in-N`, `1-in-N (N unknown)`, `not yet reproduced`). Without a reproduction, the only valid next steps are experiments that improve reproduction (logging, tighter loops, environment matching) — record them as experiments against reproduction itself.
 2. Observe: state the facts only — exact messages, versions, timing, what differs between working and failing cases. No interpretation in this step.
 3. Hypothesize: one falsifiable claim naming a mechanism ("the cache returns stale entries after TTL expiry because eviction never runs"), not a suspicion ("something with the cache").
 4. Experiment: the cheapest test that discriminates this hypothesis from its rivals — prefer reading code, adding one assertion, bisecting (over commits, configs, or input), or toggling one variable, before stepping through everything.
@@ -57,7 +57,7 @@ Before any fix counts as done:
 ## Debugging Report
 
 - Failure: <one sentence: observed vs expected>
-- Reproduction: <always | 1-in-N | not yet reproduced> — <smallest known repro, or what is being tried to obtain one>
+- Reproduction: <always | 1-in-N | 1-in-N (N unknown) | not yet reproduced> — <smallest known repro, or what is being tried to obtain one>
 
 ### Observations
 

@@ -59,7 +59,7 @@ Tie-breaks, in order: anything touching a contract other teams or services consu
 ## Spec Deviation Report
 
 - Work item: <one sentence>
-- Build progress: <what exists against the old understanding>
+- Build progress: <what exists against the old understanding, or `none supplied`>
 
 | # | Class | Disposition | Owner question |
 |---|-------|-------------|----------------|

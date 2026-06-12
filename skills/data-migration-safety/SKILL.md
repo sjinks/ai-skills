@@ -63,7 +63,7 @@ Sequence the work expand-contract; every phase row carries an Action, a Rollback
 | Phase | Action | Rollback | Verification |
 |-------|--------|----------|--------------|
 | expand | <addition> | <how it reverts> | <check> |
-| dual-write | <both-shapes story; failure consistency> \| n/a — <reason> | <how it reverts> | <check> |
+| dual-write | <both-shapes story; failure consistency> \| n/a — <reason> | <how it reverts, or `n/a` when Action is n/a> | <check, or `n/a` when Action is n/a> |
 | backfill | <batched, rate-limited, idempotent, resumable copy; during-writes accounting> | <safe to stop/re-run from any point> | <progress + spot checks> |
 | verify | <agreement checks and divergence threshold> | n/a — read-only | <the checks themselves> |
 | cutover | <flagged switch> | <flip-back story incl. interim writes> | <post-cutover checks> |
