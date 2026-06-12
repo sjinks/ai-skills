@@ -129,7 +129,7 @@ Selected output lines for one operation:
 
 ## Anti-Patterns
 
-- Error design by status code only, with all failures collapsed into one undistinguishable signal.
+- Error design by status code only, with all failures collapsed into one indistinguishable signal.
 - `not-idempotent` operations with no stated duplicate-call outcome in a contract consumed over a retrying transport.
 - Internal table, queue, or framework names leaking into operation names and fields.
 - Invariants listed without an owner, or owned by "everyone".

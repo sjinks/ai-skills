@@ -103,7 +103,7 @@ Use this reduced template only for missing or unreadable input, or input that co
 
 Verdict: BLOCK
 
-- Missing input: <no decision context or ADR provided / text unreadable>
+- Missing input: <no decision context or ADR provided / no decision found in input / text unreadable>
 - Smallest addition to proceed: <concrete ask>
 ```
 

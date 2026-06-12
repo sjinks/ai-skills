@@ -335,7 +335,7 @@ This skill is aimed at architecture sketches, component designs, and integration
 It helps an assistant:
 
 - sweep every component→dependency edge across four failure shapes: `slow`, `down`, `wrong`, and `partial`
-- assign exactly one degradation policy per finding — `fail-fast`, `degrade`, `queue-and-retry`, or `block` — with a concrete blast radius and an observability signal
+- assign exactly one policy per edge × shape row — `fail-fast`, `degrade`, `queue-and-retry`, `block`, `as-decided`, or `n/a — <reason>` — with a concrete blast radius and an observability signal
 - permit retries only where the operation is idempotent under retry, and settle the duplicate-application outcome for every mutating flow
 - treat unbounded retries, queues, and fan-out as findings, and source every number or mark it inferred-with-basis or an open decision
 - record supplied failure decisions `as-decided` with remarks instead of re-litigating them
