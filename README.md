@@ -391,7 +391,7 @@ It helps an assistant:
 
 - establish reproduction status first and treat reproduction improvement as experiments in their own right
 - separate observations (facts only) from hypotheses, each a falsifiable claim naming a mechanism
-- run one-variable discriminating experiments with predictions and recorded `confirmed` / `refuted` / `inconclusive` verdicts
+- run one-variable discriminating experiments with predictions and recorded `confirmed` / `refuted` / `inconclusive` / `proposed` verdicts
 - classify inherited guesses from evidence before adding new hypotheses, and park speculation in an untested backlog
 - gate the fix: explicit root-cause-vs-symptom call, all observations explained, and a regression check that fails before and passes after — or the fix is `unverified`
 - record vanished failures as `not reproduced — cause unknown`, never as fixed

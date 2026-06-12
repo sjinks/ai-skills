@@ -29,7 +29,7 @@ Work the loop in order; do not skip ahead to fixes:
 2. Observe: state the facts only — exact messages, versions, timing, what differs between working and failing cases. No interpretation in this step.
 3. Hypothesize: one falsifiable claim naming a mechanism ("the cache returns stale entries after TTL expiry because eviction never runs"), not a suspicion ("something with the cache").
 4. Experiment: the cheapest test that discriminates this hypothesis from its rivals — prefer reading code, adding one assertion, bisecting (over commits, configs, or input), or toggling one variable, before stepping through everything.
-5. Record: experiment, prediction, observed result, verdict — `confirmed`, `refuted`, or `inconclusive`. Refuted hypotheses stay in the log; they are paid-for progress.
+5. Record: experiment, prediction, observed result, verdict — `confirmed`, `refuted`, `inconclusive`, or `proposed` (designed but not runnable yet; Observed `pending`). Refuted hypotheses stay in the log; they are paid-for progress.
 6. Repeat 3–5 until a hypothesis is confirmed and explains all recorded observations, then proceed to the fix gate. When the cheap experiments are exhausted or the session's budget runs out without a confirmation, stop and emit the report with `Cause: not established` and the remaining hypotheses in `### Untested backlog`; an unfinished honest report beats a forced conclusion.
 
 ## Fix Gate

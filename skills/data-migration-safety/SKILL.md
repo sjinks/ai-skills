@@ -62,14 +62,14 @@ Sequence the work expand-contract; every phase row carries an Action, a Rollback
 
 | Phase | Action | Rollback | Verification |
 |-------|--------|----------|--------------|
-| expand | <addition> \| n/a — <reason> | <how it reverts> | <check> |
-| dual-write | <both-shapes story; failure consistency> \| n/a — <reason> | <how it reverts> | <check> |
-| backfill | <batched, rate-limited, idempotent, resumable copy; during-writes accounting> \| n/a — <reason> | <safe to stop/re-run from any point> | <progress + spot checks> |
+| expand | <addition> \| n/a — <reason> | <how it reverts> \| n/a | <check> \| n/a |
+| dual-write | <both-shapes story; failure consistency> \| n/a — <reason> | <how it reverts> \| n/a | <check> \| n/a |
+| backfill | <batched, rate-limited, idempotent, resumable copy; during-writes accounting> \| n/a — <reason> | <safe to stop/re-run from any point> \| n/a | <progress + spot checks> \| n/a |
 | verify | <agreement checks and divergence threshold> | n/a — read-only | <the checks themselves> |
-| cutover | <flagged switch> \| n/a — <reason> | <flip-back story incl. interim writes> | <post-cutover checks> |
-| contract | <old-shape removal after soak> \| n/a — <reason> | point-of-no-return — <soak period, final checks> | <final verification> |
+| cutover | <flagged switch> \| n/a — <reason> | <flip-back story incl. interim writes> \| n/a | <post-cutover checks> \| n/a |
+| contract | <old-shape removal after soak> \| n/a — <reason> | point-of-no-return — <soak period, final checks> \| n/a | <final verification> \| n/a |
 
-For any phase whose Action is `n/a — <reason>`, write `n/a` in its Rollback and Verification cells.
+Write `n/a` in a phase's Rollback and Verification cells exactly when its Action is `n/a — <reason>`.
 
 ### Consumers
 
