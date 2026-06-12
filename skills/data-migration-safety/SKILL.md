@@ -62,11 +62,11 @@ Sequence the work expand-contract; every phase row carries an Action, a Rollback
 
 | Phase | Action | Rollback | Verification |
 |-------|--------|----------|--------------|
-| expand | <addition> \| n/a — <reason> | <how it reverts> \| n/a | <check> \| n/a |
-| dual-write | <both-shapes story; failure consistency> \| n/a — <reason> | <how it reverts> \| n/a | <check> \| n/a |
-| backfill | <batched, rate-limited, idempotent, resumable copy; during-writes accounting> \| n/a — <reason> | <safe to stop/re-run from any point> \| n/a | <progress + spot checks> \| n/a |
+| expand | <addition> \| n/a — <reason> | <how it reverts; plan mode: how the rollback is tested before this phase runs> \| n/a | <check> \| n/a |
+| dual-write | <both-shapes story; failure consistency> \| n/a — <reason> | <how it reverts; plan mode: how the rollback is tested before this phase runs> \| n/a | <check> \| n/a |
+| backfill | <batched, rate-limited, idempotent, resumable copy; during-writes accounting> \| n/a — <reason> | <safe to stop/re-run from any point; plan mode: how the rollback is tested before this phase runs> \| n/a | <progress + spot checks> \| n/a |
 | verify | <agreement checks and divergence threshold> | n/a — read-only | <the checks themselves> |
-| cutover | <flagged switch> \| n/a — <reason> | <flip-back story incl. interim writes> \| n/a | <post-cutover checks> \| n/a |
+| cutover | <flagged switch> \| n/a — <reason> | <flip-back story incl. interim writes; plan mode: how the rollback is tested before this phase runs> \| n/a | <post-cutover checks> \| n/a |
 | contract | <old-shape removal after soak> \| n/a — <reason> | point-of-no-return — <soak period, final checks> \| n/a | <final verification> \| n/a |
 
 Write `n/a` in a phase's Rollback and Verification cells exactly when its Action is `n/a — <reason>`.
@@ -107,9 +107,9 @@ Selected table rows:
 
 | Phase | Action | Rollback | Verification |
 |-------|--------|----------|--------------|
-| expand | add nullable `avatar_url` column | drop column | column exists, all values NULL |
-| backfill | copy blobs to object storage, set `avatar_url`; batches of 1000 `(inferred — keeps each transaction under 1 s at measured row size)`; keyed by user id, re-runnable | stop anytime; re-run skips rows with non-NULL `avatar_url` | progress count + sampled byte-compare of 1-in-1000 objects vs blobs |
-| cutover | reads prefer `avatar_url` behind `avatars_v2` flag, fall back to blob | flag off; writes dual-written so nothing is lost | error rate and fallback-hit rate dashboards |
+| expand | add nullable `avatar_url` column | drop column; rehearsed on a staging copy before expand runs | column exists, all values NULL |
+| backfill | copy blobs to object storage, set `avatar_url`; batches of 1000 `(inferred — keeps each transaction under 1 s at measured row size)`; keyed by user id, re-runnable | stop anytime; re-run skips rows with non-NULL `avatar_url`; stop-and-re-run exercised on staging before backfill runs | progress count + sampled byte-compare of 1-in-1000 objects vs blobs |
+| cutover | reads prefer `avatar_url` behind `avatars_v2` flag, fall back to blob | flag off; writes dual-written so nothing is lost; flip-back exercised on staging before cutover runs | error rate and fallback-hit rate dashboards |
 
 Consumers line:
 

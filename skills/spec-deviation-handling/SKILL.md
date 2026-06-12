@@ -70,7 +70,7 @@ Tie-breaks, in order: anything touching a contract other teams or services consu
 For each, numbered as in the table:
 - Spec says: <faithful excerpt or paraphrase>
 - Implementation found: <discovery with evidence>
-- Interim behavior: <cheapest acceptable behavior while unresolved; must not pre-select one of the owner's options>
+- Interim behavior: <cheapest acceptable behavior while unresolved; for `pause-this-thread` and `escalate-now` it must not pre-select one of the owner's options; for `proceed-and-record` it is the recorded choice>
 - Blocked / unblocked: <what stops, what continues; `none blocked — proceed-and-record` for that disposition>
 
 ### Spec-fix requests
