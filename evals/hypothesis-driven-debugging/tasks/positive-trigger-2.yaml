@@ -42,6 +42,7 @@ graders:
         - '(?i)(clock skew|cookie)'
         - '(?i)(untested|backlog)'
         - '(?i)### Hypothesis log'
+        - '(?i)\|\s*#\s*\|\s*Hypothesis'
       not_contains:
         - "Implementation Step Plan"
         - "Spec Deviation Report"

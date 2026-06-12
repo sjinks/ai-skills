@@ -36,6 +36,7 @@ graders:
       regex_match:
         - '(?i)Data Migration Plan'
         - '(?i)Mode:\s*plan'
+        - '(?i)\|\s*Phase\s*\|\s*Action\s*\|\s*Rollback\s*\|'
         - '(?i)(dual-write|change capture|delta pass)'
         - '(?i)(rate.?limit|batch)'
         - '(?i)point-of-no-return'

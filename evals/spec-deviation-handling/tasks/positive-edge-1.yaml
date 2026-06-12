@@ -36,7 +36,8 @@ graders:
     config:
       regex_match:
         - '(?i)Spec Deviation Report'
+        - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Disposition\s*\|'
         - '(?i)(pause-this-thread|escalate-now)'
         - '(?is)(contract|partner|consume).{0,400}(tie-break|at least|pause|cannot proceed)'
       not_contains:
-        - "| proceed-and-record |"
+        - "proceed-and-record"

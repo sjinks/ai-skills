@@ -37,6 +37,7 @@ graders:
     config:
       regex_match:
         - '(?i)Spec Deviation Report'
+        - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Disposition\s*\|'
         - '(?i)infeasible-as-specified'
         - '(?i)(pause-this-thread|escalate-now)'
         - '(?i)Interim behavior'

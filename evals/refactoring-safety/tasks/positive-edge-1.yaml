@@ -36,6 +36,7 @@ graders:
     config:
       regex_match:
         - '(?i)Refactoring Safety Plan'
+        - '(?i)\|\s*#\s*\|\s*Transformation\s*\|'
         - '(?i)### Discovered behavior questions'
         - '(?is)(rounding|half-cent).{0,400}(question|owner|finance|not .{0,20}fix|separately)'
         - '(?is)(pin|characteriz).{0,200}(current|as-is|existing)'

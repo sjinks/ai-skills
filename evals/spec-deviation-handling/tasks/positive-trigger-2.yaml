@@ -41,6 +41,7 @@ graders:
     config:
       regex_match:
         - '(?i)Spec Deviation Report'
+        - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Disposition\s*\|'
         - '(?i)spec-gap'
         - '(?i)better-way-found'
         - '(?i)scope-creep-detected'

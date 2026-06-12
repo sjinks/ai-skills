@@ -35,6 +35,7 @@ graders:
     config:
       regex_match:
         - '(?i)Refactoring Safety Plan'
+        - '(?i)\|\s*#\s*\|\s*Transformation\s*\|'
         - '(?i)### Tripwire events'
         - '(?is)(expectation|expected value).{0,400}(tripwire|behavior change|stop|reclassif)'
         - '(?is)(revert|carve|separate)'

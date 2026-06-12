@@ -34,6 +34,7 @@ graders:
     config:
       regex_match:
         - '(?i)Implementation Step Plan'
+        - '(?i)\|\s*#\s*\|\s*Step\s*\|\s*Verify by\s*\|'
         - '(?is)(restructur|extract|refactor).{0,600}(behavior|currency|formatting)'
         - '(?i)Must not touch'
       not_contains:

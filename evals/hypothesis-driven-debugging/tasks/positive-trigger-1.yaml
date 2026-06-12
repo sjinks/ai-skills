@@ -41,6 +41,7 @@ graders:
         - '(?i)Debugging Report'
         - '(?i)### Observations'
         - '(?i)### Hypothesis log'
+        - '(?i)\|\s*#\s*\|\s*Hypothesis'
         - '(?i)(confirmed|refuted|inconclusive)'
         - '(?i)Regression check'
         - '(?is)(OOM|memory|kill|size|resource).{0,400}(experiment|correlat|check)'
