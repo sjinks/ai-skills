@@ -19,7 +19,7 @@ Use after a change is functionally complete and before opening a pull request or
 - The intended behavior of the change, stated by the author.
 - Draft PR description and commit messages, when they exist.
 
-If the diff or change set is unavailable, emit the BLOCK template; do not audit from the description alone. If commit messages or a PR description do not exist yet, do not block: mark checklist items 5–6 `n/a` with a note. If the diff contains a repeated templated edit but repository search is unavailable, do not block: mark item 9 `n/a` and list the sweep, with the exact search command, as outstanding.
+If the diff or change set is unavailable, emit the BLOCK template; do not audit from the description alone. If commit messages or a PR description do not exist yet, do not block: mark checklist items 5–6 `n/a` with a note. If the diff contains a repeated templated edit but repository search is unavailable, do not block: mark item 9 `n/a` and list the sweep as outstanding, using the canonical command `git grep -nF '<template text>'` with the template text substituted; use a different search tool only when the author names one.
 
 ## Workflow
 
