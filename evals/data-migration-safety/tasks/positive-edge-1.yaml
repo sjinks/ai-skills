@@ -35,6 +35,7 @@ graders:
     config:
       regex_match:
         - '(?i)Data Migration Plan'
+        - '(?i)Mode:\s*plan'
         - '(?i)(dual-write|change capture|delta pass)'
         - '(?i)(rate.?limit|batch)'
         - '(?i)point-of-no-return'

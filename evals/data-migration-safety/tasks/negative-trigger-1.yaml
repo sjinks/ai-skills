@@ -22,5 +22,6 @@ graders:
         - "Data Migration Plan"
         - "point-of-no-return"
         - "dual-write"
+        - "Mode: plan"
         - "Verdict: BLOCK"
         - "Smallest addition to proceed"
