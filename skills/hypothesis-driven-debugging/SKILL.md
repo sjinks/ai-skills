@@ -73,7 +73,7 @@ Before any fix counts as done:
 
 - Cause: <confirmed mechanism — root-cause | symptom (<deeper cause and reason for stopping>); or `not established` with the missing evidence named and no root-cause/symptom suffix>
 - Fix direction: <what the fix changes, or `blocked on cause`>
-- Regression check: <check defined to fail on current code and pass after the fix; statistical basis when intermittent> | unverified
+- Regression check: <check defined to fail on current code and pass after the fix, with its statistical basis when intermittent; or `unverified` when no such check is defined>
 
 ### Untested backlog
 

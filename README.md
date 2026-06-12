@@ -286,10 +286,10 @@ It helps an assistant:
 
 - sequence the work expand-contract: `expand`, `dual-write`, `backfill`, `verify`, `cutover`, `contract` — each present or explicitly `n/a — <reason>`
 - require the backfill to be idempotent, batched with a sourced basis, rate-limited, resumable, and explicit about writes arriving mid-backfill (dual-write, change capture, or delta pass)
-- attach a tested rollback path and a verification check to every pre-contract phase, with divergence thresholds for cutover
+- attach a rollback path with a stated test plan and a verification check to every pre-contract phase, with divergence thresholds for cutover
 - map every consumer to the phase where it switches, and label `contract` as the point of no return with a soak period
 - source every number (batch size, soak, thresholds) from input, mark it inferred-with-basis, or route it to open decisions
-- emit a deterministic BLOCK template when current or target shape is missing
+- emit a deterministic BLOCK template when the shapes are missing in plan mode, or when neither shapes nor a readable script are supplied in audit mode
 
 ### `dependency-audit`
 

@@ -27,7 +27,7 @@ The report header carries a `Mode: plan | audit` line so consumers can tell find
 - Availability requirement: can the surface take downtime, and how much.
 - Consumers of the affected data (services, jobs, reports), when supplied.
 
-If current or target shape is missing, emit the BLOCK template; do not invent the data model.
+In plan mode, if current or target shape is missing, emit the BLOCK template; do not invent the data model. In audit mode, shapes may be inferred from the supplied plan, script, or DDL per the Input modes rules; BLOCK only when neither shapes nor a readable script are supplied.
 
 ## Phase Contract
 
