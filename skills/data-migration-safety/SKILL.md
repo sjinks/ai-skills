@@ -42,7 +42,7 @@ Sequence the work expand-contract; every phase row carries an Action, a Rollback
 
 ## Rules
 
-- Every phase before `contract` has a rollback path with a stated test plan: in plan mode, each rollback names how it will be tested before its phase runs; a rollback that will reach execution untested is a plan gap. "We'll restore from backup" counts only if the restore has actually been exercised and the data-loss window is stated.
+- Every phase before `contract` that mutates state has a rollback path with a stated test plan: in plan mode, each rollback names how it will be tested before its phase runs; a rollback that will reach execution untested is a plan gap. Read-only phases (such as `verify`) carry `Rollback: n/a — read-only` instead. "We'll restore from backup" counts only if the restore has actually been exercised and the data-loss window is stated.
 - When the availability requirement and locking needs cannot both be met (zero downtime, hot table, no online-migration path), record the conflict under `### Open decisions` with both constraints quoted; do not pick silently.
 - Schema steps that lock tables name the expected lock scope and duration basis; locking steps on hot tables need an online-migration approach or a stated downtime window.
 - The backfill never runs unbounded against production without rate limiting; batch size and pause criteria are taken from input volume numbers, marked `(inferred — <basis>)`, or routed to `### Open decisions`.
@@ -124,4 +124,4 @@ Consumers line:
 
 ## Definition of Done
 
-All six phases are present or explicitly `n/a — <reason>`, every pre-contract phase has a rollback path and a verification check, the backfill is idempotent, batched, and accounts for concurrent writes, every consumer maps to a switch phase, `contract` is labeled point-of-no-return with a soak period, and every number is sourced, inferred-with-basis, or an open decision.
+All six phases are present or explicitly `n/a — <reason>`, every pre-contract phase that mutates state has a rollback path (read-only phases carry `n/a — read-only`) and every phase has a verification check, the backfill is idempotent, batched, and accounts for concurrent writes, every consumer maps to a switch phase, `contract` is labeled point-of-no-return with a soak period, and every number is sourced, inferred-with-basis, or an open decision.
