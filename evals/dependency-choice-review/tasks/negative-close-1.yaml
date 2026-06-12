@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Vulnerability audit of existing deps is not a choice review
+description: |
+  Auditing an existing dependency tree for CVEs and license violations
+  before a release is a dependency audit, not a design-time adoption
+  choice, and must not activate the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Before Friday's release, audit our existing package-lock.json for
+    known vulnerabilities and license violations. Everything in there
+    was adopted long ago — we need the risk report for the release
+    checklist, not advice about what to adopt.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/dependency-choice-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Dependency Choice Review"
+        - "Reversal triggers"
+        - "Exit paths"
+        - "lock-in-and-exit"
+        - "Smallest addition to proceed"

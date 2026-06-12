@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Recording a made decision is not comparing options
+description: |
+  A request to write up an already-made decision for the decision log
+  is decision recording, not tradeoff analysis, and must not activate
+  the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    The decision is made and signed off: we're going with Elasticsearch.
+    Write it up for our decision log — the context, what we considered,
+    why Elasticsearch won, and when we'd revisit. No further comparison
+    needed.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/architecture-tradeoff-analysis/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Architecture Tradeoff Analysis"
+        - "Per-option costs"
+        - "Evidence needed"
+        - "Verdict: BLOCK"
+        - "Smallest addition to proceed"

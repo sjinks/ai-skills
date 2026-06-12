@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Build vs adopt for feature flags
+description: |
+  A single candidate against the build option: both sides are scored on
+  the same six dimensions, including the build option's own maintenance
+  and operational burden.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Should we adopt a feature-flag platform or build a simple flags
+    table ourselves? Review the choice. Candidate: a hosted flag
+    service (GPL server, hosted plan available, our policy forbids GPL
+    in bundled code but hosted use is fine per legal). Build option: a
+    flags table plus a small admin page; we have one platform engineer
+    with spare capacity this quarter and none next quarter.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/dependency-choice-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - dependency-choice-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Dependency Choice Review'
+        - '(?i)(build)'
+        - '(?i)(maintenance-health|operational-burden)'
+        - '(?is)(next quarter|capacity).{0,300}(concern|burden|maintenance)'
+        - '(?i)### Reversal triggers'
+      not_contains:
+        - "Architecture Decision Record"
+        - "Interface Contract"

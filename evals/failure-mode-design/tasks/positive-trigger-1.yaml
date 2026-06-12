@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Design failure behavior for a checkout flow
+description: |
+  Canonical case: a checkout design with a payment provider, database,
+  and email fan-out is swept across failure shapes with policies, blast
+  radii, and signals.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Design the failure behavior for this architecture before we build
+    it:
+
+    Checkout service calls the payment provider (third party), writes
+    orders to Postgres, and publishes to a queue; a worker consumes the
+    queue and sends confirmation emails via an email API. Checkout has a
+    4-second end-to-end budget. Decide what happens when each dependency
+    is slow, down, or misbehaving.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/failure-mode-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - failure-mode-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Failure Mode Design Report'
+        - '(?i)\|\s*#\s*\|\s*Edge'
+        - '(?i)(fail-fast|degrade|queue-and-retry)'
+        - '(?i)Blast radius'
+        - '(?i)idempotency under retry'
+        - '(?is)(payment).{0,400}(timeout|idempoten|pending)'
+      not_contains:
+        - "Architecture Decision Record"
+        - "Interface Contract"
+        - "Tradeoff Analysis"

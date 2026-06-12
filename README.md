@@ -17,6 +17,8 @@ At the moment, the repository contains these skills:
 - `agent-skill-audit`: guidance for auditing agent instructions, skill files, `SKILL.md` artifacts, prompt-packaged workflows, and AI assistant instruction artifacts for consistency, cohesion, coherence, completeness, and weaker-model suitability.
 - `adversarial-review`: guidance for challenging specs, designs, implementations, workflows, and test plans with evidence-based failure-mode review and risk-focused verification.
 - `acceptance-criteria-quality`: guidance for writing, rewriting, and auditing acceptance criteria against a five-property contract — testable, observable, single, scoped, and implementation-neutral — plus a five-category coverage check, so each criterion can be objectively verified before work starts.
+- `architecture-decision-record`: guidance for writing, rewriting, and auditing architecture decision records against an eight-field contract — title, status, context, decision drivers, real options with costs, decision, positive and negative consequences, and revisit triggers — so decisions stay reconstructible.
+- `architecture-tradeoff-analysis`: guidance for comparing candidate architectures against weighted quality attributes with a strong/adequate/weak/unknown score table, mandatory per-option costs, constraint-based elimination, evidence needs, and a recommendation or deciding question — never a decision made for the owner.
 - `archive-extraction-safety`: guidance for reviewing safe ZIP/TAR/archive extraction, including traversal, symlinks, hardlinks, absolute and Windows paths, Unicode normalization, decompression limits, nested archives, permissions, overwrite policy, containment, cleanup, and parser mismatch.
 - `assumption-surfacing`: guidance for sweeping a spec, plan, design, or estimate for implicit assumptions across data, ordering, scale, auth-context, environment, compatibility, dependency-behavior, and people-process categories, classifying each as verify-before-build or accept-with-risk.
 - `auth-claim-contract-review`: guidance for reviewing auth/security claim contracts across JWT, OIDC, SAML, token, and session flows, including optional claims, missing-vs-invalid semantics, issuer-validator-consumer drift, authorization mapping, propagation, serialization, revocation, freshness, fallback defaults, and confused-deputy risks.
@@ -30,11 +32,14 @@ At the moment, the repository contains these skills:
 - `cpp-object-lifetime`: guidance for reviewing C++ object lifetime and ownership, including dangling pointers/references/views, iterator and reference invalidation, lambda capture lifetime, use-after-move, smart-pointer boundaries, and async handoff safety.
 - `cpp-sanitizer-triage`: guidance for triaging ASan/TSan/UBSan/MSan/LSan reports, including report anatomy, root cause vs symptom separation, true-positive vs tool-limitation vs configuration-artifact classification, suppression-file discipline, and sanitizer build/runtime configuration.
 - `dependency-audit`: guidance for auditing application and tooling dependencies for known vulnerabilities, license risk, maintenance health, abandoned packages, unused dependencies, dependency bloat, transitive risk, and supply-chain integrity.
+- `dependency-choice-review`: guidance for design-time build-vs-adopt decisions on libraries, frameworks, services, and platforms across six dimensions — maintenance health, API stability, fit, lock-in and exit, operational burden, license and policy — with exit paths, evidence needs, and reversal triggers.
 - `equivalence-class-audit`: guidance for turning one concrete defect, incident, review finding, test failure, or bug report into a locked-scope audit of equivalent defects across sibling fields, mirror use sites, bounds, contracts, paths, modes, tests, docs, and projections.
 - `factcheck`: guidance for verifying factual claims, citations, drafts, source support, evidence quality, verdicts, confidence, correction proposals, and uncertainty in report-only-first mode.
+- `failure-mode-design`: guidance for deciding failure behavior at design time: sweeping each component→dependency edge across slow, down, wrong, and partial failure shapes, assigning one degradation policy per edge with a concrete blast radius and observability signal, and settling idempotency under retry for every mutating flow.
 - `fix-batching-and-root-cause`: guidance for planning a fix batch over review findings by clustering findings with an evidenced shared cause, choosing root-cause versus justified symptom-level fix depth, and ordering fixes so the next review round is the last one.
 - `fix-blast-radius`: guidance for assessing what a drafted fix could newly break before it is pushed, tracing impact across callers, shared state, contracts, behavioral siblings, and previously resolved findings, with one verification step per risk.
 - `instruction-quality-audit`: guidance for auditing AI instruction artifacts, prompts, prompt templates, LLM task prompts, agent instructions, skill files, `SKILL.md` artifacts, prompt-packaged workflows, custom agent modes, and reusable assistant guidance for contradictions, ambiguity, persona issues, cognitive load, duplication, semantic coverage gaps, missing error handling, and custom diagnostics.
+- `interface-contract-design`: guidance for designing or auditing a boundary's contract before implementation — per-operation inputs, outputs, distinguishable errors, idempotency, and side effects, plus boundary-level ordering, versioning posture, and single-owner invariants — with implementation leakage flagged and open choices routed to the owner.
 - `web-app-security-review`: guidance for defensive web application security review of code, PRs, designs, vulnerability reports, and fixes across access control, auth, browser, API, data-flow, supply-chain, cloud, and abuse-risk surfaces.
 - `filesystem-path-safety`: guidance for auditing external-input filesystem path construction under trusted roots, including traversal, symlink, TOCTOU, containment, and mutation-safety checks.
 - `ssrf-outbound-fetch-review`: guidance for reviewing, designing, implementing, and testing SSRF protections around outbound HTTP fetches, from egress policy contracts through transport and redirect behavior.
@@ -94,6 +99,32 @@ It helps an assistant:
 - run a coverage check across success path, failure/rejection path, empty or boundary input, permission or authorization outcome, and persistence or side-effect visibility
 - propose additions only from the supplied feature description, turning undecided behavior into open questions instead of invented requirements
 - emit a deterministic BLOCK template when neither criteria nor a feature description is supplied
+
+### `architecture-decision-record`
+
+This skill is aimed at technical decisions that need a durable record — or existing ADRs that need an audit — so the next engineer can reconstruct why alternatives were rejected.
+
+It helps an assistant:
+
+- enforce an eight-field contract: title, status, context, decision drivers, options, decision, consequences, and revisit triggers
+- require at least two real options each with a benefit and a cost, flagging single-option records and strawmen as contract gaps
+- require at least one concrete negative consequence and concrete revisit triggers
+- mark inferred content `(inferred)` and route unmade choices to `### Open decisions` instead of deciding for the owner
+- audit existing ADRs by restructuring them into the contract and listing every gap
+- emit a deterministic BLOCK template when no decision context is supplied
+
+### `architecture-tradeoff-analysis`
+
+This skill is aimed at choices between candidate architectures, designs, or technical approaches that need a structured comparison before the decision is made.
+
+It helps an assistant:
+
+- score each option per attribute as `strong`, `adequate`, `weak`, or `unknown`, with rationale for non-adequate cells
+- require every option to carry at least one `weak` or `unknown` cell and a concrete makes-worse line
+- treat constraints as pass/fail eliminations rather than scores, and keep eliminated options visible in the table
+- use supplied weights verbatim, mark missing weights `unstated`, and report a deciding question instead of forcing a winner
+- map every `unknown` cell to the cheapest evidence that would settle it
+- end with a recommendation or deciding question — the decision stays with the owner
 
 ### `archive-extraction-safety`
 
@@ -254,6 +285,19 @@ It helps an assistant:
 - apply false-positive discipline for unused dependency claims, including CLI tools, build plugins, framework auto-discovery, dynamic imports, peer dependencies, tests, generated code, and consumer-facing exports
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with severity, classification, evidence, remediation, checks, and residual risk
 
+### `dependency-choice-review`
+
+This skill is aimed at design-time build-vs-buy and dependency-adoption decisions, before a library, framework, service, or platform is woven into a design.
+
+It helps an assistant:
+
+- score each candidate (including the build option) on six dimensions: maintenance health, API stability, fit, lock-in and exit, operational burden, and license and policy
+- demand concrete evidence per `concern`, keep unverifiable claims `unknown`, and map each `unknown` to the cheapest way to settle it
+- state an exit path and its cost for every candidate, including the recommended one
+- treat license and compliance constraints as pass/fail eliminations
+- end with a recommendation or deciding question plus concrete reversal triggers
+- emit a deterministic BLOCK template when no capability or candidate is supplied
+
 ### `equivalence-class-audit`
 
 This skill is aimed at situations where a concrete defect, incident, review finding, test failure, or bug report suggests a wider class of equivalent defects that need to be audited in one bounded pass.
@@ -283,6 +327,19 @@ It helps an assistant:
 - assign stable verdicts (`SUPPORTED`, `MOSTLY_SUPPORTED`, `MIXED`, `UNSUPPORTED`, `CONTRADICTED`, `UNVERIFIABLE`, `NOT_A_FACTUAL_CLAIM`) with high/medium/low confidence reasons
 - default to report-only output, while keeping any approved correction proposals minimal and tied to claim IDs
 - handle medical, legal, financial, public-health, election, safety, and other sensitive-domain claims conservatively without giving professional advice
+
+### `failure-mode-design`
+
+This skill is aimed at architecture sketches, component designs, and integration plans whose failure behavior needs explicit decisions before implementation.
+
+It helps an assistant:
+
+- sweep every component→dependency edge across four failure shapes: `slow`, `down`, `wrong`, and `partial`
+- assign exactly one degradation policy per finding — `fail-fast`, `degrade`, `queue-and-retry`, or `block` — with a concrete blast radius and an observability signal
+- permit retries only where the operation is idempotent under retry, and settle the duplicate-application outcome for every mutating flow
+- treat unbounded retries, queues, and fan-out as findings, and source every number or mark it inferred-with-basis or an open decision
+- record supplied failure decisions `as-decided` with remarks instead of re-litigating them
+- emit a deterministic BLOCK template when no design is supplied
 
 ### `fix-batching-and-root-cause`
 
@@ -319,6 +376,18 @@ It helps an assistant:
 - apply a high-confidence quality bar that avoids speculative, stylistic, or low-impact findings
 - produce stable report sections in the required order: `Contradictions`, `Ambiguity Issues`, `Persona Issues`, `Cognitive Load`, `Duplication`, `Coverage Analysis`, and `Custom Diagnostics`
 - preserve exact excerpt requirements with fenced `text` blocks and concrete rewrite suggestions
+
+### `interface-contract-design`
+
+This skill is aimed at new boundaries — APIs, service interfaces, module seams, message schemas, webhooks — whose contract should be decided before anything implements or consumes it, and at existing contract descriptions that need an audit.
+
+It helps an assistant:
+
+- define six per-operation fields: name and intent, inputs with validators, outputs including the empty-result shape, distinguishable errors with caller actions, idempotency class with duplicate-call outcome, and side effects
+- decide three per-boundary fields: ordering and concurrency assumptions, versioning posture with what counts as breaking, and invariants each owned by exactly one of `caller`, `boundary`, or `downstream`
+- flag implementation leakage (table names, internal services, framework types) in audit mode
+- route unsettled design choices to `### Open decisions` with who decides instead of picking silently
+- emit a deterministic BLOCK template when no boundary description is supplied
 
 ### `filesystem-path-safety`
 

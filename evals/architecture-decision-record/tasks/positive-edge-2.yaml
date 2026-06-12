@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: BLOCK when no decision context is provided
+description: |
+  A request to write an ADR with no decision context must produce the
+  BLOCK template, not an invented decision.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Write up the architecture decision record for the platform team's
+    storage decision. I don't have the details with me — just produce
+    the ADR.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/architecture-decision-record/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - architecture-decision-record
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Architecture Decision Record'
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Missing input'
+        - '(?i)Smallest addition to proceed'
+      not_contains:
+        - "### Decision drivers"
+        - "### Revisit triggers"

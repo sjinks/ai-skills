@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Running a benchmark is not tradeoff analysis
+description: |
+  A request to write and run a load test to produce performance numbers
+  is evidence gathering, which the skill declares out of scope, and
+  must not activate it.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Write a k6 load-test script that benchmarks our two candidate
+    storage backends at 1k and 10k writes/sec, and run it against
+    staging so we get the latency numbers for each.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/architecture-tradeoff-analysis/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Architecture Tradeoff Analysis"
+        - "Per-option costs"
+        - "deciding question"
+        - "Verdict: BLOCK"
+        - "Smallest addition to proceed"

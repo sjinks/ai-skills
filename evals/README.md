@@ -70,6 +70,11 @@ grader weighting takes effect.
   - `requirements-ambiguity-audit`: 0.45
   - `scope-boundary-definition`: 0.45
   - `spec-edge-case-enumeration`: 0.45
+  - `architecture-decision-record`: 0.45
+  - `architecture-tradeoff-analysis`: 0.45
+  - `dependency-choice-review`: 0.45
+  - `failure-mode-design`: 0.45
+  - `interface-contract-design`: 0.45
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks
   only) — requires the named skill via `required_skills` with
   `mode: any_order`. The currently released waza CLI (`v0.33.0`) defines

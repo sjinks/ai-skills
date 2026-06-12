@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Write an ADR from a made decision
+description: |
+  Canonical case: a made decision with context and options is turned
+  into a complete ADR with drivers, option costs, negative
+  consequences, and revisit triggers.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Write the architecture decision record for this:
+
+    We decided to use Redis for session storage. Constraints: p99 session
+    read under 5 ms, and our ops team already runs Redis for caching. We
+    also considered a Postgres sessions table (no new infra, but latency
+    risk under load) and JWT-only stateless sessions (no store at all,
+    but revocation gets hard). Deciders: me (platform lead) and the SRE
+    lead.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/architecture-decision-record/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - architecture-decision-record
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Architecture Decision Record'
+        - '(?i)Status:\s*(proposed|accepted)'
+        - '(?i)### Decision drivers'
+        - '(?i)### Options'
+        - '(?is)(Postgres|JWT).{0,200}(cost|benefit)'
+        - '(?i)Harder:'
+        - '(?i)### Revisit triggers'
+      not_contains:
+        - "Tradeoff Analysis"
+        - "Failure Mode Design Report"
+        - "Interface Contract"

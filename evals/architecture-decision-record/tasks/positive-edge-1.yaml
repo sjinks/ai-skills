@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: No choice named, decision stays open
+description: |
+  Draft mode with options but no chosen option and no leaning must list
+  the options and put the choice under Open decisions, not pick a
+  winner.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Draft the ADR skeleton for this undecided question — do NOT pick for
+    us, the staff engineers decide next week:
+
+    Problem: our monolith's background jobs need to move out. Options on
+    the table: a dedicated worker service sharing the monolith DB, or a
+    queue-based worker with its own store. Drivers we care about:
+    deployment independence and not adding a second database to ops load.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/architecture-decision-record/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - architecture-decision-record
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Architecture Decision Record'
+        - '(?i)Status:\s*proposed'
+        - '(?i)### Open decisions'
+        - '(?is)(staff engineer|owner|decide)'
+      not_contains:
+        - "Status: accepted"

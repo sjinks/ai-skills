@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Generating an OpenAPI file is not contract design
+description: |
+  A request to mechanically convert an existing, decided contract into
+  an OpenAPI document is schema-file generation, which the skill
+  declares out of scope, and must not activate it.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Convert this finalized API description into an OpenAPI 3.1 YAML
+    document — all decisions are made, I just need the format:
+
+    GET /health returns 200 {"status":"ok"}; GET /users/{id} returns
+    200 with the user object or 404 with problem details.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/interface-contract-design/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Interface Contract"
+        - "### Open decisions"
+        - "### Operations"
+        - "Verdict: BLOCK"
+        - "Smallest addition to proceed"

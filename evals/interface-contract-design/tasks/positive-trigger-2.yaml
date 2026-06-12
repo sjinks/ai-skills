@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Audit a leaky contract description
+description: |
+  An existing contract with collapsed errors and implementation leakage
+  is audited; the gaps land under Contract gaps.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Audit this API contract draft before we publish it to the partner
+    team:
+
+    "POST /sync — pushes the user_dim table rows to the partner. Body:
+    whatever the kafka consumer emits. On any problem returns 500 with
+    an error message. Calling it twice might duplicate rows, partners
+    should be careful."
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/interface-contract-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - interface-contract-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Interface Contract'
+        - '(?i)### Contract gaps'
+        - '(?is)(500|error).{0,300}(collaps|single|indistinguish|gap)'
+        - '(?is)(user_dim|kafka).{0,300}(leak|implementation|internal)'
+        - '(?i)(not-|non-)idempotent'
+      not_contains:
+        - "Architecture Decision Record"
+        - "Dependency Choice Review"

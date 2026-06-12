@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Reviewing code for error handling is not failure design
+description: |
+  Reviewing implemented code for missing error handling is code review,
+  not design-time failure-behavior decisions, and must not activate the
+  skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Review this implemented function for error-handling problems:
+
+    ```python
+    def fetch_profile(user_id):
+        resp = requests.get(f"{API}/users/{user_id}")
+        return resp.json()
+    ```
+
+    It's already in production; tell me what's wrong with the code.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/failure-mode-design/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Failure Mode Design Report"
+        - "queue-and-retry"
+        - "Blast radius"
+        - "Verdict: BLOCK"
+        - "Smallest addition to proceed"

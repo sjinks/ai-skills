@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Unrelated everyday prompt
+description: Unrelated everyday request must not activate the dependency-choice-review skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "What's a sensible packing list for a week of autumn hiking in the Carpathians?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/dependency-choice-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Dependency Choice Review"
+        - "lock-in-and-exit"
+        - "Reversal triggers"
+        - "Verdict: BLOCK"
+        - "Smallest addition to proceed"
