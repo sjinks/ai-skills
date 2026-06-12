@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Mid-build infeasibility with evidence
+description: |
+  Canonical case: an implementation discovers the specified behavior
+  cannot meet its own latency envelope; the deviation is classified
+  with evidence, paused with boundaries, and packaged for the owner.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    We hit a wall mid-implementation — handle this deviation properly.
+
+    The spec says: "invite emails are sent synchronously in the
+    request; the API returns after the mail server accepts the
+    message." Reality: our mail provider's published p99 is 8 seconds
+    and our gateway hard-times-out at 5. Built so far: invite
+    persistence and listing are done; the send path is half-written.
+    The spec owner is the platform PM.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spec-deviation-handling/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - spec-deviation-handling
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Spec Deviation Report'
+        - '(?i)infeasible-as-specified'
+        - '(?i)(pause-this-thread|escalate-now)'
+        - '(?i)Interim behavior'
+        - '(?i)Blocked / unblocked'
+        - '(?is)(8 s|p99|timeout|5 s)'
+      not_contains:
+        - "Requirements Ambiguity Report"
+        - "Implementation Step Plan"
+        - "Debugging Report"

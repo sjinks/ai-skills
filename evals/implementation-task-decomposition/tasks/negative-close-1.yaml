@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Splitting an existing diff is not decomposition
+description: |
+  Splitting an already-written change set into reviewable pieces is
+  diff slicing, not pre-coding decomposition, and must not activate
+  the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    I already wrote the whole feature — 1,900 lines across 24 files,
+    mixing a rename refactor with new endpoints. How should I split
+    this existing diff into separate reviewable PRs?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/implementation-task-decomposition/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Implementation Step Plan"
+        - "walking-skeleton"
+        - "### Blocked on"
+        - "Must not touch"

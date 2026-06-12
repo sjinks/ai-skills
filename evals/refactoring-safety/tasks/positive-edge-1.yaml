@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Discovered bug becomes a question, not a fix
+description: |
+  A bug discovered while characterizing must be recorded under
+  discovered behavior questions and pinned as-is, not silently fixed
+  in the refactor.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Help me plan this refactor safely: while writing characterization
+    tests for the discount calculator I'm about to restructure, I found
+    it rounds half-cents in the customer's favor — almost certainly a
+    bug, finance probably doesn't know. The refactor itself is just
+    splitting the calculator into strategy classes. Should I fix the
+    rounding while I'm in there?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/refactoring-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - refactoring-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Refactoring Safety Plan'
+        - '(?i)### Discovered behavior questions'
+        - '(?is)(rounding|half-cent).{0,400}(question|owner|finance|not .{0,20}fix|separately)'
+        - '(?is)(pin|characteriz).{0,200}(current|as-is|existing)'
+      not_contains:
+        - "Debugging Report"

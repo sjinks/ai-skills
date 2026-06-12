@@ -75,6 +75,11 @@ grader weighting takes effect.
   - `dependency-choice-review`: 0.45
   - `failure-mode-design`: 0.45
   - `interface-contract-design`: 0.45
+  - `data-migration-safety`: 0.45
+  - `hypothesis-driven-debugging`: 0.45
+  - `implementation-task-decomposition`: 0.45
+  - `refactoring-safety`: 0.45
+  - `spec-deviation-handling`: 0.45
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks
   only) — requires the named skill via `required_skills` with
   `mode: any_order`. The currently released waza CLI (`v0.33.0`) defines
@@ -101,7 +106,12 @@ grader weighting takes effect.
   (`multi-lens-review`, `ssrf-outbound-fetch-review`,
   `web-app-security-review`, `dependency-audit`, `factcheck`,
   `unicode-text-security-review`) use 12 000
-  tokens; the rest use 8 000; `spock-voice` uses 4 000.
+  tokens; table-heavy build/architecture suites
+  (`failure-mode-design`, `architecture-tradeoff-analysis`,
+  `dependency-choice-review`, `implementation-task-decomposition`,
+  `hypothesis-driven-debugging`, `refactoring-safety`,
+  `data-migration-safety`) use 10 000; the rest use 8 000;
+  `spock-voice` uses 4 000.
 
 ## Skill-body injection
 

@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Vague spec material lands in Blocked on
+description: |
+  Spec material too vague to decompose must produce Blocked on entries
+  with concrete questions, not vague catch-all steps.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Plan the implementation steps for this design before we build:
+
+    Design: a webhook relay that receives provider events at one
+    endpoint, persists them, and forwards them to per-tenant
+    destinations with retries. The design doc says "errors should be
+    handled properly" with no specifics, and doesn't say whether
+    destinations are configured per tenant in the DB or in config
+    files — the platform lead owns that call.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/implementation-task-decomposition/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - implementation-task-decomposition
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Implementation Step Plan'
+        - '(?i)### Blocked on'
+        - '(?is)(errors? .{0,40}(properly|handled)|error handling).{0,300}(question|blocked|concrete|specify)'
+        - '(?is)(DB|config|destination).{0,300}(platform lead|owns|decide)'
+      not_contains:
+        - "Scope Slice Plan"
+        - "Spec Deviation Report"

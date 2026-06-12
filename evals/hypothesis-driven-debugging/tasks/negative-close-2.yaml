@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Fix impact analysis is not debugging
+description: |
+  Assessing what an already-drafted fix could break is blast-radius
+  analysis, not failure investigation, and must not activate the
+  skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    The bug is already found and the fix is drafted: we change the
+    session TTL comparison from > to >=. Before I push it, trace what
+    this one-character fix could break across callers and shared state.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/hypothesis-driven-debugging/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Debugging Report"
+        - "### Hypothesis log"
+        - "Reproduction:"
+        - "Untested backlog"

@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Choosing the target design is not refactoring safety
+description: |
+  Deciding which structure the code should move to is a design
+  decision, which the skill declares out of scope, and must not
+  activate it.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Our payment module is a mess. Should we restructure it into
+    hexagonal architecture, a layered design, or feature folders?
+    Compare the three structures and recommend one — nothing is being
+    executed yet.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/refactoring-safety/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Refactoring Safety Plan"
+        - "Tripwire events"
+        - "### Preserved behavior"
+        - "accepted-uncovered"

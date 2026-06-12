@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Mixed deviations classified independently
+description: |
+  Multiple discoveries in one report — a spec gap, a better-way
+  proposal, and creeping scope — are classified and disposed
+  independently.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Three things came up while building the CSV import feature — sort
+    them out per your process:
+
+    1. The spec never says what happens when the CSV has duplicate
+       email rows — we have to decide something to keep coding.
+    2. I realized streaming the parse would use 10x less memory than
+       the spec's "load then validate" approach; output is identical.
+    3. Marketing asked me to "also handle XLSX since you're in there" —
+       it's not in the approved spec at all.
+
+    Spec owner: the imports PM. Built so far: upload and storage are
+    done.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spec-deviation-handling/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - spec-deviation-handling
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Spec Deviation Report'
+        - '(?i)spec-gap'
+        - '(?i)better-way-found'
+        - '(?i)scope-creep-detected'
+        - '(?is)(XLSX).{0,400}(owner|PM|not .{0,30}proceed)'
+      not_contains:
+        - "Requirements Ambiguity Report"
+        - "Scope Boundary Report"

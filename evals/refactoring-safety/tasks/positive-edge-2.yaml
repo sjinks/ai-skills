@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: BLOCK when no refactoring target is provided
+description: |
+  A request to plan a refactor with no code or surface named must
+  produce the BLOCK template, not an invented codebase.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Our codebase needs refactoring — everyone says so. Produce the
+    refactoring safety plan. I can't point you at specific code right
+    now.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/refactoring-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - refactoring-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Refactoring Safety Plan'
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Missing input'
+        - '(?i)Smallest addition to proceed'
+      not_contains:
+        - "### Preserved behavior"
+        - "point-of-no-return"

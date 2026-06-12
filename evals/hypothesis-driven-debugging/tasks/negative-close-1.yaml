@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Sanitizer report triage is not generic debugging
+description: |
+  Interpreting an AddressSanitizer report against its report anatomy
+  is sanitizer triage, which the skill declares out of scope, and must
+  not activate it.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Triage this ASan report from CI: heap-use-after-free in
+    OrderCache::lookup, freed by OrderCache::evict, allocated in
+    OrderCache::insert. Tell me whether it's a true positive, which
+    frame is the root cause, and who owns the fix.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/hypothesis-driven-debugging/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Debugging Report"
+        - "### Hypothesis log"
+        - "Untested backlog"
+        - "Reproduction:"

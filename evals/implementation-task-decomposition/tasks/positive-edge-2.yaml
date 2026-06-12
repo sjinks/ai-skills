@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: BLOCK when no spec is provided
+description: |
+  A request to decompose with no spec or design must produce the BLOCK
+  template, not an invented plan.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Create the implementation step plan for the loyalty-points project.
+    The spec isn't finalized and I can't share the draft — just write
+    the steps.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/implementation-task-decomposition/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - implementation-task-decomposition
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Implementation Step Plan'
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Missing input'
+        - '(?i)Smallest addition to proceed'
+      not_contains:
+        - "walking-skeleton"
+        - "### Step details"

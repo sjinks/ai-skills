@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
+name: data-migration-safety-eval
+description: |
+  Evaluates the data-migration-safety skill: it activates on planning
+  and auditing schema/data migration implementations, stays silent on
+  schema design decisions and off-topic prompts, and produces the
+  phased plan with rollbacks, verification, consumer mapping, and the
+  point-of-no-return label.
+skill: data-migration-safety
+version: "1.0"
+config:
+  trials_per_task: 2
+  timeout_seconds: 300
+  parallel: true
+  workers: 4
+  executor: copilot-sdk
+  model: claude-sonnet-4.6
+  max_attempts: 2
+metrics:
+  - name: trigger_accuracy
+    weight: 0.30
+    threshold: 0.8
+    description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected mode.
+  - name: skill_invocation
+    weight: 0.15
+    threshold: 0.9
+    description: Skill is invoked on positive tasks that should activate it.
+  - name: task_completion
+    weight: 0.40
+    threshold: 0.8
+    description: Output carries the phased plan table with rollbacks, verification, consumer switches, and plan gaps.
+  - name: efficiency
+    weight: 0.15
+    threshold: 0.7
+    description: Stays within tool-call and total-token budgets.
+graders:
+  - type: behavior
+    name: efficiency
+    config:
+      max_tool_calls: 8
+      max_tokens: 10000
+tasks:
+  - "tasks/*.yaml"
