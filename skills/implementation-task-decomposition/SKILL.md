@@ -103,7 +103,9 @@ Spec: team admins can invite members by email; invites expire after 7 days; an e
 - Step 2: Must not touch: email sending (stubbed), expiry logic. `walking-skeleton`
 - Step 3: Must not touch: invite acceptance flow.
 
-Under `### Blocked on`: None
+### Blocked on
+
+None
 
 ## Anti-Patterns
 
