@@ -47,7 +47,7 @@ At the moment, the repository contains these skills:
 - `nestjs-code-review`: guidance for reviewing NestJS applications with severity-classified findings covering modules, DI, controllers, DTOs, guards, exception handling, persistence, testing, API design, performance, and microservices.
 - `nestjs-development`: guidance for designing, scaffolding, implementing, refactoring, and testing NestJS features with idiomatic patterns, anti-patterns, and a structured build workflow.
 - `pr-scope-slicer`: guidance for deciding whether a change set is too large or mixed to review in one pass and planning ordered, independently reviewable slices along mechanical/semantic, refactor/behavior, dependency, subsystem, and risk axes.
-- `pre-review-self-audit`: guidance for author-side pre-review self-checks covering diff hygiene, scope, tests, contracts, commit atomicity, description accuracy, discovered project checks, and reviewer anticipation, so the predictable first review round disappears.
+- `pre-review-self-audit`: guidance for author-side pre-review self-checks covering diff hygiene, scope, tests, contracts, commit atomicity, description accuracy, discovered project checks, reviewer anticipation, and repeated-pattern consistency, so the predictable first review round disappears.
 - `requirements-ambiguity-audit`: guidance for auditing draft specs, requirements, and user stories for ambiguity across eight classes — vague quantifiers, undefined terms, missing actors, conflicting requirements, placeholders, unspecified paths, ambiguous references, and untestable wording — with quotes, plausible readings, and proposed rewrites.
 - `review-cycle-gatekeeper`: guidance for enforcing review/fix cycle closure gates so findings are explicitly resolved, verified, owned, or waived before merge.
 - `review-disagreement-resolution`: guidance for resolving stalled reviewer-author disputes by classifying each part as fact, standard, or preference, anchoring it to a verifiable source, and applying a decision rule that ends review-thread ping-pong.
@@ -500,7 +500,7 @@ This skill is aimed at the author-side moment just before requesting review, whe
 
 It helps an assistant:
 
-- audit the supplied diff against an eight-item gating checklist: diff hygiene, scope, tests, contracts, commit atomicity, description accuracy, project checks, and reviewer anticipation
+- audit the supplied diff against a nine-item gating checklist: diff hygiene, scope, tests, contracts, commit atomicity, description accuracy, project checks, reviewer anticipation, and repeated-pattern consistency (templated multi-file edits validated once and swept repo-wide)
 - discover the project's own checks structurally from CI config, package scripts, and task runners, listing unrun checks as outstanding instead of inventing them
 - classify findings as `High`, `Medium`, or `Low` by whether they would force a review round on their own
 - keep the full checklist table even on the no-findings path

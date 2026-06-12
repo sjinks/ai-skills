@@ -1,6 +1,6 @@
 ---
 name: pre-review-self-audit
-description: "Use when: auditing your own change before requesting review, running a pre-review or pre-PR self-check, checking diff hygiene, leftover debug code, commented-out code, unrelated changes, missing tests for changed behavior, commit atomicity, or PR description accuracy before opening or updating a pull request."
+description: "Use when: auditing your own change before requesting review, running a pre-review or pre-PR self-check, checking diff hygiene, leftover debug code, commented-out code, unrelated changes, missing tests for changed behavior, commit atomicity, PR description accuracy, or repeated templated edits applied consistently across files before opening or updating a pull request."
 argument-hint: "The diff or changed files, the intended behavior of the change, and the draft PR description or commit messages when available."
 user-invocable: true
 ---
@@ -19,11 +19,11 @@ Use after a change is functionally complete and before opening a pull request or
 - The intended behavior of the change, stated by the author.
 - Draft PR description and commit messages, when they exist.
 
-If the diff or change set is unavailable, emit the BLOCK template; do not audit from the description alone. If commit messages or a PR description do not exist yet, do not block: mark checklist items 5–6 `n/a` with a note.
+If the diff or change set is unavailable, emit the BLOCK template; do not audit from the description alone. If commit messages or a PR description do not exist yet, do not block: mark checklist items 5–6 `n/a` with a note. If the diff contains a repeated templated edit but repository search is unavailable, do not block: mark item 9 `n/a` and list the sweep as outstanding, using the canonical command `git grep -nF -- '<template line>'` with a single, distinctive line from the validated template substituted (the command matches line by line, so never substitute a multi-line snippet); use a different search tool only when the author names one.
 
 ## Workflow
 
-1. State the change intent in one sentence and lock the audit scope to the supplied diff.
+1. State the change intent in one sentence and lock the audit scope to the supplied diff. One exception: checklist item 9 may search the rest of the repository, but only for instances of a pattern the diff touches.
 2. Discover the project's own checks structurally: CI configuration, package scripts, Makefile or task runner targets, lint and formatter configs. Run them when the environment allows; otherwise list each as outstanding. Never invent check names.
 3. Sweep the checklist below over the whole diff, not only suspicious areas.
 4. Report using the output format. All checklist items must appear with a status.
@@ -38,11 +38,12 @@ If the diff or change set is unavailable, emit the BLOCK template; do not audit 
 6. Description accuracy: the PR description matches the actual diff; every claim in it is verifiable from the diff.
 7. Project checks: discovered checks were run and passed, or are listed as outstanding with the exact command.
 8. Reviewer anticipation: spots likely to draw a reviewer question carry a code comment or a PR-description note explaining the choice.
+9. Repeated-pattern consistency: when the diff applies the same templated sentence, snippet, or contract reference (path, heading, enum value, label casing) across multiple files, validate the template once, then search the whole repository and report each instance — changed or not — that deviates from the validated template as a finding. A value shared only between changed code and its own test does not count as a templated edit. Deviating instances in files the diff does not touch are fixed as a follow-up change listed as outstanding, not folded into the current diff.
 
 ## Severity Rubric
 
 - `High`: would force a review round on its own — broken or untested behavior change, misleading description, committed secret.
-- `Medium`: a likely reviewer finding — scope creep, noisy diff, unclear naming, missing contract note.
+- `Medium`: a likely reviewer finding — scope creep, noisy diff, unclear naming, missing contract note, an instance deviating from a templated pattern.
 - `Low`: minor polish; advisory only.
 
 ## Output Format
@@ -58,7 +59,7 @@ If the diff or change set is unavailable, emit the BLOCK template; do not audit 
 |---|----------------|--------|-------|
 | <1> | <Diff hygiene> | <pass \| fail \| n/a> | <evidence or reason> |
 
-One row per checklist item, all eight items.
+One row per checklist item, all nine items.
 
 ### Findings
 
