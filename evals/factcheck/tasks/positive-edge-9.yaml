@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-009
+name: Inaccessible evidence is UNVERIFIABLE not UNSUPPORTED
+description: When evidence could not be accessed rather than failing to support, the verdict is UNVERIFIABLE.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use factcheck on this claim. Report only. You have no external search and
+    cannot open the cited link.
+
+    Claim: "The agency's 2022 report found that wait times fell by 30%."
+
+    Evidence:
+    - The only citation is a link to the agency's report portal, which is not
+      provided as text and cannot be opened in this session.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/factcheck/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - factcheck
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Fact-Check Summary"
+        - "(?i)Claims Checked"
+        - "(?i)Findings"
+        - '(?i)Verdict:\s*UNVERIFIABLE'
+        - '(?i)Confidence:\s*(high|medium|low)'
+        - "(?i)Verification Limits"
+        - "(?i)(could not|cannot|unavailable|inaccessible|not provided)"
+      not_contains:
+        - "Verdict: BLOCK"
+        - '(?i)Verdict:\s*UNSUPPORTED'
+        - "Rewritten draft:"

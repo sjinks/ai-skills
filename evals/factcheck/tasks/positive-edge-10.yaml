@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-010
+name: Altered quotation is caught against source wording
+description: A quotation that alters the source's words while keeping quote marks is not fully supported.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use factcheck on this draft sentence. Report only. Check whether the quoted
+    text matches the source.
+
+    Draft: The report states, "wait times were eliminated across all clinics."
+
+    Evidence:
+    - Source report excerpt: "Wait times were reduced across most clinics."
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/factcheck/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - factcheck
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Fact-Check Summary"
+        - "(?i)Claims Checked"
+        - "(?i)Findings"
+        - '(?i)Verdict:\s*(CONTRADICTED|MOSTLY_SUPPORTED|MIXED)'
+        - '(?i)Confidence:\s*(high|medium|low)'
+        - "(?i)Recommended Corrections"
+        - "(?i)(reduced|most clinics|misquote|quotation|quoted|verbatim|wording)"
+      not_contains:
+        - "Verdict: BLOCK"
+        - "Rewritten draft:"
