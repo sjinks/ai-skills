@@ -43,5 +43,5 @@ graders:
         - "(?i)(could not|cannot|unavailable|inaccessible|not provided)"
       not_contains:
         - "Verdict: BLOCK"
-        - '(?i)Verdict:\s*UNSUPPORTED'
+        - "Verdict: UNSUPPORTED"
         - "Rewritten draft:"

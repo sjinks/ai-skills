@@ -111,7 +111,8 @@ These are pairwise tiebreakers: identify your two candidate verdicts, then apply
 - `CONTRADICTED` vs `MOSTLY_SUPPORTED`: a stated value the evidence directly refutes — wrong year, wrong place, wrong name, wrong number — is `CONTRADICTED`, even when the rest of the claim is right. Reserve `MOSTLY_SUPPORTED` for a detail that is imprecise or incomplete but not refuted (for example "about 30%" against 28%, or "in 2024" against "late 2024").
 - `MIXED` vs `MOSTLY_SUPPORTED`: choose `MOSTLY_SUPPORTED` when the central assertion holds and only a qualifier, number, date, or scope needs a minor correction; choose `MIXED` when evidence genuinely supports one part and challenges another, or credible sources conflict without a clear winner.
 - `MOSTLY_SUPPORTED` vs `SUPPORTED`: choose `MOSTLY_SUPPORTED` when a qualifier, number, date, or scope is imprecise or incomplete but not refuted; reserve `SUPPORTED` for claims correct as written. A detail the evidence flatly refutes is `CONTRADICTED`, not `MOSTLY_SUPPORTED` (see the rule above).
-- When a claim is both partly non-factual and partly checkable, split it (see Claim Extraction) rather than forcing one verdict.
+
+Before reaching for a tiebreaker, when a claim is both partly non-factual and partly checkable, split it (see Claim Extraction) and verdict each part rather than forcing one verdict on the whole.
 
 ## Sensitive-Domain Handling
 

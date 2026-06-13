@@ -36,10 +36,12 @@ graders:
         - "(?i)Fact-Check Summary"
         - "(?i)Claims Checked"
         - "(?i)Findings"
-        - '(?i)Verdict:\s*(CONTRADICTED|MOSTLY_SUPPORTED|MIXED)'
+        - '(?i)Verdict:\s*CONTRADICTED'
         - '(?i)Confidence:\s*(high|medium|low)'
         - "(?i)Recommended Corrections"
         - "(?i)(reduced|most clinics|misquote|quotation|quoted|verbatim|wording)"
       not_contains:
         - "Verdict: BLOCK"
+        - "Verdict: SUPPORTED"
+        - "Verdict: MOSTLY_SUPPORTED"
         - "Rewritten draft:"
