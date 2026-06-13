@@ -31,6 +31,8 @@ Verdicts (one per claim):
 - `UNVERIFIABLE`: sources missing, inaccessible, insufficient, stale, or too ambiguous to assess.
 - `NOT_A_FACTUAL_CLAIM`: opinion, prediction, value judgment, or other non-checkable statement.
 
-Confidence: `high`, `medium`, `low`, each with a stated reason.
+Tie-breaks (see [references/WORKFLOW.md](references/WORKFLOW.md)): prefer `UNVERIFIABLE` over `UNSUPPORTED` when evidence was inaccessible, stale, or inadequate rather than in-hand-and-current; use `CONTRADICTED` for any stated value the evidence directly refutes, even when the rest is right; reserve `MOSTLY_SUPPORTED` for a detail that is imprecise but not refuted.
+
+Confidence: `high`, `medium`, `low`, each with a stated reason. Confidence rates assessment reliability, not claim truth: a `CONTRADICTED` claim can be `high` confidence.
 
 Output sections: `Fact-Check Summary`, `Scope`, `Claims Checked`, `Evidence Reviewed`, `Findings`, `Recommended Corrections`, `Open Questions`, `Verification Limits`, `Residual Uncertainty`.
