@@ -40,7 +40,7 @@ Each classified deviation gets exactly one disposition:
 
 - `proceed-and-record`: only for deviations where any reasonable owner would decide the same way (a typo-level spec-bug, a gap with one sane answer). The implementation continues; the record and the spec-fix request are still mandatory.
 - `pause-this-thread`: the affected work stops until the owner answers; unaffected steps continue. Name what is blocked and what is not.
-- `escalate-now`: the deviation invalidates built work or other in-flight work; the owner is interrupted rather than queued. Reserved for foundations, contracts others consume, and data-shape decisions.
+- `escalate-now`: the deviation invalidates built work or other in-flight work; the owner is interrupted rather than queued. Typically foundations, contracts others consume, and data-shape decisions — but the invalidation test, not the category, decides.
 
 Tie-breaks, in order: anything touching a contract other teams or services consume is at least `pause-this-thread`; `better-way-found` and `scope-creep-detected` are never `proceed-and-record` — they get at least `pause-this-thread`; when genuinely unsure between two dispositions, take the one later in this order: `proceed-and-record` < `pause-this-thread` < `escalate-now`.
 
@@ -63,11 +63,12 @@ Tie-breaks, in order: anything touching a contract other teams or services consu
 
 | # | Class | Disposition | Owner question |
 |---|-------|-------------|----------------|
-| 1 | spec-bug \| spec-gap \| spec-ambiguity \| infeasible-as-specified \| better-way-found \| scope-creep-detected | proceed-and-record \| pause-this-thread \| escalate-now | <the question, or `none — recorded`> |
+| 1 | spec-bug \| spec-gap \| spec-ambiguity \| infeasible-as-specified \| better-way-found \| scope-creep-detected | proceed-and-record \| pause-this-thread \| escalate-now | <the question; `none — recorded` only for `proceed-and-record`> |
 
 ### Deviations
 
-For each, numbered as in the table:
+#### Deviation <#, as in the table>
+
 - Spec says: <faithful excerpt or paraphrase>
 - Implementation found: <discovery with evidence>
 - Interim behavior: <cheapest acceptable behavior while unresolved; for `pause-this-thread` and `escalate-now` it must not pre-select one of the owner's options; for `proceed-and-record` it is the recorded choice>
@@ -75,7 +76,7 @@ For each, numbered as in the table:
 
 ### Spec-fix requests
 
-- <deviation #, the spec change that would make the spec true; `none — no spec falsity` for better-way-found and scope-creep-detected>
+- <deviation #, the spec change that would resolve the deviation; `none — no spec falsity` only for better-way-found and scope-creep-detected>
 ```
 
 Empty sections are written with `None`. Emit exactly one value for each enum field; do not copy enum lists or angle-bracket placeholders into the report. The report has no verdict line; `Verdict: BLOCK` appears only in the insufficient-input template below.
@@ -101,7 +102,7 @@ Implementation found: the mail provider's API p99 is 8 s (provider's published S
 
 Table row: `| 1 | infeasible-as-specified | pause-this-thread | accept async send with a pending state, or raise the gateway timeout? |`
 
-Deviation detail:
+Deviation detail (rendered as `#### Deviation 1`):
 
 - Spec says: synchronous send, return after mail-server acceptance.
 - Implementation found: provider p99 8 s vs gateway timeout 5 s (provider SLA doc + gateway config).

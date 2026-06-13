@@ -31,7 +31,7 @@ In plan mode, if current or target shape is missing, emit the BLOCK template; do
 
 ## Phase Contract
 
-Sequence the work expand-contract; every phase row carries an Action, a Rollback, and a Verification. A phase that does not apply (for example no dual-write window on an offline migration) keeps its row with `n/a — <reason>` in the Action cell and `n/a` in the other two.
+Sequence the work expand-contract; every phase row carries an Action, a Rollback, and a Verification. A phase other than `verify` that does not apply (for example no dual-write window on an offline migration) keeps its row with `n/a — <reason>` in the Action cell and `n/a` in the other two; `verify` is never `n/a` — it always carries concrete checks.
 
 1. `expand`: add the new shape alongside the old (new columns/tables/store), nothing reads or writes it yet. Reversible by dropping the addition.
 2. `dual-write` (or dual-read): writes land in both shapes (or reads fall back across shapes); name the consistency story for failures between the two writes.
@@ -42,7 +42,7 @@ Sequence the work expand-contract; every phase row carries an Action, a Rollback
 
 ## Rules
 
-- Every phase before `contract` that mutates state has a rollback path with a stated test plan: in plan mode, each rollback names how it will be tested before its phase runs; a rollback that will reach execution untested is a plan gap. Read-only phases (such as `verify`) carry `Rollback: n/a — read-only` instead. "We'll restore from backup" counts only if the restore has actually been exercised and the data-loss window is stated.
+- Every phase before `contract` that mutates state has a rollback path with a stated test plan: in plan mode, each rollback names how it will be tested before its phase runs; in either mode, a rollback that will reach execution untested is a plan gap. Read-only phases (`verify`, and `dual-write` when run as dual-read) carry `Rollback: n/a — read-only` (optionally with a parenthetical reason such as `(dual-read)`) instead. "We'll restore from backup" counts only if the restore has actually been exercised and the data-loss window is stated.
 - When the availability requirement and locking needs cannot both be met (zero downtime, hot table, no online-migration path), record the conflict under `### Open decisions` with both constraints quoted; do not pick silently.
 - Schema steps that lock tables name the expected lock scope and duration basis; locking steps on hot tables need an online-migration approach or a stated downtime window.
 - The backfill never runs unbounded against production without rate limiting; batch size and pause criteria are taken from input volume numbers, marked `(inferred — <basis>)`, or routed to `### Open decisions`.
@@ -63,13 +63,11 @@ Sequence the work expand-contract; every phase row carries an Action, a Rollback
 | Phase | Action | Rollback | Verification |
 |-------|--------|----------|--------------|
 | expand | <addition> \| n/a — <reason> | <how it reverts; plan mode: how the rollback is tested before this phase runs> \| n/a | <check> \| n/a |
-| dual-write | <both-shapes story; failure consistency> \| n/a — <reason> | <how it reverts; plan mode: how the rollback is tested before this phase runs> \| n/a | <check> \| n/a |
+| dual-write | <both-shapes story; failure consistency> \| n/a — <reason> | <how it reverts; plan mode: how the rollback is tested before this phase runs> \| n/a — read-only (dual-read) \| n/a | <check> \| n/a |
 | backfill | <batched, rate-limited, idempotent, resumable copy; during-writes accounting> \| n/a — <reason> | <safe to stop/re-run from any point; plan mode: how the rollback is tested before this phase runs> \| n/a | <progress + spot checks> \| n/a |
 | verify | <agreement checks and divergence threshold> | n/a — read-only | <the checks themselves> |
 | cutover | <flagged switch> \| n/a — <reason> | <flip-back story incl. interim writes; plan mode: how the rollback is tested before this phase runs> \| n/a | <post-cutover checks> \| n/a |
 | contract | <old-shape removal after soak> \| n/a — <reason> | point-of-no-return — <soak period, final checks> \| n/a | <final verification> \| n/a |
-
-Write `n/a` in a phase's Rollback and Verification cells exactly when its Action is `n/a — <reason>`.
 
 ### Consumers
 
@@ -84,7 +82,7 @@ Write `n/a` in a phase's Rollback and Verification cells exactly when its Action
 - <number or choice the input does not settle, who decides>
 ```
 
-Empty sections are written with `None`. Emit exactly one value for each enum field; do not copy enum lists or angle-bracket placeholders into the report. The report has no verdict line; `Verdict: BLOCK` appears only in the insufficient-input template below.
+Write bare `n/a` in a phase's Rollback and Verification cells exactly when its Action is `n/a — <reason>`; `n/a — read-only` marks a read-only phase's Rollback and is exempt from this rule. Empty sections are written with `None`. Emit exactly one value for each enum field; do not copy enum lists or angle-bracket placeholders into the report. The report has no verdict line; `Verdict: BLOCK` appears only in the insufficient-input template below.
 
 ## Error Handling (BLOCK Template)
 
@@ -101,7 +99,7 @@ Verdict: BLOCK
 
 ## Example
 
-Migration: move user avatars from a `BLOB` column to object storage with a `avatar_url` column. Volume: 4 M rows, ~2 k avatar writes/day. Availability: no downtime.
+Migration: move user avatars from a `BLOB` column to object storage with an `avatar_url` column. Volume: 4 M rows, ~2 k avatar writes/day. Availability: no downtime.
 
 Selected table rows:
 
@@ -126,4 +124,4 @@ Consumers line:
 
 ## Definition of Done
 
-All six phases are present or explicitly `n/a — <reason>`, every pre-contract phase that mutates state has a rollback path (read-only phases carry `n/a — read-only`) and every phase has a verification check, the backfill is idempotent, batched, and accounts for concurrent writes, every consumer maps to a switch phase, `contract` is labeled point-of-no-return with a soak period, and every number is sourced, inferred-with-basis, or an open decision.
+All six phases are present, or — except `verify`, which always carries concrete checks — explicitly `n/a — <reason>`; every pre-contract phase that mutates state has a rollback path with a stated test plan or a corresponding `### Plan gaps` entry (read-only phases carry `n/a — read-only`) and every non-`n/a` phase has a verification check, the backfill is idempotent, batched, and accounts for concurrent writes, every consumer maps to a switch phase, `contract` is labeled point-of-no-return with a soak period, and every number is sourced, inferred-with-basis, or an open decision.

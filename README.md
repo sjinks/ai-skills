@@ -284,7 +284,7 @@ This skill is aimed at schema changes, data backfills, format migrations, and st
 
 It helps an assistant:
 
-- sequence the work expand-contract: `expand`, `dual-write`, `backfill`, `verify`, `cutover`, `contract` — each present or explicitly `n/a — <reason>`
+- sequence the work expand-contract: `expand`, `dual-write`, `backfill`, `verify`, `cutover`, `contract` — each present or, except `verify`, explicitly `n/a — <reason>`
 - require the backfill to be idempotent, batched with a sourced basis, rate-limited, resumable, and explicit about writes arriving mid-backfill (dual-write, change capture, or delta pass)
 - attach a rollback path with a stated test plan to every state-mutating pre-contract phase (read-only phases carry `n/a — read-only`) and a verification check to every phase, with divergence thresholds for cutover
 - map every consumer to the phase where it switches, and label `contract` as the point of no return with a soak period
@@ -394,7 +394,7 @@ It helps an assistant:
 - run one-variable discriminating experiments with predictions and recorded `confirmed` / `refuted` / `inconclusive` / `proposed` verdicts
 - classify inherited guesses from evidence before adding new hypotheses, and park speculation in an untested backlog
 - gate the fix: explicit root-cause-vs-symptom call, all observations explained, and a regression check that fails before and passes after — or the fix is `unverified`
-- record vanished failures as `not reproduced — cause unknown`, never as fixed
+- record vanished failures as `not established (not reproduced — cause unknown)`, never as fixed
 
 ### `implementation-task-decomposition`
 
@@ -569,7 +569,7 @@ This skill is aimed at planned or in-flight behavior-preserving restructurings w
 
 It helps an assistant:
 
-- define the preserved observable contract and map every behavior to a safety net: an existing check, a characterization step, or an explicit `accepted-uncovered` entry
+- define the preserved observable contract and map every behavior to a safety net: an existing check, an `unknown — verify` marker, a characterization step, or an explicit `accepted-uncovered` entry
 - pin current behavior (bugs included) with characterization tests, recording discovered bugs as owner questions rather than in-flight fixes
 - plan steps as single named transformations with a green check after each, separated mechanical vs hand edits, and revertibility status including `point-of-no-return` flags
 - enforce the tripwire: changed test expectations or shifted behavior stop the work, get recorded, and are reclassified as separate behavior change

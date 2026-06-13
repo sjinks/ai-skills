@@ -11,7 +11,14 @@ Turn an approved spec or design into an ordered sequence of small, independently
 
 ## When to Use
 
-Use after a spec or design is approved and before implementation starts, when the work needs to become a step sequence. Out of scope: writing the spec or design being decomposed, deciding whether an already-written diff should be split for review, performing the implementation itself, sprint-level estimation or assignment across people, safety-planning a behavior-preserving restructure of existing code (characterization coverage, revertibility discipline) — such a restructure appears here only as a step whose internal safety plan is owned elsewhere, and phase-planning a schema or data migration (expand/contract sequencing, backfill, cutover), which needs migration-specific rollback and verification phases rather than a generic step plan.
+Use after a spec or design is approved and before implementation starts, when the work needs to become a step sequence. Out of scope:
+
+- writing the spec or design being decomposed
+- deciding whether an already-written diff should be split for review
+- performing the implementation itself
+- sprint-level estimation or assignment across people
+- safety-planning a behavior-preserving restructure of existing code (characterization coverage, revertibility discipline); such a restructure appears here only as a step whose internal safety plan is owned elsewhere
+- phase-planning a schema or data migration (expand/contract sequencing, backfill, cutover), which needs migration-specific rollback and verification phases rather than a generic step plan
 
 ## Required Inputs
 
@@ -44,7 +51,7 @@ Every step carries all five fields. Fields 1, 2, 4, and 5 fill the table columns
 
 - Decompose only what the supplied spec or design contains; mark steps you inferred (plumbing the spec implies but does not name) with `(inferred)`.
 - Sequencing the steps is this skill's job; choosing between competing designs is not — a decomposition that needs a design decision first lists it under `### Blocked on` and stops the affected steps there.
-- Parallel-capable steps share the same `Depends on` value; do not add any other parallelism annotation.
+- Parallel-capable steps share the same `Depends on` value; do not add any other parallelism annotation. If two steps share a `Depends on` value but cannot safely run in parallel (overlapping files or boundaries), add the earlier step's number to the later step's `Depends on` to serialize them.
 - Spec material too vague to decompose ("handle errors properly") goes under `### Blocked on` with the concrete question, not into a vague step.
 - Do not pad with process steps ("write tests", "review") — verification lives inside each step's `Verify by`, not as separate steps.
 
@@ -66,7 +73,7 @@ Every step carries all five fields. Fields 1, 2, 4, and 5 fill the table columns
 
 ### Blocked on
 
-- <question or missing decision, which steps it blocks, who answers>
+- <question, missing decision, or quoted constraint conflict; which steps it blocks, who answers>
 ```
 
 Empty sections are written with `None`. One table row per step. Every step gets a `Step details` line carrying at least its `Must not touch` boundary. Emit exactly one value for each enum field; do not copy enum lists or angle-bracket placeholders into the report. The report has no verdict line; `Verdict: BLOCK` appears only in the insufficient-input template below.
@@ -99,7 +106,7 @@ Spec: team admins can invite members by email; invites expire after 7 days; an e
 
 ### Step details
 
-- Step 1: Must not touch: existing members table, auth middleware.
+- Step 1: Must not touch: existing members table, auth middleware. `(inferred)` — persistence plumbing the spec implies but does not name
 - Step 2: Must not touch: email sending (stubbed), expiry logic. `walking-skeleton`
 - Step 3: Must not touch: invite acceptance flow.
 

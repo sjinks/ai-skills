@@ -38,6 +38,7 @@ graders:
     config:
       regex_match:
         - '(?i)Debugging Report'
+        - '(?i)Reproduction:'
         - '(?is)(rollback|rolled back).{0,400}(refuted|evidence|eliminat)'
         - '(?i)(clock skew|cookie)'
         - '(?i)(untested|backlog)'

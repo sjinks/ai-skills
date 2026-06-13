@@ -40,6 +40,8 @@ graders:
         - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Disposition\s*\|'
         - '(?i)infeasible-as-specified'
         - '(?i)(pause-this-thread|escalate-now)'
+        - '(?i)### Deviations'
+        - '(?i)### Spec-fix requests'
         - '(?i)Interim behavior'
         - '(?i)Blocked / unblocked'
         - '(?is)(8 s|p99|timeout|5 s)'

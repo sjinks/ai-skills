@@ -36,11 +36,11 @@ Before any step executes:
 - A suite that is already red before step 1 is recorded under `### Blocked` and the plan does not start; pre-existing failures are not fixed in-flight.
 - Each step is independently revertible; steps that cannot be reverted alone (schema or serialized-format moves) are flagged `point-of-no-return` with a one-line rollback story.
 - Mechanical, tool-applied transformations (IDE rename, codemod) are separated from hand edits — different steps, so review effort can be calibrated.
-- The tripwire: the moment a step requires changing a test's expected values, or any preserved behavior shifts, stop — the work is no longer a refactor. Record it under `### Tripwire events`, reclassify that change as behavior change to be done separately, and either revert the step or carve the behavior change out of the plan.
+- The tripwire: the moment a step requires changing a test's expected values, or any preserved behavior shifts, stop — the work is no longer a refactor. Record it under `### Tripwire events`, reclassify that change as behavior change to be done separately, and either revert the step or carve the behavior change out of the plan; if the tripwire fires on a `point-of-no-return` step, execute its stated rollback story and record the outcome.
 
 ## Rules
 
-- Plan only over code and coverage signals in the input; mark inferred coverage claims `(inferred)` and prefer "unknown — verify" over optimism.
+- Plan only over code and coverage signals in the input; coverage claims the input does not verify are written `unknown — verify`, never asserted from optimism.
 - Discovered bugs, dead code, and surprising behaviors are recorded as questions for the owner, not fixed in-flight.
 - Keep the refactor's blast surface explicit: each step names what it must not touch.
 - When coverage is too thin to protect a step and characterization is impractical (no seam to test against), the step is blocked: it keeps its numbered table row with `Check after: blocked` and gets a matching `### Blocked` entry naming the missing seam — it is not attempted bare.
@@ -123,4 +123,4 @@ Step rows:
 
 ## Definition of Done
 
-Every preserved behavior has a safety net, a characterization step, or an explicit `accepted-uncovered` entry; every step is one named transformation with a green-check requirement and a revertibility status; mechanical and hand edits are separated; discovered bugs sit under questions rather than fixes; and any behavior shift appears as a tripwire event with a reclassification decision.
+Every preserved behavior has a safety net, an `unknown — verify` marker, a characterization step, or an explicit `accepted-uncovered` entry; every step is one named transformation with a green-check requirement (or `Check after: blocked` with a matching `### Blocked` entry) and a revertibility status; mechanical and hand edits are separated; discovered bugs sit under questions rather than fixes; and any behavior shift appears as a tripwire event with a reclassification decision.

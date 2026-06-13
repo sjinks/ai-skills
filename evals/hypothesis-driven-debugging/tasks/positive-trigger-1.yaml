@@ -39,6 +39,7 @@ graders:
     config:
       regex_match:
         - '(?i)Debugging Report'
+        - '(?i)Reproduction:'
         - '(?i)### Observations'
         - '(?i)### Hypothesis log'
         - '(?i)\|\s*#\s*\|\s*Hypothesis'

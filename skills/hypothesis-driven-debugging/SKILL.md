@@ -30,7 +30,7 @@ Work the loop in order; do not skip ahead to fixes:
 3. Hypothesize: one falsifiable claim naming a mechanism ("the cache returns stale entries after TTL expiry because eviction never runs"), not a suspicion ("something with the cache").
 4. Experiment: the cheapest test that discriminates this hypothesis from its rivals — prefer reading code, adding one assertion, bisecting (over commits, configs, or input), or toggling one variable, before stepping through everything.
 5. Record: experiment, prediction, observed result, verdict — `confirmed`, `refuted`, `inconclusive`, or `proposed` (designed but not runnable yet; Observed `pending`). Refuted hypotheses stay in the log; they are paid-for progress.
-6. Repeat 3–5 until a hypothesis is confirmed and explains all recorded observations, then proceed to the fix gate. When the cheap experiments are exhausted or the session's budget runs out without a confirmation, stop and emit the report with `Cause: not established` and the remaining hypotheses in `### Untested backlog`; an unfinished honest report beats a forced conclusion.
+6. Repeat 3–5 until a hypothesis is confirmed and explains all recorded observations, then proceed to the fix gate. When the cheap experiments are exhausted or a user-stated time or experiment budget runs out without a confirmation, stop and emit the report with `Cause: not established` and the remaining hypotheses in `### Untested backlog`; an unfinished honest report beats a forced conclusion.
 
 ## Fix Gate
 
@@ -47,7 +47,7 @@ Before any fix counts as done:
 - Never change more than one variable per experiment; an experiment that changed two things confirms nothing.
 - Distinguish "cannot reproduce" from "fixed": a disappearance without a confirmed mechanism is recorded as `Cause: not established (not reproduced — cause unknown)`, never closed as fixed.
 - Evidence beats seniority of opinion: a refuted favorite hypothesis is closed, not retried with variations until it confesses.
-- When the session inherits prior guesses: guesses the supplied evidence confirms or refutes become log rows marked `(inherited)`, with the Experiment and Observed cells citing that supplied evidence; guesses with no evidence go to `### Untested backlog`.
+- When the session inherits prior guesses: guesses the supplied evidence confirms or refutes become log rows marked `(inherited)`, with the Experiment and Observed cells citing that supplied evidence; guesses whose supplied evidence is inconclusive become `(inherited)` rows with verdict `inconclusive`; guesses with no evidence go to `### Untested backlog`.
 - Experiments the session designs but cannot run get the verdict `proposed` with the prediction filled and the Observed cell `pending`.
 - Investigation only: this skill produces the cause, the fix direction, and the regression check definition; writing the fix is downstream work.
 
@@ -109,7 +109,7 @@ Conclusion lines:
 
 - Cause: pod memory limit below peak export working set — root-cause
 - Fix direction: stream the export instead of buffering it; raising the limit alone is the symptom-level alternative
-- Regression check: integration test exporting a top-decile dataset under the production memory limit; fails on current code, passes with streaming
+- Regression check: integration test exporting a top-decile dataset under the production memory limit; fails on current code, passes with streaming — deterministic given top-decile input, so no N-run statistical basis is needed
 
 ## Anti-Patterns
 
