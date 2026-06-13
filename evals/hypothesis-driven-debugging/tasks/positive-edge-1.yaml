@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Vanished failure is not fixed
+description: |
+  A failure that stopped reproducing without a confirmed mechanism
+  must be recorded as not reproduced — cause unknown, never closed as
+  fixed.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Structure this debugging outcome for the record: our API gateway
+    threw 502s for about an hour yesterday; while we were adding
+    logging, the 502s stopped on their own. Nothing we changed shipped.
+    My manager wants to close it as "fixed by the logging change" —
+    handle this properly.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/hypothesis-driven-debugging/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - hypothesis-driven-debugging
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Debugging Report'
+        - '(?i)(not established|cause unknown|not reproduced)'
+        - '(?is)(not|never).{0,60}(fixed|closed as fixed)'
+      not_contains:
+        - "Cause: confirmed"

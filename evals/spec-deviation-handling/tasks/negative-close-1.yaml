@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Pre-build spec audit is not deviation handling
+description: |
+  Auditing a draft spec for ambiguity before implementation starts is
+  spec-stage work, not a mid-build deviation, and must not activate
+  the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Implementation hasn't started. Audit this draft spec for ambiguity
+    before sprint planning: "The export should be fast. Invalid rows
+    are handled appropriately. Retention: TBD."
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spec-deviation-handling/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Spec Deviation Report"
+        - "proceed-and-record"
+        - "Spec-fix requests"
+        - "Interim behavior"

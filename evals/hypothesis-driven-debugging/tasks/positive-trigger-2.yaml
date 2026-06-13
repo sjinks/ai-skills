@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Rescue a stalled guess-driven session
+description: |
+  A stalled debugging session with prior guesses is rescued; inherited
+  guesses are classified from evidence before new hypotheses are
+  added.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    We've been debugging this for two days by gut feeling — please
+    impose structure.
+
+    Symptom: login intermittently returns 401 for valid users since
+    Tuesday's deploy, about 1 in 50 attempts. Things we tried: rolled
+    back the auth service (failures continued — so we rolled forward
+    again); restarted Redis (no visible change); one engineer is
+    convinced it's clock skew on one of the four auth pods but hasn't
+    checked; another suspects the new session-cookie domain change.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/hypothesis-driven-debugging/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - hypothesis-driven-debugging
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Debugging Report'
+        - '(?i)Reproduction:'
+        - '(?is)(rollback|rolled back).{0,400}(refuted|evidence|eliminat)'
+        - '(?i)(clock skew|cookie)'
+        - '(?i)(untested|backlog)'
+        - '(?i)### Hypothesis log'
+        - '(?i)\|\s*#\s*\|\s*Hypothesis'
+      not_contains:
+        - "Implementation Step Plan"
+        - "Spec Deviation Report"

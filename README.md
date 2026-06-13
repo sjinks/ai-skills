@@ -31,6 +31,7 @@ At the moment, the repository contains these skills:
 - `cpp-error-handling-design`: guidance for C++ error policy and exception safety, including exceptions vs `std::expected` vs error codes, basic/strong/nothrow guarantees, commit-rollback, `noexcept` and move interactions, destructor rules, and error propagation across module, ABI, thread, and coroutine boundaries.
 - `cpp-object-lifetime`: guidance for reviewing C++ object lifetime and ownership, including dangling pointers/references/views, iterator and reference invalidation, lambda capture lifetime, use-after-move, smart-pointer boundaries, and async handoff safety.
 - `cpp-sanitizer-triage`: guidance for triaging ASan/TSan/UBSan/MSan/LSan reports, including report anatomy, root cause vs symptom separation, true-positive vs tool-limitation vs configuration-artifact classification, suppression-file discipline, and sanitizer build/runtime configuration.
+- `data-migration-safety`: guidance for planning or auditing schema and data migration implementations: expand-contract phases, idempotent batched backfills, concurrent-write accounting, per-phase rollback and verification, consumer switch mapping, and a labeled point-of-no-return.
 - `dependency-audit`: guidance for auditing application and tooling dependencies for known vulnerabilities, license risk, maintenance health, abandoned packages, unused dependencies, dependency bloat, transitive risk, and supply-chain integrity.
 - `dependency-choice-review`: guidance for design-time build-vs-adopt decisions on libraries, frameworks, services, and platforms across six dimensions — maintenance health, API stability, fit, lock-in and exit, operational burden, license and policy — with exit paths, evidence needs, and reversal triggers.
 - `equivalence-class-audit`: guidance for turning one concrete defect, incident, review finding, test failure, or bug report into a locked-scope audit of equivalent defects across sibling fields, mirror use sites, bounds, contracts, paths, modes, tests, docs, and projections.
@@ -38,6 +39,8 @@ At the moment, the repository contains these skills:
 - `failure-mode-design`: guidance for deciding failure behavior at design time: sweeping each component→dependency edge across slow, down, wrong, and partial failure shapes, assigning one degradation policy per edge with a concrete blast radius and observability signal, and settling idempotency under retry for every mutating flow.
 - `fix-batching-and-root-cause`: guidance for planning a fix batch over review findings by clustering findings with an evidenced shared cause, choosing root-cause versus justified symptom-level fix depth, and ordering fixes so the next review round is the last one.
 - `fix-blast-radius`: guidance for assessing what a drafted fix could newly break before it is pushed, tracing impact across callers, shared state, contracts, behavioral siblings, and previously resolved findings, with one verification step per risk.
+- `hypothesis-driven-debugging`: guidance for disciplined failure investigation: reproduce first, falsifiable mechanism hypotheses, one-variable discriminating experiments with recorded verdicts, a root-cause-versus-symptom call, and a regression check before any fix counts as done.
+- `implementation-task-decomposition`: guidance for decomposing an approved spec or design into ordered, independently verifiable implementation steps — per-step scope, verification check, do-not-touch boundary, dependencies, and risk — with vague material routed to blocked-on questions.
 - `instruction-quality-audit`: guidance for auditing AI instruction artifacts, prompts, prompt templates, LLM task prompts, agent instructions, skill files, `SKILL.md` artifacts, prompt-packaged workflows, custom agent modes, and reusable assistant guidance for contradictions, ambiguity, persona issues, cognitive load, duplication, semantic coverage gaps, missing error handling, and custom diagnostics.
 - `interface-contract-design`: guidance for designing or auditing a boundary's contract before implementation — per-operation inputs, outputs, distinguishable errors, idempotency, and side effects, plus boundary-level ordering, versioning posture, and single-owner invariants — with implementation leakage flagged and open choices routed to the owner.
 - `web-app-security-review`: guidance for defensive web application security review of code, PRs, designs, vulnerability reports, and fixes across access control, auth, browser, API, data-flow, supply-chain, cloud, and abuse-risk surfaces.
@@ -48,12 +51,14 @@ At the moment, the repository contains these skills:
 - `nestjs-development`: guidance for designing, scaffolding, implementing, refactoring, and testing NestJS features with idiomatic patterns, anti-patterns, and a structured build workflow.
 - `pr-scope-slicer`: guidance for deciding whether a change set is too large or mixed to review in one pass and planning ordered, independently reviewable slices along mechanical/semantic, refactor/behavior, dependency, subsystem, and risk axes.
 - `pre-review-self-audit`: guidance for author-side pre-review self-checks covering diff hygiene, scope, tests, contracts, commit atomicity, description accuracy, discovered project checks, reviewer anticipation, and repeated-pattern consistency, so the predictable first review round disappears.
+- `refactoring-safety`: guidance for behavior-preserving refactors: characterization coverage before touching code, one named transformation per step with a green check after each, separated mechanical and hand edits, and a stop-and-reclassify tripwire when behavior shifts.
 - `requirements-ambiguity-audit`: guidance for auditing draft specs, requirements, and user stories for ambiguity across eight classes — vague quantifiers, undefined terms, missing actors, conflicting requirements, placeholders, unspecified paths, ambiguous references, and untestable wording — with quotes, plausible readings, and proposed rewrites.
 - `review-cycle-gatekeeper`: guidance for enforcing review/fix cycle closure gates so findings are explicitly resolved, verified, owned, or waived before merge.
 - `review-disagreement-resolution`: guidance for resolving stalled reviewer-author disputes by classifying each part as fact, standard, or preference, anchoring it to a verifiable source, and applying a decision rule that ends review-thread ping-pong.
 - `review-finding-quality`: guidance for writing, rewriting, and auditing review findings against a five-field contract — severity, anchor, problem, fix direction, and an objective `Resolved when` acceptance condition — so each finding closes in one round.
 - `scope-boundary-definition`: guidance for making a work item's boundaries explicit before planning: in-scope, out-of-scope, non-goal, and deferred lists, a smallest valuable slice, surfaced boundary decisions, and scope-creep risks with pre-empting boundary statements.
 - `single-pass-review-completeness`: guidance for making one review round complete by construction: enumerate eight review dimensions up front, sweep the whole diff per dimension, and declare covered, skipped, and gapped coverage explicitly.
+- `spec-deviation-handling`: guidance for the moment implementation discovers the spec is wrong, incomplete, ambiguous, or infeasible mid-build: six deviation classes, proceed/pause/escalate dispositions with conservative tie-breaks, interim behavior, and spec-fix requests instead of silent divergence.
 - `spec-edge-case-enumeration`: guidance for sweeping a feature spec across eight edge-case dimensions — empty/boundary, error paths, permissions, concurrency, time, locale and text, limits, and lifecycle — and separating spec decisions from implementation details and deep-review flags.
 - `multi-lens-review`: guidance for structuring a multi-lens review (intent, design, implementation, security, adversarial, verification) and synthesizing the lens findings into a single integrated decision with required actions and residual risk.
 - `source-to-skill`: guidance for converting books, articles, documentation, notes, transcripts, and other source material into reusable agent skills with extraction, rights, provenance, and validation gates. Inspired by [book-to-skill](https://github.com/virgiliojr94/book-to-skill/blob/master/SKILL.md).
@@ -273,6 +278,19 @@ It helps an assistant:
 - keep sanitizer configurations compatible and verified (separate builds for TSan/MSan, symbolization working, regression tests under the sanitizer)
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with classification, root cause vs symptom, findings, checklist status, and an insufficient-context template
 
+### `data-migration-safety`
+
+This skill is aimed at schema changes, data backfills, format migrations, and store-to-store moves whose implementation needs to be phased, verifiable, and reversible until the explicit point of no return.
+
+It helps an assistant:
+
+- sequence the work expand-contract: `expand`, `dual-write`, `backfill`, `verify`, `cutover`, `contract` — each present or, except `verify`, explicitly `n/a — <reason>`
+- require the backfill to be idempotent, batched with a sourced basis, rate-limited, resumable, and explicit about writes arriving mid-backfill (dual-write, change capture, or delta pass)
+- attach a rollback path with a stated test plan to every state-mutating pre-contract phase (read-only phases carry `n/a — read-only`) and a verification check to every phase, with divergence thresholds for cutover
+- map every consumer to the phase where it switches, and label `contract` as the point of no return with a soak period
+- source every number (batch size, soak, thresholds) from input, mark it inferred-with-basis, or route it to open decisions
+- emit a deterministic BLOCK template when the shapes are missing in plan mode, or when neither shapes nor a readable script are supplied in audit mode
+
 ### `dependency-audit`
 
 This skill is aimed at dependency risk reviews where manifests, lockfiles, scanner reports, advisory records, license context, and deployment reachability need to be reconciled into a practical release or merge verdict.
@@ -365,6 +383,32 @@ It helps an assistant:
 - cross-check every resolved finding supplied for the cycle against the fix's touched code and state
 - return `SAFE-TO-PUSH`, `VERIFY-FIRST`, or `BLOCK` with the full impact-trace table and regression cross-check
 
+### `hypothesis-driven-debugging`
+
+This skill is aimed at failures, bugs, flaky tests, and unexpected behaviors that need structured investigation — fresh or rescued from a stalled guess-driven session.
+
+It helps an assistant:
+
+- establish reproduction status first and treat reproduction improvement as experiments in their own right
+- separate observations (facts only) from hypotheses, each a falsifiable claim naming a mechanism
+- run one-variable discriminating experiments with predictions and recorded `confirmed` / `refuted` / `inconclusive` / `proposed` verdicts
+- classify inherited guesses from evidence before adding new hypotheses, and park speculation in an untested backlog
+- gate the fix: explicit root-cause-vs-symptom call, all observations explained, and a regression check that fails before and passes after — or the fix is `unverified`
+- record vanished failures as `not established (not reproduced — cause unknown)`, never as fixed
+
+### `implementation-task-decomposition`
+
+This skill is aimed at the moment after a spec or design is approved and before coding starts, when the work needs to become an ordered sequence of small, independently verifiable steps.
+
+It helps an assistant:
+
+- give every step five fields: scope (one capability, not "part 1 of N"), a concrete `Verify by` check, a `Must not touch` boundary, acyclic dependencies, and a risk note
+- split along seams — contract first, implementation second, call-site adoption third — with mechanical changes in their own steps
+- never fuse behavior-preserving restructuring with behavior change in one step
+- mark the earliest observable end-to-end step `walking-skeleton` and prefer it early
+- route vague spec material to `### Blocked on` with concrete questions instead of vague steps
+- emit a deterministic BLOCK template when no spec or design is supplied
+
 ### `instruction-quality-audit`
 
 This skill is aimed at AI instruction artifacts, prompts, prompt templates, LLM task prompts, agent instructions, skill files, `SKILL.md` artifacts, prompt-packaged workflows, custom agent modes, and reusable assistant guidance that need a structured prompt quality or instruction quality audit for contradictions, ambiguity, persona issues, cognitive load, duplication, semantic coverage, missing error handling, and custom diagnostics.
@@ -445,6 +489,19 @@ It helps an assistant:
 - flag specialized surfaces (security-sensitive text, file parsing, payment idempotency) for dedicated review without performing it
 - emit a deterministic BLOCK template when no feature description is supplied
 
+### `spec-deviation-handling`
+
+This skill is aimed at the mid-build moment when implementation discovers the approved spec or design is wrong, incomplete, ambiguous, or infeasible — and the silent fork must not happen.
+
+It helps an assistant:
+
+- classify each deviation as exactly one of `spec-bug`, `spec-gap`, `spec-ambiguity`, `infeasible-as-specified`, `better-way-found`, or `scope-creep-detected`, with evidence standards for the strong claims
+- assign exactly one disposition — `proceed-and-record`, `pause-this-thread`, or `escalate-now` — under conservative tie-breaks (consumed contracts never silently proceed; proposals and creep always go to the owner)
+- state the spec side and the discovery side faithfully and separately, with an interim behavior and a blocked/unblocked boundary per deviation
+- package owner questions and spec-fix requests instead of rewriting the spec or coding around it
+- classify multiple deviations independently — one escalation does not promote the rest
+- emit a deterministic BLOCK template when either side of the deviation is missing
+
 ### `spock-voice`
 
 This skill is aimed at responses where the user explicitly asks for a Spock-inspired conversational register. It focuses on calm logic, scientific precision, disciplined curiosity, and understated dry humor while keeping the user's goal primary.
@@ -505,6 +562,19 @@ It helps an assistant:
 - classify findings as `High`, `Medium`, or `Low` by whether they would force a review round on their own
 - keep the full checklist table even on the no-findings path
 - return `CLEAN`, `CONCERNS`, or `BLOCK` with findings, outstanding items, and a deterministic insufficient-context template
+
+### `refactoring-safety`
+
+This skill is aimed at planned or in-flight behavior-preserving restructurings where the danger is the quiet slide from refactor into unreviewed behavior change.
+
+It helps an assistant:
+
+- define the preserved observable contract and map every behavior to a safety net: an existing check, an `unknown — verify` marker, a characterization step, or an explicit `accepted-uncovered` entry
+- pin current behavior (bugs included) with characterization tests, recording discovered bugs as owner questions rather than in-flight fixes
+- plan steps as single named transformations with a green check after each, separated mechanical vs hand edits, and revertibility status including `point-of-no-return` flags
+- enforce the tripwire: changed test expectations or shifted behavior stop the work, get recorded, and are reclassified as separate behavior change
+- block bare steps when coverage is too thin and no characterization seam exists
+- emit a deterministic BLOCK template when no refactoring target is supplied
 
 ### `requirements-ambiguity-audit`
 

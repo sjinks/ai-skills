@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Review-time dispute is not a build deviation
+description: |
+  A reviewer-author disagreement on a submitted diff is a review
+  dispute, not a mid-build spec deviation, and must not activate the
+  skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    My PR is up and the reviewer insists the error type I return
+    violates our API guideline; I disagree and we've gone three rounds
+    in the thread. Help us resolve this stalled review disagreement.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spec-deviation-handling/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Spec Deviation Report"
+        - "better-way-found"
+        - "Interim behavior"
+        - "Spec-fix requests"

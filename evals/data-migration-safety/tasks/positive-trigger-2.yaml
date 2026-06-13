@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Audit a big-bang migration script
+description: |
+  An existing migrate-in-place plan with no rollback and a
+  non-idempotent backfill is audited; the gaps land under Plan gaps.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Audit this migration plan before we run it Saturday:
+
+    "Maintenance window 02:00: run UPDATE orders SET total_cents =
+    total * 100; then ALTER TABLE orders DROP COLUMN total; deploy new
+    code Monday. If something goes wrong we restore Friday's backup."
+
+    Orders table: 80 M rows, continuous writes except during the
+    window. The backup restore has never been tested.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/data-migration-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - data-migration-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Data Migration Plan'
+        - '(?i)Mode:\s*audit'
+        - '(?i)\|\s*Phase\s*\|\s*Action\s*\|\s*Rollback\s*\|'
+        - '(?i)### Plan gaps'
+        - '(?is)(restore|backup).{0,300}(never|untested|not .{0,20}(tested|exercised))'
+        - '(?is)(DROP COLUMN|contract).{0,400}(same|before|soak|point-of-no-return)'
+        - '(?is)(UPDATE|backfill).{0,400}(idempotent|re-run|batch)'
+      not_contains:
+        - "Failure Mode Design Report"
+        - "Dependency Choice Review"

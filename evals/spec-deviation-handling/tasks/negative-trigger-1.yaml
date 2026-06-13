@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Unrelated everyday prompt
+description: Unrelated everyday request must not activate the spec-deviation-handling skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "My road-trip route has a closed mountain pass — suggest a scenic detour between Lviv and Uzhhorod."
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spec-deviation-handling/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Spec Deviation Report"
+        - "proceed-and-record"
+        - "Interim behavior"
+        - "Verdict: BLOCK"
+        - "Smallest addition to proceed"

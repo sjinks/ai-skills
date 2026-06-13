@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: No refactor-plus-behavior fusion in steps
+description: |
+  When the work includes both restructuring and new behavior, the plan
+  must keep them in separate steps rather than fusing them.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Decompose this into implementation steps: add per-currency price
+    formatting to checkout. The current formatter is a 400-line static
+    helper that everyone agrees needs restructuring into a locale-aware
+    service first — but keep restructuring and the new currency
+    behavior cleanly apart in the plan; our reviews reject mixed steps.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/implementation-task-decomposition/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - implementation-task-decomposition
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Implementation Step Plan'
+        - '(?i)\|\s*#\s*\|\s*Step\s*\|\s*Verify by\s*\|'
+        - '(?is)(restructur|extract|refactor).{0,600}(behavior|currency|formatting)'
+        - '(?i)Must not touch'
+      not_contains:
+        - "Tripwire events"

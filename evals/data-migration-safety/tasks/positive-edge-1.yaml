@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Concurrent writes during backfill are accounted for
+description: |
+  A migration on a hot table must name how writes arriving during the
+  backfill are handled (dual-write, change capture, or delta pass) —
+  not ignore them.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Plan the data migration: split our `addresses` JSON column into
+    structured columns. The table takes ~50 writes/second around the
+    clock — there is no quiet window, ever. 12 M rows. No downtime
+    allowed. Make sure rows written while the backfill runs don't end
+    up half-migrated.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/data-migration-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - data-migration-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Data Migration Plan'
+        - '(?i)Mode:\s*plan'
+        - '(?i)\|\s*Phase\s*\|\s*Action\s*\|\s*Rollback\s*\|'
+        - '(?i)(dual-write|change capture|delta pass)'
+        - '(?i)(rate.?limit|batch)'
+        - '(?i)point-of-no-return'
+      not_contains:
+        - "Implementation Step Plan"

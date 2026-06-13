@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Plan a safe service extraction
+description: |
+  Canonical case: an extraction refactor with thin coverage is planned
+  with characterization steps, green-check steps, and revertibility.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Plan this refactor safely: extract the tax-calculation logic out of
+    our 900-line OrderService into a TaxPolicy class. Behavior must not
+    change — finance reconciles against these numbers. Coverage
+    signals: OrderService has integration tests for checkout happy
+    paths, but the tax edge cases (exempt customers, mixed
+    jurisdictions) have no direct tests. Consumers: checkout flow and
+    the nightly invoice job.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/refactoring-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - refactoring-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Refactoring Safety Plan'
+        - '(?i)### Preserved behavior'
+        - '(?i)characterization'
+        - '(?i)\|\s*#\s*\|\s*Transformation\s*\|'
+        - '(?i)(revertible|Revertible)'
+        - '(?is)(exempt|jurisdiction).{0,400}(characteriz|net|step|uncovered)'
+      not_contains:
+        - "Implementation Step Plan"
+        - "Debugging Report"
+        - "Scope Slice Plan"

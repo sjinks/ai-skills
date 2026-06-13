@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Contract-shaped gap cannot proceed-and-record
+description: |
+  A spec gap on a contract other teams consume must be at least
+  pause-this-thread per the tie-break, even when the implementer
+  proposes an obvious answer.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Handle this deviation: the spec for our public partner API never
+    says whether the new `status` field uses lowercase or uppercase
+    values. Honestly any sane person would pick lowercase and I want to
+    just proceed — but two partner teams already build against our
+    payloads. Spec owner: API guild. Built: serializer is written with
+    lowercase, not yet shipped.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spec-deviation-handling/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - spec-deviation-handling
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Spec Deviation Report'
+        - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Disposition\s*\|'
+        - '(?i)(pause-this-thread|escalate-now)'
+        - '(?is)(contract|partner|consume).{0,400}(tie-break|at least|pause|cannot proceed)'

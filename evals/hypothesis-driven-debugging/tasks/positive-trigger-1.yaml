@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Investigate an intermittent truncation bug
+description: |
+  Canonical case: an intermittent failure with partial evidence is
+  worked through the loop — observations, falsifiable hypotheses,
+  discriminating experiments, and a conclusion with a regression
+  check.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Debug this systematically — no guess-and-rerun, I want the
+    hypothesis trail.
+
+    Our nightly export job produces truncated output files roughly once
+    a week; other nights the files are complete. Evidence so far: the
+    job runs in Kubernetes; truncated files end mid-record; job logs end
+    abruptly with no error; the three truncated nights this month were
+    the 1st, 9th, and 30th. Exports vary in size day to day. Nothing
+    tried yet beyond re-running (which succeeded each time).
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/hypothesis-driven-debugging/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - hypothesis-driven-debugging
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Debugging Report'
+        - '(?i)Reproduction:'
+        - '(?i)### Observations'
+        - '(?i)### Hypothesis log'
+        - '(?i)\|\s*#\s*\|\s*Hypothesis'
+        - '(?i)(confirmed|refuted|inconclusive)'
+        - '(?i)Regression check'
+        - '(?is)(OOM|memory|kill|size|resource).{0,400}(experiment|correlat|check)'
+      not_contains:
+        - "Implementation Step Plan"
+        - "Refactoring Safety Plan"
+        - "Fix Blast Radius"

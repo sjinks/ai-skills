@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Unrelated everyday prompt
+description: Unrelated everyday request must not activate the hypothesis-driven-debugging skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "My sourdough loaf comes out dense every time — what baking techniques should I try?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/hypothesis-driven-debugging/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Debugging Report"
+        - "### Hypothesis log"
+        - "Regression check"
+        - "Verdict: BLOCK"
+        - "Smallest addition to proceed"

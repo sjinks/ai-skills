@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Tripwire on discovered behavior change
+description: |
+  A mid-refactor discovery that a step changes observable behavior
+  must be recorded as a tripwire event with a reclassification
+  decision, not absorbed into the refactor.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Mid-refactor situation — apply your safety process: while moving
+    our date-formatting helpers into a shared module, I noticed the
+    old helper silently swallowed invalid dates (returned empty
+    string) and my restructured version now throws. Two of the
+    existing tests had to have their expectations changed to pass.
+    The refactor is otherwise going fine. What do I do with this?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/refactoring-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - refactoring-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Refactoring Safety Plan'
+        - '(?i)\|\s*#\s*\|\s*Transformation\s*\|'
+        - '(?i)### Tripwire events'
+        - '(?is)(expectation|expected value).{0,400}(tripwire|behavior change|stop|reclassif)'
+        - '(?is)(revert|carve|separate)'
+      not_contains:
+        - "Debugging Report"
+        - "Spec Deviation Report"

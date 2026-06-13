@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Plan a no-downtime avatar migration
+description: |
+  Canonical case: a blob-to-object-storage migration with volume
+  numbers is planned across all six phases with rollbacks, idempotent
+  backfill, verification, and consumer mapping.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Plan this migration safely; we cannot take downtime.
+
+    Move user avatars out of the `users.avatar` BLOB column into object
+    storage, with a new `avatar_url` column. Volume: 4 million rows,
+    about 2,000 avatar writes per day. Consumers: the profile API and a
+    nightly profile-export job. Target shape is decided — I need the
+    implementation plan.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/data-migration-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - data-migration-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Data Migration Plan'
+        - '(?i)Mode:\s*plan'
+        - '(?i)\|\s*Phase\s*\|\s*Action\s*\|\s*Rollback\s*\|'
+        - '(?i)(expand|backfill|cutover|contract)'
+        - '(?i)(idempotent|re-run|resumable)'
+        - '(?i)point-of-no-return'
+        - '(?i)### Consumers'
+        - '(?is)(profile-export|nightly).{0,300}(switch|phase|cutover|fallback)'
+      not_contains:
+        - "Failure Mode Design Report"
+        - "walking-skeleton"
+        - "Architecture Decision Record"

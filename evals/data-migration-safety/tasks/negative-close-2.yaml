@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: A one-off analytical query is not a migration
+description: |
+  Writing a read-only analytical query against existing data changes
+  nothing and must not activate the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Write a SQL query that reports monthly order totals by region for
+    the last two years from our orders table — read-only, for a board
+    deck, nothing about the schema changes.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/data-migration-safety/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Data Migration Plan"
+        - "dual-write"
+        - "### Consumers"
+        - "point-of-no-return"
+        - "Mode: plan"

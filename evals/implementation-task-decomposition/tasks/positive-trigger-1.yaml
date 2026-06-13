@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Decompose an approved invites feature
+description: |
+  Canonical case: an approved spec is decomposed into ordered steps
+  with per-step verification, boundaries, dependencies, and a
+  walking-skeleton marker.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Break this approved spec into implementation steps before we start
+    coding.
+
+    Spec: team admins can invite members by email. Invites expire after
+    7 days. Inviting an existing member's address returns a conflict.
+    Email sending goes through our existing mailer service. The work
+    touches the API service (new endpoints) and needs one new table.
+    Constraint: schema migrations deploy ahead of code in our pipeline.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/implementation-task-decomposition/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - implementation-task-decomposition
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Implementation Step Plan'
+        - '(?i)\|\s*#\s*\|\s*Step\s*\|\s*Verify by\s*\|'
+        - '(?i)Must not touch'
+        - '(?i)Depends on'
+        - '(?is)(migration|table).{0,400}(first|none|ahead)'
+      not_contains:
+        - "Scope Slice Plan"
+        - "Refactoring Safety Plan"
+        - "Debugging Report"

@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Choosing the target schema is not migration planning
+description: |
+  Deciding what the target data model should be is schema design,
+  which the skill declares out of scope, and must not activate it.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Should we model user addresses as a JSON column, a separate
+    addresses table, or embed them in the users table? Compare the
+    options and recommend a target schema — no migration is being
+    planned until we decide.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/data-migration-safety/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Data Migration Plan"
+        - "point-of-no-return"
+        - "### Plan gaps"
+        - "dual-write"
+        - "Mode: plan"
