@@ -176,7 +176,7 @@ it('processes a redelivered message exactly once', async () => {
 - Swallowing rejected promises: `service.create(...)` without `await expect(...).rejects` or a `try/catch` assertion.
 - Not awaiting async expectations, so failures pass silently.
 - `overrideGuard` that always returns `true` for tests whose whole point is to verify the guard denies access.
-- Shared mutable fixture state between tests without reset (`jest.clearAllMocks`, fresh module per test) causing order-dependent flakes.
+- Shared mutable fixture state between tests without reset (`jest.clearAllMocks()`, fresh module per test) causing order-dependent flakes.
 - `any`-typed mocks that drift from the real provider's contract and hide breakage.
 - Snapshotting large response bodies instead of asserting the few fields the behavior owns.
 
