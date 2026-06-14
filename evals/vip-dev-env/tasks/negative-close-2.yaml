@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Remote VIP production deploy question
+description: |
+  WordPress VIP topic but about remote production deploys via Git push, not the
+  local development environment. Close-domain (VIP platform) but outside the
+  local `vip dev-env` scope, so vip-dev-env must not activate.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    On WordPress VIP, how does deploying to the production environment work?
+    I want to understand the Git-based deploy flow to the platform and how the
+    `master`/`develop` branches map to live and preprod sites after I push.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/vip-dev-env/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - 'vip dev-env'
+        - '--slug'
+        - 'COMMAND LOG FILE'
