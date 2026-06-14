@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Dev env fails to start
+description: |
+  Canonical vip-dev-env case: a local VIP environment will not start and the
+  user needs slug-first, message-driven triage grounded in `vip dev-env`.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    My WordPress VIP local development environment won't start. When I run
+    `vip dev-env start` it fails partway through and the site never comes up.
+    Docker Desktop is running. How do I troubleshoot this and get the
+    environment started?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/vip-dev-env/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - vip-dev-env
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)--slug'
+        - '(?i)vip dev-env (start|logs|info)'
+        - '(?i)(--debug|docker info|docker --version)'
+        - '(?i)(exact error|error text|error message)'
+      not_contains:
+        - 'Verdict: BLOCK'
+        - 'Verdict: CONCERNS'
+        - 'Verdict: CLEAN'
+        - 'Verdict: PLAN-READY'
+        - 'Verdict: PLAN-PARTIAL'
+        - 'Egress policy:'
+        - 'Lenses applied:'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response gives VIP LDE startup troubleshooting that:
+        - Asks for or requires the environment `--slug` before mutating commands.
+        - Requests the exact CLI error text / message-driven triage rather than
+          only generic checklists.
+        - Suggests concrete `vip dev-env` commands (start with `--debug`,
+          `vip dev-env logs`, `vip dev-env info`) and a Docker reachability
+          check (`docker info` / `docker --version`).
+        - Does not recommend destructive actions (destroy/purge) without a
+          safety callout.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

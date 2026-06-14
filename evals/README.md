@@ -80,6 +80,7 @@ grader weighting takes effect.
   - `implementation-task-decomposition`: 0.45
   - `refactoring-safety`: 0.45
   - `spec-deviation-handling`: 0.45
+  - `vip-dev-env`: 0.45
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks
   only) — requires the named skill via `required_skills` with
   `mode: any_order`. The currently released waza CLI (`v0.33.0`) defines

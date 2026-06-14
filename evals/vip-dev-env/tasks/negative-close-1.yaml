@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Generic Docker Compose stack question
+description: |
+  Plain Docker Compose question with no WordPress VIP or `vip dev-env`
+  context. Close-domain (Docker, local containers) but must not activate
+  vip-dev-env.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    I have a `docker-compose.yml` for a Node API plus Postgres. The API
+    container starts before Postgres is ready and crashes. How do I make the
+    API wait for the database to be healthy using Compose healthchecks and
+    `depends_on`?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/vip-dev-env/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - 'vip dev-env'
+        - '--slug'
+        - 'COMMAND LOG FILE'
+        - 'WordPress'

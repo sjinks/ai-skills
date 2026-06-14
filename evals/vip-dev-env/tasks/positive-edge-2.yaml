@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Rejected @app.env notation on a local command
+description: |
+  Documented hard behavior: a local-only dev-env command run with `@app.env`
+  notation is rejected and must be retargeted with `--slug`.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    I tried `vip @my-app.develop dev-env start` and got
+    `This command does not support @app.env notation. Use '--slug=...'`.
+    I thought I had to name the app and environment. What is the correct way to
+    target a local dev environment, and when do I actually use `@app.env`?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/vip-dev-env/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - vip-dev-env
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)--slug'
+        - '(?i)@app\.env|@<?app>?\.<?env>?|@[a-z0-9-]+\.[a-z0-9-]+'
+        - '(?i)vip dev-env start'
+        - '(?i)(sync sql|remote)'
+      not_contains:
+        - 'Verdict: BLOCK'
+        - 'Verdict: CONCERNS'
+        - 'Verdict: CLEAN'
+        - 'Verdict: PLAN-READY'
+        - 'Verdict: PLAN-PARTIAL'
+        - 'Egress policy:'
+        - 'Lenses applied:'

@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Load local app code into an LDE
+description: |
+  Wiring a local WordPress skeleton repo into an existing VIP local
+  environment via `vip dev-env update --app-code` — squarely in scope.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    I cloned our WordPress VIP app repo locally and already created a local
+    dev environment. How do I point the running environment at my local repo
+    so my code changes show up, and what do I need to restart afterwards?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/vip-dev-env/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - vip-dev-env
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)vip dev-env update'
+        - '(?i)--app-code'
+        - '(?i)--slug'
+        - '(?i)(absolute path|/absolute|full path)'
+      not_contains:
+        - 'Verdict: BLOCK'
+        - 'Verdict: CONCERNS'
+        - 'Verdict: CLEAN'
+        - 'Verdict: PLAN-READY'
+        - 'Verdict: PLAN-PARTIAL'
+        - 'Egress policy:'
+        - 'Lenses applied:'

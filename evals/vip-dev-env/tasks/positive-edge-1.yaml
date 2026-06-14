@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: More than one environment found
+description: |
+  Documented hard behavior: when multiple local envs exist, VIP-CLI refuses to
+  guess and every follow-up command must carry `--slug`.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    When I run `vip dev-env logs` I get `More than one environment found:` and
+    a list of names. Why does this happen and how do I make my logs and other
+    `vip dev-env` commands target the right one?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/vip-dev-env/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - vip-dev-env
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)--slug'
+        - '(?i)vip dev-env list'
+        - '(?i)(more than one environment|multiple (local )?environments)'
+      not_contains:
+        - 'Verdict: BLOCK'
+        - 'Verdict: CONCERNS'
+        - 'Verdict: CLEAN'
+        - 'Verdict: PLAN-READY'
+        - 'Verdict: PLAN-PARTIAL'
+        - 'Egress policy:'
+        - 'Lenses applied:'
