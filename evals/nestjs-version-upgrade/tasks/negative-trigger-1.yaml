@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Off-topic recipe question
+description: Unrelated everyday question must not activate nestjs-version-upgrade.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "What is a good substitute for buttermilk in pancakes?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-version-upgrade/SKILL.md
+      mode: negative
+      threshold: 0.5
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "@nestjs/core"
+        - "platform-fastify"
+        - "Breaking-change map:"
+        - "Ordered steps:"
+        - "migration guide"

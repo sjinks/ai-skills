@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Plain Jest test for a utility function
+description: |
+  Plain Jest unit test for a framework-free utility function. No NestJS surfaces
+  (no testing module, no providers, no controllers). nestjs-testing should not
+  activate even though it is a TypeScript testing question.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Write Jest tests for this pure function:
+
+    ```ts
+    export function slugify(s: string): string {
+      return s.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    }
+    ```
+
+    Cover empty input, leading/trailing spaces, and punctuation. Plain Jest, no
+    framework.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-testing/SKILL.md
+      mode: negative
+      threshold: 0.5
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Test.createTestingModule"
+        - "@nestjs/testing"
+        - "overrideGuard"
+        - "getHttpServer()"
+        - "getRepositoryToken"
+        - "Behavior under test:"
+        - "Coverage gaps:"

@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: e2e-test a controller with Supertest and guard override
+description: |
+  Write an e2e test for a NestJS controller using Supertest, overriding the auth
+  guard and reproducing the production ValidationPipe — squarely nestjs-testing.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    On a NestJS 10 app, write an e2e test for `UsersController` that:
+
+    - boots the app via `Test.createTestingModule({ imports: [AppModule] })`,
+    - overrides `JwtAuthGuard` so the protected route is reachable,
+    - reproduces the production global `ValidationPipe`,
+    - asserts `POST /users` with an empty body returns 400,
+    - asserts a valid body returns 201,
+    - closes the app in `afterAll`.
+
+    Use Supertest against `app.getHttpServer()`. Return the full test file.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-testing/SKILL.md
+      mode: positive
+      threshold: 0.5
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - nestjs-testing
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)overrideGuard'
+        - '(?i)getHttpServer\(\)'
+        - '(?i)ValidationPipe'
+        - '(?i)\.expect\(400\)'
+        - '(?i)app\.close\(\)'
+      not_contains:
+        - "Critical (must fix)"
+        - "Verdict: BLOCK"
+        - "synchronize: true"

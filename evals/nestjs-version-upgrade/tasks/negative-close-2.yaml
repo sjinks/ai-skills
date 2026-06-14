@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Build a feature on a fixed NestJS version
+description: |
+  Implements a new feature on a fixed NestJS version with no version change. This
+  is a build task, not an upgrade/migration. nestjs-version-upgrade should not
+  activate when no version bump or breaking-change triage is involved.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    On our existing NestJS 11 app, add a `GET /reports/summary` endpoint that
+    aggregates totals from the orders service and returns a typed DTO. We are
+    staying on NestJS 11 — no upgrade. Just show me the controller, service
+    method, and DTO.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-version-upgrade/SKILL.md
+      mode: negative
+      threshold: 0.5
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "@nestjs/core"
+        - "platform-fastify"
+        - "Breaking-change map:"
+        - "Ordered steps:"
+        - "migration guide"

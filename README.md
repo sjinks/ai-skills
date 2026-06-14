@@ -83,6 +83,8 @@ The repository currently contains the following skills, grouped by area. Each li
 
 - [`nestjs-code-review`](skills/nestjs-code-review/README.md) — Reviewing NestJS applications with severity-classified findings covering modules, DI, controllers, DTOs, guards, exception handling, persistence, testing, API design, performance, and microservices.
 - [`nestjs-development`](skills/nestjs-development/README.md) — Designing, scaffolding, implementing, refactoring, and testing NestJS features with idiomatic patterns, anti-patterns, and a structured build workflow.
+- [`nestjs-testing`](skills/nestjs-testing/README.md) — Designing test strategy and writing tests for NestJS: unit/integration/e2e layering, `@nestjs/testing` modules, provider and guard overrides, repository mocks, Supertest e2e, async and error paths, and coverage gaps.
+- [`nestjs-version-upgrade`](skills/nestjs-version-upgrade/README.md) — Planning and executing NestJS version upgrades and major migrations: ordered reversible steps, breaking-change triage, peer and adapter sequencing, and per-step verification.
 
 ### Authoring & Verification
 

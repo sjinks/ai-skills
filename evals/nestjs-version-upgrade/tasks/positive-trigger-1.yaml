@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Plan a NestJS major upgrade
+description: |
+  Plan a NestJS 9 to 11 upgrade with peers — the canonical
+  nestjs-version-upgrade case requiring ordered, reversible steps.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    We run NestJS 9 on the Express adapter, with `@nestjs/swagger`,
+    `@nestjs/config`, `@nestjs/typeorm`, and `@nestjs/passport`. Node 20, npm,
+    pinned lockfile. We want to get to NestJS 11. Unit and e2e tests exist and
+    pass today. Give me an upgrade plan: how to sequence the bumps, what to
+    verify at each step, and how to roll back if a step fails. Structure the plan
+    with a `Breaking-change map:` and `Ordered steps:` section.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-version-upgrade/SKILL.md
+      mode: positive
+      threshold: 0.5
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - nestjs-version-upgrade
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(one major at a time|step through|10[\s\S]*then[\s\S]*11|9[\s\S]*10[\s\S]*11|intermediate major)'
+        - '(?i)(verif|typecheck|e2e|boot)'
+        - '(?i)(roll ?back|revert)'
+        - '(?i)(swagger|@nestjs/config|peer)'
+        - '(?i)Breaking-change map:'
+        - '(?i)Ordered steps:'
+      not_contains:
+        - "Critical (must fix)"
+        - "Verdict: BLOCK"

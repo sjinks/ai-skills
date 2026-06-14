@@ -40,6 +40,8 @@ grader weighting takes effect.
   - `multi-lens-review`: 0.40
   - `nestjs-code-review`: 0.50
   - `nestjs-development`: 0.50
+  - `nestjs-testing`: 0.50
+  - `nestjs-version-upgrade`: 0.50
   - `review-cycle-gatekeeper`: 0.40
   - `spock-voice`: 0.15 (short SKILL.md body → very few keywords)
   - `ssrf-outbound-fetch-review`: 0.45

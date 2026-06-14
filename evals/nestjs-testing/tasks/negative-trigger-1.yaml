@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Off-topic gardening question
+description: Unrelated everyday question must not activate nestjs-testing.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "When should I prune lavender so it stays bushy and does not go woody?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-testing/SKILL.md
+      mode: negative
+      threshold: 0.5
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Test.createTestingModule"
+        - "@nestjs/testing"
+        - "overrideGuard"
+        - "getHttpServer()"
+        - "getRepositoryToken"
+        - "Behavior under test:"
+        - "Coverage gaps:"
