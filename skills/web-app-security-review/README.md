@@ -1,6 +1,6 @@
 # web-app-security-review
 
-> >-
+> Use when: performing defensive web application security review, web-app vulnerability triage, web-app threat-model review, or validation of web-app security fixes. Do not use for routine implementation, style review, generic debugging, conceptual security explanations, or non-web targets.
 
 This skill is aimed at web application security reviews where the assistant needs to evaluate code, pull requests, designs, vulnerability reports, or fix validation with a defensive and evidence-based workflow.
 
