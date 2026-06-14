@@ -1,6 +1,6 @@
 ---
 name: nestjs-code-review
-description: "Use when: performing code review, pull request review, security review, architecture review, or change-impact review of NestJS applications; reviewing controllers, services, modules, providers, guards, interceptors, pipes, exception filters, DTOs, validation, configuration, ORM integration (TypeORM, Prisma, Mongoose, Drizzle, MikroORM, or similar), authentication, authorization, testing, or production readiness."
+description: "Use when: performing code review, pull request review, security review, architecture review, or change-impact review of NestJS applications; reviewing controllers, services, modules, providers, guards, interceptors, pipes, exception filters, DTOs, validation, configuration, ORM integration (TypeORM, Prisma, Mongoose, Drizzle, MikroORM, or similar), authentication, authorization, test changes, or production readiness. This skill judges test changes for findings; authoring or repairing tests belongs to a testing skill."
 argument-hint: "Describe the NestJS change, affected files, modules, runtime/version, ORM choice, auth strategy, and tests or PR context."
 user-invocable: true
 ---
