@@ -56,4 +56,5 @@ Run through this list before opening or updating a skill PR; each item is a recu
 
 ## Documentation
 
-- Update `README.md` (skill list entry + "Included Skills" section in house style) only when the change is ready for a PR or the user asks.
+- Each skill has its own `skills/<name>/README.md` (overview, blurb, and `## Files` links). Keep it in sync with `SKILL.md` when scope or supporting files change.
+- The top-level `README.md` lists each skill once, under a category in the `## Skills` section, as a one-line link to `skills/<name>/README.md`. Add new skills to the right category there. Do not reintroduce per-skill detail sections in the top-level README. Update only when the change is ready for a PR or the user asks.
