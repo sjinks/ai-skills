@@ -15,3 +15,4 @@ It helps an assistant:
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.
 - [`references/`](references/) — extended workflow and reference material.
+- [`assets/`](assets/) — review templates.

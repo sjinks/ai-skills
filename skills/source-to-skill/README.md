@@ -17,3 +17,4 @@ It helps an assistant:
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.
 - [`references/`](references/) — extended workflow and reference material.
+- [`scripts/`](scripts/) — the local extractor helper and its tests.
