@@ -1,6 +1,6 @@
 ---
 name: nestjs-development
-description: "Use when: designing, scaffolding, implementing, refactoring, or debugging NestJS applications; building modules, controllers, services, providers, guards, interceptors, pipes, exception filters, DTOs, validation, configuration, ORM integration (TypeORM, Prisma, Mongoose, Drizzle, MikroORM, or similar), authentication, authorization, testing, microservices, or production wiring."
+description: "Use when: designing, scaffolding, implementing, refactoring, or debugging NestJS applications; building modules, controllers, services, providers, guards, interceptors, pipes, exception filters, DTOs, validation, configuration, ORM integration (TypeORM, Prisma, Mongoose, Drizzle, MikroORM, or similar), authentication, authorization, the test setup that ships with a feature, microservices, or production wiring. Dedicated test design, repair, or coverage work belongs to a testing skill, not this one."
 argument-hint: "Describe the feature or change, target module, runtime/version, ORM choice, auth strategy, transports, and existing project conventions."
 user-invocable: true
 ---

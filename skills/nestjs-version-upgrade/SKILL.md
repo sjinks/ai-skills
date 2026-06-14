@@ -16,7 +16,7 @@ Use this skill when the task is to move a NestJS app across versions: a major `@
 - Do not invent breaking-change facts. When the exact deprecation or removal for a target version is uncertain, say so and direct the user to the official migration guide and the package CHANGELOG rather than guessing.
 - Respect the project's package manager, lockfile, and existing pinning policy. Do not switch package managers or unpin everything to force a resolve.
 - Do not bump across more than one major at a time when intermediate majors exist; step through majors in order unless the project explicitly skips.
-- Prefer reversible steps. Every step must be revertible via lockfile/VCS before the next step starts.
+- Prefer reversible steps. Every step must be reversible via lockfile/VCS before the next step starts.
 - Do not weaken or delete tests, types, or validation to make the build pass after a bump. Fix the call site or pin the dependency instead.
 
 ## Trigger Conditions
