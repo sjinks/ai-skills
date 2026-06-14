@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Triage breaking errors after a NestJS bump
+description: |
+  Build/type errors appear after a @nestjs/* major bump; the skill should triage
+  the breaking change and map it to call sites — squarely upgrade territory.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    I bumped `@nestjs/core` and `@nestjs/common` to the new major and now the
+    build fails in `main.ts` around the global pipe setup, and `@nestjs/swagger`
+    types no longer line up. How do I figure out which breaking changes apply and
+    fix the call sites without just `@ts-ignore`-ing them? I want to do this in a
+    way I can roll back if it goes wrong.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-version-upgrade/SKILL.md
+      mode: positive
+      threshold: 0.5
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - nestjs-version-upgrade
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(migration guide|changelog)'
+        - '(?i)(breaking change|deprecat)'
+        - '(?i)(call site|main\.ts|bootstrap)'
+        - '(?i)(roll ?back|revert|bisect)'
+      not_contains:
+        - "Critical (must fix)"
+        - "Verdict: BLOCK"

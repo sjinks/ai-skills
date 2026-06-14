@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Build a NestJS feature module (not testing)
+description: |
+  Asks to implement a new NestJS feature module from scratch — a build task that
+  belongs to a development skill, not a testing task. nestjs-testing should not
+  activate when no test work is requested.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Implement a new NestJS 10 `invoices` feature module with a controller and
+    service: `POST /invoices` creates an invoice and `GET /invoices/:id` returns
+    it or 404. Validate the body with DTOs. I only want the implementation code —
+    do not write any tests.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-testing/SKILL.md
+      mode: negative
+      threshold: 0.5
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Test.createTestingModule"
+        - "@nestjs/testing"
+        - "overrideGuard"
+        - "getHttpServer()"
+        - "getRepositoryToken"
+        - "Behavior under test:"
+        - "Coverage gaps:"

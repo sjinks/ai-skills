@@ -1,6 +1,6 @@
 ---
 name: nestjs-code-review
-description: "Use when: performing code review, pull request review, security review, architecture review, or change-impact review of NestJS applications; reviewing controllers, services, modules, providers, guards, interceptors, pipes, exception filters, DTOs, validation, configuration, ORM integration (TypeORM, Prisma, Mongoose, Drizzle, MikroORM, or similar), authentication, authorization, testing, or production readiness."
+description: "Use when: performing code review, pull request review, security review, architecture review, or change-impact review of NestJS applications; reviewing controllers, services, modules, providers, guards, interceptors, pipes, exception filters, DTOs, validation, configuration, ORM integration (TypeORM, Prisma, Mongoose, Drizzle, MikroORM, or similar), authentication, authorization, test changes, or production readiness. This skill judges test changes for findings; authoring or repairing tests belongs to a testing skill."
 argument-hint: "Describe the NestJS change, affected files, modules, runtime/version, ORM choice, auth strategy, and tests or PR context."
 user-invocable: true
 ---
@@ -11,6 +11,7 @@ Use this skill when reviewing a NestJS change: a pull request, a feature branch,
 
 ## Boundaries
 
+- This skill is for reviewing an existing NestJS change and returning classified findings. Designing or implementing a new feature from scratch is a separate build task and out of scope here.
 - Review and reason about code only. Do not run production migrations, mutate live data, or hit production services.
 - Prefer local inspection (read, grep, glob) and project-local tests over runtime probing.
 - Do not enforce a single ORM (TypeORM, Prisma, Mongoose, Drizzle, MikroORM) or a single auth strategy (JWT, session, OAuth, mTLS); review against the project's chosen stack.
@@ -27,7 +28,7 @@ Use this skill if any of these are true:
 - A change touches dependency-injection wiring: provider arrays, exports, custom providers, factories, `forwardRef`, scoped providers, dynamic modules.
 - A change touches authentication, authorization, guards, or Passport strategies.
 - A change touches ORM integration (TypeORM, Prisma, Mongoose, Drizzle, MikroORM, or similar) entities, repositories, transactions, or migrations.
-- A change touches testing setup: `Test.createTestingModule`, mocks, `getRepositoryToken`, e2e harness, Supertest.
+- A change touches testing setup (`Test.createTestingModule`, mocks, `getRepositoryToken`, e2e harness, Supertest) and the task is to judge that change for findings. Authoring or repairing those tests is a dedicated testing task, not this skill.
 - A change touches bootstrap, `main.ts`, global pipes/filters/interceptors, configuration, or environment loading.
 
 ## Required Input Context

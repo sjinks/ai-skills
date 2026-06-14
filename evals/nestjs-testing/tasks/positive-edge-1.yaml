@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Idempotent message-handler test
+description: |
+  Testing that a NestJS microservice message handler processes a redelivered
+  message exactly once — a documented hard behavior for the testing skill.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    A NestJS 10 service consumes order-paid events over RabbitMQ. The handler
+    must be idempotent: a redelivered message must not double-charge. Write a
+    Jest test that delivers the same message twice and asserts the side effect
+    happens exactly once. Mock the orders provider. Return the test code.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-testing/SKILL.md
+      mode: positive
+      threshold: 0.5
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - nestjs-testing
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(idempoten|redeliver|exactly once|twice)'
+        - '(?i)(toHaveBeenCalledTimes\(1\)|toBeCalledTimes\(1\)|toHaveBeenCalledOnce)'
+        - '(?i)(jest\.fn\(|useValue)'

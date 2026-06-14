@@ -1,6 +1,6 @@
 ---
 name: nestjs-development
-description: "Use when: designing, scaffolding, implementing, refactoring, or debugging NestJS applications; building modules, controllers, services, providers, guards, interceptors, pipes, exception filters, DTOs, validation, configuration, ORM integration (TypeORM, Prisma, Mongoose, Drizzle, MikroORM, or similar), authentication, authorization, testing, microservices, or production wiring."
+description: "Use when: designing, scaffolding, implementing, refactoring, or debugging NestJS applications; building modules, controllers, services, providers, guards, interceptors, pipes, exception filters, DTOs, validation, configuration, ORM integration (TypeORM, Prisma, Mongoose, Drizzle, MikroORM, or similar), authentication, authorization, the test setup that ships with a feature, microservices, or production wiring. Dedicated test design, repair, or coverage work belongs to a testing skill, not this one."
 argument-hint: "Describe the feature or change, target module, runtime/version, ORM choice, auth strategy, transports, and existing project conventions."
 user-invocable: true
 ---
@@ -11,6 +11,8 @@ Use this skill when designing or implementing NestJS code: a new feature, a new 
 
 ## Boundaries
 
+- This skill is for producing NestJS code. Auditing an existing change and returning a severity-classified findings report is a separate review task and out of scope here.
+- Writing the test setup that ships with a feature is in scope. A request whose primary goal is test design, test-layer strategy, repairing a failing test, or closing coverage gaps is a dedicated testing task and out of scope here.
 - This skill is a guide, not a substitute for product, security, or platform decisions.
 - Match the project's existing conventions even when they differ from default NestJS docs. Do not rewrite stable code to fit personal preferences.
 - Do not enforce a single ORM (TypeORM/Prisma/Mongoose/Drizzle/MikroORM) or a single auth strategy; choose to match the project.
@@ -27,7 +29,7 @@ Use this skill when any of these apply:
 - Adding or changing DTOs, validation, serialization, or OpenAPI/Swagger documentation.
 - Adding or changing authentication or authorization (JWT, session, OAuth, Passport strategies, role/permission guards).
 - Integrating an ORM (TypeORM, Prisma, Mongoose, Drizzle, MikroORM, or similar), entities, repositories, transactions, or migrations.
-- Adding or fixing tests: unit, integration, or e2e with `@nestjs/testing` and Supertest.
+- Writing the test setup that ships alongside a feature being built here. A request focused on test strategy, repairing a failing test, or coverage gaps is a dedicated testing task, not this skill.
 - Bootstrap changes: `main.ts`, global pipes/filters/interceptors, configuration, environment loading.
 - Adding microservices transports, message handlers, or background workers.
 

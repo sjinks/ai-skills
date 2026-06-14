@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Resist jumping two majors at once
+description: |
+  User wants to jump two majors in a single bump; the skill must insist on
+  stepping through the intermediate major and verifying green between them.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    We are on NestJS 9 and want to go straight to 11 in one `npm install` to save
+    time — just bump everything at once. Is that a good idea, and if not, how
+    should we do it?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-version-upgrade/SKILL.md
+      mode: positive
+      threshold: 0.5
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - nestjs-version-upgrade
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(one major at a time|step through|intermediate major|10 first|9[\s\S]*10[\s\S]*11)'
+        - '(?i)(verif|green|test)'
+        - '(?i)(between (each|majors)|after each|each step)'
+        - '(?i)(roll ?back|revert|bisect)'

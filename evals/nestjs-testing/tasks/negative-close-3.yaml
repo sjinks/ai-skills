@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-003
+name: Test failing because of a version bump (upgrade, not testing)
+description: |
+  A test errors because of a NestJS major bump. Per the testing skill's
+  boundaries this is a version-upgrade task (fix the upgrade first), not a
+  test-design task. nestjs-testing should not activate; the prompt is tilted
+  toward upgrade vocabulary so the test skill stays out of its lane.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    After bumping `@nestjs/core` and `@nestjs/common` to the new major, my build
+    fails and one e2e spec errors at startup. I do not want to redesign tests — I
+    want to know which breaking changes in this major caused it and how to roll
+    back the bump if needed. Walk me through triaging the upgrade.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-testing/SKILL.md
+      mode: negative
+      threshold: 0.5
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Test.createTestingModule"
+        - "@nestjs/testing"
+        - "overrideGuard"
+        - "getHttpServer()"
+        - "getRepositoryToken"
+        - "Behavior under test:"
+        - "Coverage gaps:"

@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Choose the test layer and report coverage gaps
+description: |
+  Asks for a test strategy across layers rather than a single test, exercising the
+  skill's layer-decision and coverage-gap output rather than just code generation.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    I have a NestJS 10 `PaymentsService` with branching refund logic, a
+    `PaymentsController` behind a JWT guard, and a TypeORM repository. I want a
+    test strategy, not just one test. For each behavior — refund branching, the
+    404-on-missing-payment path, validation rejection on the create endpoint, and
+    auth enforcement — tell me which layer (unit, integration, or e2e) to test it
+    at and why, then list any coverage gaps I should still worry about. Structure
+    the answer with a `Behavior under test:` summary, a `Case list:` with the
+    layer per case, and a `Coverage gaps:` section at the end.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-testing/SKILL.md
+      mode: positive
+      threshold: 0.5
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - nestjs-testing
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)\bunit\b'
+        - '(?i)\be2e\b'
+        - '(?i)(integration)'
+        - '(?i)Behavior under test:'
+        - '(?i)Coverage gaps:'

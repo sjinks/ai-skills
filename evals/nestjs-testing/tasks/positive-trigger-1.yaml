@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Unit-test a NestJS service with mocked repository
+description: |
+  Write unit tests for a NestJS service with a mocked repository, covering the
+  happy path and a typed-exception error path — the canonical nestjs-testing case.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Write Jest unit tests for this NestJS service on Nest 10 with TypeORM:
+
+    ```ts
+    @Injectable()
+    export class UsersService {
+      constructor(private readonly users: UsersRepository) {}
+      async create(dto: CreateUserDto) {
+        if (await this.users.findByEmail(dto.email)) {
+          throw new ConflictException('Email already registered');
+        }
+        return this.users.create(dto);
+      }
+    }
+    ```
+
+    Use `Test.createTestingModule` and mock `UsersRepository`. Cover the success
+    path and the `ConflictException` path. Assert observable behavior, not private
+    call counts. Put every TypeScript snippet inside fenced `ts` or `typescript`
+    code blocks.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-testing/SKILL.md
+      mode: positive
+      threshold: 0.5
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - nestjs-testing
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Test\.createTestingModule'
+        - '(?i)(useValue|jest\.fn\()'
+        - '(?i)ConflictException'
+        - '(?i)(rejects\.toThrow|rejects\.toBeInstanceOf)'
+      not_contains:
+        - "Critical (must fix)"
+        - "Warnings (should fix)"
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"

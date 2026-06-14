@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Generic non-Nest dependency bump
+description: |
+  A plain npm dependency bump of an unrelated library in a non-NestJS project.
+  No @nestjs/* packages, no adapter, no framework migration. nestjs-version-upgrade
+  should not activate even though it is a dependency-upgrade question.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    In a plain Node CLI project I want to bump `lodash` from 4.17.20 to the latest
+    4.x and `dayjs` to the latest minor. No framework involved. What is the safe
+    way to do these two bumps and check nothing broke?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-version-upgrade/SKILL.md
+      mode: negative
+      threshold: 0.5
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "@nestjs/core"
+        - "platform-fastify"
+        - "Breaking-change map:"
+        - "Ordered steps:"
+        - "migration guide"

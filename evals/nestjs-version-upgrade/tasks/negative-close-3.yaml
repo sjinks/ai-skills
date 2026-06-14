@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-003
+name: Refactor main.ts on a fixed version (build, not upgrade)
+description: |
+  Refactors bootstrap wiring with no version change. Touching main.ts is a
+  build/refactor task, not a version upgrade. nestjs-version-upgrade should not
+  activate; the prompt is tilted toward build vocabulary with an explicit
+  no-upgrade statement so the upgrade skill stays out of its lane.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    On our NestJS 11 app (staying on 11, no dependency bumps), refactor `main.ts`
+    so the global `ValidationPipe` and exception-filter wiring move into a small
+    `configureApp(app)` helper, and add one unit test for the helper. Just the
+    refactor and the test — no version change.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/nestjs-version-upgrade/SKILL.md
+      mode: negative
+      threshold: 0.5
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "@nestjs/core"
+        - "platform-fastify"
+        - "Breaking-change map:"
+        - "Ordered steps:"
+        - "migration guide"
