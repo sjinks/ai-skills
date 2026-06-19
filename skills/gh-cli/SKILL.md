@@ -33,7 +33,7 @@ The Checklist is the gating source of truth; these rules explain why.
 - **Posting a comment body:**
   - One-liner, no special chars: `gh api .../comments -f body='single-quoted literal'` (single quotes prevent expansion; fails only if the text itself contains a single quote).
   - Multi-line or special chars: `printf '%s' "$body" | gh api .../comments -F body=@-`, or `gh ... --body-file file` / `gh ... --body-file -` where the subcommand supports it.
-- **Replying to a PR review-thread comment** (threaded under an inline review comment) requires the dedicated replies endpoint: `POST /repos/{owner}/{repo}/pulls/{pr}/comments/{comment_id}/replies` with `-f body=...`. Posting to `/pulls/{pr}/comments` with `in_reply_to` also works; a top-level issue comment (`gh pr comment`) does NOT thread under the review.
+- **Replying to a PR review-thread comment** (threaded under an inline review comment) requires the dedicated replies endpoint: `POST /repos/{owner}/{repo}/pulls/{pr}/comments/{comment_id}/replies`. Choose the body flag by the same `-f`/`-F` rule as everywhere else: `-f body='literal'` for a simple one-liner, `-F body=@-` (stdin) or `--body-file` for multi-line/special-character text. Posting to `/pulls/{pr}/comments` with `in_reply_to` also works; a top-level issue comment (`gh pr comment`) does NOT thread under the review.
 - **Fixing a botched comment:** edit in place instead of posting a duplicate — `gh api --method PATCH /repos/{owner}/{repo}/pulls/comments/{comment_id} -f body='...'` (review comments) or `.../issues/comments/{id}` (issue comments).
 - **Reading data:** use `--jq '<filter>'` to filter inline and `--paginate` for lists that exceed one page (the default page size silently truncates). `gh api` is REST; use `gh api graphql -f query='...'` for GraphQL.
 - **Restate the resolved body before sending.** Expand variables, command substitutions, and confirm quoting in your reply so a wrong body is caught before it posts.
@@ -72,7 +72,7 @@ The Checklist is the gating source of truth; these rules explain why.
 ## Anti-Patterns
 
 - `gh api -f body=@-` (posts literal `@-`; use `-F body=@-`).
-- Inline `-f body="...$VAR...`...`..."` with backticks/`$`/embedded quotes (expansion and breakage; use stdin or `--body-file`).
+- An inline double-quoted `-f body="..."` whose text contains `$`, backticks, or embedded quotes (shell expansion and breakage; use stdin or `--body-file`).
 - `gh pr comment` to answer an inline review thread (does not thread; use the replies endpoint).
 - Posting a second comment to correct a typo instead of `PATCH`-editing the first.
 - A list query with no `--paginate`, then concluding "no results exist" from a truncated page.

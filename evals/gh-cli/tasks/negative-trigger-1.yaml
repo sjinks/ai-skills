@@ -22,3 +22,6 @@ graders:
         - "gh api"
         - "--raw-field"
         - "body=@-"
+        - "GitHub CLI"
+        - "/replies"
+        - "--paginate"

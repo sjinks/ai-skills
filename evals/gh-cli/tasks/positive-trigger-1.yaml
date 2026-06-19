@@ -36,6 +36,10 @@ graders:
         - '(?i)@-|body-file|stdin'
         - '(?i)replies|in_reply_to'
         - '(?i)-f\b|--raw-field|literal'
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Checklist status:"
   - type: prompt
     name: task_completion_substance
     config:

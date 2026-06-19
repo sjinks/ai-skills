@@ -33,3 +33,7 @@ graders:
         - '(?i)--paginate'
         - '(?i)--jq|jq'
         - '(?i)gh api'
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Checklist status:"

@@ -27,3 +27,5 @@ graders:
         - "--raw-field"
         - "body=@-"
         - "/replies"
+        - "GitHub CLI"
+        - "--paginate"

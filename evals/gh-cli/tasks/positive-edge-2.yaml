@@ -33,6 +33,10 @@ graders:
         - '(?i)-f\b|--raw-field'
         - '(?i)literal'
         - '(?i)-F\b|--field|@'
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Checklist status:"
   - type: prompt
     name: task_completion_substance
     config:
