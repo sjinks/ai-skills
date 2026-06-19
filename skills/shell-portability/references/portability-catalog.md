@@ -46,8 +46,8 @@ Targets referenced below:
 |---|---|---|
 | `readlink -f` / `-m` | shell `cd`+`pwd -P` function, or require GNU `realpath`/`grealpath` | BSD/macOS `readlink` has no `-f`. macOS `realpath` exists (10.11+) but predates that on older systems. |
 | `sed -i 's/.../.../' f` | `t=$(mktemp); sed '...' f >"$t" && mv "$t" f` | GNU `-i` (no arg), BSD/macOS `-i ''` (empty backup suffix). In-place is non-portable. |
-| `sed -r` | `sed -E` | `-E` is POSIX (since 2017) and works on GNU+BSD; `-r` is GNU-only. |
-| `grep -P` (PCRE) | `grep -E` (ERE) or `awk` | PCRE is GNU-only; rewrite the pattern in ERE. |
+| `sed -r` / `sed -E` | rewrite to POSIX BRE, or branch by target | POSIX `sed` specifies neither `-r` nor `-E` (BRE only). BSD/macOS and modern GNU accept `-E`; `-r` is GNU/busybox. For strict portability rewrite to BRE. |
+| `grep -P` (PCRE) | `grep -E` (ERE) or `awk` | PCRE is GNU-only; `grep -E` (ERE) is POSIX. Rewrite the pattern in ERE. |
 | `grep -o` | mostly portable now (GNU+BSD+busybox) | OK on modern targets; avoid on ancient ones. |
 | `find -printf` | `find ... -exec printf ...` or `-print` + processing | `-printf` is GNU-only. |
 | `find -regex` / `-iregex` | `-name`/`-path` globs or `-exec ... grep` | `-regex` semantics differ GNU vs BSD. |
@@ -73,7 +73,7 @@ Targets referenced below:
 ## Behavioral hazards
 
 - **Word-splitting / globbing**: unquoted `$var` and `$@` split on `IFS` and glob. Always `"$var"` / `"$@"` unless splitting is intended; use `set -f` to disable globbing when iterating untrusted values.
-- **`echo`**: XSI/dash `echo` interprets backslash escapes; bash (default) does not; `echo -n` is unspecified. Use `printf '%s\n'`. Never put data in the format string: `printf '%s\n' "$user"`, not `printf "$user"`.
+- **`echo`**: backslash-escape interpretation and `-n` handling vary by implementation and by options (`xpg_echo`, `-e`/`-E`); `echo -n` is unspecified by POSIX. Use `printf '%s\n'`. Never put data in the format string: `printf '%s\n' "$user"`, not `printf "$user"`.
 - **Locale**: `sort`, `tr` ranges (`[a-z]`), `sed`/`grep` character classes, and `printf` numeric formatting depend on `LC_ALL`/`LC_COLLATE`. Pin `LC_ALL=C` for byte-stable behavior.
 - **`set -e` (`errexit`)**: subtle and shell-divergent (behavior inside `&&`, command substitution, functions, and `if` differs across shells and versions). Don't rely on it for correctness; check critical commands explicitly.
 - **`$(...)` vs backticks**: both are POSIX; prefer `$(...)` for nesting and clarity. Backticks mangle backslashes.
