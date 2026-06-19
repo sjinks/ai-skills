@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: GitHub Actions workflow authoring
+description: |
+  Authoring a GitHub Actions workflow YAML is a different GitHub topic, not
+  gh CLI invocation; the skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    How do I write a GitHub Actions workflow that runs my test suite on
+    every push to main and caches npm dependencies between runs?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/gh-cli/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "gh api"
+        - "--raw-field"
+        - "body=@-"
+        - "/replies"
+        - "GitHub CLI"
+        - "--paginate"

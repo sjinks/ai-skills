@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Plain git commit, not gh
+description: |
+  A plain git operation (not the gh CLI) is out of scope; the skill must
+  not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    How do I write a multi-line git commit message from the command line
+    without opening an editor? I want a subject and a couple of body
+    paragraphs.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/gh-cli/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "gh api"
+        - "--raw-field"
+        - "body=@-"
+        - "/replies"
+        - "GitHub CLI"
+        - "--paginate"

@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Correct a botched comment instead of duplicating
+description: |
+  When a previous gh comment posted wrong text, the skill should recommend
+  editing it in place with PATCH, not posting a second comment.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    My `gh api` call accidentally posted a PR review comment whose body is
+    the literal string "@-". How do I fix the existing comment with `gh`
+    rather than adding another comment?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/gh-cli/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - gh-cli
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)PATCH'
+        - '(?i)comments/'
+        - '(?i)-f\b|--raw-field|-F\b|--field'
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Checklist status:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response recommends editing the existing comment in
+        place with a PATCH to the review-comment endpoint
+        (`gh api --method PATCH .../pulls/comments/{id} -f body=...`) instead of
+        posting a new comment, and explains the original `@-` was caused by
+        using `-f` (literal) where `-F` stdin was intended.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

@@ -1,0 +1,58 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Literal string that starts with @
+description: |
+  When the body must be a literal string beginning with @, the skill should
+  recommend -f (raw field), the opposite of the stdin case.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    With `gh api`, I need to set an issue comment body to the literal text
+    "@team please review" — it must NOT be treated as a filename. Which
+    field flag should I use and why?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/gh-cli/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - gh-cli
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)-f\b|--raw-field'
+        - '(?i)literal'
+        - '(?i)-F\b|--field|@'
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Checklist status:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response correctly recommends `-f`/`--raw-field`
+        (which sends the value literally) for a body starting with `@`, and
+        explains that `-F`/`--field` would try to read `@team...` as a file.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

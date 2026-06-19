@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Reply to a PR review comment with a multi-line body
+description: |
+  Should activate and recommend the replies endpoint plus a stdin/file
+  body, not an inline -f double-quoted body.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Using the GitHub CLI (`gh`), how do I post a reply to an inline pull
+    request review comment? The reply text is multiple lines and contains
+    backticks and a `$VAR`-looking token. I tried
+    `gh api .../comments -f body=@reply.txt` but it posted the literal
+    text "@reply.txt".
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/gh-cli/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - gh-cli
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)-F\b|--field'
+        - '(?i)@-|body-file|stdin'
+        - '(?i)replies|in_reply_to'
+        - '(?i)-f\b|--raw-field|literal'
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Checklist status:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response explains:
+        - `gh api -f` sends the value literally, which is why `-f body=@reply.txt`
+          posted the literal text; `@file`/`@-` only work with `-F`/`--field`.
+        - The multi-line/special-character body should be passed via stdin
+          (`-F body=@-`) or a file (`--body-file`), not an inline double-quoted `-f`.
+        - A threaded reply uses the review-comment replies endpoint
+          (`/pulls/{pr}/comments/{id}/replies`) or `in_reply_to`, not `gh pr comment`.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent
