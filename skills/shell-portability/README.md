@@ -8,7 +8,7 @@ It helps an assistant:
 
 - establish the portability target (declared shells/OSes, or a POSIX-sh + GNU/BSD/macOS/busybox default baseline) and check the shebang matches the language used
 - catch bashisms in `#!/bin/sh` scripts (`[[ ]]`, arrays, `local`, `source`, `${var,,}`, process substitution, `pipefail`, …) and give POSIX replacements
-- flag GNU-only utility usage on BSD/macOS/busybox targets (`readlink -f`, `sed -i`, `sed -r`, `grep -P`, `find -printf`, `date -d`, `seq`, `xargs -r`, `stat`) with portable forms
+- flag non-portable utility flags and non-POSIX utilities on BSD/macOS/busybox targets (`readlink -f`, `sed -i`, `sed -r`, `grep -P`, `find -printf`, `date -d`, `seq`, `xargs -r`, `stat`) with portable forms
 - catch behavioral hazards: `echo` escapes/flags, unquoted word-splitting, locale-dependent `sort`/`tr`, non-POSIX `trap`/`set` options
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with target, interpreter, findings, checklist status, verification path, and an insufficient-context template
 
