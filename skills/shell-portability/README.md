@@ -12,9 +12,10 @@ It helps an assistant:
 - catch behavioral hazards: `echo` escapes/flags, unquoted word-splitting, locale-dependent `sort`/`tr`, non-POSIX `trap`/`set` options
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with target, interpreter, findings, checklist status, verification path, and an insufficient-context template
 
-It is **not** for shell command *safety* (destructive commands, secret leakage, quoting to avoid data loss), pure bash-only feature questions, or non-shell languages.
+It is **not** for shell command *safety* (destructive commands, secret leakage, data-loss-prevention quoting review), pure bash-only feature questions, or non-shell languages. Quoting is still in scope here for its word-splitting/globbing portability effects.
 
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.
-- [`references/portability-catalog.md`](references/portability-catalog.md) — bashism→POSIX table, GNU-vs-BSD utility flag matrix, behavioral hazards, verification tooling, and source confidence.
+- [`references/portability-catalog.md`](references/portability-catalog.md) — bashism→POSIX table, GNU-vs-BSD utility flag matrix, behavioral hazards, and verification tooling.
+- [`references/source-map.md`](references/source-map.md) — provenance and source-confidence notes.

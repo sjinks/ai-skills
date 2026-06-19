@@ -153,7 +153,7 @@ Findings:
 - `readlink -f "$path"` under a macOS/BSD target fails: BSD `readlink` has no `-f`. Portable fix: a shell function `abspath() { cd "$(dirname "$1")" && printf '%s/%s\n' "$(pwd -P)" "$(basename "$1")"; }`, or require GNU `coreutils`/`grealpath` explicitly.
 - `#!/bin/sh` script using `if [[ "$x" == y* ]]; then`: under dash/busybox this is a syntax error. Portable fix: `case "$x" in y*) ... ;; esac`, or `[ "$x" = "y" ]` for exact match.
 - `sed -i 's/a/b/' f` differs: GNU takes `-i`, BSD/macOS needs `-i ''`. Portable fix: `tmp=$(mktemp); sed 's/a/b/' f > "$tmp" && mv "$tmp" f`.
-- `echo -n "$msg"` is unspecified: dash prints `-n`, bash may strip it. Portable fix: `printf '%s' "$msg"`.
+- `echo -n "$msg"` is unspecified: whether `-n` is treated as a flag or printed, and whether escapes are interpreted, varies by shell/implementation and options (`xpg_echo`, `-e`/`-E`). Portable fix: `printf '%s' "$msg"`.
 
 ## Provenance
 
