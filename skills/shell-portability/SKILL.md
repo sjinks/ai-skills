@@ -38,7 +38,7 @@ If no code is supplied, return `Verdict: BLOCK` with one open question; do not i
 ## Workflow
 
 1. Establish the target (declared or default baseline) and read the shebang to learn the intended interpreter.
-2. Scan for **interpreter/shebang mismatch**: bash features under `#!/bin/sh`, missing or `env`-less shebang, reliance on the login shell.
+2. Scan for **interpreter/shebang mismatch**: bash features under `#!/bin/sh`, a missing shebang on a directly-executed script, a hardcoded interpreter path that does not match the declared target (e.g. `#!/bin/bash` where bash is needed but not at that path — prefer `#!/usr/bin/env bash`), or reliance on the login shell.
 3. Scan for **bashisms** (constructs absent from POSIX sh): see the catalog. Flag each with its POSIX replacement.
 4. Scan for **non-portable utility usage**: GNU-only flags and utilities that differ or are absent on BSD/macOS/busybox. Flag each with a portable form.
 5. Scan for **behavioral hazards**: unquoted expansions (word-splitting/globbing), `echo` with flags or escapes, locale-dependent `sort`/`sed`/`tr`, `$RANDOM`/`$SECONDS`/arrays/associative arrays, non-portable `trap`/`set` options (`pipefail`).
