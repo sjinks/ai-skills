@@ -1,4 +1,4 @@
-Read this when you need the full replacement matrix for a specific bashism or utility flag, or the source confidence behind a portability claim in `SKILL.md`.
+Read this when you need the full replacement matrix for a specific bashism or utility flag behind a portability claim in `SKILL.md`. For provenance and source-confidence notes, see [source-map.md](source-map.md).
 
 # Portability Catalog
 
