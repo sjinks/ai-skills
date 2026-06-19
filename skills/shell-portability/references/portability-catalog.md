@@ -6,7 +6,9 @@ Targets referenced below:
 
 - **POSIX sh** — POSIX.1-2017 (IEEE Std 1003.1-2017) Shell Command Language and Utilities. The portable floor.
 - **dash** — Debian/Ubuntu default `/bin/sh`. Near-POSIX, few extensions.
+- **posh** — Policy-compliant Ordinary SHell; stricter than dash. Useful as a second strict-POSIX test shell.
 - **busybox ash** — Alpine/embedded default `/bin/sh`. Mostly POSIX with some bash-like extras (`local`, `pipefail`).
+- **ksh** — Korn shell; the `/bin/sh` on some BSD/UNIX systems (e.g. OpenBSD). Uses `typeset`, not `local`.
 - **bash** — GNU bash; note macOS ships bash 3.2 (no `mapfile`, no `${var^^}`, no associative arrays).
 - **GNU coreutils** — Linux default utilities. Many flags here are GNU-only.
 - **BSD/macOS** — FreeBSD/macOS userland; many GNU flags absent or spelled differently.
@@ -20,7 +22,7 @@ Targets referenced below:
 | `for ((i=0;i<n;i++))` | `i=0; while [ "$i" -lt "$n" ]; do ...; i=$((i+1)); done` | C-style for is bash/ksh. |
 | `arr=(a b c)` / `${arr[i]}` | positional params `set -- a b c` / `"$@"` / whitespace list | No arrays in POSIX sh. |
 | `declare -A` associative arrays | separate vars or external tool | bash 4+ only (not macOS bash 3.2). |
-| `local x` | (document assumption) | Not POSIX, but dash/ash/busybox/bash support it. Acceptable on those targets; note it. |
+| `local x` | (document assumption) | Not POSIX, but dash/ash/busybox/bash support it. ksh uses `typeset` instead; for ksh targets add `command -v local >/dev/null 2>&1 || alias local=typeset` and declare/assign on separate lines. Acceptable on those targets; note it. |
 | `function name { }` | `name() { }` | `function` keyword is bash/ksh. |
 | `source file` | `. file` | `source` is bash/zsh alias for `.`. |
 | `${var,,}` / `${var^^}` | `printf '%s' "$var" \| tr '[:upper:]' '[:lower:]'` | Case modification is bash 4+. |
@@ -85,12 +87,15 @@ Targets referenced below:
 - **`type`/`command -v`**: use `command -v cmd` to test for a command (POSIX); `which` is not POSIX and varies.
 - **`test`/`[`**: `-a`/`-o` (binary AND/OR inside `[ ]`) are deprecated and ambiguous; chain with `&&`/`||` between separate `[ ]` calls. The file-comparison operators `-nt`/`-ot`/`-ef` were only standardized in POSIX.1-2024 (and are widely available in dash/ksh/zsh); under a strict POSIX.1-2017 baseline, replace them with `find -newer` or avoid.
 - **Signals in `trap`**: use names without `SIG` prefix (`trap ... INT TERM`) and only `EXIT` plus real signals; `ERR`/`DEBUG`/`RETURN` are non-POSIX.
+- **`shift N`**: shifting more than `$#` is unspecified and aborts the script in dash/posh/mksh/ksh93. To drop all positional parameters use `shift $#`, or guard with `[ "$#" -ge N ]` first.
+- **`printf` may be external**: `printf` is not guaranteed to be a builtin (posh and mksh call the external utility), so a `printf`-in-a-tight-loop pattern can cost a fork each iteration; for hot loops on those shells prefer a single `printf` with repeated format args.
+- **Shebang**: only one argument word after the interpreter is portable across Linux and BSD kernels (`#!/bin/sh -eu` is fine; two separate words may not be). POSIX does not define the shebang at all, but it is a universal convention; the interpreter must be a full path.
 
 ## Verification tooling
 
 - `shellcheck -s sh script` (POSIX mode) flags most bashisms; `-s bash` for bash scripts. ShellCheck code `SC2039`/`SC3xxx` family marks non-POSIX features.
 - `checkbashisms script` (from Debian `devscripts`) specifically targets `/bin/sh` scripts.
-- Run the script under `dash script` and `busybox ash script` to catch dash/busybox-specific failures.
+- Run the script under `dash script`, `posh script`, and `busybox ash script` to catch strict-POSIX and dash/busybox-specific failures (`dash -nx script` / `posh -nx script` parse-check without executing). On BSD/UNIX where `/bin/sh` may be ksh, test under `ksh` too.
 - Run on a BSD/macOS box (or in a FreeBSD/macOS CI runner) to catch coreutils-flag differences that Linux hides.
 - Greg's Wiki [Bashism page](https://mywiki.wooledge.org/Bashism) (maintained by Stéphane Chazelas) is a thorough bashism-vs-dash reference; [Rich's sh tricks](https://www.etalabs.net/sh_tricks.html) collects portable POSIX-sh idioms.
 

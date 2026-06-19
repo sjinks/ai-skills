@@ -68,7 +68,7 @@ The Checklist below is the gating source of truth when these rules overlap; the 
 
 ### Bashisms (when target includes POSIX sh)
 
-- No `[[ ]]`, `==` in test, `-nt`/`-ot`/`-ef` test operators (POSIX.1-2024 only), C-style `for ((;;))`, arrays/associative arrays, `local` without a documented assumption, `function` keyword, `source`, `${var,,}`/`${var^^}`/`${var:offset:len}` slicing, `${var/pat/repl}` substitution, `+=`, process substitution, herestrings `<<<`, extended globs `+( )`/`@( )`/`!( )`, `$(<file)` slurp, `&>`/`|&`, brace ranges `{1..n}`, `$'...'`, `read -a`, `mapfile`, `$RANDOM`, `$SECONDS`, `select`, `trap ... ERR`, `set -o pipefail` assumed present.
+- No `[[ ]]`, `==` in test, `-nt`/`-ot`/`-ef` test operators (POSIX.1-2024 only), C-style `for ((;;))`, arrays/associative arrays, `local` without a documented assumption (ksh uses `typeset`), `function` keyword, `source`, `${var,,}`/`${var^^}`/`${var:offset:len}` slicing, `${var/pat/repl}` substitution, `+=`, process substitution, herestrings `<<<`, extended globs `+( )`/`@( )`/`!( )`, `$(<file)` slurp, `&>`/`|&`, brace ranges `{1..n}`, `$'...'`, `read -a`, `mapfile`, `$RANDOM`, `$SECONDS`, `select`, `shift N` past `$#` (aborts dash/posh/mksh/ksh), `trap ... ERR`, `set -o pipefail` assumed present.
 
 ### Utilities And Flags
 
@@ -84,7 +84,7 @@ The Checklist below is the gating source of truth when these rules overlap; the 
 
 ### Verification
 
-- Portability fixes have a verification path: `shellcheck` (with the right `-s sh`/`-s bash` shell), `checkbashisms` for `/bin/sh` scripts, or a run under `dash`/`busybox ash` and on a BSD/macOS box. If no code changes are in scope, this item is n/a.
+- Portability fixes have a verification path: `shellcheck` (with the right `-s sh`/`-s bash` shell), `checkbashisms` for `/bin/sh` scripts, or a run under `dash`/`posh`/`busybox ash` (and `ksh` for BSD/UNIX targets) and on a BSD/macOS box. If no code changes are in scope, this item is n/a.
 
 ## Severity And Verdicts
 
