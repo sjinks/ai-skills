@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Bash-only feature explanation, no portability concern
+description: |
+  A pure bash feature question where bash is the only environment and
+  portability is explicitly not a concern; the skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    In my bash script (only ever run with bash on my laptop), how do
+    associative arrays work? I want to map usernames to their home
+    directories and loop over the keys.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-portability/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Checklist status:"
+        - "Interpreter:"
+        - "Target:"
+        - "Residual risk:"

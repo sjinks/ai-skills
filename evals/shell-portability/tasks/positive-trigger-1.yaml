@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Bashisms in a /bin/sh script
+description: |
+  Review must activate on bash-only constructs in a POSIX sh script and on a
+  GNU-only utility flag.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    This script has #!/bin/sh but our CI runs it on both Alpine (busybox)
+    and macOS. Is it portable?
+
+    ```sh
+    #!/bin/sh
+    if [[ "$1" == start* ]]; then
+      target=$(readlink -f "$2")
+      echo -n "resolving: "
+      echo "$target"
+    fi
+    ```
+
+    Return the verdict, target, interpreter, findings, checklist status, and
+    residual risk.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-portability/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-portability
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS)'
+        - '(?i)(\[\[|bashism|not POSIX|case)'
+        - '(?i)readlink'
+        - '(?i)(printf|echo -n)'
+        - '(?i)Checklist status:'
+      not_contains:
+        - "Compatibility promise:"
+        - "Dependency policy:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response identifies these issues:
+        - `[[ ... == start* ]]` is a bashism that fails under busybox/dash;
+          it should be a POSIX `case` statement (or `[ ]` with `=`).
+        - `readlink -f` is GNU-only; macOS/BSD readlink lacks `-f`, so a
+          portable replacement (shell function or grealpath) is needed.
+        - `echo -n` is unspecified across shells; `printf` is the portable
+          form.
+        A correct response uses the skill's structured sections.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent
