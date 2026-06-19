@@ -157,7 +157,7 @@ Findings:
 
 ## Provenance
 
-Portability claims here track POSIX.1-2017 (IEEE Std 1003.1-2017) Shell & Utilities, the dash/busybox-ash feature sets, and GNU-vs-BSD coreutils differences. Source confidence and the full replacement matrix live in [references/portability-catalog.md](references/portability-catalog.md).
+Source confidence and key references live in [references/source-map.md](references/source-map.md); the full replacement matrix lives in [references/portability-catalog.md](references/portability-catalog.md).
 
 ## Definition Of Done
 

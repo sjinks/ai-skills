@@ -103,8 +103,4 @@ Targets referenced below:
 - Greg's Wiki [Bashism page](https://mywiki.wooledge.org/Bashism) (maintained by Stéphane Chazelas) is a thorough bashism-vs-dash reference; [Rich's sh tricks](https://www.etalabs.net/sh_tricks.html) collects portable POSIX-sh idioms.
 - For maximum portability the GNU coding standards name a conservative set of utilities a script may assume present: `awk cat cmp cp diff echo egrep expr false grep install-info ln ls mkdir mv printf pwd rm rmdir sed sleep sort tar test touch tr true`. Reaching outside this set (or for non-POSIX flags on these) is where portability findings concentrate.
 
-## Source confidence
-
-- **High**: presence/absence of constructs in POSIX.1-2017 (authoritative spec text); GNU vs BSD flag differences for the common utilities above (verifiable in each project's man pages). bash version-feature gates (macOS bash 3.2) are documented in the bash manual `CHANGES`.
-- **Medium**: busybox feature coverage varies by build configuration (a stripped busybox may omit applets or flags); treat busybox claims as "default build" and verify on the actual image.
-- **Lower**: exact behavior of `set -e` and `echo` across every historical shell version; the catalog gives the safe portable form rather than enumerating every divergence.
+Provenance and source-confidence notes live in [source-map.md](source-map.md).
