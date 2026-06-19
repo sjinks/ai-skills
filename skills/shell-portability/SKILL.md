@@ -79,6 +79,7 @@ The Checklist below is the gating source of truth when these rules overlap; the 
 
 - `printf` is used instead of `echo` for anything beyond a trailing-newline literal with no escapes/flags; user data never sits in the format string.
 - Every expansion that could word-split or glob is quoted, or `IFS`/`set -f` is set deliberately.
+- `read` loops that must process a no-trailing-newline final line use `while IFS= read -r line || [ -n "$line" ]`.
 - Locale-sensitive text operations set `LC_ALL=C` where byte/collation behavior matters.
 - No reliance on non-POSIX `set`/`trap` options (`pipefail`, `ERR`) when targeting POSIX sh.
 

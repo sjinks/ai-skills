@@ -85,6 +85,8 @@ Targets referenced below:
 - **`$(...)` vs backticks**: both are POSIX; prefer `$(...)` for nesting and clarity. Backticks mangle backslashes.
 - **Arithmetic**: `$((expr))` is POSIX; `let` and `(( ))` are bash/ksh.
 - **`type`/`command -v`**: use `command -v cmd` to test for a command (POSIX); `which` is not POSIX and varies.
+- **`read` and the final line**: `while IFS= read -r line; do ...; done < file` silently drops a last line that has no trailing newline. Use `while IFS= read -r line || [ -n "$line" ]; do ...; done < file` to process it.
+- **Runtime feature detection**: when a single script must adapt to GNU vs BSD/macOS at run time, probe the tool instead of hardcoding flags, e.g. `if date --version >/dev/null 2>&1; then date -d ...; else date -v ...; fi` (BSD tools lack `--version`), or prefer the `g`-prefixed GNU tool when present (`command -v gsed`). Prefer a portable rewrite first; use detection only when no portable form exists.
 - **`test`/`[`**: `-a`/`-o` (binary AND/OR inside `[ ]`) are deprecated and ambiguous; chain with `&&`/`||` between separate `[ ]` calls. The file-comparison operators `-nt`/`-ot`/`-ef` were only standardized in POSIX.1-2024 (and are widely available in dash/ksh/zsh); under a strict POSIX.1-2017 baseline, replace them with `find -newer` or avoid.
 - **Signals in `trap`**: use names without `SIG` prefix (`trap ... INT TERM`) and only `EXIT` plus real signals; `ERR`/`DEBUG`/`RETURN` are non-POSIX.
 - **`shift N`**: shifting more than `$#` is unspecified and aborts the script in dash/posh/mksh/ksh93. To drop all positional parameters use `shift $#`, or guard with `[ "$#" -ge N ]` first.
@@ -93,7 +95,7 @@ Targets referenced below:
 
 ## Verification tooling
 
-- `shellcheck -s sh script` (POSIX mode) flags most bashisms; `-s bash` for bash scripts. ShellCheck code `SC2039`/`SC3xxx` family marks non-POSIX features.
+- `shellcheck -s sh script` (POSIX mode) flags most bashisms; `-s bash` for bash scripts. ShellCheck code `SC2039`/`SC3xxx` family marks non-POSIX features. A `# shellcheck shell=sh` directive near the top pins the dialect when the shebang is ambiguous; reserve `# shellcheck disable=SCxxxx` (with a one-line reason) for a deliberately non-portable construct on a relaxed target.
 - `checkbashisms script` (from Debian `devscripts`) specifically targets `/bin/sh` scripts.
 - Run the script under `dash script`, `posh script`, and `busybox ash script` to catch strict-POSIX and dash/busybox-specific failures (`dash -nx script` / `posh -nx script` parse-check without executing). On BSD/UNIX where `/bin/sh` may be ksh, test under `ksh` too.
 - Run on a BSD/macOS box (or in a FreeBSD/macOS CI runner) to catch coreutils-flag differences that Linux hides.
