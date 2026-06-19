@@ -25,14 +25,18 @@ Targets referenced below:
 | `source file` | `. file` | `source` is bash/zsh alias for `.`. |
 | `${var,,}` / `${var^^}` | `printf '%s' "$var" \| tr '[:upper:]' '[:lower:]'` | Case modification is bash 4+. |
 | `${var:offset:len}` | `cut` / `awk` / `expr substr` | Substring slicing is bash/ksh. |
+| `${var/pat/repl}` pattern substitution | `printf '%s\n' "$var" \| sed 's/pat/repl/'` (convert glob to regex) | bash/ksh93/zsh/mksh, with behavior differences; not POSIX. |
 | `var+=x` | `var="$var"x` | `+=` is bash/ksh. |
 | `<(cmd)` / `>(cmd)` process subst | temp file or pipe | bash/zsh/ksh only; needs `/dev/fd`. |
+| `cmd <<<"string"` herestring | `printf '%s\n' "string" \| cmd`, or a heredoc `<<EOF` | `<<<` is bash/ksh/zsh; not POSIX. |
 | `cmd &>file` | `cmd >file 2>&1` | `&>` is bash. |
 | `cmd1 \|& cmd2` | `cmd1 2>&1 \| cmd2` | `\|&` is bash. |
+| extended globs `+( )` `@( )` `!( )` `*( )` `?( )` | multiple globs, `case`, or `find`/`grep` | bash (with `extglob`)/ksh/zsh; not POSIX. |
 | `{1..10}` brace range | `seq 1 10` (note seq portability) or `while` loop | Brace ranges are bash/zsh. |
 | `$'\t'` ANSI-C quoting | `printf` or literal tab via `"$(printf '\t')"` | `$'...'` is bash/ksh/zsh. |
 | `read -a arr` | `read line; IFS=... set -- $line` | `-a` is bash. |
 | `mapfile` / `readarray` | `while read` loop | bash 4+. |
+| `$(<file)` file slurp | `$(cat file)` | bash/ksh/zsh; not POSIX. |
 | `$RANDOM` | `awk 'BEGIN{srand();print int(rand()*32768)}'` or `/dev/urandom` | bash/ksh/zsh. |
 | `$SECONDS` | track via `date +%s` diff | bash/ksh/zsh. |
 | `select` menu | manual `while`/`read`/`case` loop | bash/ksh. |
@@ -79,7 +83,7 @@ Targets referenced below:
 - **`$(...)` vs backticks**: both are POSIX; prefer `$(...)` for nesting and clarity. Backticks mangle backslashes.
 - **Arithmetic**: `$((expr))` is POSIX; `let` and `(( ))` are bash/ksh.
 - **`type`/`command -v`**: use `command -v cmd` to test for a command (POSIX); `which` is not POSIX and varies.
-- **`test`/`[`**: `-a`/`-o` (binary AND/OR inside `[ ]`) are deprecated and ambiguous; chain with `&&`/`||` between separate `[ ]` calls.
+- **`test`/`[`**: `-a`/`-o` (binary AND/OR inside `[ ]`) are deprecated and ambiguous; chain with `&&`/`||` between separate `[ ]` calls. The file-comparison operators `-nt`/`-ot`/`-ef` were only standardized in POSIX.1-2024 (and are widely available in dash/ksh/zsh); under a strict POSIX.1-2017 baseline, replace them with `find -newer` or avoid.
 - **Signals in `trap`**: use names without `SIG` prefix (`trap ... INT TERM`) and only `EXIT` plus real signals; `ERR`/`DEBUG`/`RETURN` are non-POSIX.
 
 ## Verification tooling
@@ -88,6 +92,7 @@ Targets referenced below:
 - `checkbashisms script` (from Debian `devscripts`) specifically targets `/bin/sh` scripts.
 - Run the script under `dash script` and `busybox ash script` to catch dash/busybox-specific failures.
 - Run on a BSD/macOS box (or in a FreeBSD/macOS CI runner) to catch coreutils-flag differences that Linux hides.
+- Greg's Wiki [Bashism page](https://mywiki.wooledge.org/Bashism) (maintained by Stéphane Chazelas) is a thorough bashism-vs-dash reference; [Rich's sh tricks](https://www.etalabs.net/sh_tricks.html) collects portable POSIX-sh idioms.
 
 ## Source confidence
 
