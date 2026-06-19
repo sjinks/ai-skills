@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Bash-only target — portable as written
+description: |
+  When the user explicitly targets bash only, bash-specific constructs are
+  acceptable; the skill should narrow the target and return CLEAN rather than
+  flagging bashisms as failures.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    This script is only ever run with `#!/usr/bin/env bash` on our Linux
+    build servers (bash 5). We do not support sh, dash, or macOS. Is it
+    portable for that target?
+
+    ```bash
+    #!/usr/bin/env bash
+    files=(*.log)
+    for f in "${files[@]}"; do
+      printf '%s\n' "$f"
+    done
+    ```
+
+    Return the verdict, target, interpreter, findings, and checklist status.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-portability/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-portability
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(CLEAN|CONCERNS)'
+        - '(?i)(bash[- ]only|target)'
+        - '(?i)Checklist status:'
+      not_contains:
+        - "Dependency policy:"
+        - "Compatibility promise:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response correctly narrows the portability target
+        to bash-only (Linux, bash 5), recognizes that the array and
+        `#!/usr/bin/env bash` shebang are acceptable for that declared
+        target, and returns CLEAN (or CONCERNS only with minor low-severity
+        notes) rather than flagging the array as a portability failure.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

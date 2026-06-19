@@ -1,0 +1,58 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: No code supplied — insufficient context
+description: |
+  When the user asks for a portability review but supplies no script or
+  commands, the skill must emit the reduced insufficient-context BLOCK
+  template and not invent code.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    Can you check my deploy script for shell portability problems before I
+    ship it to our mixed Linux/macOS fleet? I want to be sure it runs
+    everywhere.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-portability/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-portability
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)(no script|no code|not supplied|no commands|provide|paste)'
+        - '(?i)Classification:\s*Open question'
+      not_contains:
+        - "Checklist status:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response correctly recognizes that no script or
+        commands were supplied, returns `Verdict: BLOCK`, asks for the code
+        (and ideally the target shells/OSes), and does NOT fabricate a script
+        to review or emit a full checklist status.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

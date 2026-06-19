@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Shell command safety, not portability
+description: |
+  A destructive-command safety question about a shell command is a different
+  concern from cross-platform portability; the skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    I'm about to run `rm -rf $BUILD_DIR/*` in my bash deploy script on our
+    Linux server. Is this safe, or could it wipe the wrong thing if the
+    variable is empty?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-portability/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Checklist status:"
+        - "Interpreter:"
