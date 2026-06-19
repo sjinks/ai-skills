@@ -58,10 +58,14 @@ The Checklist is the gating source of truth; these rules explain why.
 
 ## Examples
 
-- Reply to a review comment from stdin (handles markdown/backticks):
-  `printf '%s' 'Fixed in abc1234. See `foo()`.' | gh api repos/O/R/pulls/comments/123/replies -F body=@-`
+- Reply to a review comment from stdin (the reply endpoint includes the PR number; stdin handles markdown/backticks safely):
+
+  ```sh
+  printf '%s' 'Fixed in abc1234. See `foo()`.' | gh api repos/O/R/pulls/66/comments/123/replies -F body=@-
+  ```
+
 - Literal string that starts with `@` (must not be a file ref): `gh api ... -f body='@here is the note'`.
-- Edit a wrong reply instead of duplicating: `gh api --method PATCH repos/O/R/pulls/comments/123 -f body='corrected text'`.
+- Edit a wrong review comment in place instead of duplicating (the PATCH endpoint takes no PR number): `gh api --method PATCH repos/O/R/pulls/comments/123 -f body='corrected text'`.
 - Paginated, filtered query: `gh api --paginate repos/O/R/pulls/66/comments --jq '.[] | {id, path, line, body}'`.
 - Multi-paragraph PR body without quoting pain: `gh pr create --title T --body-file body.md` (or `--body-file -` for stdin).
 
