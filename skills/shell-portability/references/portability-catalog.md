@@ -92,6 +92,7 @@ Targets referenced below:
 - **`shift N`**: shifting more than `$#` is unspecified and aborts the script in dash/posh/mksh/ksh93. To drop all positional parameters use `shift $#`, or guard with `[ "$#" -ge N ]` first.
 - **`printf` may be external**: `printf` is not guaranteed to be a builtin (posh and mksh call the external utility), so a `printf`-in-a-tight-loop pattern can cost a fork each iteration; for hot loops on those shells prefer a single `printf` with repeated format args.
 - **Shebang**: only one argument word after the interpreter is portable across Linux and BSD kernels (`#!/bin/sh -eu` is fine; two separate words may not be). POSIX does not define the shebang at all, but it is a universal convention; the interpreter must be a full path.
+- **Tilde (`~`)**: `~` expands to `$HOME` only when unquoted and at the start of a word; inside quotes or quoted assignments it stays literal (`PATH="~/bin:$PATH"` prepends a literal `~/bin`). Use `$HOME` explicitly: `PATH="$HOME/bin:$PATH"`.
 
 ## Verification tooling
 
@@ -100,6 +101,7 @@ Targets referenced below:
 - Run the script under `dash script`, `posh script`, and `busybox ash script` to catch strict-POSIX and dash/busybox-specific failures (`dash -nx script` / `posh -nx script` parse-check without executing). On BSD/UNIX where `/bin/sh` may be ksh, test under `ksh` too.
 - Run on a BSD/macOS box (or in a FreeBSD/macOS CI runner) to catch coreutils-flag differences that Linux hides.
 - Greg's Wiki [Bashism page](https://mywiki.wooledge.org/Bashism) (maintained by Stéphane Chazelas) is a thorough bashism-vs-dash reference; [Rich's sh tricks](https://www.etalabs.net/sh_tricks.html) collects portable POSIX-sh idioms.
+- For maximum portability the GNU coding standards name a conservative set of utilities a script may assume present: `awk cat cmp cp diff echo egrep expr false grep install-info ln ls mkdir mv printf pwd rm rmdir sed sleep sort tar test touch tr true`. Reaching outside this set (or for non-POSIX flags on these) is where portability findings concentrate.
 
 ## Source confidence
 
