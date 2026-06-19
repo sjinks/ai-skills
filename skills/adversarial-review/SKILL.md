@@ -23,6 +23,8 @@ Use the same evidence standard whether invoked directly or after another workflo
 
 - **Standalone review:** Ask for, read, or infer the concrete target artifact before judging it. If the target is missing or too vague, follow the blocker path in Required Input Context.
 - **Paired review:** When invoked after another skill, agent, plan, review, or implementation, treat that prior output as the target artifact. Challenge what it produced, identify what it got right, and avoid re-reporting issues it already raised unless the prior output understated the severity, missed evidence, or left the mitigation ambiguous.
+  - **Dedup criterion:** A candidate finding is already covered by a prior finding only when both cite the same artifact (same file and line range, or same workflow step) AND the same `Failure-Mode Taxonomy` category. Same artifact + different category, or same artifact and category + a different concrete trigger, both survive; report the survivor as a sibling that references the prior finding rather than suppressing it.
+  - **Verdict monotonicity:** Never silently downgrade the prior output's verdict. If the prior review emitted `BLOCK` or `CONCERNS` and your net-new findings would justify a weaker verdict, emit the prior verdict and append your net-new findings; the prior verdict does not auto-relax just because this pass surfaced nothing more severe.
 
 ## Boundaries
 
@@ -113,12 +115,12 @@ Every substantive finding must name a concrete trigger or scenario. Do not prese
 4. Steel-man the target before challenging it: briefly state what the current approach gets right, why it is reasonable, or what constraints it appears to satisfy. State this regardless of how many findings follow; if nothing works, write `What works: None identified` rather than inventing strengths to balance the review.
 5. List assumptions the review depends on, including missing context.
 6. Challenge those assumptions using the relevant lenses and taxonomy.
-7. Deduplicate overlapping findings so the same risk is not reported multiple ways.
+7. Deduplicate overlapping findings so the same risk is not reported multiple ways; in paired review, apply the dedup criterion in Invocation Modes against every prior pass on the same target, not only the most recent one.
 8. Apply the "so what?" filter and drop findings whose ignored consequence is immaterial for the target's context.
 9. Rank findings by severity, impact, likelihood, and confidence.
 10. Convert the top risks into concrete adversarial tests, mitigations, or acceptance criteria.
 11. Mark each mitigation or acceptance criterion as blocking or non-blocking when the distinction matters.
-12. Assign the overall verdict.
+12. Assign the overall verdict. In paired review, hold the verdict monotonicity rule from Invocation Modes: do not emit a verdict weaker than the prior pass on the same target.
 
 ## Output Format
 
