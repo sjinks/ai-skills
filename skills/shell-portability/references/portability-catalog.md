@@ -50,7 +50,7 @@ Targets referenced below:
 
 | Non-portable | Portable approach | Notes |
 |---|---|---|
-| `readlink -f` / `-m` | shell `cd`+`pwd -P` function, or require GNU `realpath`/`grealpath` | BSD/macOS `readlink` has no `-f`. macOS `realpath` exists (10.11+) but predates that on older systems. |
+| `readlink -f` / `-m` | shell `cd`+`pwd -P` function, or require GNU `realpath`/`grealpath` | BSD/macOS `readlink` has no `-f`. A `realpath(1)` utility is not guaranteed on macOS/BSD baselines (and is not POSIX); do not assume it is present. |
 | `sed -i 's/.../.../' f` | `t=$(mktemp); sed '...' f >"$t" && mv "$t" f` | GNU `-i` (no arg), BSD/macOS `-i ''` (empty backup suffix). In-place is non-portable. |
 | `sed -r` / `sed -E` | rewrite to POSIX BRE, or branch by target | POSIX `sed` specifies neither `-r` nor `-E` (BRE only). BSD/macOS and modern GNU accept `-E`; `-r` is GNU/busybox. For strict portability rewrite to BRE. |
 | `grep -P` (PCRE) | `grep -E` (ERE) or `awk` | PCRE is GNU-only; `grep -E` (ERE) is POSIX. Rewrite the pattern in ERE. |
@@ -66,7 +66,7 @@ Targets referenced below:
 | `sort` collation | prefix `LC_ALL=C sort` | Locale changes order across systems. |
 | `tac` | `sed '1!G;h;$!d'` or `tail -r` (BSD) | `tac` is GNU-only; `tail -r` is BSD-only. |
 | `seq` | `i=1; while [ "$i" -le "$n" ]; do ...; i=$((i+1)); done` | `seq` is not POSIX (GNU/BSD/busybox have it, with flag differences). |
-| `xargs -r` | guard empty input (e.g. `[ -s file ]`) instead of relying on `-r` | GNU/busybox `xargs` run the utility once on empty input unless `-r` is given; BSD/macOS `xargs` already skip on empty input (FreeBSD accepts `-r` as a no-op for compatibility; older macOS lacks `-r`). |
+| `xargs -r` | guard empty input (e.g. `[ -s file ]`) instead of relying on `-r` | By default GNU, busybox, and macOS (older BSD) `xargs` run the utility once even with empty input; `-r`/`--no-run-if-empty` suppresses that but is GNU/busybox-only. FreeBSD `xargs` already skips empty input and accepts `-r` as a no-op; macOS `xargs` has no `-r`. Guard empty input explicitly for portability. |
 | `xargs -0` / `-d` | `-0` widely available; `-d` is GNU-only | Prefer `-0` with `find -print0` (GNU/BSD) over `-d`. |
 | `mktemp` | `mktemp 2>/dev/null \|\| mktemp -t prefix` | Template/`-t` semantics differ GNU vs BSD. |
 | `stat -c` (GNU) / `stat -f` (BSD) | avoid, or branch by `uname`; use `find -printf`-free alternatives, `wc -c`, `ls` parsing as last resort | Format strings are entirely different. |
