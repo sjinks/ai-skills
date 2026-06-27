@@ -174,7 +174,7 @@ Findings:
 - Lost wakeup: producer sets `ready = true` without the mutex, then `notify_one()`; consumer checks `ready` under the mutex and waits. The write can land between check and wait — the consumer sleeps forever. Fix: mutate `ready` under the same mutex.
 - Lock-order deadlock: `transfer(a, b)` locks `a.mtx` then `b.mtx`; a concurrent `transfer(b, a)` locks in the opposite order. Fix: `std::scoped_lock lk(a.mtx, b.mtx);` or order by address/id.
 - Destruction race: a worker thread calls `owner->on_done()` while the owner's destructor runs on another thread. Fix: join the worker in the destructor before members are torn down, or hand the worker a `weak_ptr` it must lock.
-- Cross-thread slot lifetime: thread A emits a Boost.Signals2 signal whose slot captures `this` by raw pointer; thread B calls `connection::disconnect()` then destroys the captured object. The slot was already snapshotted, so it runs after disconnect on the now-dead object. Fix: connect with slot tracking (`signal.connect(slot_type(...).track_foreign(self_weak_ptr))`) so emission keeps the target alive and skips it once expired, or order destruction to drain in-flight emissions.
+- Cross-thread slot lifetime: thread A emits a Boost.Signals2 signal whose slot captures `this` by raw pointer; thread B calls `connection::disconnect()` then destroys the captured object. The slot was already snapshotted, so it runs after disconnect on the now-dead object. Fix: connect with slot tracking (`sig.connect(decltype(sig)::slot_type(...).track_foreign(self_weak_ptr))`, where `slot_type` is the signal's own nested slot type) so emission keeps the target alive and skips it once expired, or order destruction to drain in-flight emissions.
 
 ## Definition Of Done
 
