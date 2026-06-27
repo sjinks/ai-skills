@@ -109,6 +109,13 @@ Load these only when the task needs the extra detail:
 - Treating `operation_aborted` as a failure during normal shutdown or timeout cancellation.
 - Building unbounded read, write, SSE, WebSocket, or message queues.
 
+## Multi-Core Scaling
+
+- A single `io_context` (one acceptor, shared session/registry state) run across N threads can serialize accept and dispatch work on shared state and plateau before saturating all cores. Measure scaling before assuming "more threads = more throughput".
+- For stateless-per-connection servers, one high-throughput topology is **N independent reactors**: one `io_context` per core, each on its own thread, each with its own acceptor bound to the same explicit port via `SO_REUSEPORT`. The kernel can distribute incoming connections across the per-reactor acceptors, avoiding a shared acceptor bottleneck when the target OS semantics and workload fit.
+- Asio has no portable public `SO_REUSEPORT` wrapper. Prefer a project-owned platform abstraction that applies `setsockopt` through the acceptor's `native_handle()` before `bind`, with compile-time guards and a clear fallback for platforms where `SO_REUSEPORT` is unavailable or has different semantics. Avoid depending on non-public Asio socket option types. An ephemeral port (`0`) is incompatible with a multi-acceptor fleet: each acceptor would bind a different OS-assigned port. Require an explicit shared port.
+- Trade-off: independent reactors do not share connection state (global counts, shared caches, sticky sessions, tenant quotas, graceful shutdown state), so cross-reactor coordination must live in the application. Validate the choice with a load test that compares a shared acceptor, accept-and-dispatch workers, and per-core `SO_REUSEPORT` reactors for throughput, tail latency, accept distribution, and shutdown behavior.
+
 ## Review Heuristics
 
 - Look first for use-after-free risks: captures of `this`, stack buffers passed to async operations, and cancellation paths that destroy owners while operations are pending.

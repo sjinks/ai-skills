@@ -93,7 +93,7 @@ Use these copy/paste resources when a task benefits from a stable starting point
 
 1. Identify the Beast boundary: HTTP parser, HTTP serializer, request/response adapter, client session, server session, proxy bridge, WebSocket session, TLS stream, or test fixture.
 2. State the protocol role: client, origin server, proxy, gateway, tunnel, WebSocket endpoint, or parser adapter. Different roles have different HTTP target, authority, connection, and upgrade rules; use [role playbooks](./references/role-playbooks.md) for role-specific details.
-3. Name the stream stack and ownership model. Examples: `tcp_stream`, `ssl_stream<tcp_stream>`, `websocket::stream<tcp_stream>`, or a test stream. Identify who owns the stream, buffer, parser, serializer, timer, and message objects.
+3. Name the stream stack and ownership model. Examples: `tcp_stream`, `net::ssl::stream<tcp_stream>` (the canonical TLS stream; `beast::ssl_stream` is deprecated for new code since Boost 1.86), `websocket::stream<tcp_stream>`, or a test stream. Identify who owns the stream, buffer, parser, serializer, timer, and message objects.
 4. Define operation serialization. Confirm there is at most one outstanding read per stream and that writes are awaited, queued, or otherwise serialized.
 5. Define parser and serializer policy before constructing public objects. Include header limit, body limit, eager parsing, skip behavior, chunk handling, transfer encoding, keep-alive, upgrade, and close behavior.
 6. Enforce resource limits at the parser or body boundary, not after the full message is already buffered.
@@ -108,6 +108,7 @@ Use these copy/paste resources when a task benefits from a stable starting point
 - Decide whether parser leniency is acceptable. If strict behavior is required, normalize or reject before public request construction.
 - Keep parser buffers alive until reads complete. Do not store string views into temporary Beast fields unless the backing message outlives the view.
 - Handle partial messages and EOF explicitly. EOF before a complete message is usually malformed input; EOF after a complete response may be normal depending on HTTP version and connection policy.
+- Trailers are version-sensitive: Boost 1.90+ `http::parser` rejects non-standard trailer fields by default and routes trailer fields to a separate `on_trailer_field_impl` callback. After validating the `Trailer` header, opt in via `merge_all_trailers(true)` if non-standard trailers are required, and override `on_trailer_field_impl` in custom parsers. See [version notes](./references/version-notes.md) for the exact behavior change and the older-release difference.
 
 ## HTTP Serializer Guidelines
 
@@ -116,6 +117,32 @@ Use these copy/paste resources when a task benefits from a stable starting point
 - Use `prepare_payload()` when it matches the body type and response policy, but do not let it hide intentional streaming, chunking, or no-body semantics.
 - For streaming bodies, define backpressure and lifetime rules for every buffer sequence passed to Beast.
 - Do not reuse serializers after completion unless Beast's documented state model permits it for the exact type and flow.
+
+### Serialization Cost And The Fast-Path Bypass
+
+- `http::async_write` over a `message` can become a dominant CPU cost in a high-throughput static-response server. The cost is often diffuse across Beast's lazy `buffers_cat_view`/`buffers_suffix` composition and the `basic_fields` writer, with no single hot symbol. Measure it with profiling and a control that writes pre-formatted bytes via plain `asio::async_write`; the delta is the serializer cost. Do not bypass Beast unless the profile shows serialization is a real bottleneck.
+- `basic_fields::clear()` **frees every header-field node** and each `set`/`insert` re-allocates, so reusing a `message` object across responses reclaims only the message's own allocation, not the per-header-field allocations. Header-field storage reuse needs a custom `Fields` allocator, which is rarely worth it.
+- A **serialization fast path** — hand-assembling the status line, headers, and body into a reused contiguous buffer and writing it with plain `asio::async_write` — can recover most of the serializer cost for the common case. It is only safe under the strict conditions below.
+- **The fast path MUST be byte-identical to Beast, or fall back.** Verify by diffing the hand-assembled bytes against a Beast `response_serializer` **oracle** over a response matrix; do not hand-write the expected bytes. Capture Beast's exact framing empirically for each eligible shape — on HTTP/1.1 Beast emits **no** `Connection` header for keep-alive, `Connection: close` (positioned after user headers, before a computed `Content-Length`) for close; a user-set `Content-Length` is emitted in its insertion-order position, not appended.
+- **The eligibility predicate is conservative: take the fast path only when ALL of these hold; otherwise fall back.** A weaker predicate that drops any condition can emit wrong framing.
+  - the response is HTTP/1.1 (not HTTP/1.0 — Beast frames 1.0 differently);
+  - the response has a **known `Content-Length`** that exactly matches the bytes to write (see the inverted-eligibility warning below);
+  - the body is fully in memory (not streamed/chunked);
+  - the method/status combination permits payload bytes: do not write payload bytes for `HEAD`, `1xx`, `204`, or `304` responses; if supporting `HEAD`, use a separate header-only fast path with oracle-verified representation headers;
+  - the reason phrase is the standard one for the status (no custom reason);
+  - headers come from a fixed or tightly allowlisted template with prevalidated values: no raw CR/LF, obs-fold, invalid field names, duplicate `Content-Length`, conflicting `Transfer-Encoding`, or unexpected connection-management fields;
+  - there are no response trailers.
+- **Inverted-eligibility warning (the easy bug):** An unknown-length HTTP/1.1 response may use **chunked** transfer encoding when `prepare_payload()` or explicit `chunked(true)` sets that framing. The fast path described here only reproduces fixed-length framing, so it is eligible **only when a matching `Content-Length` is present — NOT merely when it is absent.** Do not invert this: "no Content-Length" is a fall-back case unless a separate close-delimited or chunked fast path has its own oracle and predicate.
+- **The reused buffer MUST NOT be mutated while an outstanding `async_write` references it** — rely on the same single-write-in-flight serialization that protects a reused `message`.
+- Concrete framing example (HTTP/1.1, keep-alive, body `hello`, user set `Content-Length: 5`):
+
+  ```text
+  ELIGIBLE  -> HTTP/1.1 200 OK\r\nServer: X\r\nContent-Length: 5\r\n\r\nhello
+  INELIGIBLE (prepared chunked response; fixed-length fast path must fall back):
+               HTTP/1.1 200 OK\r\nServer: X\r\nTransfer-Encoding: chunked\r\n\r\n5\r\nhello\r\n0\r\n\r\n
+  ```
+
+- This is an optimization with a real correctness surface (hand-rolled HTTP/1.1 framing). Gate it behind the byte-identical oracle test and the conservative predicate; treat any unproven shape as fallback. Spec/design it rather than inlining it.
 
 ## WebSocket Guidelines
 
