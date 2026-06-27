@@ -108,7 +108,8 @@ Use these copy/paste resources when a task benefits from a stable starting point
 - Decide whether parser leniency is acceptable. If strict behavior is required, normalize or reject before public request construction.
 - Keep parser buffers alive until reads complete. Do not store string views into temporary Beast fields unless the backing message outlives the view.
 - Handle partial messages and EOF explicitly. EOF before a complete message is usually malformed input; EOF after a complete response may be normal depending on HTTP version and connection policy.
-- Trailers are version-sensitive: Boost 1.90+ `http::parser` rejects non-standard trailer fields by default and routes trailer fields to a separate `on_trailer_field_impl` callback. After validating the `Trailer` header, opt in on the parser instance via `parser.merge_all_trailers(true)` if non-standard trailers are required, and override `on_trailer_field_impl` in custom parsers. See [version notes](./references/version-notes.md) for the exact behavior change and the older-release difference.
+- Trailers are version-sensitive: Boost 1.90+ `http::parser` rejects non-standard trailer fields by default. After validating the `Trailer` header, opt in on the parser instance via `parser.merge_all_trailers(true)` if non-standard trailers are required.
+- For custom parsers derived from `http::basic_parser`, Boost 1.90+ routes trailer fields to a separate `on_trailer_field_impl` callback instead of `on_field_impl`; override that callback when custom trailer handling is required. See [version notes](./references/version-notes.md) for the exact behavior change and the older-release difference.
 
 ## HTTP Serializer Guidelines
 
