@@ -14,7 +14,7 @@ Use this reference when code must work across Boost.Beast or Boost.Asio versions
 
 - `body_limit` is the common first line of defense for Beast HTTP parsers.
 - Header limit APIs and exact names can vary by Boost release. If unavailable, enforce equivalent aggregate header caps around parser input and public adapter construction.
-- Boost.Beast 1.91 adds an 8 KiB sanity limit while parsing a chunked-transfer chunk header line (`chunk-size [chunk-ext] CRLF`). Untrusted-input servers on older releases should enforce an equivalent cap themselves rather than assume the parser bounds chunk-extension size.
+- Boost.Beast 1.91 adds an 8 KiB sanity limit while parsing the full chunked-transfer chunk header line (`chunk-size [chunk-ext] CRLF`), including any chunk extensions. Untrusted-input servers on older releases should enforce an equivalent cap themselves rather than assume the parser bounds overlong chunk header lines.
 
 ### Coroutine Support
 
@@ -45,7 +45,7 @@ Use this reference when code must work across Boost.Beast or Boost.Asio versions
 
 ### HTTP Trailers
 
-- As of Boost 1.90, `http::parser` **rejects non-standard trailer fields by default** and merges only well-known trailer fields unless configured otherwise. Code that relied on a non-standard trailer field must validate the `Trailer` header in the header section and then opt in via `http::parser::merge_all_trailers(true)` before the trailer section is parsed. On Boost < 1.90 this rejection does not happen — verify the target version before relying on either behavior.
+- As of Boost 1.90, `http::parser` **rejects non-standard trailer fields by default** and merges only well-known trailer fields unless configured otherwise. Code that relied on a non-standard trailer field must validate the `Trailer` header in the header section and then opt in on the parser instance via `parser.merge_all_trailers(true)` before the trailer section is parsed. On Boost < 1.90 this rejection does not happen — verify the target version before relying on either behavior.
 - Also as of Boost 1.90, custom parsers derived from `http::basic_parser` must override the new virtual `on_trailer_field_impl` (trailer fields no longer reach `on_field_impl`). A custom parser written against an older Beast will silently miss trailer fields on 1.90+.
 
 ### Field Lookup And Constants
