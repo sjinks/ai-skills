@@ -14,7 +14,7 @@ Use this reference when code must work across Boost.Beast or Boost.Asio versions
 
 - `body_limit` is the common first line of defense for Beast HTTP parsers.
 - Header limit APIs and exact names can vary by Boost release. If unavailable, enforce equivalent aggregate header caps around parser input and public adapter construction.
-- Boost.Beast 1.91 enforces an 8KB sanity limit on HTTP chunk headers. Untrusted-input servers on older releases should enforce an equivalent cap themselves rather than assume the parser bounds chunk-extension size.
+- Boost.Beast 1.91 adds an 8 KiB sanity limit while parsing a chunked-transfer chunk header line (`chunk-size [chunk-ext] CRLF`). Untrusted-input servers on older releases should enforce an equivalent cap themselves rather than assume the parser bounds chunk-extension size.
 
 ### Coroutine Support
 
