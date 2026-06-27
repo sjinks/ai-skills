@@ -108,7 +108,7 @@ Use these copy/paste resources when a task benefits from a stable starting point
 - Decide whether parser leniency is acceptable. If strict behavior is required, normalize or reject before public request construction.
 - Keep parser buffers alive until reads complete. Do not store string views into temporary Beast fields unless the backing message outlives the view.
 - Handle partial messages and EOF explicitly. EOF before a complete message is usually malformed input; EOF after a complete response may be normal depending on HTTP version and connection policy.
-- Trailers are version-sensitive: Boost 1.90+ `http::parser` rejects non-standard trailer fields by default. After validating the `Trailer` header, opt in on the parser instance via `parser.merge_all_trailers(true)` if non-standard trailers are required.
+- Trailers are version-sensitive: Boost 1.90+ `http::parser` rejects non-standard trailer fields by default. After validating the `Trailer` header, opt in on the parser instance via `parser.merge_all_trailers(true)` if non-standard trailers are required; enable it before the trailer section is parsed, since enabling it later has no effect.
 - For custom parsers derived from `http::basic_parser`, Boost 1.90+ routes trailer fields to a separate `on_trailer_field_impl` callback instead of `on_field_impl`; override that callback when custom trailer handling is required. See [version notes](./references/version-notes.md) for the exact behavior change and the older-release difference.
 
 ## HTTP Serializer Guidelines
@@ -135,12 +135,12 @@ Use these copy/paste resources when a task benefits from a stable starting point
   - there are no response trailers.
 - **Inverted-eligibility warning (the easy bug):** An unknown-length HTTP/1.1 response may use **chunked** transfer encoding when `prepare_payload()` or explicit `chunked(true)` sets that framing. The fast path described here only reproduces fixed-length framing, so it is eligible **only when a matching `Content-Length` is present — NOT merely when it is absent.** Do not invert this: "no Content-Length" is a fall-back case unless a separate close-delimited or chunked fast path has its own oracle and predicate.
 - **The reused buffer MUST NOT be mutated while an outstanding `net::async_write` references it** — rely on the same single-write-in-flight serialization that protects a reused `http::message`.
-- Concrete framing example (HTTP/1.1, keep-alive, body `hello`, user set `Content-Length: 5`):
+- Framing-invariant sketch (HTTP/1.1). Header names, values, and ordering are placeholders, not a contract — only the framing difference is the point, and the exact bytes must still come from the oracle:
 
   ```text
-  ELIGIBLE  -> HTTP/1.1 200 OK\r\nServer: X\r\nContent-Length: 5\r\n\r\nhello
+  ELIGIBLE   (known length): <status-line> CRLF <headers including Content-Length: N> CRLF CRLF <N body bytes>
   INELIGIBLE (prepared chunked response; fixed-length fast path must fall back):
-               HTTP/1.1 200 OK\r\nServer: X\r\nTransfer-Encoding: chunked\r\n\r\n5\r\nhello\r\n0\r\n\r\n
+               <status-line> CRLF <headers including Transfer-Encoding: chunked> CRLF CRLF <chunk framing>
   ```
 
 - This is an optimization with a real correctness surface (hand-rolled HTTP/1.1 framing). Gate it behind the byte-identical oracle test and the conservative predicate; treat any unproven shape as fallback. Spec/design it rather than inlining it.
