@@ -1,13 +1,13 @@
 ---
 name: cpp-concurrency-review
-description: "Use when: reviewing, designing, implementing, or debugging C++ multithreaded code using std::thread, std::jthread, std::mutex, std::atomic, condition variables, memory ordering, data races, deadlock, lock ordering, double-checked locking, thread_local, call_once, shared_ptr cross-thread aliasing, false sharing, or shutdown/join semantics."
+description: "Use when: reviewing, designing, implementing, or debugging C++ multithreaded code using std::thread, std::jthread, std::mutex, std::atomic, condition variables, memory ordering, data races, deadlock, lock ordering, double-checked locking, thread_local, call_once, shared_ptr cross-thread aliasing, false sharing, cross-thread signal/observer/callback dispatch, or shutdown/join semantics."
 argument-hint: "Describe the threaded code, shared state, synchronization primitives, suspected race or deadlock, and review target."
 user-invocable: true
 ---
 
 # C++ Concurrency Review
 
-Use this skill when C++ code shares mutable state across threads using standard primitives (`std::thread`, `std::jthread`, `std::mutex`, `std::atomic`, `std::condition_variable`, `std::once_flag`, `thread_local`) and the question is whether the synchronization is correct, deadlock-free, and shut down deterministically.
+Use this skill when C++ code shares mutable state across threads using standard primitives (`std::thread`, `std::jthread`, `std::mutex`, `std::atomic`, `std::condition_variable`, `std::once_flag`, `thread_local`) or dispatches observers/callbacks across threads, and the question is whether the synchronization is correct, deadlock-free, and shut down deterministically.
 
 The goal is to make every shared access provably ordered: each piece of shared mutable state has a named synchronization regime, and every access happens under it.
 
@@ -18,6 +18,7 @@ The goal is to make every shared access provably ordered: each piece of shared m
 - Use this skill for data races, lock granularity and ordering, deadlock and livelock analysis, condition-variable protocols, `std::atomic` memory-ordering correctness, double-checked initialization, `thread_local` lifecycle, `shared_ptr` control-block vs pointee thread safety, false sharing, and thread lifecycle (spawn, detach, join, shutdown). For livelock, check unbounded retry loops, contended `compare_exchange` loops without backoff, and mutual yield-and-retry protocols that can starve each other.
 - Apply it to raw standard-library threading code, hand-rolled thread pools, lock-free or lock-reduced structures, and producer-consumer queues built on mutexes/CVs/atomics.
 - Treat object-destruction races (object destroyed while another thread still uses it) as in scope where the fix is synchronization or lifecycle ordering.
+- Treat cross-thread observer/callback dispatch (e.g. Boost.Signals2 signals, hand-rolled callback registries) as in scope when slots/callbacks connect or disconnect on one thread while dispatch fires on another: the callback container, the connect/disconnect race, and slot-captured-object lifetime across the emission each need a regime.
 
 ## DO NOT USE FOR:
 
@@ -64,6 +65,7 @@ The Checklist below is the gating source of truth when these rules overlap; the 
 - When double-checked initialization appears, require `std::call_once`, a magic static (block-scope `static`), or an acquire/release-correct implementation; an unsynchronized fast-path read of a non-atomic pointer is a race.
 - When `shared_ptr` is shared across threads, the control block is thread-safe but neither the pointee nor a single `shared_ptr` instance is: concurrent reset/copy of the same instance, or unsynchronized pointee mutation, are findings.
 - When an object can be destroyed while another thread might still call into it, require join-before-destroy, `weak_ptr` promotion at the call site, or an unregister-and-drain step proven to complete before destruction.
+- When an observer/callback list is dispatched from a different thread than the one that connects or disconnects entries, require two guarantees. (1) The callback container is race-free during dispatch: an unsynchronized list iterated while connect/disconnect mutates it is a `CRITICAL` data race or iterator-invalidation use-after-free. Boost.Signals2 provides this under its default per-signal mutex (it snapshots the slot list under the lock, then unlocks before running slots), but verify the guarantee rather than assume it — a hand-rolled registry usually does not provide it, and a signal instantiated with a non-thread-safe mutex policy (`boost::signals2::dummy_mutex`) loses it. (2) Every object a slot captures by reference or raw pointer outlives the emission: the snapshot is taken before slots run and a plain disconnect does not drain in-flight slots, so a slot can execute during or after its own disconnect. Require an explicit lifetime guard — Boost.Signals2 slot tracking (`slot::track`/`track_foreign` with a `weak_ptr`, which keeps the target alive for the call and skips expired slots) or external join/drain ordering for untracked captures — and treat destruction of a captured object during a possible concurrent emission as `CRITICAL` use-after-destruction.
 - When `std::thread` may be destroyed joinable (exceptions between spawn and join), require `std::jthread`, a join-in-destructor wrapper, or scope-exit join; `detach` requires a written lifetime argument for everything the thread touches.
 - When hot atomics or mutexes are written by multiple threads, check placement: distinct frequently-written items sharing a cache line (false sharing) is a performance finding, not correctness; report it as `LOW`, or `MEDIUM` when measurements show material impact.
 
@@ -74,6 +76,7 @@ The Checklist below is the gating source of truth when these rules overlap; the 
 - Every shared mutable object has one named synchronization regime, and all accesses (including reads, including during shutdown) follow it.
 - No mixed atomic/non-atomic access to the same memory; no `volatile`-as-synchronization.
 - Objects published to other threads are fully constructed before publication, and publication uses a release/acquire edge or a mutex.
+- Cross-thread observer/callback dispatch is race-free on the callback container (verified, not assumed: Boost.Signals2's default mutex provides it; a `boost::signals2::dummy_mutex` policy or an unsynchronized hand-rolled list does not), and every slot-captured object outlives the emission via slot tracking or join/drain ordering (a slot can run during or after its own disconnect).
 
 ### Locks And Ordering
 
@@ -171,6 +174,7 @@ Findings:
 - Lost wakeup: producer sets `ready = true` without the mutex, then `notify_one()`; consumer checks `ready` under the mutex and waits. The write can land between check and wait — the consumer sleeps forever. Fix: mutate `ready` under the same mutex.
 - Lock-order deadlock: `transfer(a, b)` locks `a.mtx` then `b.mtx`; a concurrent `transfer(b, a)` locks in the opposite order. Fix: `std::scoped_lock lk(a.mtx, b.mtx);` or order by address/id.
 - Destruction race: a worker thread calls `owner->on_done()` while the owner's destructor runs on another thread. Fix: join the worker in the destructor before members are torn down, or hand the worker a `weak_ptr` it must lock.
+- Cross-thread slot lifetime: thread A emits a Boost.Signals2 signal whose slot captures `this` by raw pointer; thread B calls `connection::disconnect()` then destroys the captured object. The slot was already snapshotted, so it runs after disconnect on the now-dead object. Fix: connect with slot tracking (`sig.connect(decltype(sig)::slot_type(...).track_foreign(self_weak_ptr))`, where `slot_type` is the signal's own nested slot type) so emission keeps the target alive and skips it once expired, or order destruction to drain in-flight emissions.
 
 ## Definition Of Done
 

@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Cross-thread signal slot lifetime review
+description: |
+  Review must reason about cross-thread observer dispatch: the slot captures
+  the object by raw pointer, a plain disconnect does not drain in-flight
+  emission, so the slot can run on a destroyed object. The fix is slot
+  tracking or join/drain ordering, not "disconnect first".
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Is this safe? Thread A emits the signal; thread B owns the widget and on
+    teardown disconnects then destroys it. The slot captures `this` raw.
+
+    ```cpp
+    boost::signals2::signal<void()> on_tick;        // emitted from thread A
+
+    struct Widget {
+      boost::signals2::connection conn;
+      Widget() { conn = on_tick.connect([this]{ redraw(); }); }
+      ~Widget() { conn.disconnect(); }              // called on thread B
+      void redraw();
+    };
+    ```
+
+    Review the cross-thread connect/emit/disconnect concurrency and the slot's
+    captured lifetime.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-concurrency-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-concurrency-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(track|track_foreign|weak_ptr|join|drain)'
+        - '(?i)(disconnect).{0,200}(does not|doesn.t|not).{0,60}(drain|block|wait|in[\s-]*flight)|(slot).{0,120}(run|execute).{0,120}(after|during).{0,60}disconnect'
+        - '(?i)(use-after|destroy|destruct|dangling|lifetime)'
+        - '(?i)(Findings|Checklist status):'
