@@ -38,28 +38,7 @@ The governing rule: **measure, do not guess; isolate, do not assume; change one 
 
 ### 2. Count allocations directly when the change is about allocations
 
-- An `LD_PRELOAD` shim that overrides `malloc`/`calloc`/`realloc` and prints a total at exit gives an exact allocation count for a fixed workload (no profiler, no sampling error). Gotchas: handle `dlsym` calling `calloc` during bootstrap (serve early `calloc` from a small static arena), and make `free` skip bootstrap-arena pointers. Minimal skeleton (build with `gcc -O2 -shared -fPIC -o mallocount.so mallocount.c -ldl`, then `LD_PRELOAD=./mallocount.so <server>`):
-
-  ```c
-  #define _GNU_SOURCE
-  #include <dlfcn.h>
-  #include <stdatomic.h>
-  #include <stddef.h>
-  #include <stdio.h>
-  static atomic_ullong n;
-  static void *(*real_malloc)(size_t);
-  void *malloc(size_t s){
-    if(!real_malloc) real_malloc=(void *(*)(size_t))dlsym(RTLD_NEXT,"malloc");
-    atomic_fetch_add(&n,1); return real_malloc(s); }
-  __attribute__((destructor)) static void rep(void){
-    unsigned long long total = atomic_load(&n);
-    fprintf(stderr,"allocs=%llu\n",total); }
-  // Extend with calloc/realloc the same way. dlsym() can allocate via malloc
-  // too, so on the first malloc() entry real_malloc is still NULL when dlsym
-  // runs: gate re-entry with a thread-safe "resolving" flag (or serve from the
-  // same static arena) so the bootstrap allocation doesn't recurse, and apply
-  // the same arena guard to calloc; make free() ignore arena pointers.
-  ```
+- An `LD_PRELOAD` shim that overrides `malloc`/`calloc`/`realloc` and prints a total at exit gives an exact allocation count for a fixed workload (no profiler, no sampling error). Build a small `mallocount.so`, run the target under `LD_PRELOAD`, and read `allocs=` at exit. The full buildable skeleton, build invocation, and `dlsym` bootstrap gotchas (it can itself allocate before the real symbol resolves; cast the `dlsym` result; let `free` skip bootstrap-arena pointers) are in [references/mallocount-shim.md](references/mallocount-shim.md).
 - Isolate the **per-request** figure by differencing two fixed request counts over one keep-alive connection: `per_request = (allocs@N2 − allocs@N1) / (N2 − N1)`. The subtraction cancels process startup and first-request warm-up.
 - This metric is the right gate for iterating allocation reductions: each step's effect is exact and immune to throughput noise.
 

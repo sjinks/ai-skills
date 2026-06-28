@@ -28,5 +28,5 @@ graders:
       not_contains:
         - "Reproduce:"
         - "Root cause:"
-        - "flaky"
+        - "Verify:"
         - "until-fail"
