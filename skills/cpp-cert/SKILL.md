@@ -1,6 +1,6 @@
 ---
 name: cpp-cert
-description: "Use when: reviewing, designing, implementing, or debugging C/C++ for SEI CERT Coding Standard violations - modifying std namespaces, reserved identifiers, paired new/delete, unchecked standard-library return values, unchecked string-to-number conversions, setjmp/longjmp, exceptions thrown before main or from exception copy constructors, throw-by-value/catch-by-reference, float loop counters, signed-char-to-int conversions, padding/representation comparison, raw memory calls on non-trivial types, over-aligned operator new, self-assignment, pointer arithmetic on polymorphic objects, copying FILE/mutex objects, system()/popen(), deprecated unsafe C functions, std::rand and unseeded RNGs, signal-handler safety, and unsafe thread cancellation or termination."
+description: "Use when: reviewing, designing, implementing, or debugging C/C++ for SEI CERT secure-coding violations detected by clang-tidy cert-* checks: unchecked standard-library return values, command injection via system()/popen(), raw memory operations on non-trivial types, pointer arithmetic on polymorphic objects, exception throw/copy safety, signal-handler async-safety, predictable or unseeded RNGs, deprecated unsafe C functions, and other undefined-behavior or security-sensitive constructs."
 argument-hint: "Describe the code, API, bug, or review target where a CERT C/C++ secure-coding rule may be violated."
 user-invocable: true
 ---
