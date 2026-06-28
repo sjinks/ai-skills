@@ -12,14 +12,15 @@ inputs:
     Why, and what is the correct const fix?
 
     ```cpp
-    void sum(const std::vector<int>& xs) {
-      int total = 0, scratch = 0;
-      for (int x : xs) { scratch = x * 2; total = accumulate(total, scratch); }
-      report(total);
+    void report_sum(const std::vector<int>& xs) {
+      int total = baseline(), scratch = 0;
+      for (int x : xs) { scratch += x; }
+      emit(total, scratch);
     }
     ```
 
-    Give the verdict, the finding, and the checklist status.
+    `total` is initialized once and never reassigned; `scratch` accumulates in
+    the loop. Give the verdict, the finding, and the checklist status.
 expected:
   should_trigger: true
 graders:

@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Insufficient context to compute layout
+description: |
+  A padding question with no member list and no platform/type sizes must
+  produce the reduced BLOCK template without a computed Current/Proposed
+  layout or checklist status.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    One of our structs has more padding than I'd like and I want to reorder
+    its members to shrink it. I can't paste the definition or tell you the
+    target platform or the member types. What's the verdict and the reordered
+    layout?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-struct-layout/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-struct-layout
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Open question'
+        - '(?i)(member list|type sizes|platform|definition|cannot)'
+        - '(?i)(unknown|missing|unavailable|not\s+(shared|provided|supplied|shown|seen))'
+      not_contains:
+        - "Checklist status:"
+        - "Proposed: sizeof"
