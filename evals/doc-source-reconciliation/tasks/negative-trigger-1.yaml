@@ -22,3 +22,5 @@ graders:
         - "Reconciliation Report"
         - "Reconciled against"
         - "Volatile Literals"
+        - "## Corrections"
+        - "## Unverifiable"
