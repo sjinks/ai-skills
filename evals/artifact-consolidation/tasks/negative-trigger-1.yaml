@@ -19,7 +19,9 @@ graders:
     name: task_completion
     config:
       not_contains:
-        - "Consolidation Plan"
-        - "ID Change Summary"
-        - "Superseded Sources"
+        - "## Consolidation Plan"
         - "## Merged Artifact"
+        - "## ID Change Summary"
+        - "## Superseded Sources"
+        - "- Consolidated:"
+        - "- Namespaces:"

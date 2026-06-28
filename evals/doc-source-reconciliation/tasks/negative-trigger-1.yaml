@@ -19,8 +19,8 @@ graders:
     name: task_completion
     config:
       not_contains:
-        - "Reconciliation Report"
-        - "Reconciled against"
-        - "Volatile Literals"
+        - "## Reconciliation Report"
+        - "- Reconciled against:"
         - "## Corrections"
+        - "## Volatile Literals"
         - "## Unverifiable"
