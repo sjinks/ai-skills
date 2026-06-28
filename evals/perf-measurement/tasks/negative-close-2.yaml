@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Lifetime-safety review of an optimization
+description: |
+  Close-domain: judging whether an optimization is memory-safe (does a cached
+  string_view dangle?) is object-lifetime review, not performance measurement.
+  The skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    To speed up our C++ parser I changed it to cache a std::string_view pointing
+    into the input buffer instead of copying the token into a std::string. It is
+    faster, but I'm worried about correctness: the buffer is reused for the next
+    read. Can you check whether this caches a dangling view and walk me through
+    when the referenced bytes are still valid versus already overwritten?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/perf-measurement/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "LD_PRELOAD"
+        - "mallocount"
+        - "Metric:"
+        - "Method:"
+        - "Decision:"
+        - "Hypothesis:"
+        - "Validity:"
+        - "Redo:"

@@ -1,0 +1,69 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Sanitizer-only flake is a real code bug
+description: |
+  The test-bug-vs-code-bug call: a flake that only appears under TSan/ASan is the
+  test doing its job and must be escalated, not stabilized away.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    A C++ unit test for our connection manager passes thousands of times in our
+    normal build, but under the ThreadSanitizer build it fails most runs with a
+    data-race report between a background thread writing a status field and the
+    test thread reading it. A colleague wants to wrap the test body in a retry
+    loop so CI goes green. Is that the right move, and how should we approach
+    this?
+
+    Answer from this scenario only; do not inspect files. Keep the response
+    concise. Use these section labels exactly: Reproduce, Root cause, Fix,
+    Verify.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/flaky-test-diagnosis/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - flaky-test-diagnosis
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(real|genuine|actual).{0,20}(data race|code bug|race|defect)|code bug|not a test bug'
+        - '(?i)(do not|don.t|never|reject|wrong).{0,30}(retry|wrap|stabiliz|disable|silence)'
+        - '(?i)(escalate|fix the code|concurrency|object-?lifetime|synchroniz|atomic|mutex)'
+        - '(?i)(keep|retain).{0,20}(test|sanitizer)|test is doing its job'
+        - '(?i)(Reproduce|Root cause|Fix|Verify):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response makes the test-bug-vs-code-bug call correctly:
+        - It identifies the TSan data-race report as a REAL code bug (the test is
+          doing its job), not a test-stability problem.
+        - It rejects the retry-loop "fix" as masking a genuine race.
+        - The fix is to correct the code's synchronization (escalate to a
+          concurrency / object-lifetime review; add the proper
+          synchronization/atomic) and KEEP the test.
+        - It verifies by re-running under the same sanitizer build.
+        A correct response uses the requested section labels.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

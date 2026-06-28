@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Small alloc change needs a count, not throughput
+description: |
+  Canonical metric-choice: a change that removes one allocation per request is
+  below the throughput noise floor; measure it with a direct deterministic count.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    I have a C++ HTTP server and I believe a small refactor removes one heap
+    allocation per request on the hot path. I ran wrk before and after and got
+    182k req/s vs 184k req/s, so I'm calling it a ~1% win. Is that a sound way to
+    measure this change, and if not, how should I measure it?
+
+    Answer from this scenario only; do not inspect files. Keep the response
+    concise. Use these section labels exactly: Metric, Method, Decision.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/perf-measurement/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - perf-measurement
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(1%|~1%|single-?digit|small).{0,40}(below|under|within|noise)|noise floor'
+        - '(?i)(throughput|req/?s|wrk).{0,30}(noisy|noise|variance|~?10%|unreliable)'
+        - '(?i)(direct|deterministic|exact).{0,20}(count|allocation count)|count.{0,20}allocation|allocations? per request'
+        - '(?i)(LD_PRELOAD|malloc.{0,10}shim|mallocount|override malloc)|differenc'
+        - '(?i)(Metric|Method|Decision):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response picks the right measurement methodology:
+        - It explains that a ~1% throughput delta is BELOW the noise floor
+          (throughput has ~10% run-to-run variance), so the wrk before/after
+          number does not establish the change is real.
+        - It recommends a DIRECT, deterministic allocation count instead, because
+          the change (one alloc per request) is countable and load-independent.
+        - It describes counting allocations (e.g. an LD_PRELOAD malloc shim) and
+          isolating the per-request figure by differencing two fixed request
+          counts over a keep-alive connection.
+        - The decision is gated on that exact count, not the noisy throughput.
+        A correct response uses the requested section labels.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

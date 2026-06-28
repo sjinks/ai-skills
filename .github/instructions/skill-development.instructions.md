@@ -19,6 +19,8 @@ applyTo: skills/**, evals/**
 - Each `references/*.md` file starts with one sentence saying when to read it.
 - Review-style skills define: severity rubric, verdict mapping (`BLOCK`/`CONCERNS`/`CLEAN`), a no-findings path, and a deterministic insufficient-context (BLOCK) template.
 - Keep output-format enums exact and consistent everywhere they appear (templates, checklists, references). If a reference uses a richer vocabulary, state explicitly how it collapses to the report enum.
+- The `## Output` section must define distinctive, labeled output markers (e.g. `Verdict:` / `Findings:`, `Reproduce:` / `Root cause:` / `Fix:`), not just describe the content in prose. Give a default label set and instruct the assistant to follow caller-requested labels exactly otherwise. These markers are the contract the eval negative graders key on, so they must exist before the evals are written.
+- An embedded code example presented as runnable (a complete snippet plus its build/run command) must compile/run clean as written: for C/C++, build the exact snippet with `gcc/g++ -Wall -Wextra -Werror` (adding the headers it needs) before committing; a runnable example that warns is a defect. A deliberately partial or illustrative snippet is allowed, but it must be labeled as such and must not be paired with a copy/paste build/run command that implies it is safe to execute.
 - When decision rules and checklist items overlap, name the checklist as the gating source of truth.
 
 ## Eval Suite
@@ -26,6 +28,7 @@ applyTo: skills/**, evals/**
 - Every skill has `evals/<name>/eval.yaml` plus tasks following the sibling-suite metric/grader structure (`trigger_accuracy`, `skill_invocation`, `task_completion`, `efficiency`).
 - Task taxonomy: `positive-trigger-*.yaml` (clear activations), `positive-edge-*.yaml` (documented hard behaviors), `negative-trigger-*.yaml` (off-topic, unique per suite), and at least two `negative-close-*.yaml` (close-domain prompts that must not activate).
 - Negative tasks omit the `skill_invocation` grader (waza v0.33.0 has no forbidden mode).
+- A negative task's `not_contains` list forbids only the skill's distinctive output markers (the `## Output` labels like `Verdict:`/`Findings:`) and skill-specific proprietary names (e.g. `mallocount`, `LD_PRELOAD`). Never forbid common English or broad domain vocabulary (`flaky`, `throughput`, `weak`, `solid`, `sanitizer`) — a correct non-activated answer can use those in passing, which flakes the grader. After editing any `not_contains` list, confirm no forbidden token appears in that task's own prompt.
 - In task YAML, write regexes containing backslashes as single-quoted scalars; double-quoted scalars break on `\+`, `\s`, etc.
 - Register new suites in `evals/README.md`: add the calibrated trigger threshold (default 0.45 for `Use when:`-style descriptions) and the token-budget listing.
 
@@ -45,7 +48,9 @@ Run through this list before opening or updating a skill PR; each item is a recu
 - Code identifiers are fully qualified and code-formatted at every mention (`std::exception_ptr`, not bare `exception_ptr`), including checklists, examples, and references.
 - Items listed under a category heading actually belong to that category (e.g. export/visibility macros are boundary discipline, not a versioning mechanism).
 - Positive eval tasks assert the skill's structured output markers (e.g. `Verdict:`, `Classification:`) in `task_completion`, not only topic keywords.
-- Negative tasks' `not_contains` lists forbid markers from every output template the skill defines, including the reduced insufficient-context template (typically `Verdict:` and `Findings:`), so an over-activated reduced response still fails. When adding required markers to positive tasks, add the same markers to negative tasks' `not_contains` in the same change.
+- Negative tasks' `not_contains` lists forbid markers from every output template the skill defines, including the reduced insufficient-context template (typically `Verdict:` and `Findings:`), so an over-activated reduced response still fails. When adding required markers to positive tasks, add the same markers to negative tasks' `not_contains` in the same change. Forbid only distinctive markers and proprietary names, never common vocabulary; confirm no forbidden token occurs in the task's own prompt.
+- The `## Output` section defines distinctive labeled markers (not prose-only), and those exact labels are what the negative `not_contains` lists block. Apply this as one class across every suite in the change, not only the flagged one.
+- Embedded C/C++ examples were compiled with `-Wall -Wextra -Werror` and the headers they reference are included.
 - Every `###` heading in `README.md` has a blank line before it; verify in the diff, and run `git diff --check` for other whitespace errors.
 - Factual claims about language semantics, ABI behavior, tool defaults, or flags are verified against authoritative documentation (cppreference, ISO wording, vendor docs) before commit; strong claims ("always", "silent", "never breaks") carry their qualifying conditions inline.
 

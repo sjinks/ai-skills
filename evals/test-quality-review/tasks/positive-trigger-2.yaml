@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Over-mocking on call counts and a missing error path
+description: |
+  Behavioral-focus review: a test that asserts only on mock call counts (tests
+  the implementation's shape) and never exercises the failure path it claims.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this C++ test for quality. The function under test, `sync_user()`,
+    fetches a user from a repository and is supposed to return Ok with the user
+    on success and an Err with a NotFound classification when the repository has
+    no such user.
+
+    ```cpp
+    TEST(SyncTest, SyncsUser) {
+      MockRepo repo;
+      EXPECT_CALL(repo, fetch(_)).Times(1);
+      Syncer s{repo};
+      s.sync_user(42);
+      // asserts only that fetch was called once
+    }
+    ```
+
+    Answer from this scenario only; do not inspect files. Keep the response
+    concise. Give a per-test verdict and findings keyed to the quality checklist
+    with the concrete fix.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-quality-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - test-quality-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(over-?mock|mock call count|call count|times\(1\)|asserts.{0,20}(was )?called|implementation.{0,10}shape)'
+        - '(?i)(effect|observable|return value|result|Ok|the user).{0,40}(assert|instead|rather)|assert.{0,20}(the )?(effect|result|return)'
+        - '(?i)(negative|error|failure|NotFound|Err).{0,30}(path|case|not.{0,10}(tested|covered|exercised)|missing)'
+        - '(?i)(refactor|harmless change).{0,30}break|break.{0,30}refactor'
+        - '(?i)verdict|solid|weak|cannot-?fail'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response performs the behavioral-focus review:
+        - It flags the over-mocking smell: asserting only that fetch() was called
+          once tests the implementation's shape, not the behavior, and would
+          break on a harmless refactor while not verifying the actual result.
+        - It recommends asserting the observable EFFECT instead (the returned
+          Ok-with-user on success).
+        - It flags the missing negative/error path: the NotFound/Err case the
+          function claims to handle is never exercised, and a test for it should
+          assert the SPECIFIC classification, not just "didn't crash".
+        - It returns a per-test verdict (weak).
+        A correct response is keyed to the quality checklist.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

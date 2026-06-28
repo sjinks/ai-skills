@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Contaminated benchmark detected by a low baseline
+description: |
+  The contamination tell: the known-baseline reference server comes in well below
+  its established number, so every number from that run is suspect and must be
+  discarded, not interpreted.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    I'm benchmarking a C++ proxy change. My known-good baseline server normally
+    does ~200k req/s on this box, but in today's run it only managed 120k req/s,
+    and my changed build did 130k req/s — so my change looks 8% faster than the
+    baseline. I also noticed a video export was transcoding on the same machine
+    during the run. Can I report the 8% improvement?
+
+    Answer from this scenario only; do not inspect files. Keep the response
+    concise. Use these section labels exactly: Validity, Why, Redo.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/perf-measurement/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - perf-measurement
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(contaminat|invalid|discard|throw out|not trust|cannot report).{0,30}(run|benchmark|number)|do not report'
+        - '(?i)(baseline|known-?good|reference).{0,30}(below|under|low|200k|120k).{0,20}(established|normal|expected)|baseline.{0,15}too low'
+        - '(?i)(transcod|video|CPU|competing|other).{0,20}(load|job|process).{0,30}(depress|distort|contaminat|skew)|idle (host|machine|box)'
+        - '(?i)(re-?run|redo|repeat).{0,30}(idle|clean|quiet).{0,20}(host|machine|box)|on an idle'
+        - '(?i)(Validity|Why|Redo):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response catches the contaminated benchmark:
+        - It refuses to report the 8% "improvement": the run is contaminated and
+          its numbers (and even the relative ranking) cannot be trusted.
+        - It uses the right tell: the known-good baseline came in far below its
+          established ~200k (120k), which is the signature of a contaminated run.
+        - It attributes the contamination to the competing transcode job loading
+          the CPU, and requires benchmarking on an otherwise-idle host.
+        - The decision is to discard and re-run clean, not to interpret the
+          numbers.
+        A correct response uses the requested section labels.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

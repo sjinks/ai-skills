@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Authoring a brand-new test from scratch
+description: |
+  Close-domain: writing a new test for a not-yet-tested function is test
+  authoring, not diagnosing an existing non-deterministic failure. The skill
+  must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    I just wrote a new C++ function `parse_duration(std::string_view)` that turns
+    "1h30m" into seconds. There are no tests for it yet. Please write a fresh set
+    of GoogleTest cases covering the normal formats, a few malformed inputs, and
+    the empty string, so we have coverage for this new function.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/flaky-test-diagnosis/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Reproduce:"
+        - "Root cause:"
+        - "Fix:"
+        - "Verify:"

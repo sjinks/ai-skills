@@ -92,6 +92,9 @@ grader weighting takes effect.
   - `vip-dev-env`: 0.45
   - `gh-cli`: 0.45
   - `shell-portability`: 0.45
+  - `flaky-test-diagnosis`: 0.45
+  - `test-quality-review`: 0.45
+  - `perf-measurement`: 0.45
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks
   only) — requires the named skill via `required_skills` with
   `mode: any_order`. The currently released waza CLI (`v0.33.0`) defines

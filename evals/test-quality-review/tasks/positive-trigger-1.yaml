@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Test that cannot fail
+description: |
+  Canonical quality review: a test that constructs an object and asserts a
+  tautology, so it would still pass if the behavior were deleted.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this C++ test for quality.
+
+    ```cpp
+    TEST(PriceTest, AppliesDiscount) {
+      Cart cart;
+      cart.add(Item{"book", 1000});
+      cart.apply_discount(10);  // 10%
+      auto total = cart.total();
+      EXPECT_EQ(total, total);
+      EXPECT_TRUE(true);
+    }
+    ```
+
+    Answer from this scenario only; do not inspect files. Keep the response
+    concise. Give a per-test verdict and findings keyed to the quality checklist
+    with the concrete fix.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-quality-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - test-quality-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(cannot-?fail|can.?t fail|never fails?|tautolog|no-?op|would (still )?pass)'
+        - '(?i)EXPECT_EQ\(total, total\)|EXPECT_TRUE\(true\)|asserts? (a )?(tautolog|constant|itself)'
+        - '(?i)(would|does not).{0,30}fail.{0,20}(if|when).{0,30}(deleted|inverted|regress|broken|removed)'
+        - '(?i)(assert|expect|check).{0,30}(total.{0,10}(==|equals).{0,10}900|expected (discounted )?(value|price|total)|900)'
+        - '(?i)verdict|solid|weak|cannot-?fail'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response performs the quality review correctly:
+        - It identifies that the test CANNOT FAIL: EXPECT_EQ(total, total) and
+          EXPECT_TRUE(true) are tautologies that do not depend on the discount
+          behavior, so the test would still pass if apply_discount were deleted
+          or wrong.
+        - It applies the killer question (would it fail if the behavior
+          regressed?) and answers no, marking that the top/blocking finding.
+        - The concrete fix is a real assertion on the expected discounted total
+          (1000 - 10% = 900), i.e. EXPECT_EQ(total, 900).
+        - It returns a per-test verdict (cannot-fail / weak).
+        A correct response is keyed to the quality checklist.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent
