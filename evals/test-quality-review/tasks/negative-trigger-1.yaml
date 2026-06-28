@@ -5,7 +5,7 @@ description: Unrelated everyday question must not activate the test-quality-revi
 tags:
   - negative-trigger
 inputs:
-  prompt: "What grind size should I use for a pour-over with a paper filter?"
+  prompt: "How should I arrange a small spice rack so I can find jars quickly?"
 expected:
   should_trigger: false
 graders:
@@ -20,6 +20,8 @@ graders:
     config:
       not_contains:
         - "cannot-fail"
+        - "solid"
+        - "weak"
         - "quality checklist"
         - "per-test verdict"
         - "tautology"
