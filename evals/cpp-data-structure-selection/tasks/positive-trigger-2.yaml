@@ -39,10 +39,10 @@ graders:
     config:
       regex_match:
         - '(?i)Verdict:\s*(CLEAN|CONCERNS|BLOCK)'
-        - '(?i)(sorted (std::)?vector|flat_map).{0,120}(binary_search|lower_bound)|(binary_search|lower_bound)'
+        - '(?i)(sorted (std::)?vector|flat_map).{0,120}(binary_search|lower_bound)|(binary_search|lower_bound).{0,120}(sorted (std::)?vector|flat_map)'
         - '(?i)(build.?once|built once|startup|no inserts|query.?many)'
         - '(?i)(range|sorted order|ordered iteration|prefix).{0,160}(hash|unordered)|(hash|unordered).{0,160}(range|sorted|ordered)'
-        - '(?i)(Access pattern|Recommended structure|Crossover|Checklist status):'
+        - '(?i)(Access pattern|Recommended structure|Crossover note|Checklist status):'
   - type: prompt
     name: task_completion_substance
     config:

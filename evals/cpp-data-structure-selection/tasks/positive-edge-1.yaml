@@ -48,7 +48,7 @@ graders:
         - '(?i)(keep|leave|retain).{0,40}(scan|linear|array|any_of)|do not (replace|upgrade)'
         - '(?i)(crossover|below.{0,20}crossover|small|bounded|8 element|cache)'
         - '(?i)(measurement gap|no asymptotic gain|no.{0,20}benefit|benchmark)'
-        - '(?i)(Access pattern|Recommended structure|Crossover|Checklist status):'
+        - '(?i)(Access pattern|Recommended structure|Crossover note|Checklist status):'
   - type: prompt
     name: task_completion_substance
     config:

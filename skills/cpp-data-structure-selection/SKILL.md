@@ -136,7 +136,7 @@ Findings:
   Classification: Confirmed hot-path | Likely hot-path (structural) | Crossover-dependent | Open question | Accepted tradeoff | Measurement gap
   Evidence: <file:line, loop nesting, or design sentence>
   Shape: <current asymptotic cost, e.g. O(n^2) nested iequals scan>
-  Rule: <asymptotic-shape | structure-choice | crossover | behavior-preservation | measurement>
+  Rule: <asymptotic-shape | structure-choice | crossover | behavior-preservation | measurement | required-context>
   Recommended structure: <hash set/map | sorted vector + binary search | tree | flat vector | heap | side index>, and why it fits the dominant operation
   Crossover note: <N above which the change wins; or "always" / "N too small — keep flat scan">
   Behavior risk: <ordering/stability/duplicate/invalidation impact, or None — route lifetime questions to object-lifetime review>

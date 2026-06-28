@@ -49,9 +49,9 @@ graders:
         - '(?i)Verdict:\s*BLOCK'
         - '(?i)(CRITICAL|HIGH)'
         - '(?i)O\(n\^?2\)|O\(n²\)|quadratic|n\*n'
-        - '(?i)(unordered_set|unordered_map|hash (set|map)).{0,160}(name|key|membership)|(side|auxiliary).{0,40}set'
+        - '(?i)(unordered_set|unordered_map|hash (set|map)).{0,160}(name|key|membership)|(side|auxiliary).{0,40}(hash (set|map)|unordered_(set|map))'
         - '(?i)(insertion order|preserve.{0,30}order|keep.{0,30}vector)'
-        - '(?i)(Access pattern|Recommended structure|Crossover|Checklist status):'
+        - '(?i)(Access pattern|Recommended structure|Crossover note|Checklist status):'
   - type: prompt
     name: task_completion_substance
     config:
