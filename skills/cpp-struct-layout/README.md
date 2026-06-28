@@ -9,7 +9,7 @@ It helps an assistant:
 - compute the current layout (per-member offsets, internal and tail padding, `sizeof`/`alignof`) under stated platform/type-size assumptions, and the proposed reordered layout, so a reorder is only suggested when it strictly shrinks the type
 - order members by descending alignment and cluster same-alignment members, accounting for the vptr, bitfields, `alignas`, `#pragma pack`, and `[[no_unique_address]]`
 - withhold the reorder for frozen layouts: ABI-exported types, raw-byte serialization, C interop, and external wire/file/hardware formats
-- catch the unsafe-reorder traps: changed member-init order (`-Wreorder`), positional aggregate/designated-init mismatches, and loss of standard-layout / `offsetof` / `memcpy`-ability
+- catch the unsafe-reorder traps: changed member-init order (`-Wreorder`), positional aggregate/designated-init mismatches, and loss of standard-layout (`offsetof` validity, C-interop)
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with before/after sizes, safety classification, the reordered declarations, a `static_assert` to lock the gain, and a deterministic insufficient-context template
 
 ## Files
