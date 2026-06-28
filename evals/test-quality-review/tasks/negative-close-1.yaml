@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Choosing what to test / coverage strategy
+description: |
+  Close-domain: deciding which behaviors and cases a not-yet-tested module
+  should have tests for is test planning / coverage strategy, not auditing an
+  existing test's quality. The skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    We're about to add tests for a new C++ rate-limiter module that has no tests
+    yet. Help me decide what to cover and at which layer: which behaviors deserve
+    unit tests, which need an integration test, what edge cases and failure modes
+    matter most, and how to prioritize the list given limited time. I want a
+    prioritized test plan for the module, not a review of any specific test.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-quality-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "cannot-fail"
+        - "quality checklist"
+        - "per-test verdict"
+        - "tautology"

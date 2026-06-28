@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Off-topic houseplant question
+description: Unrelated everyday question must not activate the flaky-test-diagnosis skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "How often should I water a snake plant kept in low indoor light?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/flaky-test-diagnosis/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Reproduce:"
+        - "Root cause:"
+        - "flaky"
+        - "sanitizer"

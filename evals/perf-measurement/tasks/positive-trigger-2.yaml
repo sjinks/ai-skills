@@ -1,0 +1,72 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Custom allocator no-op trap
+description: |
+  Known-trap recognition: dropping in jemalloc/tcmalloc on a one-thread-per-
+  io_context server has no cross-thread contention to win, so it measures
+  neutral; the lever is fewer allocations, not a faster malloc.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Our C++ network server uses a SO_REUSEPORT fleet — one thread per io_context,
+    each pinned to a core, no shared allocation across threads. A teammate wants
+    to link jemalloc to "make allocation faster" and expects a big throughput
+    win. Before we commit to that dependency, is this likely to help, and how
+    would we know?
+
+    Answer from this scenario only; do not inspect files. Keep the response
+    concise. Use these section labels exactly: Hypothesis, Test, Decision.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/perf-measurement/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - perf-measurement
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(jemalloc|tcmalloc|custom allocator).{0,60}(no|not|unlikely|neutral|won.t|small|modest|measure).{0,20}(help|win|faster|first|big)|no.{0,15}contention|big win.{0,20}(isn.t|not) there'
+        - '(?i)(cross-?thread|arena|multi-?thread).{0,20}contention'
+        - '(?i)(one|1) thread per io_context|SO_REUSEPORT|no shared alloc|single-?thread'
+        - '(?i)(fewer|reduce|reducing).{0,20}allocations?|the win is fewer'
+        - '(?i)(LD_PRELOAD|measure|2 minutes|test it).{0,40}(jemalloc|before commit|first)|measure before'
+        - '(?i)(Hypothesis|Test|Decision):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response recognizes the custom-allocator no-op trap:
+        - It explains that jemalloc/tcmalloc win primarily on CROSS-THREAD arena
+          contention, and a one-thread-per-io_context / SO_REUSEPORT model has
+          none, so the BIG expected win is not there (any remaining fast-path /
+          fragmentation difference is small and may be neutral-to-slightly-
+          slower). An answer that allows a small single-thread win but insists on
+          measuring is correct and must NOT be penalized.
+        - It states the large lever is FEWER allocations, not swapping malloc.
+        - It recommends cheaply MEASURING first (e.g. LD_PRELOAD the jemalloc .so
+          for a 2-minute test) before taking on the dependency.
+        - The decision is gated on that measurement, not on the assumption.
+        A correct response uses the requested section labels.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

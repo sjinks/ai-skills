@@ -1,0 +1,72 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Bounded yield-poll loop is itself a flake source
+description: |
+  Hard case: the test already uses a bounded for(i<N) yield() poll instead of a
+  sleep, and it still flakes under load - the poll budget is exhausted before the
+  event fires; the fix is a real latch, not a bigger budget.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Our async C++ test does not use sleep — it waits for the callback by polling:
+    `for (int i = 0; i < 1000 && !done; ++i) std::this_thread::yield();` then
+    asserts `done`. It is reliable locally but flakes under `ctest -j` and under
+    the ASan build, where `done` is sometimes still false when the loop exits. A
+    teammate suggests bumping the bound from 1000 to 100000. Is that the fix?
+
+    Answer from this scenario only; do not inspect files. Keep the response
+    concise. Use these section labels exactly: Reproduce, Root cause, Fix,
+    Verify.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/flaky-test-diagnosis/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - flaky-test-diagnosis
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(bounded|fixed|budget|iteration).{0,60}(poll|yield|loop|spin).{0,80}(flake|race|exhaust|starv|not.{0,10}determin)|poll.{0,30}budget'
+        - '(?i)(no|not|never|do not|isn.t).{0,40}(bump|raise|bigger|larger|increase).{0,30}(bound|budget|count|limit)|bigger budget.{0,30}(not|isn.t)'
+        - '(?i)(latch|promise|future|condition variable|signal).{0,40}(callback|event|completion)|wait on the event'
+        - '(?i)(starv|exhaust).{0,80}(load|parallel|sanitizer|-j)|(load|parallel|sanitizer).{0,80}(starv|exhaust)'
+        - '(?i)(Reproduce|Root cause|Fix|Verify):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response catches the bounded-poll trap:
+        - It explains that the bounded for(i<N) yield() poll is itself a flake
+          source: under parallel/sanitizer load the loop's iteration budget is
+          exhausted (the event loop is starved) before the awaited event fires.
+        - It rejects bumping the bound from 1000 to 100000 as not a fix (it just
+          changes the odds, not the race).
+        - The real fix is to wait on the event itself — a latch / promise /
+          future / condition variable signalled by the callback, with a generous
+          timeout — not a larger spin budget.
+        - It verifies under the same load/sanitizer reproduction.
+        A correct response uses the requested section labels.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

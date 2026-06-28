@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Quality review of a stable test
+description: |
+  Close-domain: judging whether a consistently-passing test is a good test
+  (assertion quality, behavioral focus) is test-quality review, not flake
+  diagnosis. The test never fails, so there is no non-determinism to root-cause.
+  The skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    I'm not sure this C++ test is a good test: it constructs a `Widget`, calls
+    `render()`, and only asserts that `mock_logger.call_count() == 1`. Is this a
+    strong test of the rendering behavior, or is it asserting the wrong thing?
+    Tell me whether it actually verifies the rendering contract and what it
+    should assert instead.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/flaky-test-diagnosis/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Reproduce:"
+        - "Root cause:"
+        - "flaky"
+        - "until-fail"
+        - "sanitizer"

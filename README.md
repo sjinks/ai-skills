@@ -51,11 +51,14 @@ The repository currently contains the following skills, grouped by area. Each li
 - [`fix-blast-radius`](skills/fix-blast-radius/README.md) — Assessing what a drafted fix could newly break before it is pushed, tracing impact across callers, shared state, contracts, behavioral siblings, and previously resolved findings, with one verification step per risk.
 - [`equivalence-class-audit`](skills/equivalence-class-audit/README.md) — Turning one concrete defect, incident, review finding, test failure, or bug report into a locked-scope audit of equivalent defects across sibling fields, mirror use sites, bounds, contracts, paths, modes, tests, docs, and projections.
 - [`test-gap-to-test-plan`](skills/test-gap-to-test-plan/README.md) — Converting review findings and unverified behaviors into a prioritized, owned, layer-typed test plan that tracks the test evidence a downstream merge gate will require.
+- [`test-quality-review`](skills/test-quality-review/README.md) — Auditing an individual test (not a test plan) for quality: whether it can fail for one behavioral reason, targets observable behavior over incidental detail, is deterministic and isolated, and covers the negative/boundary paths it claims, returning a per-test `solid`/`weak`/`cannot-fail` verdict.
 
 ### Debugging & Refactoring
 
 - [`hypothesis-driven-debugging`](skills/hypothesis-driven-debugging/README.md) — Disciplined failure investigation: reproduce first, falsifiable mechanism hypotheses, one-variable discriminating experiments with recorded verdicts, a root-cause-versus-symptom call, and a regression check before any fix counts as done.
 - [`refactoring-safety`](skills/refactoring-safety/README.md) — Behavior-preserving refactors: characterization coverage before touching code, one named transformation per step with a green check after each, separated mechanical and hand edits, and a stop-and-reclassify tripwire when behavior shifts.
+- [`flaky-test-diagnosis`](skills/flaky-test-diagnosis/README.md) — Turning a non-deterministic test deterministic by root-causing why it fails: reproduce with repeat/shuffle/parallel/sanitizer runs, classify against a symptom→cause→fix table, separate a test bug from a real code race/leak, and fix at the source rather than by sleep/retry/disable.
+- [`perf-measurement`](skills/perf-measurement/README.md) — Making C++ server/hot-path performance work empirical: choosing a noise-resistant metric for the change size, counting allocations directly, isolating layer cost with control servers, profiling and bucketing under load, and changing one thing then re-measuring — recording negative results and avoiding known no-op "fixes".
 
 ### Security Review
 

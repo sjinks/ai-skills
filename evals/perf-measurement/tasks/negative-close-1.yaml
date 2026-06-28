@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Source-level copy/allocation transformation
+description: |
+  Close-domain: applying the actual source-level fix (remove a copy, add reserve,
+  pass by reference) is C++ performance code review, not measurement methodology.
+  The skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Here is a hot C++ function. Rewrite it to avoid the unnecessary copies and
+    reallocations — pass the argument by const reference, reserve the vector to
+    its final size before the loop, and use emplace_back. I just want the
+    improved code.
+
+    ```cpp
+    std::vector<std::string> expand(std::vector<std::string> names) {
+      std::vector<std::string> out;
+      for (auto n : names) out.push_back(decorate(n));
+      return out;
+    }
+    ```
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/perf-measurement/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "throughput"
+        - "allocation count"
+        - "LD_PRELOAD"
+        - "noise floor"
+        - "reference server"
