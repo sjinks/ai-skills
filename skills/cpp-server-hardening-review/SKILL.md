@@ -63,7 +63,7 @@ The governing rule: **a default-configured server must survive a hostile client 
 ## Review Procedure
 
 1. Locate the accept loop, the session constructor/teardown, the options struct with its defaults, and the TLS context setup.
-2. Walk each checklist section against the code; for each item, cite the exact symbol/default and mark one of `safe` / `at-risk` / `missing` / `missing-evidence`. Use `missing-evidence` (never `safe`) when a section's code was not supplied, and state what to inspect — do not infer a passing status from absence.
+2. Walk each checklist section against the code; for each item, cite the exact symbol/default and mark one of `safe` / `at-risk` / `missing` / `missing-evidence` / `n/a`. Use `missing-evidence` (never `safe`) when a section's code was not supplied, and state what to inspect — do not infer a passing status from absence. Use `n/a` only when the section genuinely does not apply to this component (e.g. a plain-TCP server with no TLS marks the crypto-defaults section `n/a`); do not use `missing`/`missing-evidence` for a truly out-of-scope section.
 3. For every `at-risk` or `missing` item, state the concrete failure a hostile client triggers (e.g. "1 fd + buffer + SSL state pinned forever per stalled connection") and the minimal fix. For a `missing-evidence` item, state what code to inspect to resolve it.
 4. For each proposed fix, name the verification: a focused test (stalled-first-request closes within the bound; over-cap connection is shed; `disconnect` fires once including on handshake failure and on no-request; bounded cache evicts) plus the lifetime/concurrency check to confirm the fix is itself safe.
 
@@ -76,7 +76,7 @@ Severity reflects what a hostile client can do at the default configuration.
 - `MEDIUM`: a bounded-but-weak default, a cap/timeout shipped only as documentation, or a hardening gap that scale will amplify.
 - `LOW`: a clarity, naming, or defense-in-depth item with no current hostile-client failure.
 
-Map each checklist item's per-item status to severity: `missing` (a required safe default absent) or `at-risk` (present but fails open / escapable) carries the severity above; `safe` is not a finding; `missing-evidence` is reported as an `Open question` finding rather than `safe`.
+Map each checklist item's per-item status to severity: `missing` (a required safe default absent) or `at-risk` (present but fails open / escapable) carries the severity above; `safe` and `n/a` are not findings; `missing-evidence` is reported as an `Open question` finding rather than `safe`.
 
 Verdicts:
 

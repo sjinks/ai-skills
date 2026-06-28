@@ -31,9 +31,13 @@ metrics:
     threshold: 0.9
     description: Skill is invoked on positive tasks that should activate it.
   - name: task_completion
-    weight: 0.40
+    weight: 0.25
     threshold: 0.8
-    description: Output applies the hardening checklist, names the hostile-client failure, the minimal fix, and the verification.
+    description: Output applies the hardening checklist with the verdict report, names the hostile-client failure, the minimal fix, and the verification.
+  - name: task_completion_substance
+    weight: 0.15
+    threshold: 0.7
+    description: LLM judge verifies representative positive tasks make the required safe-by-default hardening judgement.
   - name: efficiency
     weight: 0.15
     threshold: 0.7

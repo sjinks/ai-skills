@@ -42,7 +42,7 @@ graders:
     config:
       regex_match:
         - '(?i)Verdict:\s*(BLOCK|CONCERNS|CLEAN)'
-        - '(?i)(minimum|min).{0,20}(TLS|version|proto).{0,20}1\.2|TLS.{0,5}1\.2|pin.{0,20}(version|TLS)'
+        - '(?i)(minimum|min|pin).{0,30}1\.2|TLS.{0,5}1\.2|1\.2.{0,20}(minimum|floor|min)'
         - '(?i)(re-?apply|re-?set|restore).{0,30}verify|verify.{0,30}(after|re-?appl).{0,20}(SNI|context|switch)'
         - '(?i)(during|while).{0,15}(the )?read|wired.{0,15}(to.{0,10})?parser|before.{0,20}buffer|not.{0,15}after.{0,15}buffer'
         - '(?i)(memory|RAM|heap|buffer).{0,40}(exhaust|blow|unbounded|large)|large body'
