@@ -1,0 +1,73 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: EVP AES-GCM nonce reuse and tag check
+description: |
+  EVP AEAD review: catch a fixed/reused GCM nonce and a missing
+  authentication-tag check at decrypt, plus randomness and secret-handling.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this OpenSSL EVP encryption helper (C, OpenSSL 3.x). It encrypts
+    records with AES-256-GCM using EVP_EncryptInit_ex, and it uses a FIXED
+    12-byte IV that is the same for every message under the same key. At decrypt
+    time it calls EVP_DecryptUpdate and returns the plaintext to the caller
+    without ever calling EVP_DecryptFinal_ex or setting the expected GCM tag. It
+    also compares the received MAC against the computed one with memcmp, and it
+    derives the key by SHA-256 of a password.
+
+    Answer from this scenario only; do not inspect files. Keep the response
+    concise. Use these section labels exactly: Nonce, Authentication, Comparison,
+    Key derivation. Include concrete fixes under each.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-openssl/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-openssl
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(nonce|IV).{0,60}(reuse|unique|never|catastrophic|forgery)'
+        - '(?i)(EVP_DecryptFinal_ex|GCM_SET_TAG)'
+        - '(?i)(CRYPTO_memcmp|constant.?time|timing)'
+        - '(?i)(PBKDF2|scrypt|Argon2)'
+        - '(?i)(Nonce|Authentication|Comparison|Key derivation):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response catches the AEAD crypto bugs:
+        - Fixed/reused (key, nonce) pair with GCM is catastrophic (forgery /
+          keystream reuse); it must require a unique nonce per message.
+        - Returning plaintext without checking the GCM tag (set expected tag +
+          treat non-positive EVP_DecryptFinal_ex as auth failure, discard
+          plaintext) accepts forged ciphertext.
+        - memcmp on a MAC is a timing side channel; use CRYPTO_memcmp.
+        - SHA-256 of a password is not a password KDF; it must recommend a slow,
+          salted password KDF (PBKDF2/scrypt/Argon2). Recommending HKDF here is
+          WRONG (HKDF assumes high-entropy input and has no work factor/salt) —
+          penalize an HKDF-for-password answer.
+        A correct response uses the requested section labels.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

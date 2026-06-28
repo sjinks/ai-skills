@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Review TLS client verification setup
+description: |
+  Canonical OpenSSL client-verification review: trust store, SSL_VERIFY_PEER,
+  and the separate hostname check, plus error-queue and lifetime hygiene.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this OpenSSL TLS client setup (C++, OpenSSL 3.x) for security and
+    correctness. It creates an SSL_CTX with TLS_client_method(), calls
+    SSL_new/SSL_connect, reads with SSL_read, and frees the SSL at the end. It
+    does NOT call SSL_CTX_set_verify, does NOT load any trust anchors, and does
+    NOT set a hostname on the handshake. On SSL_connect failure it logs the
+    string "tls connect failed" with no further detail. The peer X509* obtained
+    from SSL_get0_peer_certificate is stored in a long-lived struct.
+
+    Answer from this scenario only; do not inspect files. Keep the response
+    concise. Use these section labels exactly: Verification, Object ownership,
+    Diagnostics, Tests. Include concrete fixes under each.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-openssl/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-openssl
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(SSL_CTX_set_verify|SSL_VERIFY_PEER)'
+        - '(?i)(trust anchor|trust store|load_verify_locations|set_default_verify_paths|\bCA\b)'
+        - '(?i)(SSL_set1_host|X509_VERIFY_PARAM_set1_host)'
+        - '(?i)(get0|up_?ref|do not free|dangl)'
+        - '(?i)(ERR_get_error|ERR_print_errors|drain.{0,30}queue)'
+        - '(?i)(Verification|Object ownership|Diagnostics|Tests):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response catches the security-critical OpenSSL bugs:
+        - Verification is disabled: it must require SSL_CTX_set_verify with
+          SSL_VERIFY_PEER AND loading trust anchors (load_verify_locations /
+          set_default_verify_paths); a working handshake without these accepts
+          any certificate (MITM).
+        - Hostname is not checked: it must require SSL_set1_host /
+          X509_VERIFY_PARAM_set1_host as a SEPARATE step from chain validation.
+        - The SSL_get0_peer_certificate result is a borrowed (get0) pointer that
+          must not be stored long-lived without up-ref'ing; storing it dangles.
+        - The error path should drain the error queue (ERR_get_error loop) for a
+          real diagnosis instead of a bare string.
+        A correct response uses the requested section labels.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent
