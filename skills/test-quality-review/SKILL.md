@@ -60,7 +60,7 @@ Audit each test against these. Any failure is a finding.
 
 If the caller requests specific section labels, follow them exactly. Otherwise use this default labeled format:
 
-- `Verdict:` one of `solid` / `weak` / `cannot-fail` (always hyphenated, including in prose).
+- `Verdict:` one of `solid` / `weak` / `cannot-fail`. Write the third token as `cannot-fail` (hyphenated) everywhere, including in prose.
 - `Findings:` a list keyed to the checklist number, each with file/line and the concrete fix. Lead with any `cannot-fail` or non-deterministic finding (these drive a `cannot-fail`/`weak` verdict); behavioral-focus and coverage findings follow.
 
 ## Anti-Patterns
