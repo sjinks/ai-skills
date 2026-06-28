@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Off-topic houseplant question
+description: Unrelated everyday question must not activate the doc-source-reconciliation skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "How often should I water a snake plant kept in low indoor light?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/doc-source-reconciliation/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "## Reconciliation Report"
+        - "- Reconciled against:"
+        - "## Corrections"
+        - "## Volatile Literals"
+        - "## Unverifiable"

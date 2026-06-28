@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Merge three test plans with duplicate open questions and superseded files
+description: |
+  Consolidation with a single open-questions ledger and superseded-source
+  handling: three same-kind test plans share a repeated open question.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Consolidate these three test plans into one. They are all the same kind.
+
+    `tp-a.md`:
+    - TC-1: happy-path upload.
+    - Open question: which timeout do we assert?
+
+    `tp-b.md`:
+    - TC-1: malformed-input rejection.
+    - Open question: which timeout do we assert?
+
+    `tp-c.md`:
+    - TC-1: concurrent-upload race.
+    - Open question: do we run under TSan in CI?
+
+    Answer from this scenario only. Produce the merged plan, a single
+    open-questions list, and tell me what to do with the three source files.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/artifact-consolidation/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - artifact-consolidation
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)TC-1'
+        - '(?i)(prefix|namespace|[A-Z]{1,4}-TC-1)'
+        - '(?i)(single|one|dedup|deduplicat|merg).{0,30}open.{0,5}question|open.{0,5}question.{0,30}(once|single|dedup)'
+        - '(?i)(supersede|mark.{0,40}(removal|remove)|remove only|delete.{0,20}approv)'
+        - '(?i)ID Change Summary|Consolidation Plan|Superseded Sources'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response handles the three-way merge correctly:
+        - All three TC-1 test cases survive, with the collisions resolved by a
+          concern prefix rather than renumbering or dropping any.
+        - The duplicated "which timeout do we assert?" open question appears ONCE
+          in a single deduplicated ledger, with the distinct TSan question kept.
+        - The three source files are marked for removal (superseded), with
+          deletion gated on explicit approval rather than done unilaterally.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).

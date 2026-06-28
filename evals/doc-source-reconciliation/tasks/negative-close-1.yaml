@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Forward-looking design doc for a future feature
+description: |
+  Close-domain: a design doc that intentionally describes a planned future
+  state with no implementation yet is out of scope — there is nothing in the
+  tree to reconcile against. The skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Here is a design proposal for a feature we have not built yet: a pluggable
+    rate-limiter middleware. Nothing is implemented; this describes the intended
+    API, the config options we plan to add, and the rollout phases. Review the
+    proposal for clarity and completeness of the design and tell me whether the
+    plan hangs together. I want design feedback, not a check against any code.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/doc-source-reconciliation/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "## Reconciliation Report"
+        - "- Reconciled against:"
+        - "## Corrections"
+        - "## Volatile Literals"
+        - "## Unverifiable"

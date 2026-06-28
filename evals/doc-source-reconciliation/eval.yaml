@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
+name: doc-source-reconciliation-eval
+description: |
+  Evaluates the doc-source-reconciliation skill: it activates when a doc claims
+  to reflect the current implementation and may have drifted, sweeping six fact
+  classes (file names/extensions, target/example names, dependency lists,
+  public type/option/enumerator names, volatile counts, behavioral defaults)
+  against the live tree, marking each match/stale/unverifiable with file
+  evidence, stabilizing volatile literals, and BLOCKing on unverifiable claims;
+  stays silent on forward-looking design docs, pure requirements with no
+  implementation claims, and ordinary prose editing.
+skill: doc-source-reconciliation
+version: "1.0"
+config:
+  trials_per_task: 2
+  timeout_seconds: 300
+  parallel: true
+  workers: 4
+  executor: copilot-sdk
+  model: claude-sonnet-4.6
+  max_attempts: 2
+metrics:
+  - name: trigger_accuracy
+    weight: 0.30
+    threshold: 0.8
+    description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected mode.
+  - name: skill_invocation
+    weight: 0.15
+    threshold: 0.9
+    description: Skill is invoked on positive tasks that should activate it.
+  - name: task_completion
+    weight: 0.25
+    threshold: 0.8
+    description: Output reconciles the doc's claims against the tree and reports match/stale/unverifiable with evidence.
+  - name: task_completion_substance
+    weight: 0.15
+    threshold: 0.7
+    description: LLM judge verifies representative positive tasks catch the drift and propose a stable correction.
+  - name: efficiency
+    weight: 0.15
+    threshold: 0.7
+    description: Stays within tool-call and total-token budgets.
+graders:
+  - type: behavior
+    name: efficiency
+    config:
+      max_tool_calls: 10
+      max_tokens: 8000
+tasks:
+  - "tasks/*.yaml"

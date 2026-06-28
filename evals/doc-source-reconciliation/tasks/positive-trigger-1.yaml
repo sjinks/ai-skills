@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Spec header extension drifted from .hpp to .h
+description: |
+  A spec claims to reflect current source but names .hpp headers the tree no
+  longer has; reconcile the extension claim against the provided listing.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    This spec section is labelled "amended from implementation (current state)".
+    Verify it against the repository listing below before we hand it off.
+
+    Spec says:
+    > The public API lives in `include/httpx/session.hpp` and
+    > `include/httpx/router.hpp`; include these two headers to use the library.
+
+    Actual `include/httpx/` listing:
+    ```
+    session.h
+    router.h
+    response.h
+    ```
+
+    Answer from this scenario only. Report what matches the tree and what has
+    drifted, with the corrected values.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/doc-source-reconciliation/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - doc-source-reconciliation
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)\.hpp.{0,40}\.h\b|extension.{0,20}(drift|stale|changed|wrong)|should be `?\.h`?'
+        - '(?i)session\.h|router\.h'
+        - '(?i)stale|drift|mismatch|out of date|no longer'
+        - '(?i)(match|verified|confirmed).{0,40}(tree|listing|source|repository)'
+        - '(?i)Reconciliation Report|Reconciled against'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response reconciles the doc against the listing:
+        - It flags the `.hpp` extension as stale: the tree has `session.h` and
+          `router.h`, not `session.hpp`/`router.hpp`.
+        - It gives the corrected `.h` values with the listing as evidence.
+        - It does not invent files absent from the listing or assert the `.hpp`
+          claim is correct.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).

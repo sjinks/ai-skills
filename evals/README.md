@@ -95,6 +95,8 @@ grader weighting takes effect.
   - `flaky-test-diagnosis`: 0.45
   - `test-quality-review`: 0.45
   - `perf-measurement`: 0.45
+  - `doc-source-reconciliation`: 0.45
+  - `artifact-consolidation`: 0.45
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks
   only) — requires the named skill via `required_skills` with
   `mode: any_order`. The currently released waza CLI (`v0.33.0`) defines

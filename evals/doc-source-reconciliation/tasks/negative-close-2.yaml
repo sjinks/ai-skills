@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Prose copy-edit of a doc with no implementation claims
+description: |
+  Close-domain: tightening the wording and structure of a document that makes
+  no claims about current code is ordinary editing, not verification against a
+  tree. The skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Copy-edit this onboarding guide for tone and readability: fix grammar,
+    shorten long sentences, and make the headings parallel. It is a
+    people-process guide about how our team runs stand-ups and code review
+    etiquette — it does not describe any code, build, or API. Just return the
+    cleaned-up prose.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/doc-source-reconciliation/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "## Reconciliation Report"
+        - "- Reconciled against:"
+        - "## Corrections"
+        - "## Volatile Literals"
+        - "## Unverifiable"

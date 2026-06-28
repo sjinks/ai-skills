@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Volatile test count should be stabilized, not re-counted
+description: |
+  Documented hard behavior: a stale baked-in test count must be restated as
+  stable phrasing or one pinned baseline, not replaced with a fresh literal that
+  will rot again.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    This doc is "amended from implementation". It says:
+
+    > The suite contains 127 tests, all passing.
+
+    We just added a test file, so the number is now different and will keep
+    changing every sprint. The repo is available to check. How should this line
+    read so we don't have to keep fixing it? Keep the response concise.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/doc-source-reconciliation/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - doc-source-reconciliation
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)127'
+        - '(?i)(stable|stabili[sz]e|restate|rephrase|pinned baseline|full suite|the (whole|entire) suite)'
+        - '(?i)(rot|drift|go stale|keep (changing|fixing)|will be wrong again|out of date)'
+        - '(?i)(avoid|not|don.?t|rather than|instead of).{0,40}((fresh|new|another|hard).{0,15})?(count|number|literal)'
+        - '(?i)Reconciliation Report|Volatile Literals'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response stabilizes the volatile literal rather than
+        re-counting:
+        - It identifies "127 tests" as a volatile/baked-in literal that rots.
+        - It proposes stable phrasing (e.g. "the full suite") or a single pinned
+          baseline section INSTEAD of substituting a fresh count like "128".
+        - It explains a fresh number would just go stale again.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
