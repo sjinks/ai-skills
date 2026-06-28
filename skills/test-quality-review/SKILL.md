@@ -58,10 +58,12 @@ Audit each test against these. Any failure is a finding.
 
 ## Output
 
-If the caller requests specific section labels, follow them exactly. Otherwise use this default labeled format:
+This is a per-test audit, not a PR-level review, so its verdict vocabulary is intentionally the per-test set below rather than a `BLOCK`/`CONCERNS`/`CLEAN` mapping. If the caller requests specific section labels, follow them exactly. Otherwise use this default labeled format:
 
 - `Verdict:` one of `solid` / `weak` / `cannot-fail`. Write the third token as `cannot-fail` (hyphenated) everywhere, including in prose.
 - `Findings:` a list keyed to the checklist number, each with file/line and the concrete fix. Lead with any `cannot-fail` or non-deterministic finding (these drive a `cannot-fail`/`weak` verdict); behavioral-focus and coverage findings follow.
+
+If the test source (or the behavior it claims to verify) is not provided, do not guess: return `Verdict: insufficient-context` and state exactly what is missing (the test body, the code under test, or the contract/AC it targets).
 
 ## Anti-Patterns
 
