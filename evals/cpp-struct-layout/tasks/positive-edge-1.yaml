@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Reorder is a no-op, do not claim a saving
+description: |
+  Review must compute that moving the small member changes nothing because
+  the pointers force an 8-byte minimum, and report a no-op rather than a
+  false saving.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Will reordering shrink this? (x86-64, 8-byte pointers.)
+
+    ```cpp
+    struct Handle {
+      void*         p;
+      std::uint8_t  flag;
+      void*         q;
+    };
+    ```
+
+    Return the verdict, the before/after sizeof, and whether to apply the
+    reorder.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-struct-layout/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-struct-layout
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(CLEAN|CONCERNS|BLOCK)'
+        - '(?i)(no-?op|same size|unchanged|24|does not (shrink|change|reduce)|no saving)'
+        - '(?i)(align|tail pad|minimum|8.byte)'
+        - '(?i)(Current|Proposed|Findings|Checklist status):'

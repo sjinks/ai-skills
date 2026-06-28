@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Polymorphic pointer arithmetic
+description: |
+  Review must reason that pointer arithmetic on a base pointer to a derived
+  array strides by the wrong size, not condemn all pointer arithmetic.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Review for CERT compliance. `Derived` adds data members and overrides a
+    virtual; `arr` is a `Derived[8]`.
+
+    ```cpp
+    void visit(Base* arr, std::size_t n) {
+      for (std::size_t i = 0; i < n; ++i) {
+        Base* b = arr + i;   // stride by sizeof(Base)?
+        b->tick();
+      }
+    }
+    ```
+
+    Return the verdict, the CERT rule, and the required fix.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-cert/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-cert
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS)'
+        - '(?i)(CTR56|cert-ctr56|polymorphic|virtual)'
+        - '(?i)(stride|sizeof|dynamic type|undefined)'
+        - '(?i)(Derived|concrete|final|index).{0,80}(type|stride|iterate)|iterate.{0,80}(Derived|concrete)'
+        - '(?i)(Findings|Checklist status):'

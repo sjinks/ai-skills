@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Off-topic fitness question
+description: Unrelated everyday question must not activate the performance skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "How many days a week should a beginner do strength training to build muscle?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-performance/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Type costs:"
+        - "Hot paths:"
+        - "Checklist status:"

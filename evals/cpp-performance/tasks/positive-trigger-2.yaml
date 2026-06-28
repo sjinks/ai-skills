@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Missing noexcept on move constructor
+description: |
+  Review must activate on a move-enabling type stored in a vector whose move
+  constructor lacks noexcept, forcing copies on reallocation.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Why does my std::vector<Widget> seem to copy every element when it grows?
+
+    ```cpp
+    class Widget {
+    public:
+      Widget(Widget&& other);            // moves m_buf
+      Widget& operator=(Widget&&);
+    private:
+      std::vector<char> m_buf;
+    };
+    ```
+
+    Return the verdict, findings, and the behavior-preserving fix.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-performance/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-performance
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS|CLEAN)'
+        - '(?i)noexcept'
+        - '(?i)(realloc|grow|strong guarantee|fall.?back|copy)'
+        - '(?i)(noexcept-move-constructor|performance-)'
+        - '(?i)(Findings|Checklist status):'

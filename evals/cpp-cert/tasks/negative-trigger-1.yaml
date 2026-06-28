@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Off-topic recipe request
+description: Unrelated everyday question must not activate the CERT skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "What's a good ratio of water to rice for a fluffy rice pilaf?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-cert/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "CERT:"
+        - "Checklist status:"
+        - "Execution context:"

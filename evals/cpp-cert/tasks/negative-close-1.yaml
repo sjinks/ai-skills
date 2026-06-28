@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Pure performance copy question
+description: |
+  Copy-elimination tuning with no security/correctness dimension is out of
+  scope; the CERT skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    In this hot loop I pass a big std::vector<std::string> by value to a
+    helper that only reads it. Should I take it by const reference, and is
+    there any other avoidable copy or allocation I can shave off here for
+    throughput? This is purely about speed, the code is otherwise correct.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-cert/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "CERT:"
+        - "Checklist status:"
+        - "Execution context:"

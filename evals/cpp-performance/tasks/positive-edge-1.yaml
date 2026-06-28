@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: std::function shared_ptr capture allocation
+description: |
+  Review must reason that a std::function capturing a shared_ptr heap-allocates
+  because the target is not trivially copyable, not that shrinking the capture
+  fixes it; and must flag the lifetime tradeoff of the raw-pointer fix.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    On a hot per-message path we rebuild this callback each time. A colleague
+    says the capture is small enough to fit std::function's small buffer, so
+    there's no allocation. Is that right?
+
+    ```cpp
+    auto self = shared_from_this();
+    std::function<void()> cb = [self]{ self->handle(); };
+    bus.post(std::move(cb));
+    ```
+
+    Return the verdict, the cost analysis, and the fix.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-performance/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-performance
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS|CLEAN)'
+        - '(?i)(trivially copyable|heap.?alloc|small.?buffer|small.?object)'
+        - '(?i)(shared_ptr).{0,160}(alloc|heap|not trivial)|(alloc|heap).{0,160}shared_ptr'
+        - '(?i)(raw pointer|lifetime|dangl|measure|allocation count)'
+        - '(?i)(Findings|Checklist status):'

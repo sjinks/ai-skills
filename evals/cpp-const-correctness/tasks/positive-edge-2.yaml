@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Insufficient context to confirm immutability
+description: |
+  A const-correctness question with no code body shown must produce the
+  reduced BLOCK template rather than guessing whether the variable mutates.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    clang-tidy says a local variable `handle` in one of our functions can be
+    declared const (misc-const-correctness). I can't share the function body
+    or show you how `handle` is used. Should I add const?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-const-correctness/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-const-correctness
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Open question'
+        - '(?i)(mutat|usage|body|context|how.*used)'
+        - '(?i)(unknown|missing|cannot|unavailable|not\s+(shared|provided|supplied|shown|seen))'
+      not_contains:
+        - "Checklist status:"

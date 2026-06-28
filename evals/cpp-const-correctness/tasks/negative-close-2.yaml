@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: noexcept move-constructor question
+description: |
+  Whether a move constructor should be noexcept is a performance/special-member
+  concern with no const-correctness dimension; the skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    My type defines a move constructor and a swap. A reviewer says they should
+    be marked noexcept so std::vector moves elements instead of copying on
+    reallocation. Is that right, and which special members need noexcept for
+    the container optimization to kick in?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-const-correctness/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Category:"
+        - "Checklist status:"

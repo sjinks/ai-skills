@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Empty member reclaimed with no_unique_address
+description: |
+  Review must propose [[no_unique_address]] for a stateless empty member to
+  reclaim its slot, with the toolchain caveat.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this type's footprint. `Compare` is an empty stateless comparator.
+
+    ```cpp
+    struct Index {
+      Compare cmp;
+      std::vector<int> data;
+    };
+    ```
+
+    Return the verdict, the layout, and the fix.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-struct-layout/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-struct-layout
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(CLEAN|CONCERNS|BLOCK)'
+        - '(?i)no_unique_address'
+        - '(?i)(empty|stateless|overlap|reclaim|slot)'
+        - '(?i)(Current|Proposed|Findings|Checklist status):'

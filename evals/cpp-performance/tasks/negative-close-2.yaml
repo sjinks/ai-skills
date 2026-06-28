@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Algorithmic redesign / data-structure choice
+description: |
+  Choosing a different algorithm or data structure for scalability is design
+  work, not a local source-level cost transformation; the skill must not
+  activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    My request handler does a linear scan over a million records per call and
+    it's too slow at scale. Should I switch to a hash index, a B-tree, or add
+    a caching layer in front? I'm asking about the algorithmic approach and
+    data-structure choice, not micro-level copy tuning.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-performance/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Type costs:"
+        - "Hot paths:"
+        - "Checklist status:"

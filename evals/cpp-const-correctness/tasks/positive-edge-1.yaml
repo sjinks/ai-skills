@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Const would block the return move
+description: |
+  Review must NOT const-qualify a returned local that is eligible for the
+  automatic move, because const blocks it (performance-no-automatic-move).
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Should `result` be made const here to satisfy misc-const-correctness?
+
+    ```cpp
+    std::vector<std::string> collect(const Source& src) {
+      std::vector<std::string> result;
+      for (const auto& item : src) result.push_back(item.text());
+      return result;
+    }
+    ```
+
+    Return the verdict, the finding, and the cross-check note.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-const-correctness/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-const-correctness
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(CLEAN|CONCERNS|BLOCK)'
+        - '(?i)(no-automatic-move|return move|automatic move|move on return)'
+        - '(?i)(not|don.t|do not|avoid|leave).{0,60}const|const.{0,60}(block|prevent|disable|defeat)'
+        - '(?i)(mutat|push_back|reassign|populat)'
+        - '(?i)(Cross-check|Findings|Checklist status):'
