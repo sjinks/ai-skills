@@ -17,9 +17,8 @@ inputs:
     session object has already been destroyed, and two completion handlers seem
     to run concurrently on the same session. Help me structure the strand binding
     and the shared_from_this capture so every async op is serialized on the
-    session's strand and keeps the session alive until it completes. This is
-    purely about Asio executor/strand correctness and object lifetime — not about
-    timeouts, connection caps, teardown policy, or TLS defaults.
+    session's strand and keeps the session alive until it completes. This is an
+    Asio executor/strand correctness and object-lifetime question.
 expected:
   should_trigger: false
 graders:

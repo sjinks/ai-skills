@@ -13,9 +13,8 @@ inputs:
     In a C++ HTTP/1.1 parser, when a request carries both a Content-Length header
     and Transfer-Encoding: chunked, which one wins per the RFC, and how should the
     parser compute the message body length and detect the end of the message? I
-    just want the correct framing/parsing rule and state transitions — this is
-    about parser correctness, not connection timeouts, caps, teardown, or TLS
-    defaults.
+    just want the correct framing/parsing rule and the parser state transitions
+    for this case.
 expected:
   should_trigger: false
 graders:

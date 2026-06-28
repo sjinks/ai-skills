@@ -9,13 +9,12 @@ tags:
   - negative-close
 inputs:
   prompt: |
-    In our C++ HTTP service, after a request is parsed and the connection is
-    healthy, I need to decide whether the authenticated user may access a given
-    resource. Help me design the role/permission model: how to map JWT scopes to
-    resource actions, where to enforce per-route authorization, and how to return
-    403 vs 404 to avoid leaking resource existence. This is purely application
-    authorization logic — connection lifetime, timeouts, and TLS setup are
-    already handled elsewhere and are not in scope.
+    In our C++ HTTP service, once a request has reached the handler, I need to
+    decide whether the authenticated user may access a given resource. Help me
+    design the role/permission model: how to map JWT scopes to resource actions,
+    where to enforce per-route authorization, and how to return 403 vs 404 to
+    avoid leaking resource existence. This is purely application authorization
+    policy — who is allowed to do what.
 expected:
   should_trigger: false
 graders:
