@@ -12,7 +12,7 @@ It helps an assistant:
 - catch the install-after-teardown leak class, where an async completion runs after teardown and re-forms a strong-capture cycle the latch never breaks again — guarding every `shared_from_this` re-dispatch site on the **closed** latch, not just the one where a leak was first seen
 - confirm crypto/protocol defaults fail closed: pinned minimum TLS version, verification on by default with only a named opt-out, verify-mode re-applied after per-SNI context switches
 - confirm bounds are enforced **while reading**, wired to the parser, not validated after buffering
-- emit a hardening report: per-checklist-item status (`safe`/`at-risk`/`missing`/`missing-evidence`), evidence, the hostile-client failure, the minimal fix, and the verification, leading with blocking items
+- emit a `Verdict: BLOCK | CONCERNS | CLEAN` hardening report: severity-tagged findings (per-item status `at-risk`/`missing`/`missing-evidence`, the hostile-client failure, the minimal fix, and the verification), a per-section checklist-status block, a `Findings: None` clean path, and a deterministic insufficient-context BLOCK template
 
 ## Files
 

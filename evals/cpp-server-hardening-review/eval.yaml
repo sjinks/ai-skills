@@ -7,9 +7,10 @@ description: |
   teardown including TLS handshake failure, the install-after-teardown leak class,
   bounded per-id caches, fail-closed TLS/verification defaults, and read-time bound
   enforcement; stays silent on application authn/authz logic, pure HTTP-parser rule
-  questions, and async-I/O strand/lifetime mechanics; and produces a hardening
-  report with per-item status, the hostile-client failure, the minimal fix, and the
-  verification.
+  questions, and async-I/O strand/lifetime mechanics; and produces a structured
+  `Verdict: BLOCK | CONCERNS | CLEAN` hardening report with severity-tagged
+  findings, per-section checklist status, the hostile-client failure, the minimal
+  fix, and the verification.
 skill: cpp-server-hardening-review
 version: "1.0"
 config:

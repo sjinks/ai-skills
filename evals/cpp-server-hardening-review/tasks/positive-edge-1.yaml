@@ -20,9 +20,10 @@ inputs:
     the original repro stopped leaking. Is this fix complete and safe?
 
     Answer from this scenario only; do not inspect files. Keep the response
-    concise. Use these section labels exactly: Root cause, Guard correctness,
-    Site coverage, Tests. Under each, give the status (safe / at-risk / missing)
-    and the minimal fix.
+    concise. Use the skill's hardening-report output format: a `Verdict:` line
+    and severity-tagged findings (each with its per-item status and the minimal
+    fix), covering the root cause, guard correctness, and the other re-dispatch
+    sites.
 expected:
   should_trigger: true
 graders:
@@ -42,12 +43,12 @@ graders:
     name: task_completion
     config:
       regex_match:
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS|CLEAN)'
         - '(?i)(at-risk|missing|incomplete|not.{0,10}(complete|safe))'
         - '(?i)closed.{0,30}(latch|flag)|guard.{0,20}closed|not just draining'
         - '(?i)(cancel|buffered).{0,40}(complete|succeed|success)|already.?buffered'
         - '(?i)(keep-?alive|streaming).{0,40}(write|completion|handler).{0,80}(handshake|100-continue|expectation)|(handshake|100-continue|expectation).{0,80}(keep-?alive|streaming)'
         - '(?i)(LSan|leak.?sanitizer).{0,40}fails?.{0,30}(with|without|removed).{0,20}guard|fails?.{0,20}(with|without).{0,10}the guard removed'
-        - '(?i)(Root cause|Guard correctness|Site coverage|Tests):'
   - type: prompt
     name: task_completion_substance
     config:
@@ -67,7 +68,7 @@ graders:
           guarded, not only the one observed site.
         - It names a verification: a connect-write-abort stress loop under LSan
           that fails with the guard removed.
-        A correct response uses the requested section labels.
+        A correct response uses the skill's structured hardening-report format (a Verdict line and severity-tagged findings).
 
         Output format (strict):
         - Write one sentence of reasoning on its own line.

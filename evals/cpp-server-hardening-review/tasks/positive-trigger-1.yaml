@@ -16,9 +16,10 @@ inputs:
     consults a live-connection count; there is no `max_connections`.
 
     Answer from this scenario only; do not inspect files. Keep the response
-    concise. Use these section labels exactly: Time-bound, Count-bound, Tests.
-    Under each, give the status (safe / at-risk / missing), the hostile-client
-    failure, and the minimal fix.
+    concise. Use the skill's hardening-report output format: a `Verdict:` line,
+    severity-tagged findings (each with its per-item status, the hostile-client
+    failure, the minimal fix, and the verification), and a `Checklist status:`
+    block.
 expected:
   should_trigger: true
 graders:
@@ -38,12 +39,13 @@ graders:
     name: task_completion
     config:
       regex_match:
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS|CLEAN)'
         - '(?i)(at-risk|missing)'
         - '(?i)first request|requests_seen|initial.{0,20}(read|request)'
         - '(?i)slowloris|stalled|holds?.{0,20}(connection|fd|file descriptor)|exhaust'
         - '(?i)(max_connections|connection cap|shed|backpressure|stop accepting)'
         - '(?i)(non-?zero|finite).{0,30}(default|timeout)|arm.{0,20}timer.{0,40}first'
-        - '(?i)(Time-bound|Count-bound|Tests):'
+        - '(?i)Checklist status:'
   - type: prompt
     name: task_completion_substance
     config:
@@ -60,7 +62,9 @@ graders:
           the acceptor running, rather than constructing a full session.
         - It names a verification test (stalled first request closes within the
           bound; over-cap connection is shed).
-        A correct response uses the requested section labels and per-item status.
+        - It emits the skill's structured output: a Verdict (BLOCK here, given a
+          CRITICAL unbounded-first-request finding) and a Checklist status block.
+        A correct response uses the structured hardening-report format.
 
         Output format (strict):
         - Write one sentence of reasoning on its own line.

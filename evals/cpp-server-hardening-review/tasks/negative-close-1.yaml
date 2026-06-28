@@ -29,8 +29,9 @@ graders:
     name: task_completion
     config:
       not_contains:
-        - "Time-bound"
-        - "Count-bound"
+        - "Verdict:"
+        - "Findings:"
+        - "Checklist status:"
+        - "Hostile-client failure:"
         - "max_connections"
         - "slowloris"
-        - "safe / at-risk / missing"

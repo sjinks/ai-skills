@@ -51,9 +51,10 @@ The governing rule: **a default-configured server must survive a hostile client 
 
 ### 4. Crypto and protocol defaults fail closed
 
-- Pin a **minimum TLS version** (1.2) for both client and server when the caller does not set one; do not inherit whatever the linked TLS library build permits. Keep it overridable.
-- Client TLS verification (chain + hostname) is on by default; the only disable path is an explicit, named opt-out.
-- Per-SNI / per-context cert selection must re-apply the verify mode after switching contexts.
+- Pin a **minimum TLS version** (1.2) on the server's inbound context when the caller does not set one; do not inherit whatever the linked TLS library build permits. Keep it overridable. (If the same component also acts as a TLS client for outbound connections, pin the client minimum too.)
+- **Inbound (server-side) client-certificate auth (mTLS):** if the server requires client certs, verification is on by default (chain + the policy that the cert is acceptable for an inbound client); there is no peer-hostname check on the inbound side. The only disable path is an explicit, named opt-out.
+- **Outbound (acting as a TLS client):** when this component opens a TLS connection to another server, chain **and peer-hostname** verification are on by default; the only disable path is an explicit, named opt-out.
+- Per-SNI / per-context cert selection on the inbound side must re-apply the verify mode after switching contexts (a context switch can silently reset it).
 
 ### 5. Bounds are enforced while reading, not after buffering
 
@@ -66,9 +67,69 @@ The governing rule: **a default-configured server must survive a hostile client 
 3. For every `at-risk` or `missing` item, state the concrete failure a hostile client triggers (e.g. "1 fd + buffer + SSL state pinned forever per stalled connection") and the minimal fix. For a `missing-evidence` item, state what code to inspect to resolve it.
 4. For each proposed fix, name the verification: a focused test (stalled-first-request closes within the bound; over-cap connection is shed; `disconnect` fires once including on handshake failure and on no-request; bounded cache evicts) plus the lifetime/concurrency check to confirm the fix is itself safe.
 
-## Output
+## Severity And Verdicts
 
-Return a hardening report: one row per checklist item with status (`safe` / `at-risk` / `missing` / `missing-evidence`), evidence (symbol/default), the hostile-client failure if not safe, the minimal fix, and the verification. Lead with the blocking items (unbounded time or count, unreclaimed state, weak default that fails open).
+Severity reflects what a hostile client can do at the default configuration.
+
+- `CRITICAL`: a default-configured server is exhausted or compromised by a trivial hostile client — an unbounded first-request/idle phase (slowloris), no connection bound at all, per-connection state that never reclaims on a reachable termination route, or a TLS default that fails open (no minimum version, verification off, or verify mode dropped after an SNI switch).
+- `HIGH`: a bound or teardown exists but a realistic route escapes it — the install-after-teardown leak class, a `disconnect` that misses the handshake-failure path, a monotonic-id cache bounded only on the success path, or a limit enforced after buffering instead of during the read.
+- `MEDIUM`: a bounded-but-weak default, a cap/timeout shipped only as documentation, or a hardening gap that scale will amplify.
+- `LOW`: a clarity, naming, or defense-in-depth item with no current hostile-client failure.
+
+Map each checklist item's per-item status to severity: `missing` (a required safe default absent) or `at-risk` (present but fails open / escapable) carries the severity above; `safe` is not a finding; `missing-evidence` is reported as an `Open question` finding rather than `safe`.
+
+Verdicts:
+
+- `BLOCK`: missing required context, any `CRITICAL`, or any unmitigated `HIGH`.
+- `CONCERNS`: remaining `HIGH`/`MEDIUM` findings each have a compensating control, a stated bound, or a recorded `missing-evidence` follow-up.
+- `CLEAN`: every applicable checklist item is `safe` and hot-path fixes carry the named verification; `LOW`-only findings do not block `CLEAN`. For design-stage targets with no code yet, the best achievable verdict is `CONCERNS` with verification expectations recorded.
+
+## Output Format
+
+```text
+Verdict: BLOCK | CONCERNS | CLEAN
+Target: <files, session/server component, or options surface in scope>
+
+Findings:
+1. <short title>
+  Severity: CRITICAL | HIGH | MEDIUM | LOW
+  Status: at-risk | missing | missing-evidence
+  Rule: <time-bound | count-bound | reclaim | crypto-defaults | read-time-bound>
+  Evidence: <symbol/default, e.g. arm_header_timer only called when requests_seen > 0>
+  Hostile-client failure: <what a connect-and-stall / flood / abort client achieves>
+  Minimal fix: <the smallest safe-by-default change>
+  Verification: <the focused test that fails without the fix>
+
+Checklist status:
+- Time-bounded by default: safe | at-risk | missing | missing-evidence | n/a
+- Count-bounded (cap + backpressure): safe | at-risk | missing | missing-evidence | n/a
+- Deterministic reclaim: safe | at-risk | missing | missing-evidence | n/a
+- Fail-closed crypto/protocol defaults: safe | at-risk | missing | missing-evidence | n/a
+- Read-time bound enforcement: safe | at-risk | missing | missing-evidence | n/a
+
+Residual risk: <remaining caveats, deferred missing-evidence items, or None>
+```
+
+`Rule:` values map to the checklist sections: `time-bound` -> section 1; `count-bound` -> section 2; `reclaim` -> section 3; `crypto-defaults` -> section 4; `read-time-bound` -> section 5. Lead the findings list with the blocking items.
+
+When no material issues exist, write exactly `Findings: None` (allowed only with `CLEAN`) and list assumptions under Residual risk.
+
+Insufficient-context mode: when the accept loop, session teardown, options defaults, and TLS setup were all unavailable so no checklist section can be assessed, emit exactly this reduced template and stop, leaving the checklist out rather than filling it with guessed statuses:
+
+```text
+Verdict: BLOCK
+Target: <files or component in scope>
+
+Findings:
+1. <missing-context short title>
+  Severity: LOW
+  Status: missing-evidence
+  Rule: <time-bound | count-bound | reclaim | crypto-defaults | read-time-bound>
+  Evidence: <which required code was not supplied>
+  Hostile-client failure: <unknown — why no safe conclusion is possible>
+  Minimal fix: <what code must be supplied to assess>
+  Verification: N/A
+```
 
 ## Anti-Patterns
 

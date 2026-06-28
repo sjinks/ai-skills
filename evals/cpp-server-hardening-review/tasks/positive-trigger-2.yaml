@@ -19,9 +19,10 @@ inputs:
     `per_id_`.
 
     Answer from this scenario only; do not inspect files. Keep the response
-    concise. Use these section labels exactly: Teardown, Cache bound, Tests.
-    Under each, give the status (safe / at-risk / missing), the hostile-client
-    failure, and the minimal fix.
+    concise. Use the skill's hardening-report output format: a `Verdict:` line,
+    severity-tagged findings (each with its per-item status, the hostile-client
+    failure, the minimal fix, and the verification), and a `Checklist status:`
+    block.
 expected:
   should_trigger: true
 graders:
@@ -41,12 +42,13 @@ graders:
     name: task_completion
     config:
       regex_match:
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS|CLEAN)'
         - '(?i)(at-risk|missing)'
         - '(?i)(handshake failure|handshake.{0,20}(path|route)|TLS handshake)'
         - '(?i)(disconnect|teardown).{0,40}(once|exactly once|every|all paths)|destructor backstop'
         - '(?i)(monotonic|per-id|per id|unbounded).{0,40}(leak|grow|cache|map)|success path'
         - '(?i)(LRU|size cap|TTL|bound).{0,20}(cache|map|per_id)|evict'
-        - '(?i)(Teardown|Cache bound|Tests):'
+        - '(?i)Checklist status:'
   - type: prompt
     name: task_completion_substance
     config:
@@ -64,7 +66,7 @@ graders:
           handshake (or never send a request) grow per_id_ without limit.
         - It names a verification test (disconnect fires once including on
           handshake failure and on no-request; the bounded cache evicts).
-        A correct response uses the requested section labels and per-item status.
+        A correct response uses the skill's structured hardening-report format (a Verdict line, severity-tagged findings, and a Checklist status block).
 
         Output format (strict):
         - Write one sentence of reasoning on its own line.

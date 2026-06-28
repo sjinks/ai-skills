@@ -18,9 +18,10 @@ inputs:
     then checks `if (body.size() > max_body_) reject();`.
 
     Answer from this scenario only; do not inspect files. Keep the response
-    concise. Use these section labels exactly: TLS defaults, SNI verify,
-    Read-time bounds. Under each, give the status (safe / at-risk / missing),
-    the hostile-client failure, and the minimal fix.
+    concise. Use the skill's hardening-report output format: a `Verdict:` line,
+    severity-tagged findings (each with its per-item status, the hostile-client
+    failure, the minimal fix, and the verification), and a `Checklist status:`
+    block.
 expected:
   should_trigger: true
 graders:
@@ -40,12 +41,12 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?i)(at-risk|missing)'
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS|CLEAN)'
         - '(?i)(minimum|min).{0,20}(TLS|version|proto).{0,20}1\.2|TLS.{0,5}1\.2|pin.{0,20}(version|TLS)'
         - '(?i)(re-?apply|re-?set|restore).{0,30}verify|verify.{0,30}(after|re-?appl).{0,20}(SNI|context|switch)'
         - '(?i)(during|while).{0,15}(the )?read|wired.{0,15}(to.{0,10})?parser|before.{0,20}buffer|not.{0,15}after.{0,15}buffer'
         - '(?i)(memory|RAM|heap|buffer).{0,40}(exhaust|blow|unbounded|large)|large body'
-        - '(?i)(TLS defaults|SNI verify|Read-time bounds):'
+        - '(?i)Checklist status:'
   - type: prompt
     name: task_completion_substance
     config:
@@ -63,7 +64,7 @@ graders:
           DURING the read, wired to the parser, not validated post-hoc.
         - It names the hostile-client failure for each (downgrade/weak TLS,
           unverified peer, memory exhaustion).
-        A correct response uses the requested section labels and per-item status.
+        A correct response uses the skill's structured hardening-report format (a Verdict line, severity-tagged findings, and a Checklist status block).
 
         Output format (strict):
         - Write one sentence of reasoning on its own line.
