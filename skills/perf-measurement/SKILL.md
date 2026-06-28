@@ -49,7 +49,7 @@ The governing rule: **measure, do not guess; isolate, do not assume; change one 
 
 ### 4. Profile to attribute, then bucket
 
-- Profile under sustained load (`perf record -g` with frame pointers: build with `-fno-omit-frame-pointer`, `-O2 -g`). User-space profiling works at the default `kernel.perf_event_paranoid = 2`; set it `<= 1` (e.g. `sudo sysctl kernel.perf_event_paranoid=1`) to also profile the **kernel** side (needed for the kernel-vs-user split below), and `kernel.kptr_restrict=0` to resolve kernel symbol names. Use the **flat self-time** view (`--no-children`) to find where cycles are actually spent, not just call frequency.
+- Profile under sustained load (`perf record -g` with frame pointers: build with `-fno-omit-frame-pointer`, `-O2 -g`). User-space profiling works at the common kernel default `kernel.perf_event_paranoid = 2` (some distros ship 3 or 4, which restrict it further — check `sysctl kernel.perf_event_paranoid`); set it `<= 1` (e.g. `sudo sysctl kernel.perf_event_paranoid=1`) to also profile the **kernel** side (needed for the kernel-vs-user split below), and `kernel.kptr_restrict=0` to resolve kernel symbol names. Use the **flat self-time** view (`--no-children`) to find where cycles are actually spent, not just call frequency.
 - Template-heavy C++ (Beast/Asio) produces enormous symbol names and diffuse hot spots with no single symbol above ~1%. **Bucket** self-time by category (allocation, refcount atomics, serialization, parsing, scheduler/executor, syscall, string/memcpy) to see the real distribution.
 - Separate **kernel** from **user-space**: a network server spends much of its time in the kernel TCP/syscall path, which is inherent and not addressable in your code. Rank the **user-space** buckets to find what *you* can change.
 - Re-profile after a change: a successful optimization should visibly shrink its target bucket and shift the bottleneck elsewhere.
@@ -92,7 +92,7 @@ If a profile was taken, give the bucketed self-time and the next target. State e
 
 ## Checklist
 
-This checklist restates the Core Principles as a quick pass/fail verification; it adds no new obligations.
+This checklist restates the Core Principles as a quick pass/fail verification; it adds no new obligations. Where a checklist item and a Core Principle overlap, the checklist item is the gating source of truth.
 
 - The metric matches the change size: throughput for >~15% changes; the median of 3–5 repeated runs for the 3–15% band; a deterministic count for sub-~3% changes or whenever a countable change exists.
 - Numbers come from an idle, `-O3` build; profiling uses a separate frame-pointer build.

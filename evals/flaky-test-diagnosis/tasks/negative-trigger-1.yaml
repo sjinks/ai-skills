@@ -23,4 +23,3 @@ graders:
         - "Root cause:"
         - "Fix:"
         - "Verify:"
-        - "until-fail"

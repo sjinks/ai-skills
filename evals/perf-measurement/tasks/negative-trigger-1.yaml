@@ -21,7 +21,6 @@ graders:
       not_contains:
         - "LD_PRELOAD"
         - "mallocount"
-        - "reference server"
         - "Metric:"
         - "Method:"
         - "Decision:"

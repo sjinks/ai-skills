@@ -15,6 +15,8 @@ cases), build it and run the target under it — do **not** run the bare skeleto
 shown, it can recurse during `dlsym` resolution:
 
 ```sh
+# build the COMPLETED shim (mallocount.c here is your finished file, not the
+# minimal skeleton printed below)
 gcc -O2 -shared -fPIC -o mallocount.so mallocount.c -ldl
 LD_PRELOAD=./mallocount.so <server>
 ```
