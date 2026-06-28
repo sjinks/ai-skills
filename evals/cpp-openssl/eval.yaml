@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
+name: cpp-openssl-eval
+description: |
+  Evaluates the cpp-openssl skill: it activates for C/C++ OpenSSL library-API
+  work - SSL_CTX policy, peer/hostname verification, object lifetime/refcounts,
+  SSL_get_error IO and the error queue, and EVP AEAD/KDF/RAND crypto; stays
+  silent on the openssl(1) command-line tool, generic TLS policy questions with
+  no API in scope, and pure event-loop/socket mechanics; and produces output
+  that keeps verification fail-closed, lifetimes matched, the error queue
+  drained, and tamper-detection tests planned.
+skill: cpp-openssl
+version: "1.0"
+config:
+  trials_per_task: 2
+  timeout_seconds: 300
+  parallel: true
+  workers: 4
+  executor: copilot-sdk
+  model: claude-sonnet-4.6
+  max_attempts: 2
+metrics:
+  - name: trigger_accuracy
+    weight: 0.30
+    threshold: 0.8
+    description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected mode.
+  - name: skill_invocation
+    weight: 0.15
+    threshold: 0.9
+    description: Skill is invoked on positive tasks that should activate it.
+  - name: task_completion
+    weight: 0.40
+    threshold: 0.8
+    description: Output applies OpenSSL verification, lifetime, error-queue, crypto, and test-planning guidance.
+  - name: efficiency
+    weight: 0.15
+    threshold: 0.7
+    description: Stays within tool-call and total-token budgets.
+graders:
+  - type: behavior
+    name: efficiency
+    config:
+      max_tool_calls: 10
+      max_tokens: 8000
+tasks:
+  - "tasks/*.yaml"

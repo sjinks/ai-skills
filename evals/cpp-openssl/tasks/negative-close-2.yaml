@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Asio socket event-loop with TLS incidental
+description: |
+  Close-domain: the hard part is the Asio event loop / executor and socket
+  lifecycle, with the TLS library incidental and no OpenSSL API decision in
+  scope. The skill must not activate (it governs SSL_CTX/verification/crypto,
+  not the event loop).
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    My Boost.Asio C++ server occasionally hangs on shutdown. The async accept
+    loop keeps a strand per connection, and when I cancel the acceptor some
+    connection coroutines never resume, so the io_context.run() thread never
+    returns. The TLS handshake itself succeeds fine; this is purely about
+    executor affinity, strand ordering, operation_aborted handling, and joining
+    the io_context threads on shutdown. How do I structure the cancellation so
+    every outstanding async op completes and run() returns?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-openssl/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "SSL_CTX_set_verify"
+        - "SSL_VERIFY_PEER"
+        - "EVP_EncryptInit_ex"
+        - "drain the error queue"

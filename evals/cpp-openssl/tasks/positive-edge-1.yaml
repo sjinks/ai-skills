@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Debug unsupported algorithm after 3.x upgrade
+description: |
+  Debug-mode edge case: an "unsupported algorithm" failure after a 1.1.1 -> 3.x
+  upgrade that is the legacy-provider trap, diagnosed via the error queue and
+  version posture - not a code-logic bug.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    We upgraded a C++ service from OpenSSL 1.1.1 to 3.0 and a code path that
+    decrypts an old data blob with RC4 via EVP_DecryptInit_ex(ctx, EVP_rc4(),
+    ...) now fails: EVP_DecryptInit_ex returns 0 and the operation aborts. The
+    same binary worked on 1.1.1. We log only "cipher init failed". RC4 here is
+    for a frozen legacy on-disk format we cannot re-encrypt yet. What is going
+    on and how do we diagnose and fix it?
+
+    Answer from this scenario only; do not inspect files. Keep the response
+    concise. Use these section labels exactly: Diagnosis, Queue drain, Fix,
+    Portability. Include concrete steps under each.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-openssl/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-openssl
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)legacy provider'
+        - '(?i)(default provider|OSSL_PROVIDER_load|provider)'
+        - '(?i)(ERR_get_error|ERR_print_errors|ERR_)'
+        - '(?i)(3\.0|3\.x|OPENSSL_VERSION|major version)'
+        - '(?i)(Diagnosis|Queue drain|Fix|Portability):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response correctly diagnoses the 3.x legacy-provider
+        trap:
+        - It explains that in OpenSSL 3.x RC4 (a genuinely legacy cipher) moved
+          to the `legacy` provider, so EVP_DecryptInit_ex(EVP_rc4()) fails unless
+          the legacy provider is loaded (and the default provider remains
+          loaded). It must NOT claim MD5/SHA-1 behave this way (those stay in the
+          default provider).
+        - It recommends draining the error queue (ERR_get_error loop) to turn
+          "cipher init failed" into an actionable diagnosis.
+        - The fix is to load the legacy provider (e.g. OSSL_PROVIDER_load(NULL,
+          "legacy"), keeping "default" loaded) — NOT to claim the code logic is
+          wrong.
+        - It is version-aware (1.1.1 vs 3.x behavior difference).
+        A correct response uses the requested section labels.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

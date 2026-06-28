@@ -1,0 +1,80 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-003
+name: Review SSL_get_error IO and truncation handling
+description: |
+  Handshake/record IO review: a want-read/want-write retry loop that mishandles
+  non-fatal results and conflates clean close-notify with truncation, including
+  the version-dependent unexpected-EOF mapping.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this OpenSSL blocking-socket-on-nonblocking-BIO read/write loop (C++,
+    used on both OpenSSL 1.1.1 and 3.0). On SSL_read it treats any return <= 0 as
+    a fatal error and closes the connection, including SSL_ERROR_WANT_READ and
+    SSL_ERROR_WANT_WRITE. On SSL_write, after a WANT_WRITE it retries with a
+    fresh, different buffer pointer. It treats every EOF (including a connection
+    that ends without a close-notify) as a normal clean end-of-stream and acts on
+    whatever bytes it already received. This carries length-prefixed financial
+    messages.
+
+    Answer from this scenario only; do not inspect files. Keep the response
+    concise. Use these section labels exactly: Retry, Buffer stability, Shutdown,
+    Tests. Include concrete fixes under each.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-openssl/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-openssl
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)SSL_get_error'
+        - '(?i)(WANT_READ|WANT_WRITE).{0,80}(retry|wait|readiness|non-?fatal|not.{0,10}fatal)'
+        - '(?i)(same buffer|unchanged|do not change|MOVING_WRITE_BUFFER)'
+        - '(?i)(ZERO_RETURN|close.?notify)'
+        - '(?i)(truncat|unexpected eof|SSL_OP_IGNORE_UNEXPECTED_EOF)'
+        - '(?i)(Retry|Buffer stability|Shutdown|Tests):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response catches the OpenSSL record-IO bugs:
+        - SSL_ERROR_WANT_READ / WANT_WRITE are non-fatal flow control: wait for
+          socket readiness and retry the SAME call; treating them as fatal is
+          wrong.
+        - After WANT_WRITE the retry must reuse the SAME buffer pointer/length
+          (unless SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER is set); a fresh/different
+          buffer is a bug.
+        - A clean shutdown (SSL_ERROR_ZERO_RETURN / close-notify) must be
+          distinguished from a truncated connection; for length-prefixed
+          financial messages a missing close-notify must be treated as an error,
+          not as end-of-data.
+        - Bonus correctness: it may note the version-dependent unexpected-EOF
+          mapping (1.1.x SSL_ERROR_SYSCALL+0 vs 3.0 SSL_ERROR_SSL "unexpected eof"
+          / SSL_OP_IGNORE_UNEXPECTED_EOF). It must NOT claim WANT_READ/WANT_WRITE
+          are fatal.
+        A correct response uses the requested section labels.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

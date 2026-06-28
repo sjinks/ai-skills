@@ -65,6 +65,7 @@ grader weighting takes effect.
   - `cpp-performance`: 0.45
   - `cpp-struct-layout`: 0.45
   - `cpp-data-structure-selection`: 0.45
+  - `cpp-openssl`: 0.45
   - `fix-batching-and-root-cause`: 0.45
   - `fix-blast-radius`: 0.45
   - `pr-scope-slicer`: 0.45

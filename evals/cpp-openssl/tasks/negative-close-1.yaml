@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: openssl(1) command-line cert generation
+description: |
+  Close-domain: uses the openssl command-line tool in a shell, not the linked
+  C API. The skill is the library API only and must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    I need a shell script that uses the `openssl` command-line tool to generate
+    a self-signed certificate and key for local testing: an `openssl req
+    -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes`
+    invocation, then `openssl x509 -in cert.pem -noout -text` to print it, and
+    `openssl s_client -connect example.com:443` to probe a server. This is about
+    the openssl CLI binary and shell scripting, not any C/C++ program that links
+    libssl/libcrypto.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-openssl/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "SSL_CTX_set_verify"
+        - "SSL_CTX_set_min_proto_version"
+        - "SSL_get_error"
+        - "drain the error queue"
+        - "EVP_EncryptInit_ex"
