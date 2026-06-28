@@ -32,7 +32,7 @@ Audit each test against these. Any failure is a finding.
 - Byte/structure-exact assertions are good when the contract *is* exact (e.g. a differential oracle for serialized output); they are bad when they pin an unpromised detail.
 
 ### 3. It is deterministic
-- No `sleep`/fixed-delay waits for async work. Wait on the actual condition: a latch/promise/future signalled by the callback, or a **time-bounded** poll on the condition with a generous timeout (`wait_for_*`), never on wall-clock time. A loop bounded by an *iteration count* (`for (i<N) yield()`) is **not** deterministic — its budget can be exhausted before the event fires under parallel/sanitizer load, so it is itself a flake source, not an acceptable wait.
+- No `sleep`/fixed-delay waits for async work. Wait on the actual condition: a latch/promise/future signalled by the callback, or a **time-bounded** poll on the condition with a generous timeout (`wait_for_*`). The timeout itself should run off a monotonic/steady clock, not the wall clock / real time of day. A loop bounded by an *iteration count* (`for (i<N) yield()`) is **not** deterministic — its budget can be exhausted before the event fires under parallel/sanitizer load, so it is itself a flake source, not an acceptable wait.
 - No dependence on real time of day, timezone, locale, RNG without a fixed seed, network availability, filesystem ordering, or hash-map iteration order.
 - Timeouts used as *probes* (deliberately short to force a deadline) are fine; timeouts used as *hopes* (sleep long enough and assume it finished) are not.
 
