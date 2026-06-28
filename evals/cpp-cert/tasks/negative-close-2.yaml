@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Struct padding question
+description: |
+  In-memory layout / padding reduction has no CERT-rule mapping; the CERT
+  skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    My struct has a char, then a double, then an int, then two more chars.
+    sizeof comes out larger than I expected. How should I reorder the data
+    members to minimize padding and shrink the type? Nothing about this is a
+    security or undefined-behavior concern, I just want a smaller footprint.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-cert/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "CERT:"
+        - "Checklist status:"
+        - "Execution context:"

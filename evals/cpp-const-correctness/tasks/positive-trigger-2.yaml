@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Grouped declaration needs isolation
+description: |
+  Review must note a comma-grouped declaration cannot receive a fix-it until
+  it is isolated, then qualify the immutable part.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    misc-const-correctness flags `total` here but the fix-it does not apply.
+    Why, and what is the correct const fix?
+
+    ```cpp
+    void report_sum(const std::vector<int>& xs) {
+      int total = baseline(), scratch = 0;
+      for (int x : xs) { scratch += x; }
+      emit(total, scratch);
+    }
+    ```
+
+    `total` is initialized once and never reassigned; `scratch` accumulates in
+    the loop. Give the verdict, the finding, and the checklist status.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-const-correctness/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-const-correctness
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(CLEAN|CONCERNS|BLOCK)'
+        - '(?i)(isolate|split|grouped|comma)'
+        - '(?i)(total|scratch).{0,80}(mutat|reassign|modif)|(mutat|reassign|modif).{0,80}(total|scratch)'
+        - '(?i)(Category|Findings|Checklist status):'

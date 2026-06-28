@@ -60,6 +60,10 @@ grader weighting takes effect.
   - `cpp-concurrency-review`: 0.45
   - `cpp-api-abi-review`: 0.45
   - `cpp-object-lifetime`: 0.45
+  - `cpp-cert`: 0.45
+  - `cpp-const-correctness`: 0.45
+  - `cpp-performance`: 0.45
+  - `cpp-struct-layout`: 0.45
   - `fix-batching-and-root-cause`: 0.45
   - `fix-blast-radius`: 0.45
   - `pr-scope-slicer`: 0.45

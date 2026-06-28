@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Frozen wire-format layout must not be reordered
+description: |
+  Review must report the padding waste but withhold the reorder because the
+  struct overlays a serialized wire format, requiring an explicit break.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    This struct is memcpy'd straight onto a socket as our on-wire packet
+    header and the peer parses the same byte layout. It has padding I'd like
+    to remove. Can you reorder the members to shrink it?
+
+    ```cpp
+    struct PacketHeader {
+      std::uint8_t  version;
+      std::uint32_t length;
+      std::uint8_t  flags;
+      std::uint32_t checksum;
+    };
+    ```
+
+    Return the verdict, the safety classification, and your recommendation.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-struct-layout/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-struct-layout
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS)'
+        - '(?i)(frozen|wire|serial|on-?wire|byte layout|format)'
+        - '(?i)(do not reorder|withhold|not reorder|explicit.*(break|decision)|require.*decision)'
+        - '(?i)(Safety|Findings|Checklist status):'

@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Copy/allocation cost question
+description: |
+  Reducing copies and allocations of a value type is runtime-cost work, not a
+  member-ordering layout change; the skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    My value type gets copied a lot in a hot loop and each copy allocates.
+    Should I pass it by const reference, move it into the sink, or reserve the
+    vector it goes into? I'm trying to cut the copy and allocation cost, not
+    change the member ordering or shrink sizeof.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-struct-layout/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Current:"
+        - "Proposed:"
+        - "Checklist status:"

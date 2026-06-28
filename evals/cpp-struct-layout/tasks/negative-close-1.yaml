@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: False-sharing cache-line padding question
+description: |
+  Adding cache-line padding to separate concurrently-written atomics is
+  contention tuning, not padding-reduction layout; the skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Two threads each increment their own atomic counter and I think they share
+    a cache line, causing false sharing. Should I pad the struct with
+    alignas(std::hardware_destructive_interference_size) to push the two
+    atomics onto separate cache lines? This is about write contention between
+    threads, not shrinking the type.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-struct-layout/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Current:"
+        - "Proposed:"
+        - "Checklist status:"

@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Command injection and unchecked return
+description: |
+  Review must activate on system() with attacker-influenced input and an
+  unchecked allocation return.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this C++ for CERT secure-coding violations.
+
+    ```cpp
+    void run(const std::string& name) {
+      std::string cmd = "convert " + name + " out.png";
+      system(cmd.c_str());
+      char* buf = (char*)malloc(1024);
+      strcpy(buf, name.c_str());
+      process(buf);
+    }
+    ```
+
+    Return the verdict, findings with CERT mappings, checklist status, and
+    residual risk.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-cert/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-cert
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS)'
+        - '(?i)(ENV33|command.inject|shell)'
+        - '(?i)(ERR33|unchecked|malloc|null)'
+        - '(?i)(MSC24|MSC33|strcpy|unsafe|bounds)'
+        - '(?i)(Findings|Checklist status):'

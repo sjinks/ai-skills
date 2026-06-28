@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Interleaved widths padding waste
+description: |
+  Review must compute the wasteful layout and propose a descending-alignment
+  reorder that strictly shrinks sizeof.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    This struct seems bigger than expected. It is stored in a vector of
+    millions of elements. Can the layout be shrunk? (x86-64, libstdc++.)
+
+    ```cpp
+    struct Record {
+      char    flag_a;
+      double  weight;
+      char    flag_b;
+      int     count;
+      char    flag_c;
+    };
+    ```
+
+    Return the verdict, before/after sizeof, the reordered members, and
+    checklist status.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-struct-layout/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-struct-layout
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(CLEAN|CONCERNS|BLOCK)'
+        - '(?i)(sizeof|align|padding|tail)'
+        - '(?i)(double).{0,120}(int|count).{0,160}(flag|char)|descending align'
+        - '(?i)(Current|Proposed|Findings|Checklist status):'

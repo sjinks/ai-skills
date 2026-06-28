@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Command-injection security question
+description: |
+  A security/undefined-behavior review of system() with user input is out of
+  scope for the performance skill; it must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Is it safe to pass a user-supplied filename into system("convert " + name)
+    to shell out to ImageMagick? I'm worried about command injection and
+    whether this is a CERT secure-coding violation. Speed is not my concern
+    here, correctness and security are.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-performance/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Type costs:"
+        - "Hot paths:"
+        - "Checklist status:"

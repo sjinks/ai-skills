@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Raw memcpy on non-trivial type
+description: |
+  Review must activate on a raw byte copy over a type with a non-trivial
+  member, bypassing its invariants.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Is this a CERT violation? `Widget` has a `std::string label` member.
+
+    ```cpp
+    void clone(Widget& dst, const Widget& src) {
+      std::memcpy(&dst, &src, sizeof(Widget));
+    }
+    ```
+
+    Give the verdict, the CERT rule and clang-tidy check, and the fix.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-cert/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-cert
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS)'
+        - '(?i)(OOP57|cert-oop57|non-trivial|raw.memory)'
+        - '(?i)(copy assignment|constructor|invariant|vtable)'
+        - '(?i)(Findings|Checklist status):'

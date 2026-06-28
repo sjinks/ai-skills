@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Expensive value param and missing reserve
+description: |
+  Review must activate on an expensive read-only value parameter and a
+  vector grown in a known-size loop without reserve.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this for avoidable runtime cost.
+
+    ```cpp
+    std::vector<std::string> expand(std::vector<std::string> names, int k) {
+      std::vector<std::string> out;
+      for (int i = 0; i < k; ++i)
+        for (const auto& n : names)
+          out.push_back(n + std::to_string(i));
+      return out;
+    }
+    ```
+
+    Return the verdict, type costs, hot paths, findings, and checklist status.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-performance/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-performance
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS|CLEAN)'
+        - '(?i)(const\s*&|const reference|by const).{0,80}(names|param)|names.{0,80}const'
+        - '(?i)reserve'
+        - '(?i)(unnecessary-value-param|inefficient-vector|performance-)'
+        - '(?i)(Type costs|Findings|Checklist status):'

@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Insufficient context on copy cost
+description: |
+  A performance question with no code and no type-cost information must
+  produce the reduced BLOCK template without guessing whether the type is
+  expensive to copy.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    A reviewer told me one of my functions takes a parameter by value that
+    should probably be a const reference for speed. I can't share the code or
+    tell you the parameter's type. Is it an expensive copy I should fix?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-performance/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-performance
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Open question'
+        - '(?i)(type|copy cost|code|expensive)'
+        - '(?i)(unknown|missing|cannot|unavailable|not\s+(shared|provided|supplied|shown|established))'
+      not_contains:
+        - "Checklist status:"
+        - "Type costs:"
