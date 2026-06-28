@@ -52,13 +52,16 @@ graders:
     config:
       prompt: |
         Grade whether the response performs the fail-closed defaults + read-time
-        bound review:
+        bound review (the scenario is a TLS *server* inbound context):
         - It flags that inheriting the linked library's TLS policy is unsafe and
-          requires pinning a minimum TLS version (1.2) for both client and
-          server when the caller does not set one, kept overridable.
+          requires pinning a minimum TLS version (1.2) on the server's inbound
+          context when the caller does not set one, kept overridable. (Pinning a
+          client/outbound minimum is correct only as a conditional add-on if the
+          same component also acts as a TLS client; a response that focuses on
+          the inbound server context must NOT be penalized for omitting it.)
         - It flags that the SNI context switch drops the verify mode, so the
-          per-hostname context may not verify the peer; the verify mode must be
-          RE-APPLIED after switching contexts.
+          per-hostname context may not verify the inbound client cert; the verify
+          mode must be RE-APPLIED after switching contexts.
         - It flags that checking body.size() only AFTER buffering the whole body
           lets a hostile client exhaust memory; the limit must be enforced
           DURING the read, wired to the parser, not validated post-hoc.
