@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Slowloris first-request timeout and connection cap
+description: |
+  Canonical safe-by-default review: the request timer arms only for keep-alive
+  follow-ups (first request unbounded) and there is no connection cap.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this C++ HTTP server session for safe-by-default behavior under
+    untrusted load. The header-read timer is armed in `arm_header_timer()`,
+    which is only called after `requests_seen_ > 0` (i.e. for keep-alive
+    follow-up requests). The default header/body timeouts are 0. The accept
+    loop constructs a full `Session` for every incoming connection and never
+    consults a live-connection count; there is no `max_connections`.
+
+    Answer from this scenario only; do not inspect files. Keep the response
+    concise. Use these section labels exactly: Time-bound, Count-bound, Tests.
+    Under each, give the status (safe / at-risk / missing), the hostile-client
+    failure, and the minimal fix.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-server-hardening-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-server-hardening-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(at-risk|missing)'
+        - '(?i)first request|requests_seen|initial.{0,20}(read|request)'
+        - '(?i)slowloris|stalled|holds?.{0,20}(connection|fd|file descriptor)|exhaust'
+        - '(?i)(max_connections|connection cap|shed|backpressure|stop accepting)'
+        - '(?i)(non-?zero|finite).{0,30}(default|timeout)|arm.{0,20}timer.{0,40}first'
+        - '(?i)(Time-bound|Count-bound|Tests):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response performs the safe-by-default review:
+        - It flags that arming the timer only after requests_seen_ > 0 leaves
+          the FIRST request unbounded (slowloris), and that a 0 default does not
+          bound the phase — it must ship a non-zero default and arm the timer on
+          the first-request path.
+        - It names the hostile-client failure: a client that connects and stalls
+          holds an fd + buffers indefinitely, exhausting resources.
+        - It flags the missing connection cap and recommends a max_connections
+          that SHEDS AT ACCEPT (accept+close or stop accepting) while keeping
+          the acceptor running, rather than constructing a full session.
+        - It names a verification test (stalled first request closes within the
+          bound; over-cap connection is shed).
+        A correct response uses the requested section labels and per-item status.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

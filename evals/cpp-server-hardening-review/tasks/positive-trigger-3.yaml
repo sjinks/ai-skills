@@ -1,0 +1,78 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-003
+name: Fail-closed TLS defaults and read-time bounds
+description: |
+  Crypto-default + read-time-bound review: no pinned TLS minimum version, verify
+  mode not re-applied after an SNI context switch, and a body-size limit checked
+  only after the whole body is buffered.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this C++ TLS server for fail-closed defaults and read-time bound
+    enforcement. The server creates its SSL context without calling any
+    set-minimum-version API, so it inherits whatever the linked TLS library
+    build permits. In the SNI callback it switches the connection to a
+    per-hostname context and returns, without re-applying the verify mode. The
+    request handler reads the entire request body into a std::string and only
+    then checks `if (body.size() > max_body_) reject();`.
+
+    Answer from this scenario only; do not inspect files. Keep the response
+    concise. Use these section labels exactly: TLS defaults, SNI verify,
+    Read-time bounds. Under each, give the status (safe / at-risk / missing),
+    the hostile-client failure, and the minimal fix.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-server-hardening-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-server-hardening-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(at-risk|missing)'
+        - '(?i)(minimum|min).{0,20}(TLS|version|proto).{0,20}1\.2|TLS.{0,5}1\.2|pin.{0,20}(version|TLS)'
+        - '(?i)(re-?apply|re-?set|restore).{0,30}verify|verify.{0,30}(after|re-?appl).{0,20}(SNI|context|switch)'
+        - '(?i)(during|while).{0,15}(the )?read|wired.{0,15}(to.{0,10})?parser|before.{0,20}buffer|not.{0,15}after.{0,15}buffer'
+        - '(?i)(memory|RAM|heap|buffer).{0,40}(exhaust|blow|unbounded|large)|large body'
+        - '(?i)(TLS defaults|SNI verify|Read-time bounds):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response performs the fail-closed defaults + read-time
+        bound review:
+        - It flags that inheriting the linked library's TLS policy is unsafe and
+          requires pinning a minimum TLS version (1.2) for both client and
+          server when the caller does not set one, kept overridable.
+        - It flags that the SNI context switch drops the verify mode, so the
+          per-hostname context may not verify the peer; the verify mode must be
+          RE-APPLIED after switching contexts.
+        - It flags that checking body.size() only AFTER buffering the whole body
+          lets a hostile client exhaust memory; the limit must be enforced
+          DURING the read, wired to the parser, not validated post-hoc.
+        - It names the hostile-client failure for each (downgrade/weak TLS,
+          unverified peer, memory exhaustion).
+        A correct response uses the requested section labels and per-item status.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

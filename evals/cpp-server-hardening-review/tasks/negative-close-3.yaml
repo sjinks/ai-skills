@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-003
+name: Asio strand/lifetime mechanics question
+description: |
+  Close-domain: a pure async-I/O / object-lifetime mechanics question (how to
+  structure strands and shared_from_this so a coroutine does not outlive its
+  session), which this skill explicitly defers as an async-I/O and
+  object-lifetime concern. No safe-by-default default, timeout, cap, teardown
+  policy, or TLS default is in question. Must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    In my C++ Boost.Asio server I'm getting occasional crashes and I think it's a
+    lifetime/strand mechanics issue. My session uses shared_from_this() and a
+    per-session strand. A spawned coroutine sometimes resumes after the owning
+    session object has already been destroyed, and two completion handlers seem
+    to run concurrently on the same session. Help me structure the strand binding
+    and the shared_from_this capture so every async op is serialized on the
+    session's strand and keeps the session alive until it completes. This is
+    purely about Asio executor/strand correctness and object lifetime — not about
+    timeouts, connection caps, teardown policy, or TLS defaults.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-server-hardening-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Time-bound"
+        - "Count-bound"
+        - "max_connections"
+        - "slowloris"
+        - "safe / at-risk / missing"

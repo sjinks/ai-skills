@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: HTTP parser framing rule question
+description: |
+  Close-domain: a pure HTTP/1.1 parser framing/correctness rule question (how the
+  parser should interpret Content-Length vs Transfer-Encoding), which this skill
+  defers as an HTTP-parser concern. The connection is not unbounded and no
+  safe-by-default default is in question. Must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    In a C++ HTTP/1.1 parser, when a request carries both a Content-Length header
+    and Transfer-Encoding: chunked, which one wins per the RFC, and how should the
+    parser compute the message body length and detect the end of the message? I
+    just want the correct framing/parsing rule and state transitions — this is
+    about parser correctness, not connection timeouts, caps, teardown, or TLS
+    defaults.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-server-hardening-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Time-bound"
+        - "Count-bound"
+        - "max_connections"
+        - "slowloris"
+        - "safe / at-risk / missing"

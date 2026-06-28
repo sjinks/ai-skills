@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Application authz role logic
+description: |
+  Close-domain: application authentication/authorization logic on a server, which
+  this skill explicitly excludes (it reviews connection-level safe-by-default
+  hardening, not who-can-do-what). Must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    In our C++ HTTP service, after a request is parsed and the connection is
+    healthy, I need to decide whether the authenticated user may access a given
+    resource. Help me design the role/permission model: how to map JWT scopes to
+    resource actions, where to enforce per-route authorization, and how to return
+    403 vs 404 to avoid leaking resource existence. This is purely application
+    authorization logic — connection lifetime, timeouts, and TLS setup are
+    already handled elsewhere and are not in scope.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-server-hardening-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Time-bound"
+        - "Count-bound"
+        - "max_connections"
+        - "slowloris"
+        - "safe / at-risk / missing"

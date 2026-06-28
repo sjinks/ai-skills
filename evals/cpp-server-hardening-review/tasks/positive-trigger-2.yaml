@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Teardown coverage and per-id cache leak
+description: |
+  Deterministic-reclaim review: a per-connection-id cache is pruned only on the
+  request-success path, and the teardown/disconnect hook misses the TLS
+  handshake-failure route.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this C++ TLS server for deterministic per-connection reclaim. Each
+    connection gets a monotonically increasing id; a `std::map<uint64_t,
+    SessionState> per_id_` entry is inserted on connect and erased only in
+    `on_request_complete()`. The `disconnect` notification is fired from the
+    normal-completion and client-FIN paths, but the TLS handshake-failure path
+    calls `close_lowest_layer()` directly and returns without firing
+    `disconnect`. There is no destructor backstop and no size/TTL bound on
+    `per_id_`.
+
+    Answer from this scenario only; do not inspect files. Keep the response
+    concise. Use these section labels exactly: Teardown, Cache bound, Tests.
+    Under each, give the status (safe / at-risk / missing), the hostile-client
+    failure, and the minimal fix.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-server-hardening-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-server-hardening-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(at-risk|missing)'
+        - '(?i)(handshake failure|handshake.{0,20}(path|route)|TLS handshake)'
+        - '(?i)(disconnect|teardown).{0,40}(once|exactly once|every|all paths)|destructor backstop'
+        - '(?i)(monotonic|per-id|per id|unbounded).{0,40}(leak|grow|cache|map)|success path'
+        - '(?i)(LRU|size cap|TTL|bound).{0,20}(cache|map|per_id)|evict'
+        - '(?i)(Teardown|Cache bound|Tests):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response performs the deterministic-reclaim review:
+        - It flags that the TLS handshake-failure path bypasses the disconnect
+          notification, so per-id state for a connection that never completed a
+          request is never reclaimed; the disconnect/teardown hook must fire on
+          EVERY termination route (including handshake failure) exactly once,
+          with a destructor backstop.
+        - It flags that erasing per_id_ only on the request-success path while
+          the id is monotonic is an unbounded leak; it must bound per_id_
+          (LRU/size cap or TTL) AND remove on the guaranteed teardown hook.
+        - It names the hostile-client failure: clients that connect and fail the
+          handshake (or never send a request) grow per_id_ without limit.
+        - It names a verification test (disconnect fires once including on
+          handshake failure and on no-request; the bounded cache evicts).
+        A correct response uses the requested section labels and per-item status.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent
