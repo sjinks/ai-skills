@@ -33,6 +33,8 @@ Use `unknown` when the supplied code or context does not prove an answer; do not
 - Timer handlers ignore stale generations/state: yes/no/unknown
 - `operation_aborted` treated as normal where expected: yes/no/unknown
 - Peer disconnect and timeout paths clean up resources: yes/no/unknown
+- Handlers re-check the teardown flag before re-arming or re-installing handlers (a cancelled read can still complete successfully from buffered bytes after close, and re-arming then resurrects torn-down state): yes/no/unknown
+- That teardown flag is the one set by every close path, not just the graceful/draining one (error-path close and graceful close can set different flags): yes/no/unknown
 
 ## Backpressure And Buffering
 
@@ -55,6 +57,7 @@ Use `unknown` when the supplied code or context does not prove an answer; do not
 - Peer disconnect:
 - Timeout before completion:
 - Cancellation before completion:
+- Cancelled read completing successfully from buffered bytes after close:
 - Shutdown with outstanding operations:
 - Slow client/backpressure:
 - Race-prone shared state:
