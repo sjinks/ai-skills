@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Install-after-teardown leak class
+description: |
+  The hard install-after-teardown case: a completion that runs after the closed
+  latch re-installs a strong-capturing handler, re-forming the ownership cycle;
+  the review must treat it as a defect class and guard on the closed latch.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    We fixed a leak in a C++ Boost.Asio/Beast HTTPS session: after a
+    connect-write-abort stress loop, sessions were retained. The session uses
+    shared_from_this() in its async completion handlers. Teardown latches two
+    flags: draining_ (graceful) and closed_ (final). The leak was at the
+    buffered-header read completion, which on success re-dispatched the request
+    and re-installed the response/commit handlers (which strong-capture the
+    session). We added a guard there that early-returns if draining_ is set, and
+    the original repro stopped leaking. Is this fix complete and safe?
+
+    Answer from this scenario only; do not inspect files. Keep the response
+    concise. Use the skill's hardening-report output format: a `Verdict:` line
+    and severity-tagged findings (each with its per-item status and the minimal
+    fix), covering the root cause, guard correctness, and the other re-dispatch
+    sites.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-server-hardening-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-server-hardening-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS|CLEAN)'
+        - '(?i)(at-risk|missing|incomplete|not.{0,10}(complete|safe))'
+        - '(?i)closed.{0,30}(latch|flag)|guard.{0,20}closed|not just draining'
+        - '(?i)(cancel|buffered).{0,40}(complete|succeed|success)|already.?buffered'
+        - '(?i)(keep-?alive|streaming).{0,40}(write|completion|handler).{0,80}(handshake|100-continue|expectation)|(handshake|100-continue|expectation).{0,80}(keep-?alive|streaming)'
+        - '(?i)(LSan|leak.?sanitizer).{0,40}fails?.{0,30}(with|without|removed).{0,20}guard|fails?.{0,20}(with|without).{0,10}the guard removed'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response catches the install-after-teardown leak class
+        correctly:
+        - It identifies that guarding on draining_ is INSUFFICIENT: the
+          error-path teardown sets closed_ WITHOUT draining_, so a draining-only
+          guard does not protect the error path. The guard must early-return on
+          the closed_ latch.
+        - It notes that a cancelled read can still complete SUCCESSFULLY from
+          already-buffered bytes, so cancellation alone does not prevent
+          re-dispatch.
+        - It treats this as a DEFECT CLASS: every completion that re-dispatches
+          or re-reads (buffered-header, keep-alive/streaming write completions,
+          handshake completion, 100-continue/expectation re-dispatch) must be
+          guarded, not only the one observed site.
+        - It names a verification: a connect-write-abort stress loop under LSan
+          that fails with the guard removed.
+        A correct response uses the skill's structured hardening-report format (a Verdict line and severity-tagged findings).
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent
