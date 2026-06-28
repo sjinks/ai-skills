@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Build-once range queries - sorted vector vs tree
+description: |
+  Review must match the structure to the dominant operation (build-once,
+  query-many with prefix/range scans) and recommend a sorted vector + binary
+  search over a std::map, noting the crossover and that ordered/range access
+  rules out a plain hash map.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    We build a lookup table of a few thousand symbol entries once at startup,
+    then at runtime do millions of queries per second. The queries are not just
+    point lookups: we frequently scan all symbols in a [lo, hi) name range and
+    iterate them in sorted order to render results. No inserts happen after
+    startup. Right now it is a std::map<std::string, Symbol>. Is std::map the
+    right container, or should this be something else?
+
+    Return the verdict, access pattern, sizes, the recommended structure,
+    crossover note, behavior risk, and checklist status.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-data-structure-selection/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-data-structure-selection
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(CLEAN|CONCERNS|BLOCK)'
+        - '(?i)(sorted (std::)?vector|flat_map).{0,120}(binary_search|lower_bound)|(binary_search|lower_bound)'
+        - '(?i)(build.?once|built once|startup|no inserts|query.?many)'
+        - '(?i)(range|sorted order|ordered iteration|prefix).{0,160}(hash|unordered)|(hash|unordered).{0,160}(range|sorted|ordered)'
+        - '(?i)(Access pattern|Recommended structure|Crossover|Checklist status):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response matches structure to the dominant operation:
+        - It recognizes the access pattern is build-once at startup, no runtime
+          inserts, with frequent ordered/range scans (not just point lookups).
+        - It recommends a sorted std::vector + binary search (lower_bound /
+          ranges::binary_search) over std::map: O(log n) lookup, contiguous,
+          no per-node allocation, and range scans become a contiguous sweep.
+        - It explains that a plain hash map (unordered_map) is ruled out here
+          because it cannot serve the ordered/range-iteration requirement, even
+          though it would win for pure point lookups.
+        A correct response uses the skill's structured output sections.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

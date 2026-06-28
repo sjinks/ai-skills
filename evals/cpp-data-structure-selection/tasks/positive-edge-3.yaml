@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Faster structure breaks insertion order - withhold the swap
+description: |
+  Review must catch that switching the ordered output to a hash map collapses
+  insertion order callers depend on, and downgrade or withhold the perf finding
+  rather than asserting a free swap.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    This builds a list of (key, value) pairs and the consumer iterates them in
+    the exact order they were inserted to render an audit log. Lookups by key
+    are O(n) today and someone proposed replacing the vector with a
+    std::unordered_map<std::string, std::string> "to make lookups O(1)". The
+    list can hold a few hundred entries per request. Is that swap safe?
+
+    Return the verdict, access pattern, sizes, recommended structure,
+    crossover note, behavior risk, and checklist status.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-data-structure-selection/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-data-structure-selection
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(CLEAN|CONCERNS|BLOCK)'
+        - '(?i)(insertion order|iteration order|reorders|loses.{0,20}order|order.{0,30}(lost|broken|not preserved))'
+        - '(?i)(behavior|behaviour) (change|risk)|correctness'
+        - '(?i)(keep.{0,30}vector|vector.{0,30}(plus|with).{0,30}index|side index|parallel index|insertion-ordered)'
+        - '(?i)(Access pattern|Recommended structure|Behavior risk|Checklist status):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response protects the ordering contract:
+        - It identifies that a plain std::unordered_map does NOT preserve the
+          insertion order the audit-log consumer depends on, so the bare swap
+          is a behavior change, not a free perf win.
+        - It downgrades or withholds the perf finding and instead recommends
+          keeping the ordered std::vector and adding a side index (or an
+          insertion-ordered map) if lookups truly dominate.
+        - It treats the ordering as a correctness constraint, not a preference.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

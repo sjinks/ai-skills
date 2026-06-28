@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Copy cost with the container unchanged
+description: |
+  Eliminating an unnecessary copy and adding reserve to an already-correct
+  std::vector is copy/allocation-cost review, not container selection; the
+  skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    This function is a little slow. The container choice (std::vector) is fine
+    and stays the same — I just think we copy the vector by value and forget to
+    reserve before the push loop. Can you spot the unnecessary copy and the
+    missing reserve?
+
+    ```cpp
+    std::vector<std::string> build(std::vector<std::string> names) {
+      std::vector<std::string> out;
+      for (const auto& n : names) out.push_back(transform(n));
+      return out;
+    }
+    ```
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-data-structure-selection/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Access pattern:"
+        - "Recommended structure:"
+        - "Checklist status:"

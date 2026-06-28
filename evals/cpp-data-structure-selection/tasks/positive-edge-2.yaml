@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Insufficient context - no N, no access pattern
+description: |
+  With neither the element count nor the access mix supplied, the skill must
+  emit the reduced insufficient-context BLOCK template and ask for the missing
+  driver rather than guessing a structure.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Should we switch this container to a hash map for speed?
+
+    ```cpp
+    Cache cache; // holds entries, looked up somewhere
+    ```
+
+    Pick the right data structure.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-data-structure-selection/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-data-structure-selection
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)(access pattern|expected N|worst.?case|element count|dominant operation)'
+        - '(?i)(missing|unknown|not (given|provided|stated)|cannot)'
+      not_contains:
+        - "Checklist status:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response refuses to guess:
+        - It returns Verdict: BLOCK using the reduced insufficient-context
+          template because neither the element count (expected and worst-case
+          N) nor the access pattern is given.
+        - It names exactly which required context is missing and asks for it.
+        - It does NOT fabricate a structure recommendation, sizes, or a full
+          checklist with guessed values.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

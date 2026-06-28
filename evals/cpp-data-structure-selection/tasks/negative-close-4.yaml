@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-004
+name: Dangling iterator after a settled container, not selection
+description: |
+  Diagnosing a use-after-invalidation bug where the container choice is fixed
+  is object-lifetime review, not container selection; the skill must not
+  activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    We keep a std::vector<Item> and we are not changing that container. The bug
+    is that we save an iterator into it, then push_back more items, and later
+    dereference the saved iterator — which is dangling because push_back
+    reallocated. I just want to fix the dangling-iterator lifetime bug; the
+    vector is the correct structure and stays. Where exactly does the iterator
+    get invalidated and how should we hold the reference safely instead?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-data-structure-selection/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Access pattern:"
+        - "Recommended structure:"
+        - "Checklist status:"
