@@ -38,5 +38,8 @@ graders:
         - "mallocount"
         - "reference server"
         - "Metric:"
+        - "Method:"
         - "Decision:"
         - "Hypothesis:"
+        - "Validity:"
+        - "Redo:"

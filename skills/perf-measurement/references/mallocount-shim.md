@@ -1,8 +1,11 @@
 # Allocation-counting `LD_PRELOAD` shim
 
-Read this when you need the full, buildable `mallocount` skeleton referenced from
-Core Principle 2 of `SKILL.md` — the exact C source, the build invocation, and the
-`dlsym` bootstrap gotchas.
+Read this when you need the `mallocount` skeleton referenced from Core Principle 2
+of `SKILL.md` — the C source, the build invocation, and the `dlsym` bootstrap
+gotchas. The skeleton below is intentionally minimal: it counts `malloc` only and
+is *not* copy/paste-ready. A robust shim needs the `dlsym` re-entrancy guard and
+the `calloc`/`realloc`/`free` handling described under "Gotchas" before it is safe
+to run.
 
 An `LD_PRELOAD` shim that overrides `malloc`/`calloc`/`realloc` and prints a total
 at exit gives an exact allocation count for a fixed workload — no profiler, no
