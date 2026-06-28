@@ -35,6 +35,7 @@ Use when a project has accumulated multiple artifacts of the same kind that shou
 
 ## ID Discipline
 
+- Concern namespacing introduces new ID prefixes (`C-FR-*`, `H-FR-*`). Confirm the project's ID discipline allows namespaced prefixes before emitting them: if the owning convention fixes a closed prefix set and forbids new prefixes without updating that convention, stop and get the ID discipline updated first rather than inventing prefixes the rest of the project will reject.
 - Preserve every source ID. The base source keeps bare prefixes; every other source is namespaced in full. No ID is renumbered or dropped.
 - A re-namespaced ID is recorded on the `Superseded:` line as `<old> -> <new>` (e.g. `FR-1 -> H-FR-1`). `Added`/`Updated`/`Removed` are `none` for a pure consolidation unless the merge genuinely introduced, changed, or deleted a requirement.
 - The `Namespaces:` line in the `## ID Change Summary` is the authoritative concern→prefix mapping; the same mapping previewed in `## Consolidation Plan` must match it exactly.
