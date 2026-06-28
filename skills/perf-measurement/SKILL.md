@@ -52,9 +52,11 @@ The governing rule: **measure, do not guess; isolate, do not assume; change one 
   __attribute__((destructor)) static void rep(void){
     unsigned long long total = atomic_load(&n);
     fprintf(stderr,"allocs=%llu\n",total); }
-  // Extend with calloc/realloc the same way; guard calloc against the dlsym
-  // bootstrap (serve from a small static arena until real_calloc resolves) and
-  // make free() ignore arena pointers.
+  // Extend with calloc/realloc the same way. dlsym() can allocate via malloc
+  // too, so on the first malloc() entry real_malloc is still NULL when dlsym
+  // runs: gate re-entry with a thread-safe "resolving" flag (or serve from the
+  // same static arena) so the bootstrap allocation doesn't recurse, and apply
+  // the same arena guard to calloc; make free() ignore arena pointers.
   ```
 - Isolate the **per-request** figure by differencing two fixed request counts over one keep-alive connection: `per_request = (allocs@N2 − allocs@N1) / (N2 − N1)`. The subtraction cancels process startup and first-request warm-up.
 - This metric is the right gate for iterating allocation reductions: each step's effect is exact and immune to throughput noise.
@@ -96,6 +98,10 @@ The governing rule: **measure, do not guess; isolate, do not assume; change one 
 4. Make exactly one change. Re-measure under identical conditions.
 5. If it moved the metric meaningfully, keep it (with a regression test that the behavior is unchanged); if not, revert and record the negative result.
 6. Re-profile to confirm the bottleneck shifted, and to choose the next target. Stop when the remaining cost is inherent to the stack (shared with the raw-framework control).
+
+## Output
+
+Return: the **metric** chosen and why it fits the change size; the **method** (build flags, baseline conditions, the control/reference server or `mallocount` differencing used, and the one change isolated); and the **decision** with its before/after number — keep (with a behavior-preserving regression test) or revert-and-record-the-negative-result. If a profile was taken, give the bucketed self-time and the next target. State explicitly when a proposed "fix" is a known no-op until measured.
 
 ## Checklist
 
