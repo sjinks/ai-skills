@@ -34,8 +34,9 @@ graders:
     name: task_completion
     config:
       not_contains:
-        - "throughput"
-        - "allocation count"
         - "LD_PRELOAD"
-        - "noise floor"
+        - "mallocount"
         - "reference server"
+        - "Metric:"
+        - "Decision:"
+        - "Hypothesis:"

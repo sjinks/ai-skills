@@ -44,6 +44,7 @@ The governing rule: **measure, do not guess; isolate, do not assume; change one 
   #define _GNU_SOURCE
   #include <dlfcn.h>
   #include <stdatomic.h>
+  #include <stddef.h>
   #include <stdio.h>
   static atomic_ullong n;
   static void *(*real_malloc)(size_t);

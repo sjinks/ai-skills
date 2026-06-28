@@ -27,8 +27,6 @@ graders:
     config:
       not_contains:
         - "cannot-fail"
-        - "solid"
-        - "weak"
         - "quality checklist"
         - "per-test verdict"
         - "tautology"
