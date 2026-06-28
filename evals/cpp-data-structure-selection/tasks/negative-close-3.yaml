@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-003
+name: Shared-structure lock contention, container settled
+description: |
+  Reducing lock contention on a shared container is concurrency review, not
+  container selection; the structure choice is already settled, so the skill
+  must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    A std::unordered_map guarded by one std::mutex is hot: many threads read
+    and write it concurrently and they serialize on the single lock. The map
+    itself is the right container and stays — I just want to reduce contention.
+    Should I shard it behind multiple locks, switch to a reader-writer lock, or
+    use a concurrent/lock-free map? This is purely about lock granularity and
+    write contention between threads, not which container holds the data.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-data-structure-selection/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Findings:"
+        - "Access pattern:"
+        - "Recommended structure:"
+        - "Checklist status:"

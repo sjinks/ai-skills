@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
+name: cpp-data-structure-selection-eval
+description: |
+  Evaluates the cpp-data-structure-selection skill: it activates for container
+  choice behind lookup, membership, dedup, ordering, and accumulation, naming
+  the asymptotic shape, matching structure to the dominant operation, respecting
+  the small-N crossover, and preserving ordering/stability/duplicate/reference
+  guarantees; stays silent on copy/move/allocation cost of an already-chosen
+  container, struct member-padding layout, shared-structure lock contention,
+  and use-after-invalidation lifetime bugs where the container is settled; and
+  emits the skill's verdict, access pattern, sizes, recommended structure,
+  crossover note, behavior risk, and checklist status.
+skill: cpp-data-structure-selection
+version: "1.0"
+config:
+  trials_per_task: 2
+  timeout_seconds: 300
+  parallel: true
+  workers: 4
+  executor: copilot-sdk
+  model: claude-sonnet-4.6
+  max_attempts: 2
+metrics:
+  - name: trigger_accuracy
+    weight: 0.30
+    threshold: 0.8
+    description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected mode.
+  - name: skill_invocation
+    weight: 0.15
+    threshold: 0.9
+    description: Skill is invoked on positive tasks that should activate it.
+  - name: task_completion
+    weight: 0.40
+    threshold: 0.8
+    description: Output names the asymptotic shape, recommends a structure for the dominant operation, reasons the crossover, and maps severity to a verdict.
+  - name: efficiency
+    weight: 0.15
+    threshold: 0.7
+    description: Stays within tool-call and total-token budgets.
+graders:
+  - type: behavior
+    name: efficiency
+    config:
+      max_tool_calls: 10
+      max_tokens: 8000
+tasks:
+  - "tasks/*.yaml"

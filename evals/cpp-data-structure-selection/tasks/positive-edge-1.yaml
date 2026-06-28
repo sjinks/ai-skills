@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Small bounded N anti-fix - keep the flat scan
+description: |
+  Review must resist the Big-O "upgrade" of a tiny fixed linear scan to a
+  hash set, recognizing the structure is below its crossover, and mark any
+  proposed swap a measurement gap.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    A colleague wants to replace this 8-element linear scan over a fixed,
+    compile-time list of method names with a std::unordered_set "because O(1)
+    beats O(n)". The list never changes and always has 8 short strings. Is
+    that the right call?
+
+    ```cpp
+    static constexpr std::array<std::string_view, 8> kMethods = { /* ... */ };
+    bool is_known(std::string_view m) {
+      return std::any_of(kMethods.begin(), kMethods.end(),
+                         [&](std::string_view k) { return k == m; });
+    }
+    ```
+
+    Return the verdict, access pattern, sizes, recommended structure,
+    crossover note, behavior risk, and checklist status.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-data-structure-selection/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-data-structure-selection
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(CLEAN|CONCERNS|BLOCK)'
+        - '(?i)(keep|leave|retain).{0,40}(scan|linear|array|any_of)|do not (replace|upgrade)'
+        - '(?i)(crossover|below.{0,20}crossover|small|bounded|8 element|cache)'
+        - '(?i)(measurement gap|no asymptotic gain|no.{0,20}benefit|benchmark)'
+        - '(?i)(Access pattern|Recommended structure|Crossover note|Checklist status):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response correctly rejects the proposed swap:
+        - It recognizes that at a fixed N of 8 short strings the linear scan
+          over a contiguous array is below the hash-set crossover (no hashing,
+          no allocation, cache-friendly) and is the right choice.
+        - It declines to "upgrade" to unordered_set on Big-O grounds alone and
+          marks any such swap a measurement gap absent a benchmark across N.
+        - It does not invent ordering/duplicate problems that do not exist.
+        A correct response uses the skill's structured output sections and
+        likely returns CLEAN or CONCERNS, not BLOCK.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent
