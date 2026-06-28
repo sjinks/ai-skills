@@ -82,7 +82,13 @@ The governing rule: **measure, do not guess; isolate, do not assume; change one 
 
 ## Output
 
-Return: the **metric** chosen and why it fits the change size; the **method** (build flags, baseline conditions, the control/reference server or `mallocount` differencing used, and the one change isolated); and the **decision** with its before/after number — keep (with a behavior-preserving regression test) or revert-and-record-the-negative-result. If a profile was taken, give the bucketed self-time and the next target. State explicitly when a proposed "fix" is a known no-op until measured.
+If the caller requests specific section labels, follow them exactly. Otherwise use the default labels `Metric:` / `Method:` / `Decision:`:
+
+- `Metric:` the metric chosen and why it fits the change size.
+- `Method:` build flags, baseline conditions, the control/reference server or `mallocount` differencing used, and the one change isolated.
+- `Decision:` the before/after number and the call — keep (with a behavior-preserving regression test) or revert-and-record-the-negative-result.
+
+If a profile was taken, give the bucketed self-time and the next target. State explicitly when a proposed "fix" is a known no-op until measured.
 
 ## Checklist
 

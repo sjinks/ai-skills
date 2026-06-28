@@ -55,7 +55,14 @@ The last row is the important one: a flake under the sanitizers is the test doin
 
 ## Output
 
-Return: the reproduction (how the flake was forced and how often it failed), the classified root cause (test-bug or code-bug, with the table row), the source-level fix, and the post-fix verification under the same reproduction conditions. If the cause is a real code defect, say so explicitly and hand it off to a concurrency/lifetime review rather than masking it.
+If the caller requests specific section labels, follow them exactly. Otherwise use this default labeled format:
+
+- `Reproduce:` how the flake was forced and how often it failed.
+- `Root cause:` test-bug or code-bug, with the matching table row.
+- `Fix:` the source-level fix (not a sleep/retry/disable).
+- `Verify:` the post-fix result under the same reproduction conditions.
+
+If the cause is a real code defect, say so explicitly under `Root cause:` and hand it off to a concurrency/lifetime review rather than masking it.
 
 ## Anti-Patterns
 

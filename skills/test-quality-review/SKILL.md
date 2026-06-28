@@ -53,12 +53,15 @@ Audit each test against these. Any failure is a finding.
 
 1. Identify the behavior/AC the test claims to verify.
 2. Walk the six checklist sections; for each, mark `ok` / `weak` / `missing` with the line evidence.
-3. Apply the killer question to the whole test: *would it fail if the behavior regressed?* If no, that is the top finding regardless of anything else.
+3. Apply the killer question to the whole test: *would it fail if the behavior regressed?* If no, that is the top finding regardless of anything else (a `cannot-fail` verdict).
 4. For each `weak`/`missing`, give the concrete rewrite (a real assertion, a latch instead of a sleep, an effect-based assertion instead of a mock call count, the missing error-path case).
 
 ## Output
 
-Return a per-test verdict: a short status line (`solid` / `weak` / `cannot-fail`), then findings keyed to the checklist number with file/line and the concrete fix. Order the findings list to lead with any "cannot fail" or non-deterministic finding (these drive a `cannot-fail`/`weak` verdict); behavioral-focus and coverage findings follow.
+If the caller requests specific section labels, follow them exactly. Otherwise use this default labeled format:
+
+- `Verdict:` one of `solid` / `weak` / `cannot-fail` (always hyphenated, including in prose).
+- `Findings:` a list keyed to the checklist number, each with file/line and the concrete fix. Lead with any `cannot-fail` or non-deterministic finding (these drive a `cannot-fail`/`weak` verdict); behavioral-focus and coverage findings follow.
 
 ## Anti-Patterns
 

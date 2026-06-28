@@ -27,6 +27,8 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Verdict:"
+        - "Findings:"
         - "cannot-fail"
         - "quality checklist"
         - "per-test verdict"
