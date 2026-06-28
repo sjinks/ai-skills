@@ -44,7 +44,7 @@ If the full member list cannot be seen, or the platform's type sizes cannot be e
 
 1. Each member is placed at an offset that is a multiple of its **alignment**; the compiler inserts **internal padding** before a member when the running offset is not yet aligned.
 2. The struct's own alignment is the **maximum** alignment of its members; `sizeof` is rounded up to a multiple of that alignment, producing **tail padding**.
-3. Members are laid out in **declaration order** (the standard guarantees increasing addresses for members in the same access-control section). The compiler may **not** reorder members, so order is the programmer's lever.
+3. Members are laid out in **declaration order**: the standard guarantees increasing addresses for non-static data members declared in the same access-control section ([class.mem]), and the compiler may **not** reorder them, so order is the programmer's lever. (Across *different* access sections the relative order is unspecified, which is why rule 7 keeps data members in one section.)
 4. Therefore: ordering members by **descending alignment** (8-byte, then 4-byte, then 2-byte, then 1-byte) minimizes internal padding, and small trailing members are absorbed by tail padding that would exist anyway.
 
 Worked example (x86-64 LP64, `alignof(double)==8`, `alignof(int)==4`, `alignof(char)==1`):
@@ -81,7 +81,7 @@ Recommend (do not run; this is a read-only skill) one of:
 - `clang -Xclang -fdump-record-layouts -emit-llvm -c file.cpp` (or `-fsyntax-only`): prints exact offsets, sizes, and padding per record — the authoritative answer.
 - `clang -Wpadded` / `gcc -Wpadded`: warns at each inserted padding byte (noisy but precise).
 - `pahole <object-with-debuginfo>`: shows holes and suggests packing for compiled types.
-- `clang-tidy`/clang static analyzer `optin.performance.Padding` (configurable `AllowedPad`): flags types wasting more than a threshold of padding.
+- clang static analyzer `optin.performance.Padding` (in `clang-tidy`, enable it as `clang-analyzer-optin.performance.Padding`; configurable `AllowedPad`): flags types wasting more than a threshold of padding.
 - In code: `static_assert(sizeof(T) == N); static_assert(offsetof(T, m) == K);` to pin the result (note `offsetof` is only well-defined for standard-layout types).
 
 ## Checklist
@@ -98,15 +98,16 @@ Recommend (do not run; this is a read-only skill) one of:
 
 ## Severity And Verdicts
 
-Padding waste is a low-correctness-risk efficiency issue; severity reflects the multiplied cost and the risk of an unsafe reorder.
+Padding waste is a low-correctness-risk efficiency issue; severity reflects the multiplied cost and the risk of an unsafe reorder. `CRITICAL` is reserved for a change that silently corrupts a contract other code depends on.
 
-- `HIGH`: a proposed reorder that breaks behavior — re-mapped positional aggregate init, changed member-init order with a dependency, or a silent ABI/wire-format break on a frozen type.
+- `CRITICAL`: a layout change that silently breaks a frozen contract other code relies on — an exported ABI, raw-byte serialization, a wire/file/hardware format, or a matching C declaration — shipping data corruption or interop breakage the compiler does not catch.
+- `HIGH`: a reorder that breaks behavior within the translation unit — re-mapped positional aggregate init, or changed member-init order with a dependency (a `-Wreorder`-class hazard).
 - `MEDIUM`: real, multiplied padding waste (type stored in large arrays/containers or per-connection/request) that a safe reorder removes; or an oversized member inflating alignment.
 - `LOW`: padding in a singleton / rarely-instantiated type where footprint barely matters, or a reorder that does not actually change `sizeof`.
 
 Verdicts:
 
-- `BLOCK`: the full member list or the platform type sizes cannot be seen, or a proposed reorder would break a frozen layout or positional init and the break is not approved.
+- `BLOCK`: missing required context (the full member list or the platform type sizes cannot be seen), or any `CRITICAL` (a proposed reorder would break a frozen layout) or unmitigated `HIGH` (positional-init or member-init-order break) that is not approved.
 - `CONCERNS`: the reorder is correct and saves space but intersects another constraint to confirm (init order, designated-init call sites, standard-layout requirement) before applying.
 - `CLEAN`: layout is already optimal for its alignment classes, or the proposed reorder strictly shrinks `sizeof`, is provably safe, and is locked with a `static_assert`.
 
@@ -119,7 +120,7 @@ Assumptions: <platform / type sizes used, e.g. libstdc++ x86-64, sizeof(std::str
 
 Findings:
 1. <short title>
-  Severity: HIGH | MEDIUM | LOW
+  Severity: CRITICAL | HIGH | MEDIUM | LOW
   Classification: Padding waste | Unsafe reorder | Frozen layout | Oversized member | Open question
   Current: sizeof=<N>, alignof=<A> — <offset/padding sketch>
   Proposed: sizeof=<M> — <new member order>

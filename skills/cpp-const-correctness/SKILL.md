@@ -77,13 +77,14 @@ Automatic fix-its (`TransformValues`/`TransformReferences`, default on; `Transfo
 
 `misc-const-correctness` is a low-risk readability/intent check; its findings rarely indicate a latent bug. Severity reflects the cost of leaving it (a build-gate failure where the project treats the check as an error) versus the risk of a wrong fix.
 
-- `HIGH`: a wrong fix that breaks the build (added `const` to an actually-mutated variable) or silently changes behavior (blocking a return move, changing overload resolution).
+- `CRITICAL`: a wrong fix that compiles cleanly but silently changes runtime behavior and could ship — adding `const` to a local shifts overload resolution so a different function is selected, changing program behavior.
+- `HIGH`: a wrong fix that breaks the build (added `const` to an actually-mutated variable) or blocks a return move / pessimizes (caught at compile time or by `performance-no-automatic-move`).
 - `MEDIUM`: a true missing `const` on a flagged local that fails a gating tidy run.
 - `LOW`: stylistic placement preference (`const T` vs `T const`) where the file is consistent either way.
 
 Verdicts:
 
-- `BLOCK`: a proposed `const` would break the build or change behavior, or the variable's mutation cannot be confirmed from the supplied context.
+- `BLOCK`: any `CRITICAL` (a `const` that silently changes overload resolution) or `HIGH` (a `const` that breaks the build or blocks a return move), or the variable's mutation cannot be confirmed from the supplied context.
 - `CONCERNS`: the `const` is correct but intersects another check (e.g. return-move) that should be confirmed, or grouped declarations still need isolation.
 - `CLEAN`: every flagged declaration in scope is correctly qualified, the build compiles, and re-running tidy clears the finding with no new one.
 
@@ -95,7 +96,7 @@ Target: <files, diff, or declaration>
 
 Findings:
 1. <short title>
-  Severity: HIGH | MEDIUM | LOW
+  Severity: CRITICAL | HIGH | MEDIUM | LOW
   Classification: Confirmed missing const | Wrong/unsafe fix | Out of scope | Open question
   Evidence: <file:line of the declaration and any mutation site>
   Category: value | reference | pointer
