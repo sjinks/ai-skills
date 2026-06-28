@@ -18,7 +18,7 @@ This skill is the deep, dedicated treatment of struct/union padding waste — th
 ## Scope
 
 - Use this skill for: non-static data member **ordering** to reduce internal and tail padding; identifying which member's alignment forces padding; estimating `sizeof`/`alignof`/`offsetof` before and after a reorder; deciding when `alignas`, `[[no_unique_address]]`, or splitting hot/cold fields is warranted; spotting oversized members (e.g. an `enum` with a needlessly wide underlying type, an `int` where `std::uint8_t` suffices) that inflate alignment.
-- Apply it to: plain data aggregates, value types stored in large arrays/containers (where per-element padding multiplies), per-connection/per-request/per-message structs in this server (footprint × concurrency), and any type the user reports as "bigger than expected".
+- Apply it to: plain data aggregates, value types stored in large arrays/containers (where per-element padding multiplies), per-connection/per-request/per-message structs in a high-concurrency service (footprint × concurrency), and any type the user reports as "bigger than expected".
 - Keep the change behavior-preserving: same set of members and types, same access semantics. Only the **declaration order** (and occasionally alignment qualifiers) changes.
 
 ## DO NOT USE FOR:
