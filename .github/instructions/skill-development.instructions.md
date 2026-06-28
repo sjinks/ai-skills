@@ -20,7 +20,7 @@ applyTo: skills/**, evals/**
 - Review-style skills define: severity rubric, verdict mapping (`BLOCK`/`CONCERNS`/`CLEAN`), a no-findings path, and a deterministic insufficient-context (BLOCK) template.
 - Keep output-format enums exact and consistent everywhere they appear (templates, checklists, references). If a reference uses a richer vocabulary, state explicitly how it collapses to the report enum.
 - The `## Output` section must define distinctive, labeled output markers (e.g. `Verdict:` / `Findings:`, `Reproduce:` / `Root cause:` / `Fix:`), not just describe the content in prose. Give a default label set and instruct the assistant to follow caller-requested labels exactly otherwise. These markers are the contract the eval negative graders key on, so they must exist before the evals are written.
-- Any embedded code example must compile/run clean as written. For C/C++, build the exact snippet with `gcc/g++ -Wall -Wextra -Werror` (add the real headers it needs) before committing; a runnable example that warns is a defect.
+- An embedded code example presented as runnable (a complete snippet plus its build/run command) must compile/run clean as written: for C/C++, build the exact snippet with `gcc/g++ -Wall -Wextra -Werror` (adding the headers it needs) before committing; a runnable example that warns is a defect. A deliberately partial or illustrative snippet is allowed, but it must be labeled as such and must not be paired with a copy/paste build/run command that implies it is safe to execute.
 - When decision rules and checklist items overlap, name the checklist as the gating source of truth.
 
 ## Eval Suite

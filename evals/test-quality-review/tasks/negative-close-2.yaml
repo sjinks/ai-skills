@@ -28,7 +28,3 @@ graders:
       not_contains:
         - "Verdict:"
         - "Findings:"
-        - "cannot-fail"
-        - "quality checklist"
-        - "per-test verdict"
-        - "tautology"

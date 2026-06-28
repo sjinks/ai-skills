@@ -9,7 +9,10 @@ to run.
 
 An `LD_PRELOAD` shim that overrides `malloc`/`calloc`/`realloc` and prints a total
 at exit gives an exact allocation count for a fixed workload — no profiler, no
-sampling error. Build it and run the target under it:
+sampling error. Once you have extended the minimal skeleton with the Gotchas
+handling below (the `dlsym` re-entrancy guard and `calloc`/`realloc`/`free`
+cases), build it and run the target under it — do **not** run the bare skeleton as
+shown, it can recurse during `dlsym` resolution:
 
 ```sh
 gcc -O2 -shared -fPIC -o mallocount.so mallocount.c -ldl
