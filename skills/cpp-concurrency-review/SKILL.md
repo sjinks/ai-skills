@@ -100,6 +100,7 @@ The Checklist below is the gating source of truth when these rules overlap; the 
 
 - Every spawned thread is joined on every path (including exceptions), or detachment carries a written lifetime argument.
 - Shutdown order is explicit: stop intake, wake waiters, drain or cancel in-flight work, join, then destroy shared state.
+- When teardown uses more than one flag (e.g. hard-close vs graceful-drain), in-flight completions check the one flag that every close path sets; guarding on only the graceful flag lets error-path closes slip through.
 - `thread_local` objects with destructors are not relied on after thread exit, and their destruction order across threads is not assumed.
 
 ### Tests
