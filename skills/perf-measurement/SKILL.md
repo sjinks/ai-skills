@@ -48,7 +48,8 @@ The governing rule: **measure, do not guess; isolate, do not assume; change one 
   #include <stdio.h>
   static atomic_ullong n;
   static void *(*real_malloc)(size_t);
-  void *malloc(size_t s){ if(!real_malloc) real_malloc=dlsym(RTLD_NEXT,"malloc");
+  void *malloc(size_t s){
+    if(!real_malloc) real_malloc=(void *(*)(size_t))dlsym(RTLD_NEXT,"malloc");
     atomic_fetch_add(&n,1); return real_malloc(s); }
   __attribute__((destructor)) static void rep(void){
     unsigned long long total = atomic_load(&n);
