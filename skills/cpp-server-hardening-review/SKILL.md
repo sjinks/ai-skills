@@ -62,13 +62,13 @@ The governing rule: **a default-configured server must survive a hostile client 
 ## Review Procedure
 
 1. Locate the accept loop, the session constructor/teardown, the options struct with its defaults, and the TLS context setup.
-2. Walk each checklist section against the code; for each item, cite the exact symbol/default and mark `safe` / `at-risk` / `missing`. If a section's code was not supplied, mark its items `missing-evidence` (never `safe`) and state what to inspect — do not infer a passing status from absence.
-3. For every `at-risk`/`missing` item, state the concrete failure a hostile client triggers (e.g. "1 fd + buffer + SSL state pinned forever per stalled connection") and the minimal fix.
+2. Walk each checklist section against the code; for each item, cite the exact symbol/default and mark one of `safe` / `at-risk` / `missing` / `missing-evidence`. Use `missing-evidence` (never `safe`) when a section's code was not supplied, and state what to inspect — do not infer a passing status from absence.
+3. For every `at-risk` or `missing` item, state the concrete failure a hostile client triggers (e.g. "1 fd + buffer + SSL state pinned forever per stalled connection") and the minimal fix. For a `missing-evidence` item, state what code to inspect to resolve it.
 4. For each proposed fix, name the verification: a focused test (stalled-first-request closes within the bound; over-cap connection is shed; `disconnect` fires once including on handshake failure and on no-request; bounded cache evicts) plus the lifetime/concurrency check to confirm the fix is itself safe.
 
 ## Output
 
-Return a hardening report: one row per checklist item with status, evidence (symbol/default), the hostile-client failure if not safe, the minimal fix, and the verification. Lead with the blocking items (unbounded time or count, unreclaimed state, weak default that fails open).
+Return a hardening report: one row per checklist item with status (`safe` / `at-risk` / `missing` / `missing-evidence`), evidence (symbol/default), the hostile-client failure if not safe, the minimal fix, and the verification. Lead with the blocking items (unbounded time or count, unreclaimed state, weak default that fails open).
 
 ## Anti-Patterns
 

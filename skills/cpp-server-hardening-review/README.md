@@ -7,12 +7,12 @@ This skill reviews a C++ network server (or its options surface) for **safe-by-d
 It helps an assistant:
 
 - confirm every connection is time-bounded by default, including the **first** request (not just keep-alive follow-ups), with non-zero shipped request-phase and idle timeouts
-- confirm every connection is count-bounded with an optional cap that **sheds at accept** under backpressure while keeping the acceptor running
+- confirm every connection is count-bounded with a default-on `max_connections` cap (defense-in-depth, not optional) that **sheds at accept** under backpressure, re-arming the acceptor as connections close
 - confirm per-connection state is reclaimed on a **single guaranteed teardown path** that every termination route reaches (including TLS handshake failure), with a once-only `disconnect` latch, a destructor backstop, and bounded per-id caches
 - catch the install-after-teardown leak class, where an async completion runs after teardown and re-forms a strong-capture cycle the latch never breaks again — guarding every `shared_from_this` re-dispatch site on the **closed** latch, not just the one where a leak was first seen
 - confirm crypto/protocol defaults fail closed: pinned minimum TLS version, verification on by default with only a named opt-out, verify-mode re-applied after per-SNI context switches
 - confirm bounds are enforced **while reading**, wired to the parser, not validated after buffering
-- emit a hardening report: per-checklist-item status (`safe`/`at-risk`/`missing`), evidence, the hostile-client failure, the minimal fix, and the verification, leading with blocking items
+- emit a hardening report: per-checklist-item status (`safe`/`at-risk`/`missing`/`missing-evidence`), evidence, the hostile-client failure, the minimal fix, and the verification, leading with blocking items
 
 ## Files
 
