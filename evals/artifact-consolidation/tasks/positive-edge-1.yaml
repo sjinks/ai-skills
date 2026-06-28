@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Stale fact in a source artifact must be reconciled during the merge
+description: |
+  Documented hard behavior: when a source artifact claims to reflect the
+  implementation, a fact that has drifted is corrected during the merge, not
+  carried forward into the merged document.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    Merge these two architecture documents into one. Both are the same kind.
+    `arch-core.md` is the base.
+
+    `arch-core.md`:
+    - D-1: One io_context per worker thread.
+    - Note (amended from implementation): headers ship as `.hpp`.
+
+    `arch-tls.md`:
+    - D-1: TLS terminates in a dedicated handshake strand.
+
+    For reference, the current `include/` listing is:
+    ```
+    session.h
+    tls_layer.h
+    ```
+
+    Answer from this scenario only. Produce the merged architecture and reconcile
+    any stale facts as you go.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/artifact-consolidation/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - artifact-consolidation
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)D-1'
+        - '(?i)(prefix|namespace|[A-Z]{1,4}-D-1)'
+        - '(?i)\.hpp.{0,40}\.h\b|`?\.hpp`?.{0,30}(stale|wrong|drift|should be)|correct.{0,20}\.h\b'
+        - '(?i)(reconcil|verify|confirm|check).{0,30}(tree|listing|source|current)'
+        - '(?i)ID Change Summary|Consolidation Plan|Consolidated:'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response reconciles the stale fact during the merge:
+        - Both D-1 decisions survive with the collision namespaced (not
+          renumbered/dropped).
+        - The "headers ship as .hpp" note is corrected to `.h` against the
+          provided listing rather than copied forward unchanged.
+        - It does not invent files absent from the listing.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).

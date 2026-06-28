@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Two specs with colliding FR-1 must namespace, not renumber
+description: |
+  Canonical consolidation: two same-kind specs each define FR-1/FR-2; merge
+  into one preserving every ID by concern-prefixing the non-base source.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Merge these two specifications into one. They are the same kind (both feature
+    specs). Do not lose any requirement.
+
+    `spec-client.md` (treat as the base):
+    - FR-1: The client retries idempotent requests up to 3 times.
+    - FR-2: The client surfaces a typed timeout error.
+
+    `spec-hardening.md`:
+    - FR-1: Reject requests larger than 1 MiB.
+    - FR-2: Cap concurrent connections at 1024.
+
+    Answer from this scenario only. Produce the merged spec and show how the IDs
+    were reconciled.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/artifact-consolidation/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - artifact-consolidation
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)FR-1'
+        - '(?i)(H-FR-1|HARD-FR-1|SEC-FR-1|[A-Z]{1,4}-FR-1)|prefix|namespace'
+        - '(?i)(not|never|without|avoid|rather than|instead of).{0,30}(renumber|drop|overwrite|lose)'
+        - '(?i)ID Change Summary|Consolidation Plan|Consolidated:'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response consolidates by namespacing, not renumbering:
+        - Every one of the four source requirements survives (two retry/timeout
+          from the base, two size/connection-cap from the hardening spec).
+        - The colliding FR-1/FR-2 from the non-base source are resolved by adding
+          a concern prefix (e.g. H-FR-1, SEC-FR-1), NOT by renumbering them to
+          FR-3/FR-4 and NOT by dropping either side.
+        - It records the namespace mapping and which sources were consolidated.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).

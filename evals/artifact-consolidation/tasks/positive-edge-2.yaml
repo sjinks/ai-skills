@@ -1,0 +1,64 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Partial collision still namespaces the whole non-base source
+description: |
+  Documented hard behavior: when a non-base source has one ID that collides and
+  one that does not, the whole source is namespaced (not just the colliding ID),
+  so the source maps to a single namespace.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    Merge these two same-kind feature specs into one. `spec-client.md` is the
+    base.
+
+    `spec-client.md`:
+    - FR-1: Retry idempotent requests up to 3 times.
+    - FR-2: Surface a typed timeout error.
+
+    `spec-perf.md`:
+    - FR-1: Pool and reuse connections.
+    - FR-9: Pre-size the read buffer to 64 KiB.
+
+    Note that `spec-perf.md`'s FR-1 collides with the base but its FR-9 does not.
+    Answer from this scenario only. Produce the merged spec and show the final
+    IDs.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/artifact-consolidation/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - artifact-consolidation
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)FR-1'
+        - '(?i)([A-Z]{1,4}-FR-1).{0,200}([A-Z]{1,4}-FR-9)|([A-Z]{1,4}-FR-9).{0,200}([A-Z]{1,4}-FR-1)'
+        - '(?i)(whole|entire|all|every).{0,30}(source|its ids|namespace)|namespace.{0,20}(whole|entire|all|in full)'
+        - '(?i)ID Change Summary|Consolidation Plan|Namespaces?:'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response namespaces the WHOLE non-base source:
+        - Both of spec-perf's IDs get the same concern prefix (e.g. P-FR-1 AND
+          P-FR-9), even though only FR-1 collided — the source maps to one
+          namespace.
+        - It does NOT leave the non-colliding FR-9 bare (which would put the one
+          source in two namespaces), and does NOT renumber or drop any ID.
+        - The base spec-client keeps bare FR-1/FR-2.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).

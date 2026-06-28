@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Combining documents of different kinds
+description: |
+  Close-domain: a spec and an architecture are different kinds of artifact and
+  stay separate documents; pulling them into one file is not the within-one-kind
+  consolidation this skill governs. The skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    I have a feature spec and a separate architecture document for the same
+    service. I want them bound into one PDF for a stakeholder review — the spec
+    chapter first, then the architecture chapter, with a shared cover page and
+    table of contents. They stay distinct documents; I just want them assembled
+    into one deliverable. Walk me through assembling the combined PDF.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/artifact-consolidation/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Consolidation Plan"
+        - "ID Change Summary"
+        - "Superseded Sources"

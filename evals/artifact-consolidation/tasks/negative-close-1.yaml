@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Revising a single artifact in place
+description: |
+  Close-domain: editing one existing document (adding requirements, tightening
+  wording) is an ordinary in-place revision, not a consolidation of multiple
+  same-kind artifacts. The skill must not activate.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Here is our one and only feature spec for the upload service. Add two new
+    requirements to it — resumable uploads and a per-user quota — and tighten the
+    wording of the existing acceptance criteria. There is just this single
+    document; I am revising it, not combining it with anything. Return the
+    updated spec.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/artifact-consolidation/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Consolidation Plan"
+        - "ID Change Summary"
+        - "Superseded Sources"
