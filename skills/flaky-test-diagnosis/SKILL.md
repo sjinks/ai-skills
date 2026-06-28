@@ -25,8 +25,8 @@ Do not trust a single green run. Increase the failure rate until you can observe
 - Repeat: run the single test many times (`ctest -R <name> --repeat until-fail:N`, or a loop). A flake that needs 100 runs is still a flake.
 - Shuffle order: run the suite shuffled (`--gtest_shuffle`, vary `--gtest_random_seed`) to expose order dependence.
 - Parallelize: run with high `ctest -j` to expose shared-resource races (ports, temp files, globals). Parallel/sanitizer load also starves event loops: a bounded `for (i<N) yield()` poll that passes solo can exhaust its budget under `-j` before the awaited event fires.
-- Sanitize: the project's `sanitizer` preset is **ASan + UBSan + LSan** (it does *not* include TSan; ASan and TSan are mutually exclusive). ThreadSanitizer is a **separate** build via the `tsan` (GCC) or `tsan-clang` (Clang) preset. A flake that only appears under ASan/LSan/TSan is usually a *real* code bug, not a test bug.
-  - GCC's TSan can abort with `FATAL: ThreadSanitizer: unexpected memory mapping` under high-entropy ASLR; prefix the binary (and `gtest_discover_tests`) with `setarch -R`. Clang's TSan runs without that workaround and, in practice here, surfaced a race on its first full pass that GCC's full pass missed (GCC needed a targeted `--gtest_repeat`). When a race is suspected, run **both** compilers' TSan.
+- Sanitize: ASan, UBSan, and LSan are commonly built together (LSan ships inside ASan), but TSan needs a **separate** build because ASan and TSan are mutually exclusive. A flake that only appears under ASan/LSan/TSan is usually a *real* code bug, not a test bug.
+  - GCC's TSan can abort with `FATAL: ThreadSanitizer: unexpected memory mapping` under high-entropy ASLR; if so, run the binary (and any test-discovery step) under `setarch -R` to disable ASLR. GCC and Clang TSan also differ in what they catch on a given run, so when a race is suspected, run **both** compilers' TSan rather than trusting one.
 - Capture the failing seed/order/output. A flake you cannot reproduce, you cannot prove fixed.
 
 ## Source classification

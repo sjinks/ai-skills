@@ -46,10 +46,12 @@ The governing rule: **measure, do not guess; isolate, do not assume; change one 
   #include <stdatomic.h>
   #include <stdio.h>
   static atomic_ullong n;
-  static void *(*real)(size_t);
-  void *malloc(size_t s){ if(!real) real=dlsym(RTLD_NEXT,"malloc");
-    atomic_fetch_add(&n,1); return real(s); }
-  __attribute__((destructor)) static void rep(void){ fprintf(stderr,"allocs=%llu\n",n); }
+  static void *(*real_malloc)(size_t);
+  void *malloc(size_t s){ if(!real_malloc) real_malloc=dlsym(RTLD_NEXT,"malloc");
+    atomic_fetch_add(&n,1); return real_malloc(s); }
+  __attribute__((destructor)) static void rep(void){
+    unsigned long long total = atomic_load(&n);
+    fprintf(stderr,"allocs=%llu\n",total); }
   // Extend with calloc/realloc the same way; guard calloc against the dlsym
   // bootstrap (serve from a small static arena until real_calloc resolves) and
   // make free() ignore arena pointers.
