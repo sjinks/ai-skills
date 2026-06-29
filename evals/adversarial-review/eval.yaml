@@ -37,7 +37,15 @@ graders:
   - type: behavior
     name: efficiency
     config:
+      # max_tokens counts TOTAL tokens (input + output) per task, and input is
+      # dominated by fixed harness scaffolding (system prompt, tool definitions,
+      # the injected SKILL.md body, and cached multi-turn re-sends) that the
+      # skill cannot reduce. Measured on claude-sonnet-4.6, a no-op negative
+      # task already floors at ~17k total and a full paired-review pass reaches
+      # ~68k, so an 8000 budget was unreachable for every task. max_tool_calls
+      # is the real runaway guard; max_tokens is set to the measured worst-case
+      # plus headroom so genuine blow-ups still fail.
       max_tool_calls: 8
-      max_tokens: 8000
+      max_tokens: 90000
 tasks:
   - "tasks/*.yaml"
