@@ -91,7 +91,7 @@ This skill judges the **content decidability** of requirements — what each req
 ```markdown
 ## Requirement Sharpening Report
 
-Verdict: BLOCK | CONCERNS | SHARP
+Verdict: BLOCK | CONCERNS | SHARP | insufficient-context
 Mode: audit | sharpen
 
 ### Findings
@@ -107,15 +107,14 @@ For each finding:
 - <requirements needing a product decision or a measurement tool that does not exist yet>
 ```
 
-Use these exact labels (`Verdict:`, `Mode:`, `Quote:`, `Problem:`, `Fix:`) unless the caller requests different ones, in which case follow the caller's labels exactly.
+Use these exact labels (`Verdict:`, `Mode:`, `Quote:`, `Problem:`, `Fix:`) unless the caller requests different ones, in which case follow the caller's labels exactly. Each finding's `Severity` column is `BLOCK` or `CONCERNS` (a finding is never `SHARP` — that is a whole-report verdict only).
 
-Severity:
+Verdict mapping:
 
 - `BLOCK` — a requirement defers its own observable behavior (check 2), an unmeasurable quality word has no threshold *and* no method (check 1), or a reused/dangling ID breaks traceability (check 6).
 - `CONCERNS` — over-coupled to implementation (check 3), undifferentiated ranking (check 4), or a missing completeness matrix for a leaned-on standard (check 5).
 - `SHARP` — every requirement names a definite outcome and a way to decide it; rankings discriminate; the set's completeness and traceability are demonstrable.
-
-If the requirements are not supplied, return `Verdict: insufficient-context` and name what is missing (the requirement text, the sibling architecture/decision docs needed for check 2, or the measurement tooling for check 1); do not invent thresholds or behaviors.
+- `insufficient-context` — the requirements are not supplied. Return this verdict and name what is missing (the requirement text, the sibling architecture/decision docs needed for check 2, or the measurement tooling for check 1); do not invent thresholds or behaviors.
 
 ## Anti-Patterns
 

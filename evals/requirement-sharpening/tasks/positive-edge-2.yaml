@@ -35,7 +35,7 @@ graders:
     config:
       regex_match:
         - '(?i)Requirement Sharpening Report'
-        - '(?i)Verdict:\s*(BLOCK|CONCERNS|SHARP)'
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS|SHARP|insufficient-context)'
         - '(?i)Open items'
         - '(?i)(do not fabricate|product decision|measurement tool|quickly)'
       not_contains:
