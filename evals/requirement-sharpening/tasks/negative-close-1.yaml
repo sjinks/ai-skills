@@ -36,3 +36,6 @@ graders:
         - "Verdict: SHARP"
         - "Verdict: insufficient-context"
         - "Open items (flag, do not fabricate)"
+        - "Quote:"
+        - "Fix:"
+        - "Sharpened Requirements"

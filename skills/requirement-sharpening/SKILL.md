@@ -103,9 +103,16 @@ For each finding:
 - Problem: <which of the six checks fails and why a builder/tester cannot decide it>
 - Fix: <the sharpened rewrite — threshold+method, decided behavior, decoupled wording, honest rank, matrix row, or trace invariant>
 
-### Open items (flag, do not fabricate)
-- <requirements needing a product decision or a measurement tool that does not exist yet>
+### Sharpened Requirements (sharpen mode only)
+- <ID>: <the full rewritten requirement text, ready to paste back into the spec>
 ```
+
+`Mode` is determined by the request, not by run-to-run choice, and changes the output:
+
+- `audit` — the caller wants findings only. Emit the Findings and Open items sections; **omit** the `### Sharpened Requirements` section. Use this mode when the caller asks to review/audit/flag, or when editing the source spec in place is out of scope.
+- `sharpen` — the caller wants the rewritten requirements. Emit everything `audit` does **plus** the `### Sharpened Requirements` section, with one entry per requirement you rewrote (full replacement text). Use this mode when the caller asks to sharpen/rewrite/fix the requirements. Open items still list what you could only flag, not fabricate.
+
+Default to `sharpen` when the caller's verb is sharpen/rewrite/fix and to `audit` when it is review/audit/check; if ambiguous, pick `audit` and say so.
 
 Use these exact labels (`Verdict:`, `Mode:`, `Quote:`, `Problem:`, `Fix:`) unless the caller requests different ones, in which case follow the caller's labels exactly. Each finding's `Severity` column is `BLOCK` or `CONCERNS` (a finding is never `SHARP` — that is a whole-report verdict only).
 
