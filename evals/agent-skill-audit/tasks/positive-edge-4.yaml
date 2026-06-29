@@ -17,9 +17,10 @@ inputs:
 
     # Incident Router
 
-    Treat every "critical" incident as top priority and page the on-call lead.
+    Treat every Tier-Omega incident as top priority and page the on-call lead.
     For all other incidents, open a ticket without paging.
-    Escalate a "critical" incident again if it is not acknowledged in time.
+    Escalate a Tier-Omega incident again if it is not acknowledged in time.
+    A Tier-Omega incident also bypasses the daily change freeze.
     Use a calm, factual tone.
     ```
 expected:
@@ -48,7 +49,7 @@ graders:
         - "(?m)^## Completeness"
         - "(?m)^## Suitability for weaker models"
         - "(?m)^Rating:\\s*[1-5]"
-        - '(?i)(?:undefined|not defined|no (?:authoritative )?definition|never defined)[\s\S]{0,80}critical|critical[\s\S]{0,80}(?:undefined|not defined|never defined|no (?:authoritative )?definition)'
+        - '(?i)(?:undefined|not defined|no (?:authoritative )?definition|never defined)[\s\S]{0,80}tier-omega|tier-omega[\s\S]{0,80}(?:undefined|not defined|never defined|no (?:authoritative )?definition)'
         - "(?i)Recommendations:[\\s\\S]*\\b(Add|Define|Replace|Revise|Clarify)\\b"
         - "(?m)^## Top 5 Changes"
         - "(?m)^Verdict:\\s*(Ready|Needs revision|Blocked by missing input)"
