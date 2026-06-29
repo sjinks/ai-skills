@@ -15,7 +15,7 @@ Scope is one PR's title and description text. Out of scope: auditing or rewritin
 
 - Draft mode: branch commits or a change summary are supplied, no description yet — produce a title and body.
 - Audit/rewrite mode: a draft title and/or body is supplied — audit against the contract and rewrite non-compliant parts.
-- Validate mode: a title and body are supplied with a request to validate — report pass/fail per part.
+- Validate mode: a title and body are supplied with a request to validate — keep them verbatim and report pass/fail per part; do not rewrite unless the user also asks for a fix. When a part fails, name the fix in `Findings` rather than silently editing the returned text.
 
 If neither a draft nor any change description/commit list is supplied, emit the BLOCK template; do not invent a change.
 
@@ -76,8 +76,8 @@ Return a report with this section order and these labeled markers. Render the ti
 - A heading line `## PR Description Quality Report`.
 - `Verdict:` — one of `CLEAN`, `CONCERNS`, `BLOCK`.
 - `Structure:` — one of `template`, `default`.
-- `### Title` — the compliant or rewritten title in a fenced `text` block.
-- `### Body` — the compliant or rewritten body in a fenced `markdown` block.
+- `### Title` — the title in a fenced `text` block: the rewrite in draft/audit-rewrite mode, or the supplied title verbatim in validate mode.
+- `### Body` — the body in a fenced `markdown` block: the rewrite in draft/audit-rewrite mode, or the supplied body verbatim in validate mode.
 - `### Checks` — two bullets:
   - `Title:` `pass`, `pass (length: <n> chars, over 72)`, or `fail (<reason>)`
   - `Body:` `pass` or `fail (<missing or weak contract items>)`
