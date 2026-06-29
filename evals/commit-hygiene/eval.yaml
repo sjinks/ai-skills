@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
+name: commit-hygiene-eval
+description: |
+  Evaluates the commit-hygiene skill: it activates on cleaning up a branch's
+  commit history (squashing fixups, dropping dead commits, reordering,
+  splitting) into a recommended rebase plan, stays silent on single-message
+  wording and PR-level splitting and off-topic prompts, and produces the
+  commit hygiene report with a verdict, the detected merge style, a rebase
+  plan, and per-commit actions — never claiming to have run git.
+skill: commit-hygiene
+version: "1.0"
+config:
+  trials_per_task: 2
+  timeout_seconds: 300
+  parallel: true
+  workers: 4
+  executor: copilot-sdk
+  model: claude-sonnet-4.6
+  max_attempts: 2
+metrics:
+  - name: trigger_accuracy
+    weight: 0.30
+    threshold: 0.8
+    description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected activation.
+  - name: skill_invocation
+    weight: 0.15
+    threshold: 0.9
+    description: Skill is invoked on positive tasks that should activate it.
+  - name: task_completion
+    weight: 0.40
+    threshold: 0.8
+    description: Output carries the commit hygiene report, verdict, detected merge style, rebase plan, and per-commit actions.
+  - name: efficiency
+    weight: 0.15
+    threshold: 0.7
+    description: Stays within tool-call and total-token budgets.
+graders:
+  - type: behavior
+    name: efficiency
+    config:
+      max_tool_calls: 8
+      max_tokens: 8000
+tasks:
+  - "tasks/*.yaml"

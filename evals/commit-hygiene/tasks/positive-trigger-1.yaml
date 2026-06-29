@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Clean up a WIP branch before review
+description: |
+  Canonical case: a branch with fixup/WIP commits and an added-then-reverted
+  pair is turned into a recommended rebase plan that squashes the fixups and
+  drops the dead pair.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Clean up my branch's commit history with commit-hygiene before I open
+    the PR. The branch merges into main with merge commits, so every commit
+    is preserved. Here is `git log --oneline main..HEAD` (oldest first):
+
+    a1 add expression parser
+    b2 wip
+    c3 fixup parser edge case
+    d4 add output formatter
+    e5 add debug print
+    f6 remove debug print
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/commit-hygiene/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - commit-hygiene
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Commit Hygiene Report'
+        - '(?i)Verdict:\s*CONCERNS'
+        - '(?i)Merge style:\s*preserve'
+        - '(?i)### Rebase plan'
+        - '(?im)^\s*(fixup|squash)\b'
+        - '(?im)^\s*drop\b'
+        - '(?i)### Actions'
+        - '(?i)### Resulting sequence'
+        - '(?i)### Cautions'
+        - '(?i)### Needs author input'
+      not_contains:
+        - "Commit Message Quality Report"
+        - "Scope Slice Plan"
+        - "Gate decision:"

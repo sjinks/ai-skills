@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Audit an already-clean branch
+description: |
+  A branch whose commits are already atomic and well-ordered should be
+  assessed CLEAN with an all-keep plan, still returning the report shape.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Audit my branch history with commit-hygiene before I request review.
+    The branch lands via merge commit (commits are preserved). Here is the
+    log oldest-first, each already a self-contained step:
+
+    11aa feat(api): add pagination to the search endpoint
+    22bb test(api): cover pagination boundaries
+    33cc docs(api): document the cursor parameter
+
+    Each commit builds and passes tests on its own. Just tell me whether
+    it's ready or what needs cleanup.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/commit-hygiene/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - commit-hygiene
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Commit Hygiene Report'
+        - '(?i)Verdict:\s*CLEAN'
+        - '(?i)Merge style:\s*preserve'
+        - '(?i)### Rebase plan'
+        - '(?im)^\s*pick\b'
+        - '(?i)### Actions'
+        - '(?i)### Resulting sequence'
+        - '(?i)### Cautions'
+        - '(?i)### Needs author input'
+      not_contains:
+        - "Commit Message Quality Report"
+        - "Scope Slice Plan"

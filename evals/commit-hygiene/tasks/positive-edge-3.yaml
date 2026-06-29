@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Possibly-superseded commit needs author input
+description: |
+  When it is unclear whether a commit's work survives elsewhere in the
+  branch, the skill must mark it needs-author-input rather than recommending
+  a drop that could lose work.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Run commit-hygiene over my branch (preserved on merge). Log oldest-first:
+
+    x1 add retry helper
+    x2 rewrite retry helper a different way
+    x3 use retry helper in client
+
+    I'm not sure if x1's original implementation is fully replaced by x2 or
+    if x3 still depends on parts of x1. Plan the cleanup.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/commit-hygiene/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - commit-hygiene
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Commit Hygiene Report'
+        - '(?i)Verdict:\s*CONCERNS'
+        - '(?i)Merge style:\s*preserve'
+        - '(?i)### Rebase plan'
+        - '(?i)### Actions'
+        - '(?i)### Resulting sequence'
+        - '(?i)### Cautions'
+        - '(?i)needs-author-input'
+        - '(?i)### Needs author input'
+      not_contains:
+        - "Commit Message Quality Report"

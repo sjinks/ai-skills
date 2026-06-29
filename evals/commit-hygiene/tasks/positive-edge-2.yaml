@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Squash-merge keeps the plan light
+description: |
+  When the branch lands via squash merge, intermediate messages are
+  discarded, so the plan should stay light and say so rather than squashing
+  every fixup commit.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    My repo squash-merges every PR into one commit. Use commit-hygiene on
+    this branch's history before I open the PR. Log oldest-first:
+
+    p1 start feature
+    p2 wip
+    p3 more wip
+    p4 finish feature
+
+    Since it'll be squashed anyway, tell me how much cleanup actually matters.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/commit-hygiene/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - commit-hygiene
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Commit Hygiene Report'
+        - '(?i)Verdict:\s*(CLEAN|CONCERNS)'
+        - '(?i)Merge style:\s*squash'
+        - '(?i)(discard|squash)'
+        - '(?i)### Rebase plan'
+        - '(?i)### Actions'
+        - '(?i)### Resulting sequence'
+        - '(?i)### Cautions'
+        - '(?i)### Needs author input'
+      not_contains:
+        - "Commit Message Quality Report"
+        - "Scope Slice Plan"
