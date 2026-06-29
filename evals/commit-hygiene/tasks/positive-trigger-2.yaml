@@ -49,4 +49,3 @@ graders:
       not_contains:
         - "Commit Message Quality Report"
         - "Scope Slice Plan"
-        - '(?im)^\s*(drop|squash|fixup)\b'

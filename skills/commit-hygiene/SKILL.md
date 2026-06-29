@@ -14,7 +14,7 @@ Scope is the ordering and grouping of an unmerged branch's commits and a recomme
 ## When to Use
 
 - Cleanup mode: a branch commit list is supplied — produce a rebase plan that squashes, drops, rewords, reorders, or splits commits into a clean sequence.
-- Audit mode: a commit list is supplied with a request to assess only — report which commits violate hygiene and why, without a full rebase plan unless asked.
+- Audit mode: a commit list is supplied with a request to assess only — emit the same full report (the rebase plan included, since it is the machine-readable form of the assessment) but frame the findings as what to fix, and do not tell the author to run it.
 
 If no commit list or history summary is supplied, emit the BLOCK template; do not invent commits.
 
@@ -24,7 +24,7 @@ How the branch will land changes what cleanup matters. Detect or ask for the mer
 
 - Squash-merge: the whole branch becomes one commit, so intermediate messages are discarded. Hygiene then targets the *final squashed* subject/body and dropping content that should not reach the diff; per-commit wording matters little. Say so and keep the plan light.
 - Merge-commit or rebase-merge (commits preserved): every commit lands in `main` history, so each must stand on its own — build, pass tests, and read well independently. This is where squashing fixups, dropping WIP, and reordering matter most.
-- Unknown: assume commits are preserved (the stricter case) and note the assumption.
+- Unknown: report `Merge style: unknown` and apply the preserved-commits (stricter) rules; the `unknown` value itself signals the assumption, so do not relabel it `preserve` and do not add a caution for it (that would force CONCERNS on an otherwise clean branch).
 
 ## Hygiene Contract
 
