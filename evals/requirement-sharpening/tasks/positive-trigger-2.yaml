@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Sharpen a requirement coupled to implementation and leaning on a dependency
+description: |
+  A requirement pinned to named source files/symbols and a spec that
+  assumes a dependency "handles" a standard without enumerating cases
+  are sharpened: decouple the wording and add a completeness matrix.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Make these requirements buildable and decidable. The TLS work is
+    delegated to OpenSSL.
+
+    - R7: For wss connections the client MUST verify the host using
+      src/https_openssl_utils.* and the host_name_verification() helper.
+    - R8: HTTP status handling is fine because the HTTP library handles all
+      status codes for us.
+
+    Please review whether these survive a refactor and whether the status
+    handling is demonstrably complete.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/requirement-sharpening/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - requirement-sharpening
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Requirement Sharpening Report'
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS|SHARP)'
+        - '(?i)Quote:'
+        - '(?i)Fix:'
+        - '(?i)(decoupl|refactor|completeness matrix|status code)'
+      not_contains:
+        - "Requirements Ambiguity Report"
+        - "SRS 29148 Conformance Report"

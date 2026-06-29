@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Pure prose-ambiguity audit is not requirement sharpening
+description: |
+  A request that asks only which words two readers could read differently
+  (pronouns, passive voice, undefined terms) is a prose-ambiguity audit,
+  not a buildable/decidable sharpening pass, and must not activate the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Just point out which sentences in this paragraph are grammatically
+    ambiguous — unclear pronouns or passive voice where the actor is
+    missing. Don't propose thresholds or rank anything; I only want the
+    wording flagged.
+
+    "When the record is updated it is validated and then they are notified.
+    The data is stored. Access is granted as appropriate."
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/requirement-sharpening/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Requirement Sharpening Report"
+        - "Verdict:"
+        - "Mode:"
+        - "Open items (flag, do not fabricate)"
+        - "Quote:"
+        - "Problem:"
+        - "Fix:"
+        - "Sharpened Requirements"

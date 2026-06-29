@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Stable-artifact name is the contract, not over-coupling
+description: |
+  A requirement that names an append-only enum / stable interface ID is a
+  legitimate contract and must NOT be flagged as implementation coupling,
+  while a sibling requirement genuinely pinned to a private helper must be.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Sharpen these two requirements; tell me which (if any) is over-coupled
+    to implementation and which is fine.
+
+    - R1: The CloseReason enum MUST be append-only — existing values are
+      never renumbered or reused; new reasons are added at the end.
+    - R2: On read error the parser MUST recover by calling the internal
+      reset_buffer_state() helper in src/parser_internals.cpp.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/requirement-sharpening/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - requirement-sharpening
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Requirement Sharpening Report'
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS|SHARP)'
+        - '(?i)Fix:'
+        - '(?i)(append-only|stable|contract)'
+        - '(?i)reset_buffer_state'
+      not_contains:
+        - "Requirements Ambiguity Report"
+        - "SRS 29148 Conformance Report"

@@ -77,6 +77,7 @@ grader weighting takes effect.
   - `acceptance-criteria-quality`: 0.45
   - `assumption-surfacing`: 0.45
   - `requirements-ambiguity-audit`: 0.45
+  - `requirement-sharpening`: 0.45
   - `scope-boundary-definition`: 0.45
   - `spec-edge-case-enumeration`: 0.45
   - `architecture-decision-record`: 0.45

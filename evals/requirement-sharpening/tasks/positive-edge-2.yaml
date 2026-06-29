@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Do not fabricate a threshold when no tooling or decision is supplied
+description: |
+  When a supplied requirement uses a vague quality word but neither a
+  target number, a measurement tool, nor the deciding architecture is
+  available, the skill must report a finding plus an open item rather
+  than inventing a threshold. The requirement IS supplied, so the verdict
+  is BLOCK/CONCERNS (not insufficient-context, which is reserved for when
+  no requirement text is given).
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Sharpen this single requirement. I don't have any benchmark tooling set
+    up yet and there's no architecture doc.
+
+    - NFR-3: The service MUST start up quickly.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/requirement-sharpening/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - requirement-sharpening
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Requirement Sharpening Report'
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS)'
+        - '(?i)Open items'
+        - '(?i)(do not fabricate|product decision|measurement tool|quickly)'
+      not_contains:
+        - "Requirements Ambiguity Report"
+        - "SRS 29148 Conformance Report"
