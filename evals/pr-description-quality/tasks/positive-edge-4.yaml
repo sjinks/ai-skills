@@ -1,0 +1,58 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-004
+name: Update description from noisy branch commit history
+description: |
+  Updating a PR description from the branch's commit list must synthesize
+  it into reviewer points: collapse fixup/WIP commits rather than
+  transcribing them, and surface a breaking change mentioned in a single
+  commit even though later commits do not repeat it.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Update this pull request's description from the branch commit history
+    using pr-description-quality. No PR template in the repo; use a
+    sensible default structure. The branch commits are:
+
+    ```
+    feat(auth): add token refresh endpoint
+    fixup! add token refresh endpoint
+    refactor(auth): drop the legacy /login alias (BREAKING: clients on
+      the old path must migrate)
+    wip
+    style: run formatter
+    fixup! add token refresh endpoint
+    docs(auth): note refresh flow in README
+    ```
+
+    There is no issue number and I have not run tests yet.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pr-description-quality/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - pr-description-quality
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)PR Description Quality Report'
+        - '(?i)Structure:\s*default'
+        - '(?i)### Body'
+        - '(?i)break'
+        - '(?i)/login|legacy|migrat'
+        - '(?i)Verdict:\s*(CLEAN|CONCERNS)'
+      not_contains:
+        - "fixup! add token refresh endpoint"
+        - "Commit Message Quality Report"
+        - "Gate decision:"
