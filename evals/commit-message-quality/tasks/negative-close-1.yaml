@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Pull request description is not a commit message
+description: |
+  Writing a pull request title and description is a close but distinct
+  task; this skill is scoped to a single commit message and must not
+  activate or emit its report.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Write the pull request description for my branch. It should have a
+    summary section, a testing section, and a screenshots placeholder, and
+    link the three issues the branch closes. I don't need anything about
+    individual commit messages — just the PR body for the GitHub form.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/commit-message-quality/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Commit Message Quality Report"
+        - "Verdict:"
+        - "Mode: conventional"
+        - "Mode: plain"

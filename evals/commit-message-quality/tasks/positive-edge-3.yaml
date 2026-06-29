@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: needs-author-input instead of inventing a breaking-change claim
+description: |
+  When whether the change breaks a public contract cannot be determined
+  from the input, the skill marks it needs-author-input and names the
+  missing decision rather than inventing a BREAKING CHANGE footer.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Apply commit-message-quality to this draft. The repo uses Conventional
+    Commits.
+
+    Draft: "change the default page size"
+    Context: I changed the default page size constant. I genuinely don't
+    know yet whether any published API client depends on the old default —
+    I haven't checked. Don't guess; format the message and tell me what you
+    need from me.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/commit-message-quality/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - commit-message-quality
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Commit Message Quality Report'
+        - '(?i)needs-author-input'
+        - '(?i)Needs author input'
+        - '(?i)(breaking|public|client|default)'
+        - '(?i)Verdict:\s*CONCERNS'
+      not_contains:
+        - "Pull Request Description"
+        - "Gate decision:"

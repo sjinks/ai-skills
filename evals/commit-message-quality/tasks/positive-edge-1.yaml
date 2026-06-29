@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Mixed diff triggers a split recommendation
+description: |
+  A diff mixing two unrelated concerns must produce a split recommendation
+  rather than one vague combined subject.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Draft a commit message with commit-message-quality for this staged
+    change. The repo uses Conventional Commits.
+
+    The diff does two unrelated things:
+    1. Renames the config key `timeout` to `timeoutMs` and updates the
+       loader to read the new key (existing config files must be updated).
+    2. Reformats whitespace in an unrelated report-builder file, no
+       behavior change.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/commit-message-quality/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - commit-message-quality
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Commit Message Quality Report'
+        - '(?i)Verdict:\s*CONCERNS'
+        - '(?i)Split recommendation'
+        - '(?i)BREAKING CHANGE'
+        - '(?im)^(feat|style)(\(\w[\w-]*\))?!?:\s'
+      not_contains:
+        - "Pull Request Description"
+        - "Gate decision:"

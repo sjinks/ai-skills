@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Plain mode for a repo that rejects Conventional Commits
+description: |
+  When history is consistently non-conventional, the skill uses plain mode:
+  no type requirement, but still imperative subject, length, and a body.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Rewrite this commit message with commit-message-quality. Do not impose
+    Conventional Commit types — this repo has never used them and the
+    maintainers do not want a `type:` prefix; every existing commit subject
+    is a plain sentence.
+
+    Draft: "Made the export button work again."
+    Context: the export button stopped firing after a recent refactor moved
+    its click handler; this restores the handler binding.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/commit-message-quality/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - commit-message-quality
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Commit Message Quality Report'
+        - '(?i)Mode:\s*plain'
+        - '(?i)Verdict:\s*CONCERNS'
+        - '(?i)Subject:\s*(pass|fail)'
+      not_contains:
+        - "Pull Request Description"
+        - "Gate decision:"

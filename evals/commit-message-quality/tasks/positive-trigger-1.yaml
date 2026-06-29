@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Rewrite a vague commit message
+description: |
+  Canonical case: a vague, past-tense, type-less subject with no body is
+  rewritten into a conventional subject plus a why-focused body.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Apply commit-message-quality to this draft commit message before I
+    commit it. The repo uses Conventional Commits (it has a commitlint
+    config).
+
+    Draft message (subject only, no body):
+    "fixed the thing where expired sessions crash on retry"
+
+    Context: the change refreshes an expired session on the retry path
+    before re-issuing the request, instead of letting the stale token
+    reach the parser and crash. Issue VIP-214 tracks it.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/commit-message-quality/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - commit-message-quality
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Commit Message Quality Report'
+        - '(?i)Verdict:\s*CONCERNS'
+        - '(?i)Mode:\s*conventional'
+        - '(?im)^fix(\(\w[\w-]*\))?:\s'
+        - '(?i)Subject:\s*(pass|fail)'
+        - '(?i)Body:\s*(pass|fail|n/a)'
+      not_contains:
+        - "Pull Request Description"
+        - "Gate decision:"
+        - "Scope Slice Plan"
