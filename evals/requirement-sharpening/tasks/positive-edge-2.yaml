@@ -2,10 +2,12 @@
 id: positive-edge-002
 name: Do not fabricate a threshold when no tooling or decision is supplied
 description: |
-  When the requirement uses a vague quality word but neither a target
-  number, a measurement tool, nor the deciding architecture is supplied,
-  the skill must flag it as an open item / insufficient context rather
-  than inventing a threshold or a decided behavior.
+  When a supplied requirement uses a vague quality word but neither a
+  target number, a measurement tool, nor the deciding architecture is
+  available, the skill must report a finding plus an open item rather
+  than inventing a threshold. The requirement IS supplied, so the verdict
+  is BLOCK/CONCERNS (not insufficient-context, which is reserved for when
+  no requirement text is given).
 tags:
   - positive-trigger
   - positive-edge
@@ -35,7 +37,7 @@ graders:
     config:
       regex_match:
         - '(?i)Requirement Sharpening Report'
-        - '(?i)Verdict:\s*(BLOCK|CONCERNS|SHARP|insufficient-context)'
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS)'
         - '(?i)Open items'
         - '(?i)(do not fabricate|product decision|measurement tool|quickly)'
       not_contains:

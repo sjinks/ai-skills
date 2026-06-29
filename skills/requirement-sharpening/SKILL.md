@@ -105,6 +105,9 @@ For each finding:
 
 ### Sharpened Requirements (sharpen mode only)
 - <ID>: <the full rewritten requirement text, ready to paste back into the spec>
+
+### Open items (flag, do not fabricate)
+- <requirements needing a product decision or a measurement tool that does not exist yet>
 ```
 
 `Mode` is determined by the request, not by run-to-run choice, and changes the output:
@@ -121,7 +124,7 @@ Verdict mapping:
 - `BLOCK` — a requirement defers its own observable behavior (check 2), an unmeasurable quality word has no threshold *and* no method (check 1), or a reused/dangling ID breaks traceability (check 6).
 - `CONCERNS` — over-coupled to implementation (check 3), undifferentiated ranking (check 4), or a missing completeness matrix for a leaned-on standard (check 5).
 - `SHARP` — every requirement names a definite outcome and a way to decide it; rankings discriminate; the set's completeness and traceability are demonstrable.
-- `insufficient-context` — the requirements are not supplied. Return this verdict and name what is missing (the requirement text, the sibling architecture/decision docs needed for check 2, or the measurement tooling for check 1); do not invent thresholds or behaviors.
+- `insufficient-context` — no requirement text is supplied, so there is nothing to sharpen. Return this verdict and name what is missing; do not invent requirements. When a requirement *is* supplied but the docs (check 2) or tooling (check 1) needed to resolve its threshold or decided behavior are absent, that is a normal `BLOCK`/`CONCERNS` finding plus an Open item — not this verdict.
 
 ## Anti-Patterns
 

@@ -48,4 +48,4 @@ graders:
       not_contains:
         - "Requirements Ambiguity Report"
         - "SRS 29148 Conformance Report"
-        - "Acceptance Criteria"
+        - "Acceptance Criteria Quality Report"
