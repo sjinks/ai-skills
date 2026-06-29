@@ -31,7 +31,7 @@ State the detected mode and, when it was assumed rather than observed, say so in
 ## Subject Contract
 
 1. Type (Conventional mode): one lowercase type from the table; smallest accurate one.
-2. Scope (optional): lowercase short module/area, in parentheses; no spaces, slashes, or underscores.
+2. Scope (optional): one or more lowercase module/area tokens in parentheses, each `[a-z0-9]` then `[a-z0-9-]*` (lowercase alphanumeric and hyphen; no spaces, slashes, or underscores). Multiple scopes are comma-separated with no spaces, e.g. `feat(api,auth): …`.
 3. Breaking marker: `!` after type/scope when the change breaks a public API, CLI, config, or data contract; paired with a `BREAKING CHANGE:` footer.
 4. Separator: exactly `: ` (colon + one space) between type/scope and description.
 5. Description: imperative present tense (`add`, not `added`/`adds`); first character lowercase unless a proper noun/acronym; no trailing period.
@@ -68,7 +68,7 @@ When they materially help a future reader, the body may also note why this appro
 ## Footer Contract
 
 10. Issue references as trailers: `Closes #123`, `Fixes #456`, `Refs #789`, or the repo's required key form.
-11. `BREAKING CHANGE: <description>` footer whenever the change breaks a contract (with or without the `!` marker; downstream tooling treats either as breaking).
+11. A breaking change MUST be signalled, in any mode, by a `BREAKING CHANGE: <description>` footer. In Conventional mode it is additionally marked by `!` in the subject (contract item 3); the footer is required either way, and the `!` without the footer is incomplete.
 12. Other valid trailers (`Co-authored-by:`, `Signed-off-by:`) only when real.
 
 ## Hard Rules

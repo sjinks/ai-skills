@@ -40,7 +40,7 @@ graders:
         - '(?i)Verdict:\s*CONCERNS'
         - '(?i)Split recommendation'
         - '(?i)BREAKING CHANGE'
-        - '(?im)^(feat|style)(\(\w[\w-]*\))?!?:\s'
+        - '(?im)^(feat|style)(\([a-z0-9][a-z0-9-]*(,[a-z0-9][a-z0-9-]*)*\))?!?:\s'
       not_contains:
         - "Pull Request Description"
         - "Gate decision:"

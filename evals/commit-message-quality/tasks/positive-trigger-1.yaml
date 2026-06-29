@@ -40,7 +40,7 @@ graders:
         - '(?i)Commit Message Quality Report'
         - '(?i)Verdict:\s*CONCERNS'
         - '(?i)Mode:\s*conventional'
-        - '(?im)^fix(\(\w[\w-]*\))?:\s'
+        - '(?im)^fix(\([a-z0-9][a-z0-9-]*(,[a-z0-9][a-z0-9-]*)*\))?:\s'
         - '(?i)Subject:\s*(pass|fail)'
         - '(?i)Body:\s*(pass|fail|n/a)'
       not_contains:
