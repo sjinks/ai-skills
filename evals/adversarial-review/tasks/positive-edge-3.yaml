@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Second pass holds verdict monotonicity and dedups
+description: |
+  A second adversarial-review pass on the same target must not emit a verdict
+  weaker than the strongest prior pass, and must not re-report a finding that
+  matches the same artifact, category, and trigger as a prior finding.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Do a second adversarial-review pass on the same spec below. A prior
+    adversarial-review pass already produced this output:
+
+      Verdict: CONCERNS
+      Target: notification-retry spec
+      Findings:
+      1. Retry has no idempotency key
+        Artifact: spec section "Retry"
+        Category: error-rollback
+        Trigger: a retried POST after a timeout re-sends the same notification
+        Severity: HIGH
+
+    Spec: A worker POSTs notifications to a downstream webhook. On a 5xx or
+    timeout it retries up to 3 times with fixed 1s backoff. There is no
+    idempotency key on the request. The retry counter is held in memory only.
+
+    Your new observation: the fixed 1s backoff (no jitter) could cause a mild
+    thundering-herd on recovery — a real but bounded concern. You should still
+    report the missing idempotency key only if you have something new to add
+    about it; otherwise do not re-report it.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/adversarial-review/SKILL.md
+      mode: positive
+      threshold: 0.3
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - adversarial-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)Verdict:\\s*(BLOCK|CONCERNS)"
+        - "(?i)Target:"
+        - "(?i)(jitter|backoff|thundering)"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        The response is a second adversarial-review pass on a target whose prior
+        pass emitted Verdict: CONCERNS over a missing idempotency key. Grade
+        whether the response:
+        - Emits a verdict no weaker than CONCERNS (CONCERNS or BLOCK), NOT CLEAN,
+          even though its net-new finding (fixed backoff / no jitter) is only a
+          bounded MEDIUM/LOW concern — verdict monotonicity must be held.
+        - Does NOT re-report the missing idempotency key as a fresh finding with
+          the same trigger (a retried POST re-sending the notification); it may
+          reference the prior finding but must not duplicate it.
+        - Surfaces the no-jitter backoff observation as its net-new finding.
