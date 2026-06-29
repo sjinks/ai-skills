@@ -1,3 +1,8 @@
+## Running model evals (cost control)
+
+- NEVER run `waza run` (or any command that issues live model/API calls) without explicit per-run approval from the user. A full eval suite costs roughly 200-270 premium Copilot requests; even a single `--task ... --trials 1` probe costs about 9-18. Before running, state the expected scope and cost, prefer the smallest scope that answers the question, and do not re-run to "confirm" a result that existing measurements already establish.
+- `waza check`, schema validation, `cmp`, `git`, `gh`, and file reads/searches are free and do not need approval.
+
 When creating or updating skills:
 
 - Optimize for token efficiency: keep instructions concise, remove duplication, and prefer reusable shared rules over repeated local text.
