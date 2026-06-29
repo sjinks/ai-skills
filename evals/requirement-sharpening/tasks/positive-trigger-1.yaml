@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Sharpen a requirement set with vague words and deferred behavior
+description: |
+  Canonical case: a requirement set with an unmeasurable quality word,
+  a requirement that defers its own observable behavior, and an
+  everything-is-MUST ranking is sharpened with quotes, failing checks,
+  and concrete rewrites.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Sharpen these requirements so a builder and a tester can't misread them.
+    We have a benchmark harness and an allocation counter available.
+
+    - FR-1 (MUST): The proxy MUST forward requests efficiently with minimal
+      per-request overhead.
+    - FR-2 (MUST): On a duplicate connection ID, the server MUST reject the
+      connection with an error, or, if the design prefers, silently reuse
+      the existing connection.
+    - FR-3 (MUST): The server MUST support a configurable worker pool size.
+    - FR-4 (MUST): The server MUST log each rejected request.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/requirement-sharpening/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - requirement-sharpening
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Requirement Sharpening Report'
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS|SHARP)'
+        - '(?i)\|\s*#\s*\|\s*ID\s*\|\s*Check\s*\|\s*Severity\s*\|\s*Issue\s*\|'
+        - '(?i)Quote:'
+        - '(?i)Fix:'
+        - '(?i)(efficiently|minimal|silently reuse)'
+      not_contains:
+        - "Requirements Ambiguity Report"
+        - "SRS 29148 Conformance Report"
+        - "Acceptance Criteria"

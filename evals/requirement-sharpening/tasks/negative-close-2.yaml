@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Shaping a doc to a standard outline is not requirement sharpening
+description: |
+  A request to map a requirements document onto a standard clause outline
+  (introduction, definitions, references, specific requirements) and add
+  the missing structural sections is a document-structure conformance task,
+  not a content-decidability sharpening pass, and must not activate the skill.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Reorganize our requirements doc so it follows the standard SRS clause
+    outline: add a Definitions/Acronyms section and a References section,
+    and give me a heading-to-clause mapping table. I don't need the wording
+    of individual requirements changed — just the document structure.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/requirement-sharpening/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Requirement Sharpening Report"
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Verdict: SHARP"
+        - "Verdict: insufficient-context"
+        - "Open items (flag, do not fabricate)"
