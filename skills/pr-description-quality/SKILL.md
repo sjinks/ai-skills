@@ -38,6 +38,8 @@ State the detected source (`template` or `default`) in the report.
 
 ## Body Contract
 
+The body is written for the reviewer who must approve the change, not to record what the author did. Prefer statements the reviewer can independently confirm — a command to run, a file or line to read, an issue to open — over claims they must take on trust.
+
 5. What changed: the user-visible behavior, API, or contract change, in reviewer terms — not a restated commit log or diff dump.
 6. Why: the problem, motivation, or context a future maintainer needs.
 7. Testing: give the reviewer reproducible verification steps — the commands, environment, or manual steps needed to confirm the change — rather than a narrative of what the author did or which internal tools they ran. State honestly which of those steps were actually run; if nothing was run, say so in one neutral line. Never claim a check that did not happen, and never invent a result the input does not support.
