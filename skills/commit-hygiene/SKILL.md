@@ -1,7 +1,7 @@
 ---
 name: commit-hygiene
-description: "Use when: cleaning up a branch's commit history before review or merge: squashing fixup/WIP commits, dropping dead or accidental commits, rewording weak messages, splitting a mixed commit, and reordering for a reviewable, bisectable sequence — producing a recommended rebase plan, never running git itself."
-argument-hint: "The branch's commit list (git log --oneline of the range to be merged), ideally with per-commit one-line diffstats or short summaries, plus the base branch and the repo's merge style (merge / squash / rebase) when known."
+description: "Use when: cleaning up a branch's commit history before review or merge: squashing fixup/WIP commits, dropping dead or accidental commits, flagging weak messages for reword, splitting a mixed commit, and reordering for a reviewable, bisectable sequence — producing a recommended rebase plan, never running git itself."
+argument-hint: "The branch's commit list (git log --oneline of the range to be merged), ideally with per-commit one-line diffstats or short summaries, plus the base branch and the repo's merge style when known (merge and rebase both map to the `preserve` output token; squash maps to `squash`)."
 user-invocable: true
 ---
 
@@ -22,8 +22,8 @@ If no commit list or history summary is supplied, emit the BLOCK template; do no
 
 How the branch will land changes what cleanup matters. Detect or ask for the merge style; state which was assumed.
 
-- Squash-merge: the whole branch becomes one commit, so intermediate messages are discarded. Hygiene then targets the *final squashed* subject/body and dropping content that should not reach the diff; per-commit wording matters little. Say so and keep the plan light.
-- Merge-commit or rebase-merge (commits preserved): every commit lands in `main` history, so each must stand on its own — build, pass tests, and read well independently. This is where squashing fixups, dropping WIP, and reordering matter most.
+- Squash-merge: report `Merge style: squash`. The whole branch becomes one commit, so intermediate messages are discarded. Hygiene then targets the *final squashed* subject/body and dropping content that should not reach the diff; per-commit wording matters little. Keep the rationale text short — but still emit every report section (the rebase plan is the all-`pick` todo unless there is real cleanup to recommend).
+- Merge-commit or rebase-merge (commits preserved): report `Merge style: preserve`. Every commit lands in `main` history, so each must stand on its own — build, pass tests, and read well independently. This is where squashing fixups, dropping WIP, and reordering matter most.
 - Unknown: report `Merge style: unknown` and apply the preserved-commits (stricter) rules; the `unknown` value itself signals the assumption, so do not relabel it `preserve` and do not add a caution for it (that would force CONCERNS on an otherwise clean branch).
 
 ## Hygiene Contract
@@ -40,7 +40,7 @@ Assess the branch against these, in order:
 ## Hard Rules
 
 - Recommend only: never emit or imply that you ran git. Produce a plan the author runs themselves. Frame destructive steps (drop, squash) as recommendations with a one-line rationale each.
-- Recommend a backup first: the plan opens by recording the pre-rewrite tip, e.g. `git branch <branch>-pre-cleanup-$(date -u +%Y%m%dT%H%M%SZ)`, so the author can recover if the rebase goes wrong.
+- Recommend a backup first: when a rewrite is proposed, the `### Cautions` section opens with a backup-ref command, e.g. `git branch <branch>-pre-cleanup-$(date -u +%Y%m%dT%H%M%SZ)`, so the author can recover if the rebase goes wrong. This is a caution line, not a `### Rebase plan` todo entry.
 - History rewriting is dangerous on shared branches: if the branch may already be pushed and shared, caution that rewriting published history forces collaborators to re-sync, and that the force push must use the explicit `git push --force-with-lease=<ref>:<expected-sha>` form (never bare `--force` or a lease without the expected SHA).
 - Open-PR consequence warning: if the branch has an open pull request, note that a force push re-notifies reviewers, marks existing review threads outdated, and can reopen resolved threads — so the author may prefer to finish review before cleaning up.
 - Prefer rebase `drop` over `git reset --soft` to remove a commit: `--soft` un-commits but leaves the change staged, silently reintroducing it into the next commit. Never recommend `git reset --hard` for cleanup; the backup ref is the recovery path.
@@ -65,7 +65,7 @@ Return a report with this exact section order and these labeled markers. Render 
 - A heading line `## Commit Hygiene Report`.
 - `Verdict:` — one of `CLEAN`, `CONCERNS`, `BLOCK`.
 - `Merge style:` — one of `squash`, `preserve`, `unknown`.
-- `### Rebase plan` — the recommended interactive-rebase todo in a fenced `text` block, always present and never `None`: one line per commit using the action verbs (`pick`, `squash`/`fixup`, `drop`, `reword`, `edit` for a split), oldest-first as `git rebase -i` lists them. When the history is already clean the block is every commit on its own `pick` line (an unchanged todo), not an empty block.
+- `### Rebase plan` — the recommended interactive-rebase todo in a fenced `text` block, always present and never `None`: one line per commit using the git rebase-todo verbs (`pick`, `squash`/`fixup`, `drop`, `reword`, `edit`), oldest-first as `git rebase -i` lists them. These are git's own todo verbs, not the `### Actions` vocabulary; map each per-commit Action to a todo verb as: `keep`/`reorder`/`needs-author-input` → `pick` (reorder by moving the line; an unresolved commit stays `pick` pending the author), `squash` → `fixup`/`squash`, `drop` → `drop`, `reword` → `reword`, `split` → `edit`. When the history is already clean the block is every commit on its own `pick` line (an unchanged todo), not an empty block.
 - `### Actions` — one bullet per commit: `<short-sha or subject>: <action> — <one-line rationale>`.
 - `### Resulting sequence` — the commit subjects after the plan is applied, in final order; always the real list (it equals the input order when nothing changed), never `None`.
 - `### Cautions` — the backup-ref recommendation when a rewrite is proposed, plus any shared-branch/force-push, open-PR, secret-rotation, or possible-work-loss warnings; `None` when there are none.
@@ -73,7 +73,7 @@ Return a report with this exact section order and these labeled markers. Render 
 
 Outside the BLOCK case, all sections appear in this order every time; a section with nothing to report contains `None`.
 
-Verdict mapping: `BLOCK` — insufficient input (reduced template below). `CONCERNS` — any commit is `squash`, `drop`, `reword`, `split`, `reorder`, or `needs-author-input`, or a caution applies. `CLEAN` — every commit is `keep`; the rebase plan is the all-`pick` unchanged todo and the resulting sequence equals the input. Emit exactly one value per enum field; do not copy enum lists or angle-bracket placeholders into the report.
+Verdict mapping: `BLOCK` — insufficient input (reduced template below). `CONCERNS` — any commit is `squash`, `drop`, `reword`, `split`, `reorder`, or `needs-author-input`, or a caution applies. `CLEAN` — every commit is `keep` and no caution applies; the rebase plan is the all-`pick` unchanged todo and the resulting sequence equals the input. (Cautions only arise alongside a proposed rewrite, so a genuinely clean branch has none.) Emit exactly one value per enum field; do not copy enum lists or angle-bracket placeholders into the report.
 
 ### BLOCK Template (insufficient context)
 
@@ -104,11 +104,11 @@ drop   e5 oops debug print
 drop   f6 revert debug print
 ```
 
-- Resulting sequence: `feat(parser): add expression parser`, `feat(format): add output formatter` (both flagged `reword`, deferring the actual wording to a message-quality pass).
+- Resulting sequence: `add parser`, `add formatter` — the original subjects, in final order; both also flagged `reword` in `### Actions` so a message-quality pass can sharpen the wording (this skill does not rewrite it here).
 
 Squash-merge repo:
 
-The same branch is landing via squash merge. The plan is light: note that intermediate messages are discarded, so only the final squashed subject/body and not-leaking-debug-output matter; no per-commit fixup squashing is required.
+The same branch landing via squash merge still emits the full report — `Merge style: squash`, every section present — but the rationale is short: intermediate messages are discarded, so only the final squashed subject/body and not-leaking-debug-output matter. With no per-commit cleanup to recommend, `### Rebase plan` is the all-`pick` todo, `### Actions` is all `keep`, and the verdict turns on whether debug output or secrets would reach the squashed diff.
 
 ## Definition of Done
 
