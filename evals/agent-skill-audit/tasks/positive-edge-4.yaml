@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-004
+name: Agent skill audit flags undefined load-bearing term
+description: A load-bearing term used to gate behavior without any authoritative definition should surface under Consistency.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Audit this skill draft for quality.
+
+    ```markdown
+    ---
+    name: incident-router
+    description: Use when routing incoming incidents to on-call teams.
+    ---
+
+    # Incident Router
+
+    Treat every Tier-Omega incident as top priority and page the on-call lead.
+    For all other incidents, open a ticket without paging.
+    Escalate a Tier-Omega incident again if it is not acknowledged in time.
+    A Tier-Omega incident also bypasses the daily change freeze.
+    Use a calm, factual tone.
+    ```
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/agent-skill-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - agent-skill-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^Audit:"
+        - "(?m)^## Consistency"
+        - "(?m)^## Cohesion"
+        - "(?m)^## Coherence"
+        - "(?m)^## Completeness"
+        - "(?m)^## Suitability for weaker models"
+        - "(?m)^Rating:\\s*[1-5]"
+        - '(?i)(?:undefined|not defined|no (?:authoritative )?definition|never defined)[\s\S]{0,80}tier-omega|tier-omega[\s\S]{0,80}(?:undefined|not defined|never defined|no (?:authoritative )?definition)'
+        - "(?i)Recommendations:[\\s\\S]*\\b(Add|Define|Replace|Revise|Clarify)\\b"
+        - "(?m)^## Top 5 Changes"
+        - "(?m)^Verdict:\\s*(Ready|Needs revision|Blocked by missing input)"
+      not_contains:
+        - "I updated"
+        - "I changed"
+        - "Here is the rewritten"
+        - "# Instruction Analysis Report"

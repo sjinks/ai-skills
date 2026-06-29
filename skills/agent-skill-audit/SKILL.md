@@ -99,7 +99,7 @@ Each category must use the exact `Rating`, `Findings`, and `Recommendations` lab
 
 Category expectations:
 
-- `Consistency`: Check whether rules, priorities, terminology, constraints, permissions, and output requirements conflict with one another.
+- `Consistency`: Check whether rules, priorities, terminology, constraints, permissions, and output requirements conflict with one another. Also flag a defined-terms gap: a load-bearing term — a coined concept the artifact governs with its own rules, not ordinary domain vocabulary — that is used with no authoritative definition. Inconsistent use of an already-defined term falls under the terminology check above.
 - `Cohesion`: Check whether sections support a single clear purpose, stay in scope, and avoid duplicated, overlapping, or repeated instructions that dilute purpose, create maintenance drift, or make the artifact harder to follow.
 - `Coherence`: Check whether the artifact is easy to follow, ordered logically, and gives the model a clear decision path.
 - `Completeness`: Check whether the artifact includes needed triggers, boundaries, inputs, procedures, output expectations, failure paths, and acceptance context.

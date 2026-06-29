@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-004
+name: Instruction audit flags precedence gap and closure gap
+description: Two rules that can both apply with no declared ordering should surface as a contradiction precedence gap, and an enumerated procedure with no catch-all default should surface as a coverage closure gap.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Run an instruction quality audit on this prompt artifact.
+
+    ```markdown
+    You are a refund-routing assistant.
+    If the order is over 90 days old, deny the refund.
+    If the customer is a VIP, approve the refund.
+    When the order id starts with "A", route to the appeals queue.
+    When the order id starts with "B", route to the billing queue.
+    When the order id starts with "C", route to the compliance queue.
+    ```
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/instruction-quality-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - instruction-quality-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^# Instruction Analysis Report"
+        - "(?m)^Provenance:"
+        - "(?m)^- Readable:\\s*yes\\s*$"
+        - "(?m)^## Contradictions"
+        - "(?m)^## Ambiguity Issues"
+        - "(?m)^## Persona Issues"
+        - "(?m)^## Cognitive Load"
+        - "(?m)^## Duplication"
+        - "(?m)^## Coverage Analysis"
+        - "(?m)^## Custom Diagnostics"
+        - '(?m)^## Contradictions(?:(?!^## )[\s\S])*(?i:precedence|which (?:one )?(?:wins|governs)|no (?:declared )?(?:ordering|tiebreaker)|tiebreaker|both (?:apply|rules|fire))'
+        - 'If the order is over 90 days old, deny the refund\.'
+        - 'If the customer is a VIP, approve the refund\.'
+        - '(?m)^## Coverage Analysis(?:(?!^## )[\s\S])*(?i:closure|catch-all|default|otherwise|none of (?:them|these)|unspecified|does not (?:start with|match))'
+        - "(?m)^Suggestion:\\s*(Replace|Remove|Require|Rewrite|Add)\\b"
+      not_contains:
+        - "Top 5 Changes"
+        - "Verdict:"
