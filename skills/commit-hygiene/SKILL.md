@@ -65,15 +65,15 @@ Return a report with this exact section order and these labeled markers. Render 
 - A heading line `## Commit Hygiene Report`.
 - `Verdict:` — one of `CLEAN`, `CONCERNS`, `BLOCK`.
 - `Merge style:` — one of `squash`, `preserve`, `unknown`.
-- `### Rebase plan` — the recommended interactive-rebase todo in a fenced `text` block, one line per surviving or removed commit using the action verbs (`pick`, `squash`/`fixup`, `drop`, `reword`, `edit` for a split), oldest-first as `git rebase -i` lists them; `None` when the history is already clean.
+- `### Rebase plan` — the recommended interactive-rebase todo in a fenced `text` block, always present and never `None`: one line per commit using the action verbs (`pick`, `squash`/`fixup`, `drop`, `reword`, `edit` for a split), oldest-first as `git rebase -i` lists them. When the history is already clean the block is every commit on its own `pick` line (an unchanged todo), not an empty block.
 - `### Actions` — one bullet per commit: `<short-sha or subject>: <action> — <one-line rationale>`.
-- `### Resulting sequence` — the commit subjects after the plan is applied, in final order; `None` when unchanged.
+- `### Resulting sequence` — the commit subjects after the plan is applied, in final order; always the real list (it equals the input order when nothing changed), never `None`.
 - `### Cautions` — the backup-ref recommendation when a rewrite is proposed, plus any shared-branch/force-push, open-PR, secret-rotation, or possible-work-loss warnings; `None` when there are none.
 - `### Needs author input` — what is missing (e.g. whether a commit is superseded), otherwise `None`.
 
 Outside the BLOCK case, all sections appear in this order every time; a section with nothing to report contains `None`.
 
-Verdict mapping: `BLOCK` — insufficient input (reduced template below). `CONCERNS` — any commit is `squash`, `drop`, `reword`, `split`, `reorder`, or `needs-author-input`, or a caution applies. `CLEAN` — every commit is `keep`; say so above the plan block and still return the sequence. Emit exactly one value per enum field; do not copy enum lists or angle-bracket placeholders into the report.
+Verdict mapping: `BLOCK` — insufficient input (reduced template below). `CONCERNS` — any commit is `squash`, `drop`, `reword`, `split`, `reorder`, or `needs-author-input`, or a caution applies. `CLEAN` — every commit is `keep`; the rebase plan is the all-`pick` unchanged todo and the resulting sequence equals the input. Emit exactly one value per enum field; do not copy enum lists or angle-bracket placeholders into the report.
 
 ### BLOCK Template (insufficient context)
 
@@ -112,4 +112,4 @@ The same branch is landing via squash merge. The plan is light: note that interm
 
 ## Definition of Done
 
-The report carries a verdict and the detected merge style, returns a rebase plan (or `None` when already clean) plus a per-commit action list and the resulting sequence, surfaces shared-branch/secret/work-loss cautions, leaves individual message wording and PR-level splitting to their own passes, and never claims to have run git or recommends dropping work that is not clearly superseded.
+The report carries a verdict and the detected merge style, always returns a rebase-todo block (the all-`pick` unchanged todo when the history is already clean) plus a per-commit action list and the resulting sequence, surfaces shared-branch/secret/work-loss cautions, leaves individual message wording and PR-level splitting to their own passes, and never claims to have run git or recommends dropping work that is not clearly superseded.

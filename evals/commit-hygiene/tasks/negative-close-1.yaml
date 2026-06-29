@@ -30,5 +30,6 @@ graders:
     config:
       not_contains:
         - "Commit Hygiene Report"
+        - "Verdict:"
         - "Rebase plan"
         - "Merge style:"

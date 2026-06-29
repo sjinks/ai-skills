@@ -41,6 +41,7 @@ graders:
         - '(?i)Verdict:\s*CLEAN'
         - '(?i)Merge style:\s*preserve'
         - '(?i)### Rebase plan'
+        - '(?im)^\s*pick\b'
         - '(?i)### Actions'
         - '(?i)### Resulting sequence'
         - '(?i)### Cautions'
@@ -48,3 +49,4 @@ graders:
       not_contains:
         - "Commit Message Quality Report"
         - "Scope Slice Plan"
+        - '(?im)^\s*(drop|squash|fixup)\b'
