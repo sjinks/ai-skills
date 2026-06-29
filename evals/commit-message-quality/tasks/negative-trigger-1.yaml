@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Unrelated everyday prompt
+description: Unrelated everyday request must not activate the commit-message-quality skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "Recommend a beginner-friendly route for my first time bouldering indoors, and what shoes to rent."
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/commit-message-quality/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Commit Message Quality Report"
+        - "Verdict:"
+        - "Mode: conventional"
+        - "Mode: plain"

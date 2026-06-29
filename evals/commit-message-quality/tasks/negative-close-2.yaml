@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: History cleanup is not message quality
+description: |
+  Cleaning up a commit stack — squashing, dropping no-op commits,
+  reordering, interactive rebase — is history rewriting, explicitly out of
+  scope; this skill must not activate or emit its report.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    My feature branch has 11 messy commits including a few WIP and "oops
+    typo" ones. Walk me through squashing and dropping the junk ones with
+    an interactive rebase so the history is clean before I push. I'm not
+    asking you to wordsmith any single message — I want the rebase plan.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/commit-message-quality/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Commit Message Quality Report"
+        - "Verdict:"
+        - "Mode: conventional"
+        - "Mode: plain"

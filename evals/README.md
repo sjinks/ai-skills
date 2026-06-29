@@ -73,6 +73,7 @@ grader weighting takes effect.
   - `pre-review-self-audit`: 0.45
   - `review-disagreement-resolution`: 0.45
   - `review-finding-quality`: 0.45
+  - `commit-message-quality`: 0.45
   - `single-pass-review-completeness`: 0.45
   - `acceptance-criteria-quality`: 0.45
   - `assumption-surfacing`: 0.45

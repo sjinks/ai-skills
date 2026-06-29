@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Validate a commit message against the contract
+description: |
+  Validate mode: a supplied message is checked against the contract and
+  reported pass/fail per part, with a clean verdict when it complies.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Validate this commit message with commit-message-quality and tell me
+    whether it passes. The project follows Conventional Commits.
+
+    ```
+    feat(search): add cursor pagination to results endpoint
+
+    Large result sets were loaded all at once, which timed out on big
+    tenants. Cursor pagination bounds each response and keeps the default
+    first page for existing callers.
+
+    Closes #88
+    ```
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/commit-message-quality/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - commit-message-quality
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Commit Message Quality Report'
+        - '(?i)Verdict:\s*CLEAN'
+        - '(?i)Mode:\s*conventional'
+        - '(?i)Subject:\s*pass'
+        - '(?i)Footers:\s*pass'
+        - '(?i)Closes #88'
+      not_contains:
+        - "Pull Request Description"
+        - "Gate decision:"
