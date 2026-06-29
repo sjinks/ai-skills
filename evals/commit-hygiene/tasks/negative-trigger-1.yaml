@@ -21,5 +21,5 @@ graders:
       not_contains:
         - "Commit Hygiene Report"
         - "Verdict:"
-        - "Rebase plan"
+        - "### Rebase plan"
         - "Merge style:"
