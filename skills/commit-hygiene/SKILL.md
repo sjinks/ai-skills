@@ -104,7 +104,7 @@ drop   e5 oops debug print
 drop   f6 revert debug print
 ```
 
-- Resulting sequence: `add parser`, `add formatter` — the original subjects, in final order; both also flagged `reword` in `### Actions` so a message-quality pass can sharpen the wording (this skill does not rewrite it here).
+- Resulting sequence: `add parser`, `add formatter` — the surviving subjects, unchanged, in final order. (`a1` stays `pick` as the squash target for `b2`/`c3`; `d4` is a plain `keep`. Subject wording is not rewritten here; flag a commit `reword` only when its subject is genuinely weak.)
 
 Squash-merge repo:
 
