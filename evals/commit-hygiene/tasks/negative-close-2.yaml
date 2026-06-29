@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Splitting one PR into several is not commit cleanup
+description: |
+  Deciding whether a change should be several separate pull requests is a
+  close but distinct task (pr-scope-slicer). This skill cleans the commit
+  sequence within one branch and must not activate or emit its report.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    My pull request is huge and reviewers are complaining. Help me decide
+    how to split it into several smaller, separately reviewable pull
+    requests — which files and changes go in which PR, and in what order to
+    stack them. I'm not asking about cleaning up individual commits.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/commit-hygiene/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Commit Hygiene Report"
+        - "Rebase plan"
+        - "Merge style:"

@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Wording one commit message is not history cleanup
+description: |
+  Improving the text of a single commit message is a close but distinct
+  task (commit-message-quality). This skill plans the ordering and grouping
+  of a branch's commits and must not activate or emit its report.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Help me reword this single commit message so the subject is a proper
+    conventional subject and the body explains why. I'm only changing the
+    wording of this one message — the history is otherwise fine and I'm not
+    rebasing or reordering anything.
+
+    "fixed the retry bug"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/commit-hygiene/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Commit Hygiene Report"
+        - "Rebase plan"
+        - "Merge style:"

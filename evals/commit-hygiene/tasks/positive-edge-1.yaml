@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Shared branch triggers force-push and backup cautions
+description: |
+  When the branch is already pushed and has an open PR, the plan must warn
+  about rewriting shared history (force-with-lease, reviewer re-notification)
+  and recommend a backup ref, not silently rewrite.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use commit-hygiene to tidy my branch. Heads up: it's already pushed to
+    origin and has an open PR with review comments. Log oldest-first:
+
+    aa1 feat(auth): add token refresh
+    bb2 wip fix test
+    cc3 address review feedback
+
+    I'd like the two follow-up commits folded into the first.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/commit-hygiene/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - commit-hygiene
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Commit Hygiene Report'
+        - '(?i)Verdict:\s*CONCERNS'
+        - '(?i)Cautions'
+        - '(?i)force-with-lease'
+        - '(?i)backup'
+      not_contains:
+        - "Commit Message Quality Report"
