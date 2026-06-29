@@ -41,7 +41,7 @@ graders:
         - '(?i)PR Description Quality Report'
         - '(?i)Verdict:\s*CONCERNS'
         - '(?i)Structure:\s*default'
-        - '(?im)^feat(\(\w[\w-]*\))?:\s'
+        - '(?im)^feat(\([a-z0-9][a-z0-9-]*(,[a-z0-9][a-z0-9-]*)*\))?:\s'
         - '(?i)Title:\s*(pass|fail)'
         - '(?i)Body:\s*(pass|fail)'
         - '(?i)(PROJ-88|Closes|Refs)'

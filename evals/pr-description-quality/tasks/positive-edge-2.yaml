@@ -36,7 +36,7 @@ graders:
       regex_match:
         - '(?i)PR Description Quality Report'
         - '(?i)Structure:\s*default'
-        - '(?im)^(docs|fix)(\(\w[\w-]*\))?:\s'
+        - '(?im)^(docs|fix)(\([a-z0-9][a-z0-9-]*(,[a-z0-9][a-z0-9-]*)*\))?:\s'
         - '(?i)(omit|no tests|documentation-only|not run)'
       not_contains:
         - "Commit Message Quality Report"

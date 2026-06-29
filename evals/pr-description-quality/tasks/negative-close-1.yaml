@@ -35,6 +35,6 @@ graders:
     config:
       not_contains:
         - "PR Description Quality Report"
-        - "Structure: template"
-        - "Structure: default"
+        - "Verdict:"
+        - "Structure:"
         - "### Body"

@@ -39,7 +39,7 @@ graders:
       regex_match:
         - '(?i)PR Description Quality Report'
         - '(?i)Verdict:\s*CONCERNS'
-        - '(?im)^feat(\([\w-]+\))?!:\s'
+        - '(?im)^(feat|fix|refactor|perf|build|chore)(\([a-z0-9][a-z0-9-]*(,[a-z0-9][a-z0-9-]*)*\))?!:\s'
         - '(?i)(breaking|migrat|update existing)'
         - '(?i)(PROJ-300|Closes)'
       not_contains:

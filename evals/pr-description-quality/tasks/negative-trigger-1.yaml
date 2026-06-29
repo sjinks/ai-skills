@@ -21,5 +21,4 @@ graders:
       not_contains:
         - "PR Description Quality Report"
         - "Verdict:"
-        - "Structure: template"
-        - "Structure: default"
+        - "Structure:"

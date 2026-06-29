@@ -32,7 +32,7 @@ State the detected source (`template` or `default`) in the report.
 ## Title Contract
 
 1. Single line, no trailing period; describes the PR as a whole, not one commit. When commits have mixed types, pick the type matching the PR's dominant user-visible or maintenance impact.
-2. If the repo uses Conventional Commits (a commitlint config or history where most PR titles/commits match `type(scope): …`), the title MUST be a valid Conventional Commit subject — `type(scope)!: description` with a lowercase type, optional scope, imperative lowercase-led description, and `!` for a breaking change — since squash merges turn it into the release commit. A title that is not conventional in such a repo fails this item. Otherwise a clear imperative summary suffices.
+2. If the repo uses Conventional Commits (a commitlint config or history where most PR titles/commits match `type(scope): …`), the title MUST be a valid Conventional Commit subject — `type(scope)!: description` with a lowercase type, optional scope, imperative lowercase-led description, and `!` for a breaking change — since squash merges turn it into the release commit. The scope, when present, is one or more lowercase alphanumeric-and-hyphen tokens, comma-separated with no spaces (`feat(api,auth): …`). A title that is not conventional in such a repo fails this item. Otherwise a clear imperative summary suffices.
 3. Length: aim ≤72 characters; a longer title still passes with a length note on the `Title` check line. Squash-merge repos use the title as the final commit subject, so keep it commit-quality.
 4. Issue keys go in the body, not the title, unless repo convention requires them in the title.
 
@@ -43,7 +43,7 @@ State the detected source (`template` or `default`) in the report.
 7. Testing: state honestly what was verified ("added unit tests for X; ran the auth suite"); if nothing was run, say so in one neutral line. Never claim a check that did not happen, and never invent a result the input does not support.
 8. Linked issues: reference the tracked issue (`Closes #123`, `Refs PROJ-45`) when one exists.
 9. Risks, follow-ups, breaking changes, rollout/migration notes: include when they exist; a breaking change is called out explicitly.
-10. Omit any section — template or default — that is genuinely irrelevant, rather than filling it with filler, `N/A`, or workflow narration. Do not invent content to fill a heading.
+10. Handle an irrelevant section by structure: in the default structure, drop the heading entirely; in a repo template, keep the heading (templates are the structure of record) but leave it empty rather than padding it with filler, `N/A`, or workflow narration. Either way, do not invent content to fill a heading.
 11. Do not hard-wrap body prose at a fixed column; GitHub renders Markdown, so write natural paragraphs and lists and let them reflow. (This is the opposite of a commit body, which does wrap.)
 
 ### Default Structure (no template)
