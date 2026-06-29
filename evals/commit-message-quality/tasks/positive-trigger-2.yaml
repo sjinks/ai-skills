@@ -43,7 +43,8 @@ graders:
         - '(?i)Verdict:\s*CLEAN'
         - '(?i)Mode:\s*conventional'
         - '(?i)Subject:\s*pass'
-        - '(?i)Footers:\s*(pass|none)'
+        - '(?i)Footers:\s*pass'
+        - '(?i)Closes #88'
       not_contains:
         - "Pull Request Description"
         - "Gate decision:"

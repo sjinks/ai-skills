@@ -97,8 +97,10 @@ Return a report with this exact section order and these labeled markers. Render 
   - `Body:` `pass`, `fail (<violated contract item names>)`, or `n/a (trivial)`
   - `Footers:` `pass`, `fail (<violated contract item names>)`, or `none`
 - `### Findings` — one bullet per non-compliant part: `<part>: <observed vs required, and the rewrite applied or input needed>`.
-- `### Split recommendation` — the suggested commits, only when the diff mixes unrelated concerns.
-- `### Needs author input` — exactly what is missing (e.g. real issue key, breaking-change status).
+- `### Split recommendation` — the suggested commits when the diff mixes unrelated concerns, otherwise `None`.
+- `### Needs author input` — what is missing (e.g. real issue key, breaking-change status), otherwise `None`.
+
+Outside the BLOCK case, all sections appear in this order every time; a section with nothing to report contains `None`.
 
 Verdict mapping: `BLOCK` — insufficient input (reduced template below). `CONCERNS` — any part is `rewritten` or `needs-author-input`, or a split is recommended, or forbidden content was found. `CLEAN` — every part `compliant`; say so above the message block and still return it. Emit exactly one value per enum field; do not copy enum lists or angle-bracket placeholders into the report. Empty list sections are written with `None`.
 
