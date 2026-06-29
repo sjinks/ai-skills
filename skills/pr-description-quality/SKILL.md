@@ -67,6 +67,7 @@ State the detected source (`template` or `default`) in the report.
 
 - `compliant`: already satisfies the contract; keep verbatim.
 - `rewritten`: rewritten here to satisfy the contract, preserving intent.
+- `noncompliant`: fails the contract but is left unchanged — validate mode with no rewrite requested, and no author-only information is missing; name the fix in `Findings`.
 - `needs-author-input`: cannot be completed without information only the author has (e.g. the real issue key, whether tests ran, whether the change is breaking); name exactly what is missing.
 
 ## Output
@@ -78,13 +79,13 @@ Return a report with this section order and these labeled markers. Render the ti
 - `Structure:` — one of `template`, `default`.
 - `### Title` — the title in a fenced `text` block: the rewrite in draft/audit-rewrite mode, or the supplied title verbatim in validate mode.
 - `### Body` — the body in a fenced `markdown` block: the rewrite in draft/audit-rewrite mode, or the supplied body verbatim in validate mode.
-- `### Checks` — two bullets, each leading with the part's status (`compliant`, `rewritten`, or `needs-author-input`) then its check result:
+- `### Checks` — two bullets, each leading with the part's status (`compliant`, `rewritten`, `noncompliant`, or `needs-author-input`) then its check result:
   - `Title:` `<status>` — `pass`, `pass (length: <n> chars, over 72)`, or `fail (<reason>)`
   - `Body:` `<status>` — `pass` or `fail (<missing or weak contract items>)`
 - `### Findings` — one bullet per non-compliant part: `<part>: <observed vs required, and the rewrite applied or input needed>`.
 - `### Needs author input` — exactly what is missing (e.g. real issue key, whether tests ran, breaking-change status).
 
-Verdict mapping: `BLOCK` — insufficient input (reduced template below). `CONCERNS` — any part is `rewritten` or `needs-author-input`, or forbidden content was found. `CLEAN` — every part `compliant`; say so above the blocks and still return them. Emit exactly one value per enum field; do not copy enum lists or angle-bracket placeholders into the report. Empty list sections are written with `None`.
+Verdict mapping: `BLOCK` — insufficient input (reduced template below). `CONCERNS` — any part is `rewritten`, `noncompliant`, or `needs-author-input`, or forbidden content was found. `CLEAN` — every part `compliant`; say so above the blocks and still return them. Emit exactly one value per enum field; do not copy enum lists or angle-bracket placeholders into the report. Empty list sections are written with `None`.
 
 ### BLOCK Template (insufficient context)
 

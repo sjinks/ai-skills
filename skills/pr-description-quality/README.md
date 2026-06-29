@@ -10,7 +10,7 @@ It helps an assistant:
 - enforce a title contract: one line describing the whole PR, conventional `type(scope)!:` form when the repo uses it, a length note past 72 characters, issue keys kept out of the title unless convention requires them
 - enforce a body contract: what changed and why in reviewer terms over a restated diff, honest testing notes (never claiming an unrun check), linked issues, and explicit risks, breaking changes, and rollout notes
 - omit genuinely irrelevant sections instead of padding them, consolidate fixup history into reviewer-meaningful points, and flag secrets or PII rather than posting them
-- mark each part `compliant`, `rewritten`, or `needs-author-input`, and return the PR description quality report with a verdict, the detected structure, the title and body, and per-part checks, or `BLOCK` when neither a draft nor any change description is supplied
+- mark each part `compliant`, `rewritten`, `noncompliant` (validate-mode failure left unchanged), or `needs-author-input`, and return the PR description quality report with a verdict, the detected structure, the title and body, and per-part checks, or `BLOCK` when neither a draft nor any change description is supplied
 
 ## Files
 
