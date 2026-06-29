@@ -40,7 +40,7 @@ State the detected source (`template` or `default`) in the report.
 
 5. What changed: the user-visible behavior, API, or contract change, in reviewer terms — not a restated commit log or diff dump.
 6. Why: the problem, motivation, or context a future maintainer needs.
-7. Testing: state honestly what was verified ("added unit tests for X; ran the auth suite"); if nothing was run, say so in one neutral line. Never claim a check that did not happen, and never invent a result the input does not support.
+7. Testing: give the reviewer reproducible verification steps — the commands, environment, or manual steps needed to confirm the change — rather than a narrative of what the author did or which internal tools they ran. State honestly which of those steps were actually run; if nothing was run, say so in one neutral line. Never claim a check that did not happen, and never invent a result the input does not support.
 8. Linked issues: reference the tracked issue (`Closes #123`, `Refs PROJ-45`) when one exists.
 9. Risks, follow-ups, breaking changes, rollout/migration notes: include when they exist; a breaking change is called out explicitly.
 10. Handle an irrelevant section by structure: in the default structure, drop the heading entirely; in a repo template, keep the heading (templates are the structure of record) but leave it empty rather than padding it with filler, `N/A`, or workflow narration. Either way, do not invent content to fill a heading.
