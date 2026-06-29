@@ -12,7 +12,9 @@ It helps an assistant:
 - distinguish confirmed issues, likely risks, open questions, accepted tradeoffs, and test gaps
 - convert top risks into adversarial tests, mitigations, or acceptance criteria
 - return `BLOCK`, `CONCERNS`, or `CLEAN` verdicts without inventing findings
+- deduplicate findings and hold verdict strength across repeated passes on the same target (paired review)
 
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.
+- [`references/paired-review.md`](references/paired-review.md) — cross-pass dedup and verdict-monotonicity rules for a second adversarial-review pass on the same target.

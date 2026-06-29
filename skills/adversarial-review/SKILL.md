@@ -23,9 +23,8 @@ Use the same evidence standard whether invoked directly or after another workflo
 
 - **Standalone review:** Ask for, read, or infer the concrete target artifact before judging it. If the target is missing or too vague, follow the blocker path in Required Input Context.
 - **Paired review:** When invoked after another skill, agent, plan, review, or implementation, treat that prior output as the target artifact. Challenge what it produced, identify what it got right, and avoid re-reporting issues it already raised unless the prior output understated the severity, missed evidence, or left the mitigation ambiguous.
-  - **Cross-pass rules scope:** The two rules below apply only against prior *adversarial-review* passes on the same target that emitted this skill's Output Format (`Artifact:`, `Category:`, `Trigger:`, `Verdict:`). A prior output from another skill or review that lacks those fields is the target under review, not a prior pass; the Paired review "avoid re-reporting" guidance above still applies to it.
-  - **Dedup criterion:** Treat a candidate finding as already covered only when a prior finding matches all three of the same artifact, the same `Failure-Mode Taxonomy` category, and the same concrete trigger. If any differ, the candidate survives; keep it and note the related prior finding in its `Evidence:` line rather than suppressing it.
-  - **Verdict monotonicity:** Do not emit a verdict weaker than the strongest prior verdict on the same target, where verdict strength is `BLOCK` > `CONCERNS` > `CLEAN`. If your net-new findings alone would justify a weaker verdict, emit the prior verdict instead and restate the prior finding(s) that justify it, noting in `Evidence basis` that the verdict is retained from a prior pass.
+
+When invoked after a *prior adversarial-review pass on the same target*, two extra cross-pass rules govern deduplication and verdict strength. Read [paired-review](./references/paired-review.md) before reconciling findings or emitting a verdict in that case.
 
 ## Boundaries
 
@@ -116,12 +115,12 @@ Every substantive finding must name a concrete trigger or scenario. Do not prese
 4. Steel-man the target before challenging it: briefly state what the current approach gets right, why it is reasonable, or what constraints it appears to satisfy. State this regardless of how many findings follow; if nothing works, write `What works: None identified` rather than inventing strengths to balance the review.
 5. List assumptions the review depends on, including missing context.
 6. Challenge those assumptions using the relevant lenses and taxonomy.
-7. Deduplicate overlapping findings so the same risk is not reported multiple ways; in paired review, apply the dedup criterion in Invocation Modes against every prior adversarial-review pass on the same target, not only the most recent one.
+7. Deduplicate overlapping findings so the same risk is not reported multiple ways; in paired review, apply the dedup criterion in `references/paired-review.md` against every prior adversarial-review pass on the same target, not only the most recent one.
 8. Apply the "so what?" filter and drop findings whose ignored consequence is immaterial for the target's context.
 9. Rank findings by severity, impact, likelihood, and confidence.
 10. Convert the top risks into concrete adversarial tests, mitigations, or acceptance criteria.
 11. Mark each mitigation or acceptance criterion as blocking or non-blocking when the distinction matters.
-12. Assign the overall verdict. In paired review, hold the verdict monotonicity rule from Invocation Modes: do not emit a verdict weaker than the strongest prior verdict across all prior adversarial-review passes on the same target.
+12. Assign the overall verdict. In paired review, hold the verdict monotonicity rule in `references/paired-review.md`: do not emit a verdict weaker than the strongest prior verdict across all prior adversarial-review passes on the same target.
 
 ## Output Format
 
@@ -156,8 +155,6 @@ For `CLEAN`, replace each empty section with `None`; `What works` should still n
 
 ## Anti-Patterns
 
-- Do not invent findings to satisfy a quota.
-- Do not report a concern unless the consequence of ignoring it matters for the target's stated or reasonably inferred context.
 - Do not report cosmetic-only issues unless they create ambiguity, user harm, operational risk, or verification risk.
 - Do not restate the target or intended behavior as if it were a finding.
 - Do not provide exploit steps, weaponizable payloads, or instructions for attacking real systems.
