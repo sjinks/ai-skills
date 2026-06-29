@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Unverified test claim becomes needs-author-input
+description: |
+  A draft body asserting tests pass when the input never says tests ran
+  must not keep the claim; mark needs-author-input and name what is
+  missing rather than restating an unverified result.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Apply pr-description-quality to this pull request. No PR template in
+    the repo.
+
+    Title: `fix(parser): handle empty config file`
+    Body:
+    ```
+    Handles an empty config file instead of throwing. All tests pass and
+    this is fully verified.
+    ```
+
+    Note: I have not actually run any tests yet and there is no issue
+    number. Do not claim verification I didn't do.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pr-description-quality/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - pr-description-quality
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)PR Description Quality Report'
+        - '(?i)needs-author-input'
+        - '(?i)Needs author input'
+        - '(?i)(test|verif)'
+        - '(?i)Verdict:\s*CONCERNS'
+      not_contains:
+        - "Commit Message Quality Report"
+        - "Gate decision:"

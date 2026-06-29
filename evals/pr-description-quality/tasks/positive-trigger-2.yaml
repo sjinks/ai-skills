@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Validate a PR description against a repo template
+description: |
+  Validate mode: a supplied title and body are checked, and the repo's PR
+  template is honored as the structure of record.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Validate this pull request title and body with pr-description-quality.
+    Our repo has a template at .github/pull_request_template.md with these
+    sections: `## What` `## Why` `## Testing`.
+
+    Title: `fix(auth): refresh expired sessions before retry`
+
+    Body:
+    ```
+    ## What
+    Refresh an expired session on the retry path before re-issuing the
+    request.
+
+    ## Why
+    Expired sessions reached the parser and crashed the request.
+
+    ## Testing
+    Added a regression test for the retry path; ran the auth suite.
+    ```
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pr-description-quality/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - pr-description-quality
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)PR Description Quality Report'
+        - '(?i)Verdict:\s*CLEAN'
+        - '(?i)Structure:\s*template'
+        - '(?i)Title:.*pass'
+        - '(?i)Body:.*pass'
+      not_contains:
+        - "Commit Message Quality Report"
+        - "Gate decision:"

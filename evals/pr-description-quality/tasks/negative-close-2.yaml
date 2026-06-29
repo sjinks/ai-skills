@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Deciding how to split a PR is not describing it
+description: |
+  Deciding whether a change set is too large and how to slice it into
+  reviewable PRs is scope-slicing, not description authoring; this skill
+  must not activate or emit its report.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    My branch touches 40 files: a database migration, an auth refactor,
+    and an unrelated logging cleanup. Help me decide whether this should be
+    one pull request or several, and how to split it into reviewable
+    chunks. I don't need any title or description text yet — just the
+    split decision.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pr-description-quality/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "PR Description Quality Report"
+        - "Verdict:"
+        - "Structure:"
+        - "### Body"

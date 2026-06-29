@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Breaking change is called out in the title and body
+description: |
+  A PR that breaks a public contract must surface the break in the
+  conventional title marker and an explicit body note, not bury it.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Apply pr-description-quality to this pull request. The repo uses
+    Conventional Commits; no PR template.
+
+    Draft title: "rename timeout option"
+    Draft body: "Renames the timeout config key to timeoutMs."
+
+    Context: this renames a public config key. Existing config files that
+    set `timeout` will stop working until updated to `timeoutMs`. Closes
+    PROJ-300.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pr-description-quality/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - pr-description-quality
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)PR Description Quality Report'
+        - '(?i)Verdict:\s*CONCERNS'
+        - '(?im)^(feat|fix|refactor|perf|build|chore)(\([a-z0-9][a-z0-9-]*(,[a-z0-9][a-z0-9-]*)*\))?!:\s'
+        - '(?i)(breaking|migrat|update existing)'
+        - '(?i)(PROJ-300|Closes)'
+      not_contains:
+        - "Commit Message Quality Report"
+        - "Gate decision:"
