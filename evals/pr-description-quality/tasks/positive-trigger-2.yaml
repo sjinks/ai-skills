@@ -48,8 +48,8 @@ graders:
         - '(?i)PR Description Quality Report'
         - '(?i)Verdict:\s*CLEAN'
         - '(?i)Structure:\s*template'
-        - '(?i)Title:\s*pass'
-        - '(?i)Body:\s*pass'
+        - '(?i)Title:.*pass'
+        - '(?i)Body:.*pass'
       not_contains:
         - "Commit Message Quality Report"
         - "Gate decision:"

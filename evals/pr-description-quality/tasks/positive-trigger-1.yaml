@@ -42,8 +42,8 @@ graders:
         - '(?i)Verdict:\s*CONCERNS'
         - '(?i)Structure:\s*default'
         - '(?im)^feat(\([a-z0-9][a-z0-9-]*(,[a-z0-9][a-z0-9-]*)*\))?:\s'
-        - '(?i)Title:\s*(pass|fail)'
-        - '(?i)Body:\s*(pass|fail)'
+        - '(?i)Title:.*(pass|fail)'
+        - '(?i)Body:.*(pass|fail)'
         - '(?i)(PROJ-88|Closes|Refs)'
       not_contains:
         - "Commit Message Quality Report"

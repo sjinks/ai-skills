@@ -78,9 +78,9 @@ Return a report with this section order and these labeled markers. Render the ti
 - `Structure:` — one of `template`, `default`.
 - `### Title` — the title in a fenced `text` block: the rewrite in draft/audit-rewrite mode, or the supplied title verbatim in validate mode.
 - `### Body` — the body in a fenced `markdown` block: the rewrite in draft/audit-rewrite mode, or the supplied body verbatim in validate mode.
-- `### Checks` — two bullets:
-  - `Title:` `pass`, `pass (length: <n> chars, over 72)`, or `fail (<reason>)`
-  - `Body:` `pass` or `fail (<missing or weak contract items>)`
+- `### Checks` — two bullets, each leading with the part's status (`compliant`, `rewritten`, or `needs-author-input`) then its check result:
+  - `Title:` `<status>` — `pass`, `pass (length: <n> chars, over 72)`, or `fail (<reason>)`
+  - `Body:` `<status>` — `pass` or `fail (<missing or weak contract items>)`
 - `### Findings` — one bullet per non-compliant part: `<part>: <observed vs required, and the rewrite applied or input needed>`.
 - `### Needs author input` — exactly what is missing (e.g. real issue key, whether tests ran, breaking-change status).
 

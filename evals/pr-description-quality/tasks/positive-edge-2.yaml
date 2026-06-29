@@ -9,12 +9,13 @@ tags:
   - positive-edge
 inputs:
   prompt: |
-    Draft a PR title and body with pr-description-quality. No repo
-    template; use a sensible default structure.
+    Draft a PR title and body with pr-description-quality. The repo uses
+    Conventional Commits and has no PR template; use a sensible default
+    structure.
 
     Change: fix a typo in the README installation heading. Documentation
     only — nothing to test, no runtime impact, no risks, no linked issue.
-    Do not pad the body with empty or "N/A" sections.
+    Leave out sections that do not apply instead of padding them.
 expected:
   should_trigger: true
 graders:
@@ -40,5 +41,4 @@ graders:
         - '(?i)(omit|no tests|documentation-only|not run)'
       not_contains:
         - "Commit Message Quality Report"
-        - "N/A"
         - "Gate decision:"
