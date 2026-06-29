@@ -31,11 +31,10 @@ graders:
     config:
       not_contains:
         - "Requirement Sharpening Report"
-        - "Verdict: BLOCK"
-        - "Verdict: CONCERNS"
-        - "Verdict: SHARP"
-        - "Verdict: insufficient-context"
+        - "Verdict:"
+        - "Mode:"
         - "Open items (flag, do not fabricate)"
         - "Quote:"
+        - "Problem:"
         - "Fix:"
         - "Sharpened Requirements"
