@@ -40,6 +40,11 @@ graders:
         - '(?i)Commit Hygiene Report'
         - '(?i)Verdict:\s*CLEAN'
         - '(?i)Merge style:\s*preserve'
+        - '(?i)### Rebase plan'
+        - '(?i)### Actions'
+        - '(?i)### Resulting sequence'
+        - '(?i)### Cautions'
+        - '(?i)### Needs author input'
       not_contains:
         - "Commit Message Quality Report"
         - "Scope Slice Plan"

@@ -9,7 +9,7 @@ user-invocable: true
 
 Turn a messy work-in-progress branch into a clean, reviewable commit sequence before it is reviewed or merged. A branch full of `wip`, `fixup`, `oops typo`, and `address review` commits is hard to review commit-by-commit and useless to `git bisect`; this skill produces a concrete cleanup plan — what to squash, drop, reword, reorder, or split — so the merged history tells a coherent story.
 
-Scope is the ordering and grouping of an unmerged branch's commits and a recommended rebase plan. This skill is advisory: it returns a plan (an interactive-rebase todo plus rationale), it never runs `git rebase`, `reset`, `commit`, `push`, or any other git command. Out of scope: wording the text of a single commit message (that is a commit-message-quality concern — reference it, do not reproduce its full contract); deciding whether the change should be several separate pull requests (that is a pr-scope-slicer concern); reviewing whether the code is correct.
+Scope is the ordering and grouping of an unmerged branch's commits and a recommended rebase plan. This skill is advisory: it returns a plan (an interactive-rebase todo plus rationale), it never runs `git rebase`, `reset`, `commit`, `push`, or any other git command. Out of scope: wording the text of an individual commit message (flag a commit for reword, but leave the subject grammar to a message-quality pass); deciding whether the change should be split into several separate pull requests (a PR-scoping concern); reviewing whether the code is correct.
 
 ## When to Use
 
@@ -32,9 +32,9 @@ Assess the branch against these, in order:
 
 1. Fixup/WIP squashing: commits whose purpose is to patch an earlier commit (`fixup!`, `wip`, `oops`, `typo`, `address review`, `lint`) are squashed into the commit they belong to, not left standing. Each surviving commit is a deliberate, self-contained step.
 2. Dead-commit dropping: commits later fully reverted within the branch, accidental commits (stray debug, committed secrets, unrelated files), and empty commits are dropped — net effect, not narrative, is what merges.
-3. One logical change per commit: a commit mixing unrelated concerns (e.g. a feature plus an unrelated reformat) is split into separate commits along concern lines. Reference commit-message-quality for the resulting subjects; do not re-derive its full subject grammar here.
+3. One logical change per commit: a commit mixing unrelated concerns (e.g. a feature plus an unrelated reformat) is split into separate commits along concern lines. Leave the resulting subjects to a message-quality pass; do not re-derive subject grammar here.
 4. Reordering for bisectability: surviving commits are ordered so each builds and passes tests on its own — dependencies before dependents, refactors before the feature that uses them, no commit that knowingly leaves the tree broken.
-5. Reword targets: commits kept but carrying a weak subject are flagged for reword, deferring the actual wording to commit-message-quality rather than rewriting it here.
+5. Reword targets: commits kept but carrying a weak subject are flagged for reword, deferring the actual wording to a message-quality pass rather than rewriting it here.
 6. Atomicity vs over-splitting: prefer the fewest commits that each tell one clear story; do not split so finely that trivially-coupled changes land separately, and do not squash so aggressively that a reviewable boundary is lost.
 
 ## Hard Rules
@@ -53,7 +53,7 @@ Assess the branch against these, in order:
 - `keep`: already a clean, self-contained step; no change.
 - `squash`: fold into the named earlier commit; give the target.
 - `drop`: remove from the branch; give the reason (reverted, accidental, empty).
-- `reword`: keep the change, fix the subject (defer wording to commit-message-quality).
+- `reword`: keep the change, fix the subject (defer the actual wording to a message-quality pass).
 - `split`: break into multiple commits along the named concern lines.
 - `reorder`: move relative to other commits; give the new position rationale.
 - `needs-author-input`: cannot decide safely without information only the author has (e.g. whether a commit's work is superseded); name exactly what is missing.
@@ -104,7 +104,7 @@ drop   e5 oops debug print
 drop   f6 revert debug print
 ```
 
-- Resulting sequence: `feat(parser): add expression parser`, `feat(format): add output formatter` (both flagged `reword`, deferring wording to commit-message-quality).
+- Resulting sequence: `feat(parser): add expression parser`, `feat(format): add output formatter` (both flagged `reword`, deferring the actual wording to a message-quality pass).
 
 Squash-merge repo:
 
@@ -112,4 +112,4 @@ The same branch is landing via squash merge. The plan is light: note that interm
 
 ## Definition of Done
 
-The report carries a verdict and the detected merge style, returns a rebase plan (or `None` when already clean) plus a per-commit action list and the resulting sequence, surfaces shared-branch/secret/work-loss cautions, defers message wording to commit-message-quality and PR-splitting to pr-scope-slicer, and never claims to have run git or recommends dropping work that is not clearly superseded.
+The report carries a verdict and the detected merge style, returns a rebase plan (or `None` when already clean) plus a per-commit action list and the resulting sequence, surfaces shared-branch/secret/work-loss cautions, leaves individual message wording and PR-level splitting to their own passes, and never claims to have run git or recommends dropping work that is not clearly superseded.

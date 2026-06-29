@@ -39,8 +39,14 @@ graders:
     config:
       regex_match:
         - '(?i)Commit Hygiene Report'
+        - '(?i)Verdict:\s*(CLEAN|CONCERNS)'
         - '(?i)Merge style:\s*squash'
         - '(?i)(discard|squash)'
+        - '(?i)### Rebase plan'
+        - '(?i)### Actions'
+        - '(?i)### Resulting sequence'
+        - '(?i)### Cautions'
+        - '(?i)### Needs author input'
       not_contains:
         - "Commit Message Quality Report"
         - "Scope Slice Plan"

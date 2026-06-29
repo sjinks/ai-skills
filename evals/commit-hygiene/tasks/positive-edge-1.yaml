@@ -39,7 +39,12 @@ graders:
       regex_match:
         - '(?i)Commit Hygiene Report'
         - '(?i)Verdict:\s*CONCERNS'
-        - '(?i)Cautions'
+        - '(?i)Merge style:\s*preserve'
+        - '(?i)### Rebase plan'
+        - '(?i)### Actions'
+        - '(?i)### Resulting sequence'
+        - '(?i)### Cautions'
+        - '(?i)### Needs author input'
         - '(?i)force-with-lease'
         - '(?i)backup'
       not_contains:

@@ -39,7 +39,12 @@ graders:
       regex_match:
         - '(?i)Commit Hygiene Report'
         - '(?i)Verdict:\s*CONCERNS'
+        - '(?i)Merge style:\s*preserve'
+        - '(?i)### Rebase plan'
+        - '(?i)### Actions'
+        - '(?i)### Resulting sequence'
+        - '(?i)### Cautions'
         - '(?i)needs-author-input'
-        - '(?i)Needs author input'
+        - '(?i)### Needs author input'
       not_contains:
         - "Commit Message Quality Report"
