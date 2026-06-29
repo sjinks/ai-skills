@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: A single commit message is not a PR description
+description: |
+  Auditing or writing one commit message is a close but distinct task;
+  this skill is scoped to a pull request's title and body and must not
+  activate or emit its report.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Review this single git commit message and tell me if the subject and
+    body follow good commit conventions:
+
+    ```
+    fix: stop crash on empty token
+
+    The retry path passed an undefined token to the parser.
+    ```
+
+    I just want this one commit message checked — I am not opening or
+    describing a pull request.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pr-description-quality/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "PR Description Quality Report"
+        - "Structure: template"
+        - "Structure: default"
+        - "### Body"

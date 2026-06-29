@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
+name: pr-description-quality-eval
+description: |
+  Evaluates the pr-description-quality skill: it activates on drafting,
+  rewriting, validating, and auditing a pull request title and body, stays
+  silent on single commit messages, history rewriting, and off-topic
+  prompts, and produces the PR description quality report with a verdict,
+  the detected structure, and per-part Title/Body checks.
+skill: pr-description-quality
+version: "1.0"
+config:
+  trials_per_task: 2
+  timeout_seconds: 300
+  parallel: true
+  workers: 4
+  executor: copilot-sdk
+  model: claude-sonnet-4.6
+  max_attempts: 2
+metrics:
+  - name: trigger_accuracy
+    weight: 0.30
+    threshold: 0.8
+    description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected mode.
+  - name: skill_invocation
+    weight: 0.15
+    threshold: 0.9
+    description: Skill is invoked on positive tasks that should activate it.
+  - name: task_completion
+    weight: 0.40
+    threshold: 0.8
+    description: Output carries the PR description quality report, verdict, detected structure, and per-part checks.
+  - name: efficiency
+    weight: 0.15
+    threshold: 0.7
+    description: Stays within tool-call and total-token budgets.
+graders:
+  - type: behavior
+    name: efficiency
+    config:
+      max_tool_calls: 8
+      max_tokens: 8000
+tasks:
+  - "tasks/*.yaml"

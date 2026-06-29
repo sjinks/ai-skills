@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Unrelated everyday prompt
+description: Unrelated everyday request must not activate the pr-description-quality skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "What is a good ratio of water to rice for a stovetop pot of plain white basmati, and how long should it rest after cooking?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pr-description-quality/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "PR Description Quality Report"
+        - "Verdict:"
+        - "Structure: template"
+        - "Structure: default"

@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Draft a PR title and body from branch commits
+description: |
+  Canonical case: a vague draft title and empty body are rewritten into a
+  PR-level title and a structured body with honest testing and a linked
+  issue.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Apply pr-description-quality to my pull request before I open it. The
+    repo uses Conventional Commits and has no PR template.
+
+    Draft title: "updates"
+    Draft body: (empty)
+
+    The branch adds cursor pagination to the search results endpoint over
+    three commits (the endpoint now takes a cursor and page-size, defaults
+    preserved). I added unit tests for the new pagination params and ran
+    the search suite locally. Issue PROJ-88 tracks this.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/pr-description-quality/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - pr-description-quality
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)PR Description Quality Report'
+        - '(?i)Verdict:\s*CONCERNS'
+        - '(?i)Structure:\s*default'
+        - '(?im)^feat(\(\w[\w-]*\))?:\s'
+        - '(?i)Title:\s*(pass|fail)'
+        - '(?i)Body:\s*(pass|fail)'
+        - '(?i)(PROJ-88|Closes|Refs)'
+      not_contains:
+        - "Commit Message Quality Report"
+        - "Scope Slice Plan"
+        - "Gate decision:"
