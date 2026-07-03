@@ -1,26 +1,38 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
-id: positive-edge-001
-name: Instruction audit with a custom diagnostic
-description: Explicit custom diagnostic should be applied in the instruction-quality report.
+
+id: positive-adapters-001
+
+name: Mutually exclusive adapters do not create a false contradiction
+
+description: Differences between explicitly exclusive runtime adapters should not be reported as contradictions.
+
 tags:
   - positive-trigger
-  - positive-edge
+  - package
+  - false-positive
+
 inputs:
   prompt: |
-    Run an instruction quality audit on this prompt artifact. Also apply this
-    custom diagnostic rule: flag any instruction that tells the assistant to
-    ignore missing input and continue silently.
+    Audit this instruction package for defects.
 
+    `SKILL.md`
     ```markdown
-    You are a changelog assistant.
-    Ask one clarifying question if the diff is missing.
-    If the diff is missing, ignore the gap and continue silently.
-    Use a neutral product tone.
-    Include sections for Added, Changed, Fixed, and Removed.
-    Do not mention uncertainty to the user.
+    Load exactly one adapter for the active runtime.
     ```
+
+    `adapters/claude.md`
+    ```markdown
+    Use the Grep tool.
+    ```
+
+    `adapters/codex.md`
+    ```markdown
+    Use the repository search capability.
+    ```
+
 expected:
   should_trigger: true
+
 graders:
   - type: trigger
     name: trigger_accuracy
@@ -28,32 +40,30 @@ graders:
       skill_path: skills/instruction-quality-audit/SKILL.md
       mode: positive
       threshold: 0.45
+
   - type: skill_invocation
     name: skill_invocation
     config:
       required_skills:
         - instruction-quality-audit
       mode: any_order
+
   - type: text
     name: task_completion
     config:
       regex_match:
-        - "(?m)^# Instruction Analysis Report"
-        - "(?m)^Provenance:"
-        - "(?m)^- Readable:\\s*yes\\s*$"
-        - "(?m)^## Contradictions"
-        - "(?m)^## Ambiguity Issues"
-        - "(?m)^## Persona Issues"
-        - "(?m)^## Cognitive Load"
-        - "(?m)^## Duplication"
-        - "(?m)^## Coverage Analysis"
-        - "(?m)^## Custom Diagnostics"
-        - "(?m)^### Custom Diagnostic 1"
-        - "(?m)^Diagnostic:"
-        - "Ask one clarifying question if the diff is missing\\.[\\s\\S]*ignore the gap and continue silently\\."
-        - "(?i)Diagnostic:[\\s\\S]*(ignore missing input|continue silently)"
-        - "(?i)Problem:[\\s\\S]*(ignore missing input|continue silently|risk|because)"
-        - "(?m)^Suggestion:\\s*(Replace|Remove|Require|Rewrite|Add)\\b"
+        - "(?m)^Audit:"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Findings$"
+        - "(?m)^## Unresolved Questions$"
+        - "(?m)^## Summary$"
+        - "(?m)^Verdict:"
+        - "(?m)^# Instruction Quality Audit$"
+        - "Mutually exclusive paths:"
+        - 'adapters/claude\.md'
+        - 'adapters/codex\.md'
+        - '(?m)^## Findings$\n\nNone\.\n\n^## Unresolved Questions$'
+        - '(?m)^Verdict:\s*No material defects$'
       not_contains:
-        - "Top 5 Changes"
-        - "Verdict:"
+        - "Type: contradiction"
+        - "Use the Grep tool. conflicts"

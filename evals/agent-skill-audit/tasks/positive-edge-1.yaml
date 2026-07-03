@@ -1,31 +1,45 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
-id: positive-edge-001
-name: Combined audit and fix request stays audit-only
-description: A combined audit-and-fix request should trigger the skill but not rewrite or claim edits.
+
+id: positive-adapters-001
+
+name: Mutually exclusive runtime adapters are not contradictions
+
+description: The package audit should distinguish mutually exclusive Claude and Codex adapters.
+
 tags:
   - positive-trigger
-  - positive-edge
+  - package
+  - runtime-adapters
+
 inputs:
   prompt: |
-    Audit and fix this skill draft. I want the audit first, and if it needs
-    cleanup, tell me what to change.
+    Audit this package for Claude Code and Codex portability.
 
+    `SKILL.md`
     ```markdown
     ---
-    name: ticket-triage
-    description: Use when triaging incoming support tickets.
+    name: repository-search
+    description: Use when searching a repository for relevant symbols.
     ---
 
-    # Ticket Triage
+    # Repository Search
 
-    Always close duplicate tickets immediately.
-    Never close tickets without human approval.
-    Use all available tools before answering.
-    Do not use tools unless the ticket mentions a customer ID.
-    Output a status, but the allowed statuses are not listed.
+    Load exactly one runtime adapter for the active host.
     ```
+
+    `adapters/claude.md`
+    ```markdown
+    Use the Grep tool for repository search.
+    ```
+
+    `adapters/codex.md`
+    ```markdown
+    Use the repository search capability available in Codex.
+    ```
+
 expected:
   should_trigger: true
+
 graders:
   - type: trigger
     name: trigger_accuracy
@@ -33,37 +47,29 @@ graders:
       skill_path: skills/agent-skill-audit/SKILL.md
       mode: positive
       threshold: 0.45
+
   - type: skill_invocation
     name: skill_invocation
     config:
       required_skills:
         - agent-skill-audit
       mode: any_order
+
   - type: text
     name: task_completion
     config:
       regex_match:
+        - "(?m)^# Agent/Skill Readiness Audit$"
         - "(?m)^Audit:"
-        - "(?m)^## Consistency"
-        - "(?m)^## Cohesion"
-        - "(?m)^## Coherence"
-        - "(?m)^## Completeness"
-        - "(?m)^## Suitability for weaker models"
-        - "(?m)^Rating:\\s*[1-5]"
-        - "Always close duplicate tickets immediately\\.[\\s\\S]*Never close tickets without human approval\\."
-        - "Use all available tools before answering\\.[\\s\\S]*Do not use tools unless the ticket mentions a customer ID\\."
-        - "(?i)Recommendations:[\\s\\S]*\\b(Add|Remove|Replace|Revise|Clarify|Define)\\b"
-        - "(?i)\\b(conflict|contradict|inconsistent|risk|because)\\b"
-        - "(?m)^## Top 5 Changes"
-        - "(?m)^## Top 5 Changes[\\s\\S]*^Applying these fixes requires a separate editing task or skill invocation[\\s\\S]*^Verdict:"
-        - "(?m)^Verdict:\\s*(Ready|Needs revision|Blocked by missing input)"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Readiness Ratings$"
+        - "(?m)^## Material Findings$"
+        - "(?m)^## Priority Changes$"
+        - "(?m)^Verdict:"
+        - 'Mode:\s*package'
+        - 'Claude Code[\s\S]*Codex'
+        - "(?i)(mutually exclusive|exactly one runtime adapter|separate adapter)"
+        - "(?m)^## Target-Model Compatibility$"
+        - '(?m)^Verdict:\s*(Ready|Ready with limitations|Needs revision)$'
       not_contains:
-        - "I updated"
-        - "I changed"
-        - "Here is the rewritten"
-        - "1. Applying these fixes requires a separate editing task or skill invocation"
-        - "2. Applying these fixes requires a separate editing task or skill invocation"
-        - "3. Applying these fixes requires a separate editing task or skill invocation"
-        - "4. Applying these fixes requires a separate editing task or skill invocation"
-        - "5. Applying these fixes requires a separate editing task or skill invocation"
-        - "6. Applying these fixes requires a separate editing task or skill invocation"
+        - "Use the Grep tool for repository search. conflicts with Use the repository search capability available in Codex."

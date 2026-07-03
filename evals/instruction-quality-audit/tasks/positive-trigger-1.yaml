@@ -1,25 +1,30 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
 id: positive-trigger-001
-name: Instruction quality audit of a prompt artifact
-description: Explicit instruction quality audit request should trigger the skill and report contradictions and ambiguity.
+
+name: Contradiction diagnostic
+
+description: An explicit request for exact instruction defects should trigger the diagnostic audit.
+
 tags:
   - positive-trigger
+  - contradiction
+
 inputs:
   prompt: |
-    Please perform an instruction quality audit on this short prompt artifact.
-    It likely has a contradiction and ambiguous scope.
+    Audit these instructions for exact contradictions and ambiguity. Cite the
+    relevant wording and suggest a correction.
 
     ```markdown
-    You are a customer-support assistant for refund requests.
-    Always approve refund requests immediately.
-    Never approve a refund without manager confirmation.
-    Keep replies brief and helpful.
-    Use the customer's account history when available.
-    If account history is unavailable, decide based on context.
-    Summarize a few important details before the decision.
+    Always close duplicate tickets immediately.
+    Never close any ticket without human approval.
+    Use all available tools before responding.
+    Do not use tools unless the ticket contains a customer ID.
     ```
+
 expected:
   should_trigger: true
+
 graders:
   - type: trigger
     name: trigger_accuracy
@@ -27,32 +32,33 @@ graders:
       skill_path: skills/instruction-quality-audit/SKILL.md
       mode: positive
       threshold: 0.45
+
   - type: skill_invocation
     name: skill_invocation
     config:
       required_skills:
         - instruction-quality-audit
       mode: any_order
+
   - type: text
     name: task_completion
     config:
       regex_match:
-        - "(?m)^# Instruction Analysis Report"
-        - "(?m)^Provenance:"
-        - "(?m)^- Readable:\\s*yes\\s*$"
-        - "(?m)^## Contradictions"
-        - "(?m)^## Ambiguity Issues"
-        - "(?m)^## Persona Issues"
-        - "(?m)^## Cognitive Load"
-        - "(?m)^## Duplication"
-        - "(?m)^## Coverage Analysis"
-        - "(?m)^## Custom Diagnostics"
-        - "(?m)^Severity:\\s*`?(error|warning|info)`?"
-        - "Always approve refund requests immediately\\.[\\s\\S]*Never approve a refund without manager confirmation\\."
-        - "(?i)Explanation:[\\s\\S]*(conflict|contradict|cannot both|would)"
-        - "(?m)^Suggestion:\\s*(Replace|Remove|Require|Rewrite|Add)\\b"
+        - "(?m)^## Unresolved Questions$"
+        - "(?m)^Verdict:"
+        - "(?m)^# Instruction Quality Audit$"
+        - "(?m)^Audit:"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Findings$"
+        - "(?m)^### IQA-001"
+        - 'Type:\s*(contradiction|precedence)'
+        - 'Always close duplicate tickets immediately\.'
+        - 'Never close any ticket without human approval\.'
+        - "Behavioral risk:"
+        - "Correction:"
+        - "(?m)^## Summary$"
+        - '(?m)^Verdict:\s*Needs revision$'
       not_contains:
-        - "Audit:"
-        - "Top 5 Changes"
-        - "Verdict:"
-        - "Suggestion: Clarify"
+        - "# Agent/Skill Readiness Audit"
+        - "I updated"
+        - "Here is the rewritten"

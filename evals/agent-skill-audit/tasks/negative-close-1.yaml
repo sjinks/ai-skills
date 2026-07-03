@@ -1,29 +1,32 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
 id: negative-close-001
-name: Instruction quality audit overlap request
-description: Explicit instruction-quality-audit framing should route to that skill, not agent-skill-audit.
+
+name: Exact instruction-quality diagnostic request
+
+description: An exhaustive defect diagnostic belongs to instruction-quality-audit.
+
 tags:
   - negative-trigger
   - close-domain
   - overlap-disambiguation
+
 inputs:
   prompt: |
-    Please review this prompt template for contradictions, ambiguity, persona
-    consistency, cognitive load, duplication, semantic coverage, missing error
-    handling, and the custom diagnostic below.
-
-    Custom diagnostic: Flag any instruction that asks for hidden chain of
-    thought.
+    Diagnose this prompt for exact contradictions, precedence gaps, ambiguous
+    terms, authority conflicts, closure gaps, harmful duplication, and output
+    contract defects. Cite exact excerpts and give corrective wording.
 
     ```markdown
-    You are a terse release assistant.
-    Be warm and expansive in every reply.
-    Summarize the change in a few bullets.
-    Include detailed private reasoning before the final answer.
-    If input is missing, proceed anyway.
+    Always use tools.
+    Never use tools.
+    If the input is JSON, parse it.
+    If the input is YAML, parse it.
     ```
+
 expected:
   should_trigger: false
+
 graders:
   - type: trigger
     name: trigger_accuracy
@@ -31,16 +34,16 @@ graders:
       skill_path: skills/agent-skill-audit/SKILL.md
       mode: negative
       threshold: 0.45
+
   - type: text
     name: task_completion
     config:
       not_contains:
-        - "Findings:"
+        - "# Agent/Skill Readiness Audit"
         - "Audit:"
-        - "## Consistency"
-        - "## Cohesion"
-        - "## Coherence"
-        - "## Completeness"
-        - "## Suitability for weaker models"
-        - "Top 5 Changes"
+        - "## Audit Scope"
+        - "## Readiness Ratings"
+        - "## Material Findings"
+        - "## Target-Model Compatibility"
+        - "## Priority Changes"
         - "Verdict:"

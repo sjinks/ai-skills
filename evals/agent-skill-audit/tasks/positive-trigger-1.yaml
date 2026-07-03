@@ -1,30 +1,36 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
 id: positive-trigger-001
-name: Agent skill audit of a synthetic skill
-description: Explicit request to audit a short SKILL.md artifact should trigger the skill.
+
+name: Holistic readiness audit of a skill
+
+description: A request for readiness, model portability, and production suitability should trigger the readiness audit.
+
 tags:
   - positive-trigger
+
 inputs:
   prompt: |
-    Please audit this short SKILL.md artifact for consistency, cohesion,
-    coherence, completeness, and suitability for weaker models.
+    Please audit this Agent Skill for production readiness across GPT-5.4 mini,
+    GPT-5.4, GPT-5.5, Haiku 4.5, Sonnet 5, Opus 4.8, and Fable 5.
 
     ```markdown
     ---
     name: release-note-helper
-    description: Use when drafting release notes from a completed change.
+    description: Use when drafting release notes from completed changes.
     ---
 
     # Release Note Helper
 
-    Always produce a short customer-facing summary.
-    Include every internal implementation detail so nothing is omitted.
-    If tests failed, say the release is ready anyway.
-    Output should be concise, but also include all commits and all files.
-    Ask clarifying questions when input is missing.
+    Always write a short customer-facing summary.
+    Include every internal implementation detail.
+    If tests fail, say the release is ready.
+    Output must be concise and list every commit and changed file.
     ```
+
 expected:
   should_trigger: true
+
 graders:
   - type: trigger
     name: trigger_accuracy
@@ -32,29 +38,33 @@ graders:
       skill_path: skills/agent-skill-audit/SKILL.md
       mode: positive
       threshold: 0.45
+
   - type: skill_invocation
     name: skill_invocation
     config:
       required_skills:
         - agent-skill-audit
       mode: any_order
+
   - type: text
     name: task_completion
     config:
       regex_match:
+        - "(?m)^## Material Findings$"
+        - "(?m)^## Target-Model Compatibility$"
+        - "(?m)^Verdict:"
+        - "(?m)^# Agent/Skill Readiness Audit$"
         - "(?m)^Audit:"
-        - "(?m)^## Consistency"
-        - "(?m)^## Cohesion"
-        - "(?m)^## Coherence"
-        - "(?m)^## Completeness"
-        - "(?m)^## Suitability for weaker models"
-        - "(?m)^Rating:\\s*[1-5]"
-        - "customer-facing summary[\\s\\S]*internal implementation detail"
-        - "tests failed[\\s\\S]*release is ready"
-        - "(?i)Recommendations:[\\s\\S]*\\b(Add|Remove|Replace|Revise|Clarify|Define)\\b"
-        - "(?i)\\b(conflict|contradict|inconsistent|risk|because)\\b"
-        - "(?m)^## Top 5 Changes"
-        - "(?m)^Verdict:\\s*(Ready|Needs revision|Blocked by missing input)"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Readiness Ratings$"
+        - 'Discovery and delegation[\s\S]*Instruction architecture[\s\S]*Operational completeness[\s\S]*Model and runtime portability[\s\S]*Maintainability and evaluability'
+        - 'GPT-5\.4 mini[\s\S]*GPT-5\.5[\s\S]*Haiku 4\.5[\s\S]*Sonnet 5[\s\S]*Opus 4\.8[\s\S]*Fable 5'
+        - 'Severity:\s*(CRITICAL|HIGH|MEDIUM|LOW)'
+        - 'customer-facing[\s\S]*internal implementation'
+        - 'tests fail[\s\S]*release is ready'
+        - "(?m)^## Priority Changes$"
+        - '(?m)^Verdict:\s*(Needs revision|Major redesign)$'
       not_contains:
-        - "# Instruction Analysis Report"
-        - "Provenance:"
+        - "# Instruction Quality Audit"
+        - "I updated"
+        - "Here is the rewritten"

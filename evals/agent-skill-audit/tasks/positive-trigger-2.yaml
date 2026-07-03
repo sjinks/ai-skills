@@ -1,19 +1,28 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 
-id: positive-blocked-001
+id: positive-agent-001
 
-name: Unreadable input produces a non-fabricated blocked report
+name: Readiness audit of a custom subagent
 
-description: Blocked input should preserve markers but must not assign artificial rating 1 values.
+description: The audit should apply agent-specific delegation, authority, stopping, and return-contract checks.
 
 tags:
   - positive-trigger
-  - blocked-input
+  - agent-artifact
 
 inputs:
   prompt: |
-    Please audit the skill package at /tmp/does-not-exist/audit-target.
-    The prompt context also contains #prompt:SKILL.md; that is not the target.
+    Assess whether this custom subagent is ready to use.
+
+    ```markdown
+    You are a repository investigator.
+
+    Investigate whatever the parent asks.
+    You may change files when useful.
+    Do not change files.
+    Keep working until the problem is solved.
+    Return useful information.
+    ```
 
 expected:
   should_trigger: true
@@ -45,13 +54,11 @@ graders:
         - "(?m)^## Priority Changes$"
         - "(?m)^Verdict:"
         - "(?m)^# Agent/Skill Readiness Audit$"
-        - '(?m)^Audit:\s*/tmp/does-not-exist/audit-target'
-        - 'Status:\s*blocked'
-        - '(?m)^## Readiness Ratings$\n\nNot assessed\.\n\n^## Material Findings$'
-        - '(?m)^## Material Findings$\n\nNot assessed\.\n\n^## Target-Model Compatibility$'
-        - '(?m)^## Target-Model Compatibility$\n\nNot assessed\.\n\n^## Priority Changes$'
-        - '(?m)^Verdict:\s*Blocked$'
+        - 'Artifact type:\s*Custom agent'
+        - '(?i)(edit|change files)[\s\S]*(authority|conflict|read-only|permission)'
+        - 'Severity:\s*(CRITICAL|HIGH|MEDIUM|LOW)'
+        - "(?i)(return contract|parent|result returned)"
+        - "(?i)(stopping|stop|completion)"
+        - '(?m)^Verdict:\s*(Needs revision|Major redesign)$'
       not_contains:
-        - "Audit: #prompt:SKILL.md"
-        - "| Discovery and delegation | 1 |"
         - "# Instruction Quality Audit"

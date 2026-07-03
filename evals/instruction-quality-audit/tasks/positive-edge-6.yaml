@@ -1,23 +1,29 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 
-id: positive-combined-001
+id: positive-duplication-001
 
-name: Combined audit-and-fix remains audit-only
+name: Divergent duplicated output rules
 
-description: The diagnostic may give corrective wording but must not return a complete rewrite or claim edits.
+description: Divergent copies of an output contract should be reported as harmful duplication or output-contract drift.
 
 tags:
   - positive-trigger
-  - audit-only
+  - duplication
+  - output-contract
 
 inputs:
   prompt: |
-    Audit and fix this prompt. Start with the audit and tell me exactly what
-    should change.
+    Audit this instruction artifact for harmful duplication.
 
     ```markdown
-    Always answer in one sentence.
-    Include a detailed five-section explanation.
+    # Output
+
+    Return exactly three sections: Summary, Evidence, and Risks.
+
+    # Final Response
+
+    Return exactly four sections: Result, Validation, Assumptions, and Risks.
+    Both output rules are mandatory.
     ```
 
 expected:
@@ -46,15 +52,13 @@ graders:
         - "(?m)^Audit:"
         - "(?m)^## Audit Scope$"
         - "(?m)^## Findings$"
+        - 'Type:\s*(duplication|output-contract|contradiction)'
+        - "exactly three sections"
+        - "exactly four sections"
+        - "(?i)(drift|incompatible|duplicate|two mandatory output)"
+        - "Correction:"
         - "(?m)^## Unresolved Questions$"
         - "(?m)^## Summary$"
-        - "(?m)^Verdict:"
-        - 'Type:\s*contradiction'
-        - "Always answer in one sentence"
-        - "detailed five-section explanation"
-        - "Correction:"
         - '(?m)^Verdict:\s*Needs revision$'
       not_contains:
-        - "I updated"
-        - "I changed"
-        - "Here is the rewritten prompt"
+        - "# Agent/Skill Readiness Audit"

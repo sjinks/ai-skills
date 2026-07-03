@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
+id: positive-no-findings-001
+
+name: Strong instruction artifact produces no forced findings
+
+description: The diagnostic must be able to return no material defects.
+
+tags:
+  - positive-trigger
+  - no-findings
+
+inputs:
+  prompt: |
+    Audit this instruction artifact for contradictions, ambiguity, authority,
+    closure, duplication, failure handling, and output-contract defects.
+
+    ```markdown
+    # Objective
+
+    Summarize the supplied incident report.
+
+    # Input
+
+    If no report is supplied, ask the user to provide one.
+
+    # Rules
+
+    Use only facts in the report. Distinguish confirmed facts from assumptions.
+    Do not modify files or external systems.
+
+    # Output
+
+    Return:
+    1. Summary
+    2. Impact
+    3. Timeline
+    4. Open questions
+
+    The task is complete when all four sections are present or the missing-input
+    request has been returned.
+    ```
+
+expected:
+  should_trigger: true
+
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/instruction-quality-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - instruction-quality-audit
+      mode: any_order
+
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^# Instruction Quality Audit$"
+        - "(?m)^Audit:"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Findings$"
+        - "(?m)^## Unresolved Questions$"
+        - "(?m)^## Summary$"
+        - "(?m)^Verdict:"
+        - '(?m)^## Findings$\n\nNone\.\n\n^## Unresolved Questions$'
+        - 'Errors:\s*0'
+        - 'Warnings:\s*0'
+        - 'Informational findings:\s*0'
+        - '(?m)^Verdict:\s*No material defects$'

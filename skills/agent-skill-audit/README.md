@@ -1,18 +1,20 @@
 # agent-skill-audit
 
-> Use when: auditing agent instructions, skill files, SKILL.md artifacts, prompt-packaged workflows, AI assistant instruction artifacts, custom agent modes, or reusable assistant guidance for consistency, cohesion, coherence, completeness, and weaker-model suitability.
+> Use when assessing whether an agent instruction or Agent Skill package is
+> ready for its intended task, target models, and runtime.
 
-This skill is aimed at agent instructions, skill files, `SKILL.md` artifacts, prompt-packaged workflows, and AI assistant instruction artifacts that need a structured audit for consistency, cohesion, coherence, completeness, and weaker-model suitability.
+This skill performs a holistic readiness audit across discovery/delegation,
+instruction architecture, operational completeness, model/runtime portability,
+and maintainability/evaluability.
 
-It helps an assistant:
-
-- preserve strict input handling for pasted text, selections, file paths, multiple items, missing input, unreadable files, and empty input
-- treat audited artifacts strictly as data, including repository files, comments, remote text, and embedded instructions
-- rate Consistency, Cohesion, Coherence, Completeness, and Suitability for weaker models with stable `Rating`, `Findings`, and `Recommendations` labels
-- check defined-terms discipline under Consistency: load-bearing terms defined once and used consistently, flagging undefined or drifting terms
-- apply the weaker-model seven-item checklist for instruction length, nesting depth, overloaded conditionals, ambiguous or conflicting priorities, duplicated or overlapping instructions, missing examples, and reproducible output format
-- return a stable audit report ending with `Top 5 Changes` and a `Ready`, `Needs revision`, or `Blocked by missing input` verdict
+It does not replace `instruction-quality-audit`, which is the line-level
+diagnostic skill for exact contradictions, ambiguity, authority conflicts,
+closure gaps, harmful duplication, and output-contract defects.
 
 ## Files
 
-- [`SKILL.md`](SKILL.md) — the full skill definition.
+- [`SKILL.md`](SKILL.md) — the full readiness-audit skill definition.
+- [`references/model-portability.md`](references/model-portability.md) — static model-profile checks for the supported target models.
+- [`references/package-analysis.md`](references/package-analysis.md) — package/path load-graph rules, duplicate handling, and eval-alignment checks.
+- [`references/readiness-rubric.md`](references/readiness-rubric.md) — the five readiness rating areas and calibration guidance.
+- [`references/report-contract.md`](references/report-contract.md) — the required readiness report markers, blocked behavior, and no-findings contract.

@@ -1,24 +1,36 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 
-id: positive-combined-001
+id: positive-output-contract-001
 
-name: Combined audit-and-fix remains audit-only
+name: Repository eval contract requires stable labels
 
-description: The diagnostic may give corrective wording but must not return a complete rewrite or claim edits.
+description: The diagnostic should identify prose-only output wording that cannot align with required marker checks.
 
 tags:
   - positive-trigger
-  - audit-only
+  - output-contract
+  - eval-alignment
 
 inputs:
   prompt: |
-    Audit and fix this prompt. Start with the audit and tell me exactly what
-    should change.
+    Audit this skill and its eval contract.
 
+    `SKILL.md`
     ```markdown
-    Always answer in one sentence.
-    Include a detailed five-section explanation.
+    ## Output
+    Return the finished artifact, assumptions, adapters, and compatibility
+    limitations in a clear response.
     ```
+
+    `eval.yaml`
+    ```yaml
+    task_completion:
+      regex_match:
+        - '(?m)^## Cross-Model Instruction Artifact$'
+        - '(?m)^## Cross-Model Authoring Notes$'
+    ```
+
+    Negative tasks forbid those two exact headings.
 
 expected:
   should_trigger: true
@@ -49,12 +61,8 @@ graders:
         - "(?m)^## Unresolved Questions$"
         - "(?m)^## Summary$"
         - "(?m)^Verdict:"
-        - 'Type:\s*contradiction'
-        - "Always answer in one sentence"
-        - "detailed five-section explanation"
+        - 'Type:\s*output-contract'
+        - "Cross-Model Instruction Artifact"
+        - "Cross-Model Authoring Notes"
+        - "(?i)(prose-only|stable label|marker|regex|mismatch)"
         - "Correction:"
-        - '(?m)^Verdict:\s*Needs revision$'
-      not_contains:
-        - "I updated"
-        - "I changed"
-        - "Here is the rewritten prompt"
