@@ -67,4 +67,4 @@ graders:
       not_contains:
         - "# Instruction Quality Audit"
         - "I updated"
-        - "Here is the rewritten"
+        - "Here is the rewritten skill"

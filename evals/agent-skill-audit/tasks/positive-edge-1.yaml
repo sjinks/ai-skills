@@ -67,7 +67,7 @@ graders:
         - "(?m)^## Priority Changes$"
         - "(?m)^Verdict:"
         - 'Mode:\s*package'
-        - 'Claude Code[\s\S]*Codex'
+        - '(?i)claude[\s\S]*codex'
         - "(?i)(mutually exclusive|exactly one runtime adapter|separate adapter)"
         - "(?m)^## Target-Model Compatibility$"
         - '(?m)^Verdict:\s*(Ready|Ready with limitations|Needs revision)$'

@@ -61,4 +61,4 @@ graders:
       not_contains:
         - "# Agent/Skill Readiness Audit"
         - "I updated"
-        - "Here is the rewritten"
+        - "Here is the rewritten prompt"
