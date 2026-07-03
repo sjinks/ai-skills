@@ -1,28 +1,27 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
 id: negative-trigger-001
-name: General TypeScript cleanup request
-description: General code cleanup is not an agent or skill artifact audit and should not trigger the skill.
+
+name: Ordinary code review
+
+description: Normal code review is outside the readiness-audit scope.
+
 tags:
   - negative-trigger
+
 inputs:
   prompt: |
-    Please clean up this TypeScript utility and suggest a clearer structure. I
-    only want normal code-quality feedback, not an audit of assistant
-    instructions.
+    Review this TypeScript function for bugs and suggest a fix.
 
     ```ts
-    export function compact(values: Array<string | null | undefined>) {
-      const out: string[] = [];
-      for (const value of values) {
-        if (value !== null && value !== undefined && value !== "") {
-          out.push(value.trim());
-        }
-      }
-      return out;
+    export function first(values: string[]) {
+      return values[1];
     }
     ```
+
 expected:
   should_trigger: false
+
 graders:
   - type: trigger
     name: trigger_accuracy
@@ -30,13 +29,16 @@ graders:
       skill_path: skills/agent-skill-audit/SKILL.md
       mode: negative
       threshold: 0.45
+
   - type: text
     name: task_completion
     config:
       not_contains:
-        - "Findings:"
+        - "# Agent/Skill Readiness Audit"
         - "Audit:"
-        - "## Consistency"
-        - "## Suitability for weaker models"
-        - "Top 5 Changes"
+        - "## Audit Scope"
+        - "## Readiness Ratings"
+        - "## Material Findings"
+        - "## Target-Model Compatibility"
+        - "## Priority Changes"
         - "Verdict:"

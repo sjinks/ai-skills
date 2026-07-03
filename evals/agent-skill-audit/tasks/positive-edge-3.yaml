@@ -1,46 +1,42 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
-id: positive-edge-003
-name: Agent skill audit deduplicates confirmed duplicate sources
-description: Confirmed duplicate skill artifacts should be audited once with duplicate provenance.
+
+id: positive-duplicate-001
+
+name: Confirmed duplicate sources are audited once
+
+description: Exact duplicate artifacts should produce one report with both sources listed in scope.
+
 tags:
   - positive-trigger
-  - positive-edge
+  - duplicate-input
+
 inputs:
   prompt: |
-    Audit these two supplied SKILL.md artifacts. They are confirmed duplicate
-    sources of the same skill, so audit once and list both source names.
+    Audit these confirmed duplicate copies once and list both sources.
 
-    artifact-a/SKILL.md
+    `copy-a/SKILL.md`
     ```markdown
     ---
-    name: tool-approval-helper
-    description: Use when deciding whether an assistant may use tools.
+    name: approval-helper
+    description: Use when deciding whether a change needs approval.
     ---
-
-    # Tool Approval Helper
-
-    Always use every available tool before answering.
-    Never use tools unless the task explicitly requests tool use.
-    Keep answers short.
-    Include a detailed audit trail for every decision.
+    Always ask for approval.
+    Never ask for approval for reversible changes.
     ```
 
-    artifact-b/SKILL.md
+    `copy-b/SKILL.md`
     ```markdown
     ---
-    name: tool-approval-helper
-    description: Use when deciding whether an assistant may use tools.
+    name: approval-helper
+    description: Use when deciding whether a change needs approval.
     ---
-
-    # Tool Approval Helper
-
-    Always use every available tool before answering.
-    Never use tools unless the task explicitly requests tool use.
-    Keep answers short.
-    Include a detailed audit trail for every decision.
+    Always ask for approval.
+    Never ask for approval for reversible changes.
     ```
+
 expected:
   should_trigger: true
+
 graders:
   - type: trigger
     name: trigger_accuracy
@@ -48,31 +44,28 @@ graders:
       skill_path: skills/agent-skill-audit/SKILL.md
       mode: positive
       threshold: 0.45
+
   - type: skill_invocation
     name: skill_invocation
     config:
       required_skills:
         - agent-skill-audit
       mode: any_order
+
   - type: text
     name: task_completion
     config:
       regex_match:
-        - "(?m)^Audit:.*artifact-a/SKILL\\.md"
-        - "(?m)^Duplicate sources:\\s*[\\s\\S]*artifact-a/SKILL\\.md[\\s\\S]*artifact-b/SKILL\\.md"
-        - "(?m)^## Consistency"
-        - "(?m)^## Cohesion"
-        - "(?m)^## Coherence"
-        - "(?m)^## Completeness"
-        - "(?m)^## Suitability for weaker models"
-        - "Rating:\\s*[1-5]"
-        - "(?m)^## Top 5 Changes"
-        - "Verdict:\\s*(Ready|Needs revision|Blocked by missing input)"
-        - "Always use every available tool before answering\\.[\\s\\S]*Never use tools unless the task explicitly requests tool use\\."
-        - "(?i)Recommendations:[\\s\\S]*\\b(Add|Remove|Replace|Revise|Clarify|Define)\\b"
-        - "(?i)\\b(conflict|contradict|inconsistent|risk|because)\\b"
+        - "(?m)^# Agent/Skill Readiness Audit$"
+        - '(?m)^Audit:.*copy-a/SKILL\.md'
+        - "(?m)^## Audit Scope$"
+        - 'Files included:[\s\S]*copy-a/SKILL\.md[\s\S]*copy-b/SKILL\.md'
+        - 'Severity:\s*(CRITICAL|HIGH|MEDIUM|LOW)'
+        - "(?m)^## Readiness Ratings$"
+        - "(?m)^## Material Findings$"
+        - "(?m)^## Target-Model Compatibility$"
+        - "(?m)^## Priority Changes$"
+        - "(?m)^Verdict:"
       not_contains:
-        - "Audit: artifact-b"
-        - "I updated"
-        - "I changed"
-        - "Here is the rewritten"
+        - "Audit: copy-b/SKILL.md"
+        - "# Instruction Quality Audit"

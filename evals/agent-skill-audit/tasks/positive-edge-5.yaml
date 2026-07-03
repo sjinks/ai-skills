@@ -1,0 +1,69 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
+id: positive-model-portability-001
+
+name: Model portability catches both floor and ceiling risks
+
+description: The audit should identify small-model burden and frontier-model overconstraint.
+
+tags:
+  - positive-trigger
+  - model-portability
+
+inputs:
+  prompt: |
+    Audit this skill specifically for the seven supported models.
+
+    ```markdown
+    ---
+    name: implementation-helper
+    description: Use when implementing a code change.
+    ---
+
+    # Implementation Helper
+
+    Before every action, produce a detailed plan and wait for approval.
+    Always use Grep, then Read, then Bash, then Edit in that exact order.
+    After every two tool calls, post a status update.
+    Spawn exactly three subagents even for a one-line change.
+    Ask before every reversible edit.
+    Return a 20-section Markdown report.
+    ```
+
+expected:
+  should_trigger: true
+
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/agent-skill-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - agent-skill-audit
+      mode: any_order
+
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^# Agent/Skill Readiness Audit$"
+        - "(?m)^Audit:"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Readiness Ratings$"
+        - "(?m)^## Material Findings$"
+        - "(?m)^## Target-Model Compatibility$"
+        - "(?m)^## Priority Changes$"
+        - "(?m)^Verdict:"
+        - 'GPT-5\.4 mini[\s\S]*(burden|complex|output|sequence|unsuitable|limitation)'
+        - 'Haiku 4\.5[\s\S]*(burden|parameter|output|sequence|unsuitable|limitation)'
+        - 'GPT-5\.5[\s\S]*(overconstrain|micromanage|process|sequence|limitation)'
+        - 'Fable 5[\s\S]*(overconstrain|micromanage|pause|subagent|limitation)'
+        - 'Severity:\s*(CRITICAL|HIGH|MEDIUM|LOW)'
+        - "(?i)(fixed tool|exact order|progress update|three subagents|approval)"
+        - '(?m)^Verdict:\s*(Needs revision|Major redesign)$'

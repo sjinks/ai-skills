@@ -1,25 +1,29 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 
-id: positive-trigger-001
+id: positive-duplication-001
 
-name: Contradiction diagnostic
+name: Divergent duplicated output rules
 
-description: An explicit request for exact instruction defects should trigger the diagnostic audit.
+description: Divergent copies of an output contract should be reported as harmful duplication or output-contract drift.
 
 tags:
   - positive-trigger
-  - contradiction
+  - duplication
+  - output-contract
 
 inputs:
   prompt: |
-    Audit these instructions for exact contradictions and ambiguity. Cite the
-    relevant wording and suggest a correction.
+    Audit this instruction artifact for harmful duplication.
 
     ```markdown
-    Always close duplicate tickets immediately.
-    Never close any ticket without human approval.
-    Use all available tools before responding.
-    Do not use tools unless the ticket contains a customer ID.
+    # Output
+
+    Return exactly three sections: Summary, Evidence, and Risks.
+
+    # Final Response
+
+    Return exactly four sections: Result, Validation, Assumptions, and Risks.
+    Both output rules are mandatory.
     ```
 
 expected:
@@ -44,21 +48,17 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - "(?m)^## Unresolved Questions$"
-        - "(?m)^Verdict:"
         - "(?m)^# Instruction Quality Audit$"
         - "(?m)^Audit:"
         - "(?m)^## Audit Scope$"
         - "(?m)^## Findings$"
-        - "(?m)^### IQA-001"
-        - 'Type:\s*(contradiction|precedence)'
-        - 'Always close duplicate tickets immediately\.'
-        - 'Never close any ticket without human approval\.'
-        - "Behavioral risk:"
+        - 'Type:\s*(duplication|output-contract|contradiction)'
+        - "exactly three sections"
+        - "exactly four sections"
+        - "(?i)(drift|incompatible|duplicate|two mandatory output)"
         - "Correction:"
+        - "(?m)^## Unresolved Questions$"
         - "(?m)^## Summary$"
         - '(?m)^Verdict:\s*Needs revision$'
       not_contains:
         - "# Agent/Skill Readiness Audit"
-        - "I updated"
-        - "Here is the rewritten prompt"

@@ -1,23 +1,34 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 
-id: positive-combined-001
+id: positive-package-001
 
-name: Combined audit-and-fix remains audit-only
+name: Cross-file contradiction on a reachable path
 
-description: The diagnostic may give corrective wording but must not return a complete rewrite or claim edits.
+description: The diagnostic should follow a normative reference and cite both files.
 
 tags:
   - positive-trigger
-  - audit-only
+  - package
+  - cross-file
 
 inputs:
   prompt: |
-    Audit and fix this prompt. Start with the audit and tell me exactly what
-    should change.
+    Diagnose this complete skill package.
 
+    `SKILL.md`
     ```markdown
-    Always answer in one sentence.
-    Include a detailed five-section explanation.
+    ---
+    name: deploy-review
+    description: Use when reviewing a deployment candidate.
+    ---
+
+    Read `references/result-policy.md` on every run.
+    Never mark a deployment ready after any required check fails.
+    ```
+
+    `references/result-policy.md`
+    ```markdown
+    If exactly one required check fails, mark the deployment ready with a warning.
     ```
 
 expected:
@@ -49,12 +60,10 @@ graders:
         - "(?m)^## Unresolved Questions$"
         - "(?m)^## Summary$"
         - "(?m)^Verdict:"
+        - 'Mode:\s*package'
+        - 'SKILL\.md'
+        - 'references/result-policy\.md'
         - 'Type:\s*contradiction'
-        - "Always answer in one sentence"
-        - "detailed five-section explanation"
-        - "Correction:"
-        - '(?m)^Verdict:\s*Needs revision$'
-      not_contains:
-        - "I updated"
-        - "I changed"
-        - "Here is the rewritten prompt"
+        - "Never mark a deployment ready"
+        - "mark the deployment ready with a warning"
+        - "(?i)(co-loaded|every run|reachable)"

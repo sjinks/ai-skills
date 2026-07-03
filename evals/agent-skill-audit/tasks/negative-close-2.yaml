@@ -1,29 +1,31 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
 id: negative-close-002
-name: Rewrite a skill without audit framing
-description: Direct creation or rewrite of a VS Code customization file should not trigger the audit skill.
+
+name: Direct skill rewrite
+
+description: A direct rewrite without audit framing should not trigger the readiness audit.
+
 tags:
   - negative-trigger
   - close-domain
+
 inputs:
   prompt: |
-    Rewrite this VS Code skill file so it is shorter and easier to follow. Do
-    the rewrite directly; I am not asking for an audit report.
+    Rewrite this skill directly so it is concise and portable. Return the new
+    SKILL.md, not an audit.
 
     ```markdown
     ---
-    name: changelog-helper
-    description: Use when preparing a changelog entry.
+    name: formatter
+    description: Use when formatting text.
     ---
-
-    # Changelog Helper
-
-    Read the diff, group changes by user impact, and write a concise entry.
-    If the diff is missing, ask for it.
-    Prefer bullets and keep each bullet under twenty words.
+    Always plan first. Ask before every edit. Use the Bash tool.
     ```
+
 expected:
   should_trigger: false
+
 graders:
   - type: trigger
     name: trigger_accuracy
@@ -31,12 +33,16 @@ graders:
       skill_path: skills/agent-skill-audit/SKILL.md
       mode: negative
       threshold: 0.45
+
   - type: text
     name: task_completion
     config:
       not_contains:
-        - "Findings:"
+        - "# Agent/Skill Readiness Audit"
         - "Audit:"
-        - "Rating:"
-        - "Top 5 Changes"
+        - "## Audit Scope"
+        - "## Readiness Ratings"
+        - "## Material Findings"
+        - "## Target-Model Compatibility"
+        - "## Priority Changes"
         - "Verdict:"

@@ -1,29 +1,26 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
 id: negative-close-002
-name: Direct frontmatter fix request
-description: Direct YAML frontmatter fixing or prompt rewriting without audit framing should not trigger the skill.
+
+name: Direct prompt rewrite
+
+description: A direct rewrite without audit framing should not trigger the diagnostic audit.
+
 tags:
   - negative-trigger
   - close-domain
+
 inputs:
   prompt: |
-    Fix the YAML frontmatter and rewrite these prompt instructions directly.
-    Return the corrected prompt, not an audit or report.
+    Rewrite these instructions directly and return only the improved prompt:
 
     ```markdown
-    ---
-    name prompt-polisher
-    description Use when polishing prompt wording.
-    ---
-
-    # Prompt Polisher
-
-    Make the prompt clearer.
-    Preserve the user's intent.
-    Ask for missing context when needed.
+    Be clear. Do the work. Use tools as needed.
     ```
+
 expected:
   should_trigger: false
+
 graders:
   - type: trigger
     name: trigger_accuracy
@@ -31,12 +28,15 @@ graders:
       skill_path: skills/instruction-quality-audit/SKILL.md
       mode: negative
       threshold: 0.45
+
   - type: text
     name: task_completion
     config:
       not_contains:
-        - "# Instruction Analysis Report"
-        - "Provenance:"
-        - "## Contradictions"
-        - "## Ambiguity Issues"
-        - "## Custom Diagnostics"
+        - "# Instruction Quality Audit"
+        - "Audit:"
+        - "## Audit Scope"
+        - "## Findings"
+        - "## Unresolved Questions"
+        - "## Summary"
+        - "Verdict:"

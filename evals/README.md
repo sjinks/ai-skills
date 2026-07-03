@@ -10,8 +10,13 @@ Evaluation suites for the skills in this repository, in
 - `tasks/positive-trigger-*.yaml` — prompts that should activate the
   skill, plus content/format graders to check the skill's structured
   output.
-- `tasks/positive-substance-*.yaml` (some suites) — a richer task with a
-  realistic artifact to review or generate.
+- `tasks/positive-edge-*.yaml` (some suites) — documented hard-behavior
+  cases such as blocked input, no-findings reports, package/path handling,
+  and other edge scenarios that still must activate and satisfy the output
+  contract.
+- `tasks/positive-substance-*.yaml` (some suites) — representative
+  realistic artifacts that add LLM-judge substance graders beyond marker
+  and routing checks.
 - `tasks/negative-trigger-*.yaml` — off-topic prompts that must not
   activate the skill. Each suite uses a different off-topic prompt so a
   single shared bias does not silently pass everywhere.
@@ -102,6 +107,8 @@ grader weighting takes effect.
   - `perf-measurement`: 0.45
   - `doc-source-reconciliation`: 0.45
   - `artifact-consolidation`: 0.45
+  - `agent-skill-audit`: 0.45
+  - `instruction-quality-audit`: 0.45
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks
   only) — requires the named skill via `required_skills` with
   `mode: any_order`. The currently released waza CLI (`v0.33.0`) defines

@@ -1,0 +1,80 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
+id: positive-optional-polish-001
+
+name: Optional polish does not create material findings
+
+description: The readiness audit should not lower ratings or invent findings for optional style polish.
+
+tags:
+  - positive-trigger
+  - optional-polish
+
+inputs:
+  prompt: |
+    Audit this skill for readiness. Focus on whether it is ready, not on copyediting polish.
+
+    ```markdown
+    ---
+    name: incident-summary
+    description: Use when summarizing a supplied incident report for an internal status update.
+    argument-hint: Incident report text and any known audience constraints.
+    user-invocable: true
+    ---
+
+    # Incident Summary
+
+    Summarize only the supplied incident report.
+
+    If no report is supplied, ask the user to provide one.
+
+    Do not modify files, run commands, browse, or contact external systems.
+
+    Return exactly these sections:
+
+    1. Summary
+    2. Impact
+    3. Timeline
+    4. Open questions
+
+    Distinguish confirmed facts from assumptions. If a requested section has no
+    support in the report, write `Not supplied` for that section.
+    ```
+
+expected:
+  should_trigger: true
+
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/agent-skill-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - agent-skill-audit
+      mode: any_order
+
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^# Agent/Skill Readiness Audit$"
+        - "(?m)^Audit:"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Readiness Ratings$"
+        - "(?m)^## Material Findings$"
+        - "(?m)^## Target-Model Compatibility$"
+        - "(?m)^## Priority Changes$"
+        - "(?m)^Verdict:"
+        - '(?m)^## Material Findings$\n\nNone\.\n\n^## Target-Model Compatibility$'
+        - '(?m)^## Priority Changes$\n\nNone\.\n\n^Verdict:\s*Ready$'
+      not_contains:
+        - "Severity:"
+        - "Needs revision"
+        - "Major redesign"
+        - "# Instruction Quality Audit"
