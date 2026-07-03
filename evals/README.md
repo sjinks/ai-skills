@@ -14,6 +14,9 @@ Evaluation suites for the skills in this repository, in
   cases such as blocked input, no-findings reports, package/path handling,
   and other edge scenarios that still must activate and satisfy the output
   contract.
+- `tasks/positive-substance-*.yaml` (some suites) — representative
+  realistic artifacts that add LLM-judge substance graders beyond marker
+  and routing checks.
 - `tasks/negative-trigger-*.yaml` — off-topic prompts that must not
   activate the skill. Each suite uses a different off-topic prompt so a
   single shared bias does not silently pass everywhere.
