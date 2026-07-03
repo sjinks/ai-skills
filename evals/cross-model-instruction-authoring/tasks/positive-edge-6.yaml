@@ -1,0 +1,58 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-006
+name: Machine-readable audit report skill
+description: |
+  A skill that produces exact machine-readable audit reports should stay
+  concise and prefer structured output or a deterministic validator.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Create an exact machine-readable audit report skill with a complicated
+    Markdown format.
+
+    Keep semantic instructions concise and recommend structured output or a
+    deterministic validator for exact serialization.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cross-model-instruction-authoring/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cross-model-instruction-authoring
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(structured output|deterministic validator|exact serialization|machine-readable)"
+        - "(?i)(concise|short)"
+        - "(?i)(Required outcomes|Invariants|Default workflow|Completion criteria)"
+        - "(?i)Material assumptions"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response keeps the semantic instructions concise and
+        recommends structured output or a deterministic validator for exact
+        serialization, instead of sprawling Markdown scaffolding.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent

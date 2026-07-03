@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Short JSON-parse skill
+description: |
+  A tiny universal skill for formatting one JSON file and verifying that it
+  parses should stay short and avoid unnecessary orchestration scaffolding.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Create a skill that formats one JSON file and verifies it parses. Make it
+    universal across the target models.
+
+    The result should be a deliberately short skill without unnecessary
+    planning, subagent, progress-update, or long-reference scaffolding.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cross-model-instruction-authoring/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cross-model-instruction-authoring
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(JSON|parse|parses|verify)"
+        - "(?i)(short|concise|minimal)"
+        - "(?i)(Completion criteria|Required outcomes|Invariants)"
+        - "(?i)Material assumptions"
+      not_contains:
+        - "progress-update"
+        - "long-reference"
+        - "three subagents"

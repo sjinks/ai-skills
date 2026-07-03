@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Read-only flaky-test subagent
+description: |
+  A narrow subagent prompt for flaky C++ test investigation should keep read,
+  execute, no-edit authority and a parent return contract.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Write instructions for a read-only subagent that investigates flaky C++
+    tests and reports evidence to a parent agent. It may run tests but must not
+    edit files.
+
+    Include delegation scope, explicit read/execute/no-edit authority, evidence
+    policy, stopping conditions, and a parent-agent return contract.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cross-model-instruction-authoring/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cross-model-instruction-authoring
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(delegation scope|evidence policy|stopping conditions|return contract)"
+        - "(?i)(read-only|read/execute/no-edit|must not edit|no-edit authority)"
+        - "(?i)(run tests|execute|report evidence)"
+        - "(?i)Material assumptions"
+      not_contains:
+        - "Portable Core:"
+        - "Runtime Adapter:"

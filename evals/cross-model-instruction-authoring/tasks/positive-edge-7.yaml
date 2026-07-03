@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-007
+name: Persistent project instructions boundary
+description: |
+  Repository-wide instructions should be placed in persistent project
+  instructions, not duplicated in a task skill or a specialized agent.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Write repository-wide instructions saying which build and test commands to
+    use and that generated files must never be edited.
+
+    Recognition that this belongs in persistent project instructions rather
+    than a task skill or specialized agent, with a concise finished
+    instruction artifact.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cross-model-instruction-authoring/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cross-model-instruction-authoring
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(persistent project instructions|repository-wide facts|runtime's persistent project-instruction mechanism)"
+        - "(?i)(skill|agent|artifact)"
+        - "(?i)(build and test commands|generated files must never be edited)"
+        - "(?i)Material assumptions"
