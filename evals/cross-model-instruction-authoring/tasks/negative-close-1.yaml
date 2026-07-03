@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Review-only instruction audit request
+description: |
+  An audit-only request should route to a review skill, not to cross-model
+  instruction authoring.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Please review this prompt pack for consistency, cohesion, coherence,
+    completeness, weaker-model suitability, category ratings, and a short list
+    of the most important changes. Do not rewrite it.
+
+    ```markdown
+    ---
+    name: incident-summary
+    description: Use when writing incident summaries from a completed review.
+    ---
+
+    # Incident Summary
+
+    Always include the timeline and customer impact.
+    Never include customer impact because it may be sensitive.
+    Use a short final summary.
+    The output format is flexible.
+    ```
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cross-model-instruction-authoring/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Finished artifact:"
+        - "Material assumptions:"
+        - "Runtime adapter:"
+        - "Compatibility note:"

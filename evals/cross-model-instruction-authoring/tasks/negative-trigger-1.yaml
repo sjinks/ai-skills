@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Release notes rewrite
+description: Unrelated writing task must not activate cross-model-instruction-authoring.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "Rewrite these release notes to sound clearer and more concise for a developer changelog."
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cross-model-instruction-authoring/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Finished artifact:"
+        - "Material assumptions:"
+        - "Runtime adapter:"
+        - "Compatibility note:"

@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
+name: cross-model-instruction-authoring-eval
+description: |
+  Evaluates the cross-model-instruction-authoring skill: it activates for
+  authored instruction artifacts and skill revisions that must work across
+  multiple model families and runtimes; stays silent on review-only audits,
+  generic model-choice advice, and unrelated writing tasks; and emits the
+  required finished artifact with portable core, runtime adapters, validation,
+  completion, assumptions, and compatibility notes when needed.
+skill: cross-model-instruction-authoring
+version: "1.0"
+config:
+  trials_per_task: 2
+  timeout_seconds: 300
+  parallel: true
+  workers: 4
+  executor: copilot-sdk
+  model: claude-sonnet-4.6
+  max_attempts: 2
+metrics:
+  - name: trigger_accuracy
+    weight: 0.30
+    threshold: 0.8
+    description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected mode.
+  - name: skill_invocation
+    weight: 0.15
+    threshold: 0.9
+    description: Skill is invoked on positive tasks that should activate it.
+  - name: task_completion
+    weight: 0.25
+    threshold: 0.8
+    description: Output carries the cross-model authoring contract and respects the artifact shape requested by the prompt.
+  - name: task_completion_substance
+    weight: 0.15
+    threshold: 0.7
+    description: LLM judge verifies the richer positive task keeps semantic instructions concise while preserving machine-readable output guidance.
+  - name: efficiency
+    weight: 0.15
+    threshold: 0.7
+    description: Stays within tool-call and total-token budgets.
+graders:
+  - type: behavior
+    name: efficiency
+    config:
+      max_tool_calls: 8
+      max_tokens: 8000
+tasks:
+  - "tasks/*.yaml"

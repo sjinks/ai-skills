@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Portable PR-review skill across models
+description: |
+  A request to create a portable Agent Skill for pull-request review should
+  activate cross-model-instruction-authoring and produce a finished skill, not
+  just advice.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Create a portable Agent Skill that reviews pull requests for correctness
+    and security. It must work with GPT-5.4 mini, GPT-5.5, Claude Haiku 4.5,
+    Claude Sonnet 5, Claude Opus 4.8, and Claude Fable 5.
+
+    Return a finished SKILL.md with concise trigger metadata, task-specific
+    outcomes, evidence rules, adaptable workflow, validation, completion
+    criteria, and no provider-specific tool names.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cross-model-instruction-authoring/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cross-model-instruction-authoring
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(Portable Core|Runtime Adapter|Model Routing)"
+        - "(?i)(Required outcomes|Invariants|Default workflow|Completion criteria)"
+        - "(?i)(model-neutral core|runtime-specific adapters|validation|return contract)"
+        - "(?i)Finished artifact:"
+        - "(?i)Material assumptions:"
+        - "(?i)Runtime adapter:"
+        - "(?i)Compatibility note:"
+      not_contains:
+        - "Verdict:"
+        - "Gate decision:"

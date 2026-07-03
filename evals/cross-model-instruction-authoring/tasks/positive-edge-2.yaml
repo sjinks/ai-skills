@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Claude Code to Codex adaptation
+description: |
+  Adapting a Claude Code skill for Claude Code and Codex should preserve a
+  model-neutral core and move runtime specifics into adapters.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Adapt this Claude Code skill for both Claude Code and Codex. It uses
+    $ARGUMENTS, context: fork, the Grep tool, and an Explore subagent.
+
+    Return a model-neutral core plus separate runtime adapter guidance;
+    Claude-specific variables, frontmatter, tool names, and subagent semantics
+    are removed from the portable body.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cross-model-instruction-authoring/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cross-model-instruction-authoring
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(Portable Core|Runtime Adapter|model-neutral core|runtime-specific adapters)"
+        - "(?i)(Claude Code|Codex)"
+        - "(?i)(adapter|portable body)"
+        - "(?i)Finished artifact:"
+        - "(?i)Material assumptions:"
+        - "(?i)Runtime adapter:"
+        - "(?i)Compatibility note:"
+      not_contains:
+        - "Verdict:"

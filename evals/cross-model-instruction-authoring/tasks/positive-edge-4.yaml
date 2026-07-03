@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-004
+name: Progress-cadence rewrite for frontier models
+description: |
+  Rewriting an agent prompt to remove routine micromanagement while preserving
+  genuine safety gates should still stay within the skill's cross-model scope.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Rewrite this agent prompt so it asks before every command, reports
+    progress after every two tool calls, and always uses three subagents. It
+    targets GPT-5.5 and Fable 5.
+
+    Preserve genuine safety gates but remove routine permission, cadence, and
+    fixed-subagent micromanagement; explain any material behavioral change.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cross-model-instruction-authoring/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cross-model-instruction-authoring
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?i)(safety gate|safety gates|material behavioral change)"
+        - "(?i)(GPT-5.5|Fable 5)"
+        - "(?i)(permission|cadence|subagent)"
+        - "(?i)Finished artifact:"
+        - "(?i)Material assumptions:"
+        - "(?i)Runtime adapter:"
+        - "(?i)Compatibility note:"
