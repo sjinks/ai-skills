@@ -13,7 +13,7 @@ inputs:
     universal across the target models.
 
     The result should be a deliberately short skill without unnecessary
-    planning, subagent, progress-update, or long-reference scaffolding.
+    planning, subagents, fixed-cadence progress updates, or long reference scaffolding.
 expected:
   should_trigger: true
 graders:
