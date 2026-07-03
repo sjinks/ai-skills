@@ -4,7 +4,16 @@ Read this reference when producing or validating an Agent/Skill Readiness Audit 
 
 Produce one report per distinct target package or standalone artifact.
 
-Use these top-level markers exactly once and in this order.
+Within each report, use these top-level markers exactly once and in this order.
+
+Uppercase tokens such as `TARGET_NAME_OR_PATH`, `MODEL_LIST`, and `RISK_OR_NONE` are placeholders. Replace them with actual values; do not emit the placeholder names literally.
+
+Allowed target-model verdicts are:
+
+- `Suitable`
+- `Suitable with limitations`
+- `Unsuitable`
+- `Not assessed`
 
 ```markdown
 # Agent/Skill Readiness Audit
@@ -51,7 +60,7 @@ Correction: SPECIFIC_CORRECTIVE_TASK
 
 | Model | Verdict | Main risk | Required adaptation |
 |---|---|---|---|
-| MODEL | Suitable | None | None |
+| MODEL | Suitable \| Suitable with limitations \| Unsuitable \| Not assessed | MAIN_RISK_OR_NONE | REQUIRED_ADAPTATION_OR_NONE |
 
 ## Priority Changes
 
@@ -61,6 +70,8 @@ Verdict: Ready | Ready with limitations | Needs revision | Major redesign | Bloc
 ```
 
 ## Empty Sections
+
+The following snippets replace only the named section and its content. They do not permit omission of the other required report markers.
 
 When no material finding exists, write:
 
@@ -95,6 +106,10 @@ Do not assign rating `1` merely because input is unavailable.
 
 ## Multiple Reports
 
-Separate complete reports with `---`.
+For one report, `Verdict: <value>` must be the final content line of the response.
 
-Do not append any text after each report's `Verdict:` line.
+For multiple reports, separate reports with a line containing only `---`. Within each report, `Verdict: <value>` must be the final content line before the separator or the end of the response.
+
+Number material findings sequentially within each report as `ASR-001`, `ASR-002`, and so on. Restart numbering at `ASR-001` in each subsequent report.
+
+Do not add commentary before, between, or after the reports.

@@ -1,0 +1,63 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
+id: positive-contract-enum-drift-001
+
+name: Verdict value domain drifts between files
+
+description: The audit should detect different allowed verdict enums for the same contract
+
+tags:
+  - positive-trigger
+  - output-contract
+  - enum-drift
+
+inputs:
+  prompt: |
+    Audit this package output contract.
+    
+    `SKILL.md`
+    ```markdown
+    Verdict values are: Ready, Ready with limitations, Needs revision, or Blocked.
+    ```
+    
+    `references/report-contract.md`
+    ```markdown
+    Verdict: Ready | Needs revision | Blocked
+    ```
+
+expected:
+  should_trigger: true
+
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/instruction-quality-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - instruction-quality-audit
+      mode: any_order
+
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^# Instruction Quality Audit$"
+        - "(?m)^Audit:"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Findings$"
+        - "(?m)^## Unresolved Questions$"
+        - "(?m)^## Summary$"
+        - '(?m)^Verdict:\s*Needs revision$'
+        - 'Type:\s*output-contract'
+        - "Ready with limitations"
+        - 'Verdict: Ready \| Needs revision \| Blocked'
+        - "(?i)(allowed value|enum|value domain|omits)"
+        - "Correction:"
+      not_contains:
+        - "# Agent/Skill Readiness Audit"

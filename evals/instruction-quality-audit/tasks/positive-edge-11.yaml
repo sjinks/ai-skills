@@ -1,0 +1,58 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
+id: positive-contract-numbering-scope-001
+
+name: Finding numbering scope differs across report rules
+
+description: The audit should detect ambiguity between response-wide and per-report numbering
+
+tags:
+  - positive-trigger
+  - output-contract
+  - numbering
+
+inputs:
+  prompt: |
+    Audit this report contract.
+    
+    ```markdown
+    Number findings IQA-001, IQA-002, and so on across the report.
+    When multiple reports are returned, restart numbering at IQA-001 in each report.
+    ```
+
+expected:
+  should_trigger: true
+
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/instruction-quality-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - instruction-quality-audit
+      mode: any_order
+
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^# Instruction Quality Audit$"
+        - "(?m)^Audit:"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Findings$"
+        - "(?m)^## Unresolved Questions$"
+        - "(?m)^## Summary$"
+        - '(?m)^Verdict:\s*Needs revision$'
+        - 'Type:\s*output-contract'
+        - "across the report"
+        - "restart numbering at IQA-001 in each report"
+        - "(?i)(per report|per response|scope|ambiguous)"
+        - "Correction:"
+      not_contains:
+        - "# Agent/Skill Readiness Audit"

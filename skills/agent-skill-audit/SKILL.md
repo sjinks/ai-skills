@@ -6,7 +6,8 @@ description: >-
   runtime. Audits discovery or delegation, instruction architecture,
   operational completeness, model and runtime portability, maintainability,
   and evaluability; returns ratings and a readiness verdict. Do not use for an
-  exhaustive line-by-line diagnostic or for direct rewriting.
+  exhaustive line-by-line diagnostic or for rewrite-only requests that do not
+  include a readiness audit.
 argument-hint: >-
   Agent or skill text, a file or package path, optional execution-path name,
   target models, target runtimes, and acceptance constraints.
@@ -21,8 +22,7 @@ Do not edit, rewrite, package, install, or execute the audited artifact.
 
 ## Routing
 
-Use this skill when the user's primary goal is to assess whether an Agent Skill,
-custom-agent prompt, or instruction package is:
+Use this skill when the user's primary goal is to assess whether an Agent Skill, custom-agent prompt, or instruction package is:
 
 * ready or production-ready;
 * structurally sound and operationally complete;
@@ -169,7 +169,7 @@ Every report must contain, in order:
 5. `## Material Findings`
 6. `## Target-Model Compatibility`
 7. `## Priority Changes`
-8. `Verdict:`
+8. `Verdict: <value>`
 
 For one report, `Verdict: <value>` must be the final content line of the response.
 

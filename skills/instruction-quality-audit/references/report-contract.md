@@ -4,9 +4,11 @@ Read this reference when producing or validating an Instruction Quality Audit re
 
 Produce one report per distinct target package or standalone artifact.
 
-Use these top-level markers exactly once and in this order.
+Within each report, use these top-level markers exactly once and in this order.
 
-```markdown
+Uppercase tokens such as `TARGET_NAME_OR_PATH`, `FILE_OR_ITEM`, and `NONE_OR_DESCRIPTION` are placeholders. Replace them with actual values; do not emit the placeholder names literally.
+
+````markdown
 # Instruction Quality Audit
 
 Audit: TARGET_NAME_OR_PATH
@@ -56,13 +58,24 @@ Highest-priority corrections:
 1. CORRECTION
 
 Verdict: No material defects | Needs revision | Blocked
-```
+````
 
 ## Optional Finding Fields
 
 Omit `Related evidence:` when one excerpt is sufficient.
 
 For cross-file findings, include the co-loaded path in `Locations` or `Behavioral risk`.
+
+## Verdict Selection
+
+Use:
+
+- `Verdict: No material defects` only when `Status: completed` and `## Findings` is `None.`;
+- `Verdict: Needs revision` when one or more findings are reported, whether `Status` is `completed` or `partial`;
+- `Verdict: Blocked` when `Status: blocked`;
+- `Verdict: Blocked` when `Status: partial`, no findings were established, and the unavailable instruction surface prevents a reliable conclusion.
+
+Do not use `No material defects` for a partial audit.
 
 ## No-Finding Report
 
@@ -109,8 +122,10 @@ Do not classify unreadable input as target `failure-handling`.
 
 ## Multiple Reports
 
-Separate complete reports with `---`.
+For one report, `Verdict: <value>` must be the final content line of the response.
 
-Number findings from `IQA-001` independently within each report.
+For multiple reports, separate reports with a line containing only `---`. Within each report, `Verdict: <value>` must be the final content line before the separator or the end of the response.
 
-Do not append any text after each report's `Verdict:` line.
+Number findings sequentially within each report, beginning at `IQA-001`. Restart numbering at `IQA-001` in each subsequent report.
+
+Do not add commentary before, between, or after the reports.

@@ -14,6 +14,6 @@ certification; use `agent-skill-audit` for that.
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full instruction-quality audit definition.
-- [`references/diagnostic-rules.md`](references/diagnostic-rules.md) — finding types, false-positive checks, and custom-diagnostic trust rules.
+- [`references/diagnostic-rules.md`](references/diagnostic-rules.md) — finding types, output-contract consistency checks, partial-snippet rules, false-positive checks, and custom-diagnostic trust rules.
 - [`references/package-analysis.md`](references/package-analysis.md) — package/path load-graph rules and cross-file interaction guidance.
-- [`references/report-contract.md`](references/report-contract.md) — the required diagnostic report markers, blocked behavior, and no-findings contract.
+- [`references/report-contract.md`](references/report-contract.md) — the required diagnostic report markers, placeholder replacement rules, verdict selection, multiple-report numbering, blocked behavior, and no-findings contract.

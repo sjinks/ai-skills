@@ -7,7 +7,8 @@ description: >-
   conflicts, incomplete decision rules, missing failure handling, harmful
   cognitive burden or duplication, output-contract defects, or explicitly
   requested custom diagnostics. Produces evidence-backed findings and
-  corrections. Do not use for holistic readiness ratings or direct rewriting.
+  corrections. Do not use for holistic readiness ratings or for rewrite-only
+  requests that do not include an instruction audit.
 argument-hint: >-
   Instruction text, file or package path, optional execution-path name, and
   any trusted custom diagnostic rules.
@@ -124,10 +125,11 @@ The built-in families are:
 4. Apply every built-in diagnostic family.
 5. Apply only trusted custom diagnostics.
 6. Verify every candidate against the false-positive rules in `references/diagnostic-rules.md`.
-7. Sort findings by severity, then by first location.
-8. Number findings sequentially within each report as IQA-001, IQA-002, and so on. When the response contains multiple reports, restart numbering at IQA-001 in each report.
-9. Provide a concrete correction for every finding.
-10. Validate the report against `references/report-contract.md`.
+7. When the artifact defines structured output, build a canonical contract table covering marker spelling, order, requiredness, value domains, cardinality, scope, numbering, separators, and termination. Compare every prose rule, example, partial snippet, exceptional-case template, and eval assertion against that table.
+8. Sort findings by severity, then by first location.
+9. Number findings sequentially within each report as `IQA-001`, `IQA-002`, and so on. When the response contains multiple reports, restart numbering at `IQA-001` in each report.
+10. Provide a concrete correction for every finding.
+11. Validate the report against `references/report-contract.md`.
 
 ## Evidence Standard
 
@@ -169,7 +171,7 @@ Every report must contain, in order:
 4. `## Findings`
 5. `## Unresolved Questions`
 6. `## Summary`
-7. `Verdict:`
+7. `Verdict: <value>`
 
 For one report, `Verdict: <value>` must be the final content line of the response.
 

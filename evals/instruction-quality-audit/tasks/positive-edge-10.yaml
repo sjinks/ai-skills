@@ -1,0 +1,58 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
+id: positive-contract-literal-placeholder-001
+
+name: Literal marker versus completed verdict line
+
+description: The audit should detect wording that can forbid the verdict value after a literal marker
+
+tags:
+  - positive-trigger
+  - output-contract
+  - ambiguity
+
+inputs:
+  prompt: |
+    Audit this output contract for ambiguity.
+    
+    ```markdown
+    The final line must be `Verdict: Ready`.
+    Do not append text after `Verdict:`.
+    ```
+
+expected:
+  should_trigger: true
+
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/instruction-quality-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - instruction-quality-audit
+      mode: any_order
+
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^# Instruction Quality Audit$"
+        - "(?m)^Audit:"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Findings$"
+        - "(?m)^## Unresolved Questions$"
+        - "(?m)^## Summary$"
+        - '(?m)^Verdict:\s*Needs revision$'
+        - 'Type:\s*output-contract'
+        - "Do not append text after `Verdict:`"
+        - "Verdict: Ready"
+        - "(?i)(literal marker|value after the colon|final content line|multiple plausible)"
+        - "Correction:"
+      not_contains:
+        - "# Agent/Skill Readiness Audit"

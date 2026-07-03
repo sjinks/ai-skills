@@ -1,0 +1,58 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
+id: positive-contract-separator-termination-001
+
+name: Multi-report separator conflicts with terminal verdict rule
+
+description: The audit should detect response-level ambiguity between a final verdict line and a following separator
+
+tags:
+  - positive-trigger
+  - output-contract
+  - multi-report
+
+inputs:
+  prompt: |
+    Audit this multi-report output contract.
+    
+    ```markdown
+    Nothing may appear after each report's Verdict line.
+    Separate multiple reports with a line containing only `---`.
+    ```
+
+expected:
+  should_trigger: true
+
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/instruction-quality-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - instruction-quality-audit
+      mode: any_order
+
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^# Instruction Quality Audit$"
+        - "(?m)^Audit:"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Findings$"
+        - "(?m)^## Unresolved Questions$"
+        - "(?m)^## Summary$"
+        - '(?m)^Verdict:\s*Needs revision$'
+        - 'Type:\s*output-contract'
+        - "Nothing may appear after each report"
+        - "Separate multiple reports"
+        - "(?i)(separator|before the separator|scope|conflict|ambiguous)"
+        - "Correction:"
+      not_contains:
+        - "# Agent/Skill Readiness Audit"

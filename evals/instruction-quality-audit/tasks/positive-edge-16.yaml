@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
+id: positive-contract-cardinality-scope-001
+
+name: Heading cardinality lacks report-versus-response scope
+
+description: The audit should detect ambiguity when a heading is required exactly once but multiple reports may be emitted
+
+tags:
+  - positive-trigger
+  - output-contract
+  - cardinality
+
+inputs:
+  prompt: |
+    Audit this output contract.
+    
+    ```markdown
+    Use `## Findings` exactly once.
+    Produce one complete report for each supplied target.
+    Multiple targets may be supplied in one response.
+    ```
+
+expected:
+  should_trigger: true
+
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/instruction-quality-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - instruction-quality-audit
+      mode: any_order
+
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^# Instruction Quality Audit$"
+        - "(?m)^Audit:"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Findings$"
+        - "(?m)^## Unresolved Questions$"
+        - "(?m)^## Summary$"
+        - '(?m)^Verdict:\s*Needs revision$'
+        - 'Type:\s*output-contract'
+        - "Use `## Findings` exactly once"
+        - "one complete report for each supplied target"
+        - "(?i)(per report|per response|cardinality|scope)"
+        - "Correction:"
+      not_contains:
+        - "# Agent/Skill Readiness Audit"

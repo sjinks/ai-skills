@@ -1,0 +1,64 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
+id: positive-contract-requiredness-drift-001
+
+name: Optional field conflicts with mandatory eval assertion
+
+description: The audit should compare skill wording with eval regex requiredness
+
+tags:
+  - positive-trigger
+  - output-contract
+  - eval-alignment
+
+inputs:
+  prompt: |
+    Audit this skill and eval contract.
+    
+    `SKILL.md`
+    ```markdown
+    Include `Limitations:` only when a material limitation exists.
+    ```
+    
+    `eval.yaml`
+    ```yaml
+    regex_match:
+      - '(?m)^Limitations:'
+    ```
+
+expected:
+  should_trigger: true
+
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/instruction-quality-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - instruction-quality-audit
+      mode: any_order
+
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^# Instruction Quality Audit$"
+        - "(?m)^Audit:"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Findings$"
+        - "(?m)^## Unresolved Questions$"
+        - "(?m)^## Summary$"
+        - '(?m)^Verdict:\s*Needs revision$'
+        - 'Type:\s*output-contract'
+        - "Limitations:"
+        - "only when a material limitation exists"
+        - "(?i)(optional|required|unconditionally|regex)"
+        - "Correction:"
+      not_contains:
+        - "# Agent/Skill Readiness Audit"
