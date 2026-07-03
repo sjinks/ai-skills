@@ -58,9 +58,18 @@ Correction: SPECIFIC_CORRECTIVE_TASK
 
 ## Target-Model Compatibility
 
-| Model | Verdict | Main risk | Required adaptation |
-|---|---|---|---|
-| MODEL | Suitable \| Suitable with limitations \| Unsuitable \| Not assessed | MAIN_RISK_OR_NONE | REQUIRED_ADAPTATION_OR_NONE |
+Allowed target-model verdicts are:
+
+* `Suitable`
+* `Suitable with limitations`
+* `Unsuitable`
+* `Not assessed`
+
+Uppercase tokens such as `MODEL`, `MODEL_VERDICT`, `MAIN_RISK_OR_NONE`, and `REQUIRED_ADAPTATION_OR_NONE` are placeholders. Replace them with actual values; do not emit the placeholder names literally.
+
+| Model | Verdict       | Main risk         | Required adaptation         |
+| ----- | ------------- | ----------------- | --------------------------- |
+| MODEL | MODEL_VERDICT | MAIN_RISK_OR_NONE | REQUIRED_ADAPTATION_OR_NONE |
 
 ## Priority Changes
 
