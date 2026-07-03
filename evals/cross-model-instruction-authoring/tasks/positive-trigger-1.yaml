@@ -38,7 +38,10 @@ graders:
         - "(?i)(Portable Core|Runtime Adapter|Model Routing)"
         - "(?i)(Required outcomes|Invariants|Default workflow|Completion criteria)"
         - "(?i)(model-neutral core|runtime-specific adapters|validation|return contract)"
-        - "(?i)Material assumptions"
+        - "(?i)Finished artifact:"
+        - "(?i)Material assumptions:"
+        - "(?i)Runtime adapter:"
+        - "(?i)Compatibility note:"
       not_contains:
         - "Verdict:"
         - "Gate decision:"

@@ -35,4 +35,7 @@ graders:
       regex_match:
         - "(?i)(ask-versus-assume|safe reversible defaults|explicit decision policy|material assumptions)"
         - "(?i)(Required outcomes|Invariants|Default workflow|Completion criteria)"
-        - "(?i)Material assumptions"
+        - "(?i)Finished artifact:"
+        - "(?i)Material assumptions:"
+        - "(?i)Runtime adapter:"
+        - "(?i)Compatibility note:"

@@ -37,6 +37,9 @@ graders:
         - "(?i)(Portable Core|Runtime Adapter|model-neutral core|runtime-specific adapters)"
         - "(?i)(Claude Code|Codex)"
         - "(?i)(adapter|portable body)"
-        - "(?i)Material assumptions"
+        - "(?i)Finished artifact:"
+        - "(?i)Material assumptions:"
+        - "(?i)Runtime adapter:"
+        - "(?i)Compatibility note:"
       not_contains:
         - "Verdict:"

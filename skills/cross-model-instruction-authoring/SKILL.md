@@ -155,7 +155,7 @@ Keep model choice, effort, fallback, and escalation in the harness. Do not rely 
 11. **Make examples subordinate to rules.** State the rule first and clarify whether an example defines exact syntax, structure only, or level of detail.
 12. **Spend context deliberately.** Keep the normal path in the main artifact. Move rare cases, long background, large templates, and detailed examples to references. Use scripts for deterministic work.
 
-Read `references/model-profiles.md` when target-specific trade-offs are material. Read `references/authoring-checklist.md` before finalizing a complex or production-bound artifact. Use `references/templates.md` when a complete starting structure is useful.
+Read [references/model-profiles.md](references/model-profiles.md) when target-specific trade-offs are material. Read [references/authoring-checklist.md](references/authoring-checklist.md) before finalizing a complex or production-bound artifact. Use [references/templates.md](references/templates.md) when a complete starting structure is useful.
 
 ## Skill Requirements
 
@@ -195,7 +195,7 @@ When authoring a custom agent or subagent:
 5. Add runtime adapters only for requested runtime-specific behavior.
 6. Check the draft against every target model.
 7. Remove instructions that exist only to compensate for older or weaker behavior when they do not protect a requirement.
-8. Correct material failures from `references/authoring-checklist.md`.
+8. Correct material failures from [references/authoring-checklist.md](references/authoring-checklist.md).
 9. Produce the finished artifact or package.
 10. State material compatibility limitations and the evaluation needed to resolve them.
 
@@ -237,13 +237,28 @@ Prefer structured output or a deterministic validator when exact serialization i
 
 ## Output
 
-For a single artifact, provide:
+Unless the caller supplies a required output schema with different labels, every successful invocation must use these stable labels exactly once and in this order:
 
-1. the finished artifact;
-2. material assumptions;
-3. any required runtime adapter;
-4. a compatibility note only when a material limitation remains.
+`Finished artifact:`
 
-For a package, provide a directory tree and complete file contents.
+Place the complete finished artifact here.
 
-Do not append a generic tutorial after delivering the artifact.
+For a single file, include its full contents. For a package, include the directory tree followed by the complete contents of every authored file.
+
+Do not place commentary inside the artifact unless it belongs to the artifact itself.
+
+`Material assumptions:`
+
+List material assumptions, or `None.`.
+
+`Runtime adapter:`
+
+List required runtime-specific adapters, or `None.`.
+
+`Compatibility note:`
+
+List known material limitations, or `None known; cross-model evaluation is still required.`
+
+When the caller requires different labels or exact serialization, follow that schema exactly while preserving the same four content categories.
+
+Do not append a generic tutorial.

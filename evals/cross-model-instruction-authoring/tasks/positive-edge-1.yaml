@@ -37,7 +37,7 @@ graders:
         - "(?i)(delegation scope|evidence policy|stopping conditions|return contract)"
         - "(?i)(read-only|read/execute/no-edit|must not edit|no-edit authority)"
         - "(?i)(run tests|execute|report evidence)"
-        - "(?i)Material assumptions"
-      not_contains:
-        - "Portable Core:"
-        - "Runtime Adapter:"
+        - "(?i)Finished artifact:"
+        - "(?i)Material assumptions:"
+        - "(?i)Runtime adapter:"
+        - "(?i)Compatibility note:"

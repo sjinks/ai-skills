@@ -39,10 +39,7 @@ graders:
     name: task_completion
     config:
       not_contains:
-        - "Portable Core:"
-        - "Runtime Adapter:"
-        - "Model Routing:"
-        - "Required outcomes:"
-        - "Invariants:"
-        - "Default workflow:"
-        - "Completion criteria:"
+        - "Finished artifact:"
+        - "Material assumptions:"
+        - "Runtime adapter:"
+        - "Compatibility note:"

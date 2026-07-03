@@ -36,7 +36,10 @@ graders:
         - "(?i)(JSON|parse|parses|verify)"
         - "(?i)(short|concise|minimal)"
         - "(?i)(Completion criteria|Required outcomes|Invariants)"
-        - "(?i)Material assumptions"
+        - "(?i)Finished artifact:"
+        - "(?i)Material assumptions:"
+        - "(?i)Runtime adapter:"
+        - "(?i)Compatibility note:"
       not_contains:
         - "progress-update"
         - "long-reference"

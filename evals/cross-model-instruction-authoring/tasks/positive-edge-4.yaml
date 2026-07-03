@@ -37,4 +37,7 @@ graders:
         - "(?i)(safety gate|safety gates|material behavioral change)"
         - "(?i)(GPT-5.5|Fable 5)"
         - "(?i)(permission|cadence|subagent)"
-        - "(?i)Material assumptions"
+        - "(?i)Finished artifact:"
+        - "(?i)Material assumptions:"
+        - "(?i)Runtime adapter:"
+        - "(?i)Compatibility note:"

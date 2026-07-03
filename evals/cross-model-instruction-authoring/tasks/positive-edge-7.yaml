@@ -37,4 +37,7 @@ graders:
         - "(?i)(persistent project instructions|repository-wide facts|runtime's persistent project-instruction mechanism)"
         - "(?i)(skill|agent|artifact)"
         - "(?i)(build and test commands|generated files must never be edited)"
-        - "(?i)Material assumptions"
+        - "(?i)Finished artifact:"
+        - "(?i)Material assumptions:"
+        - "(?i)Runtime adapter:"
+        - "(?i)Compatibility note:"

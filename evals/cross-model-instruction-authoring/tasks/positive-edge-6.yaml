@@ -36,7 +36,10 @@ graders:
         - "(?i)(structured output|deterministic validator|exact serialization|machine-readable)"
         - "(?i)(concise|short)"
         - "(?i)(Required outcomes|Invariants|Default workflow|Completion criteria)"
-        - "(?i)Material assumptions"
+        - "(?i)Finished artifact:"
+        - "(?i)Material assumptions:"
+        - "(?i)Runtime adapter:"
+        - "(?i)Compatibility note:"
   - type: prompt
     name: task_completion_substance
     config:
