@@ -96,7 +96,7 @@ Use:
 - `Verdict: No material defects` only when `Status: completed` and `## Findings` is `None.`;
 - `Verdict: Needs revision` when one or more findings are reported, whether `Status` is `completed` or `partial`;
 - `Verdict: Blocked` when `Status: blocked`;
-- `Verdict: Blocked` when `Status: partial`, no findings were established, and the unavailable instruction surface prevents a reliable conclusion.
+- `Verdict: Blocked` when `Status: partial` and no findings were established.
 
 Do not use `No material defects` for a partial audit.
 

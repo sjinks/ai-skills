@@ -31,11 +31,11 @@ inputs:
 
     Allowed value domains:
     - `AUDIT_MODE`: `core`, `package`, `path`
-    - `AUDIT_STATUS`: `completed`, `partial`, `blocked`
+    - `AUDIT_STATUS`: `completed`
     - `FINDING_SEVERITY`: `error`, `warning`, `information`
     - `FINDING_CONFIDENCE`: `high`, `medium`
     - `FINDING_TYPE`: `contradiction`, `precedence`, `ambiguity`, `terminology`, `authority`, `side-effect`, `closure`, `failure-handling`, `cognitive-load`, `duplication`, `output-contract`, `custom`
-    - `VERDICT_VALUE`: `No material defects`, `Needs revision`, `Blocked`
+    - `VERDICT_VALUE`: `No material defects`
 
     Number findings sequentially within each report as `IQA-001`, `IQA-002`, and so on. Restart numbering at `IQA-001` in each subsequent report.
 

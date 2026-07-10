@@ -1,0 +1,81 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
+id: positive-partial-no-findings-verdict-001
+
+name: Partial audit with no findings must be blocked
+
+description: "The audit should detect that a partial no-findings outcome must use `Verdict: Blocked`, not `Verdict: No material defects`."
+
+tags:
+  - positive-trigger
+  - output-contract
+  - verdict-selection
+
+inputs:
+  prompt: |
+    Audit this instruction package output contract.
+
+    ```markdown
+    Allowed statuses:
+    - `completed`
+    - `partial`
+    - `blocked`
+
+    Allowed verdicts:
+    - `No material defects`
+    - `Needs revision`
+    - `Blocked`
+
+    Use `Verdict: No material defects` when `## Findings` is `None.`.
+
+    Partial no-finding snippet:
+
+    ## Findings
+
+    None.
+
+    ## Summary
+
+    Errors: 0
+    Warnings: 0
+    Informational findings: 0
+
+    Verdict: No material defects
+    ```
+
+expected:
+  should_trigger: true
+
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/instruction-quality-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - instruction-quality-audit
+      mode: any_order
+
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^# Instruction Quality Audit$"
+        - "(?m)^Audit:"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Findings$"
+        - "(?m)^## Unresolved Questions$"
+        - "(?m)^## Summary$"
+        - '(?m)^Verdict:\s*Needs revision$'
+        - 'Type:\s*output-contract'
+        - 'Verdict: No material defects'
+        - '(?i)(Status:\s*partial|partial audit|no findings)'
+        - '(?i)Verdict:\s*Blocked'
+        - 'Correction:'
+      not_contains:
+        - '# Agent/Skill Readiness Audit'
