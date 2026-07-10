@@ -6,7 +6,7 @@ Produce one report per distinct target package or standalone artifact.
 
 Within each report, use these top-level markers exactly once and in this order.
 
-Uppercase tokens such as `TARGET_NAME_OR_PATH`, `FILE_OR_ITEM`, and `NONE_OR_DESCRIPTION` are placeholders. Replace them with actual values; do not emit the placeholder names literally.
+Uppercase tokens such as `TARGET_NAME_OR_PATH`, `FILE_OR_ITEM`, and `NONE_OR_DESCRIPTION`, plus angle-bracket tokens such as `<value>`, are placeholders. Replace them with actual values; do not emit the placeholder names literally.
 
 ````markdown
 # Instruction Quality Audit

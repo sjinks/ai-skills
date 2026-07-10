@@ -6,7 +6,7 @@ Produce one report per distinct target package or standalone artifact.
 
 Within each report, use these top-level markers exactly once and in this order.
 
-Uppercase tokens such as `TARGET_NAME_OR_PATH`, `MODEL_LIST`, and `RISK_OR_NONE` are placeholders. Replace them with actual values; do not emit the placeholder names literally.
+Uppercase tokens such as `TARGET_NAME_OR_PATH`, `MODEL_LIST`, and `RISK_OR_NONE`, plus angle-bracket tokens such as `<value>`, are placeholders. Replace them with actual values; do not emit the placeholder names literally.
 
 Allowed target-model verdicts are:
 
@@ -58,12 +58,7 @@ Correction: SPECIFIC_CORRECTIVE_TASK
 
 ## Target-Model Compatibility
 
-Allowed target-model verdicts are:
-
-* `Suitable`
-* `Suitable with limitations`
-* `Unsuitable`
-* `Not assessed`
+Use one target-model verdict from the allowed list above for each `MODEL_VERDICT` value.
 
 Uppercase tokens such as `MODEL`, `MODEL_VERDICT`, `MAIN_RISK_OR_NONE`, and `REQUIRED_ADAPTATION_OR_NONE` are placeholders. Replace them with actual values; do not emit the placeholder names literally.
 
