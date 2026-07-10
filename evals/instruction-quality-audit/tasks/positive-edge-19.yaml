@@ -16,29 +16,37 @@ inputs:
     Audit this instruction package output contract.
 
     ```markdown
-    Allowed statuses:
-    - `completed`
-    - `partial`
-    - `blocked`
+    Verdict selection rules:
+    - `Verdict: No material defects` only when `Status: completed` and `## Findings` is `None.`
+    - `Verdict: Needs revision` when one or more findings are reported
+    - `Verdict: Blocked` when `Status: blocked`
+    - `Verdict: Blocked` when `Status: partial` and no findings were established
 
-    Allowed verdicts:
-    - `No material defects`
-    - `Needs revision`
-    - `Blocked`
+    Partial audit with no findings:
 
-    Use `Verdict: No material defects` when `## Findings` is `None.`.
+    # Instruction Quality Audit
 
-    Partial no-finding snippet:
+    Audit: example
+
+    ## Audit Scope
+
+    - Status: partial
 
     ## Findings
 
     None.
+
+    ## Unresolved Questions
+
+    - Some required instruction files could not be inspected.
 
     ## Summary
 
     Errors: 0
     Warnings: 0
     Informational findings: 0
+    Highest-priority corrections:
+    None.
 
     Verdict: No material defects
     ```
@@ -72,10 +80,12 @@ graders:
         - "(?m)^## Unresolved Questions$"
         - "(?m)^## Summary$"
         - '(?m)^Verdict:\s*Needs revision$'
+        - '(?m)^### IQA-001'
         - 'Type:\s*output-contract'
+        - 'Evidence:'
+        - 'Status: partial'
         - 'Verdict: No material defects'
-        - '(?i)(Status:\s*partial|partial audit|no findings)'
-        - '(?i)Verdict:\s*Blocked'
-        - 'Correction:'
+        - '(?i)no findings'
+        - '(?s)Correction:.*Verdict:\s*Blocked'
       not_contains:
         - '# Agent/Skill Readiness Audit'

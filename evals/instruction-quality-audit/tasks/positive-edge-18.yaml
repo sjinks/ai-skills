@@ -29,17 +29,18 @@ inputs:
 
     Use uppercase placeholders in the canonical template. Replace every placeholder with an actual value; do not emit placeholder names literally.
 
+    Placeholder definitions:
+    - `TARGET_NAME_OR_PATH`: audited target name or path
+    - `AUDIT_MODE`: selected audit mode
+    - `FILE_OR_ITEM`: one inspected file or item
+
     Allowed value domains:
     - `AUDIT_MODE`: `core`, `package`, `path`
-    - `AUDIT_STATUS`: `completed`
-    - `FINDING_SEVERITY`: `error`, `warning`, `information`
-    - `FINDING_CONFIDENCE`: `high`, `medium`
-    - `FINDING_TYPE`: `contradiction`, `precedence`, `ambiguity`, `terminology`, `authority`, `side-effect`, `closure`, `failure-handling`, `cognitive-load`, `duplication`, `output-contract`, `custom`
     - `VERDICT_VALUE`: `No material defects`
 
-    Number findings sequentially within each report as `IQA-001`, `IQA-002`, and so on. Restart numbering at `IQA-001` in each subsequent report.
-
     `Verdict: VERDICT_VALUE` is the final content line of each report. Blank lines may follow it. For multiple reports, the next nonblank line is `---`. Do not add commentary between reports.
+
+    For reports that contain findings, number them sequentially within each report as `IQA-001`, `IQA-002`, and so on. Restart numbering at `IQA-001` in each subsequent report.
 
     Canonical template:
 
@@ -51,48 +52,29 @@ inputs:
     ## Audit Scope
 
     - Mode: AUDIT_MODE
-    - Status: AUDIT_STATUS
-    - Effective instruction files:
+    - Status: completed
+    - Files inspected:
       - FILE_OR_ITEM
-    - Mutually exclusive paths:
-      - PATH_OR_NONE
-    - Trusted custom diagnostics:
-      - RULE_OR_NONE
-    - Limitations: NONE_OR_DESCRIPTION
+    - Files unavailable: None
+    - Limits: None
 
     ## Findings
 
-    ### IQA-001 — FINDING_TITLE
-
-    Severity: FINDING_SEVERITY
-    Confidence: FINDING_CONFIDENCE
-    Type: FINDING_TYPE
-    Locations:
-    - FILE_AND_SECTION_OR_LINE
-    Evidence:
-    ```text
-    EXACT_RELEVANT_INSTRUCTION
-    ```
-    Related evidence:
-    ```text
-    SECOND_EXCERPT_WHEN_NEEDED
-    ```
-    Behavioral risk: CONCRETE_MODEL_OR_EVAL_FAILURE
-    Correction: EXACT_REWRITE_OR_SPECIFIC_STRUCTURAL_CHANGE
+    None.
 
     ## Unresolved Questions
 
-    UNRESOLVED_QUESTION_OR_NONE
+    None.
 
     ## Summary
 
-    Errors: ERROR_COUNT
-    Warnings: WARNING_COUNT
-    Informational findings: INFORMATIONAL_FINDING_COUNT
+    Errors: 0
+    Warnings: 0
+    Informational findings: 0
     Highest-priority corrections:
-    1. CORRECTION
+    None.
 
-    Verdict: VERDICT_VALUE
+    Verdict: No material defects
     ````
 
     Partial no-finding snippet: this snippet begins at `## Findings`. The required opening `# Instruction Quality Audit`, `Audit:`, and `## Audit Scope` sections must still appear before it.
@@ -152,5 +134,8 @@ graders:
         - 'Informational findings:\s*0'
         - '(?m)^Verdict:\s*No material defects$'
       not_contains:
+        - 'IQA-001'
         - 'Type:'
         - 'Correction:'
+        - 'Verdict: Needs revision'
+        - 'inconsistent'
