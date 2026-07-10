@@ -5,6 +5,9 @@
 
 When creating or updating skills:
 
+- When creating a new skill, use cross-model-instruction-authoring to keep the instruction portable across target models.
+- After creating a skill, run adversarial review, agent-skill-audit, and instruction-quality-audit before considering it complete.
+- Use subagents for those reviews to keep the main context window clean.
 - Optimize for token efficiency: keep instructions concise, remove duplication, and prefer reusable shared rules over repeated local text.
 - Ignore Waza frontmatter complaints and hard limits on instruction size; prioritize concise, useful skill guidance over satisfying those checks.
 - When guidance conflicts, prefer concise instructions that weaker models can follow reliably.
