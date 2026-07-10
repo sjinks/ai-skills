@@ -8,6 +8,14 @@ Within each report, use these top-level markers exactly once and in this order.
 
 Uppercase tokens such as `TARGET_NAME_OR_PATH`, `MODEL_LIST`, and `RISK_OR_NONE`, plus angle-bracket tokens such as `<value>`, are placeholders. Replace them with actual values; do not emit the placeholder names literally.
 
+Allowed readiness verdicts are:
+
+- `Ready`
+- `Ready with limitations`
+- `Needs revision`
+- `Major redesign`
+- `Blocked`
+
 Allowed target-model verdicts are:
 
 - `Suitable`
@@ -70,7 +78,7 @@ Uppercase tokens such as `MODEL`, `MODEL_VERDICT`, `MAIN_RISK_OR_NONE`, and `REQ
 
 1. HIGHEST_IMPACT_CHANGE
 
-Verdict: Ready | Ready with limitations | Needs revision | Major redesign | Blocked
+Verdict: <value>
 ```
 
 ## Empty Sections

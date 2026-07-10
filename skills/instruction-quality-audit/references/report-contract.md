@@ -57,7 +57,7 @@ Informational findings: N
 Highest-priority corrections:
 1. CORRECTION
 
-Verdict: No material defects | Needs revision | Blocked
+Verdict: <value>
 ````
 
 ## Optional Finding Fields
