@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-006
+name: Audit an incomplete existing handoff
+description: |
+  When the user asks to audit an existing handoff rather than rewrite
+  it, the skill should return a completeness audit with stable markers.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Audit this handoff for completeness before I pass it to another
+    agent. Do not rewrite it yet.
+
+    # Handoff Note: finish cart timeout fix
+    ## Goal
+    - Finish the cart timeout fix.
+    ## Current State
+    - Branch: fix/cart-timeout. One failing test remains.
+    ## Next Steps
+    1. Fix the test.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/handoff-note/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - handoff-note
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)# Handoff Audit:'
+        - '(?i)## Completeness Findings'
+        - '(?i)## Required Corrections'
+        - '(?i)## Ready to Hand Off'
+        - '(?is)(Completed Work|Tried and Avoid|Constraints and Boundaries|Open Questions|validation)'
+        - '(?is)Ready to Hand Off.{0,200}(no|not yet)'

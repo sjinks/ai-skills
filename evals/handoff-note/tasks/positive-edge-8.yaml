@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-008
+name: Minimize local and customer identifiers
+description: |
+  Portable handoffs should prefer repo-relative paths and redact local
+  user, customer, and account identifiers that are not needed.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Create a handoff for the next agent. Task: finish the import retry
+    fix. Current state: the failing file is
+    /Users/alex/private-client/acme-importer/src/import/retry.ts and
+    logs mention customer_id=cus_ABC123 and account_name=AcmeCo. The
+    useful fact is that retry.ts still retries 429 responses without
+    backoff. Next step is to add backoff coverage.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/handoff-note/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - handoff-note
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Handoff Note:'
+        - '(?i)## Goal'
+        - '(?i)## Current State'
+        - '(?i)## Completed Work'
+        - '(?i)## Tried and Avoid'
+        - '(?i)## Next Steps'
+        - '(?i)## Constraints and Boundaries'
+        - '(?i)## Open Questions'
+        - '(?is)src/import/retry\.ts'
+        - '(?is)(redact|redacted|sensitive)'
+        - '(?is)Next Steps.{0,400}backoff'
+      not_contains:
+        - "/Users/alex"
+        - "cus_ABC123"
+        - "AcmeCo"

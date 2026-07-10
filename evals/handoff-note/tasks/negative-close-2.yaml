@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Final changelog is not a handoff
+description: |
+  A user asking for a final changelog needs release communication, not
+  an active-work continuation note.
+tags:
+  - negative-trigger
+  - close-domain
+inputs:
+  prompt: |
+    Convert these completed changes into a changelog entry for the next
+    release: CSV export added to billing, expired sessions now redirect
+    to login, and the settings page has better keyboard focus styling.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/handoff-note/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "# Handoff Note"
+        - "Handoff Note:"
+        - "# Handoff Audit"
+        - "## Goal"
+        - "## Current State"
+        - "## Completed Work"
+        - "## Tried and Avoid"
+        - "## Next Steps"
+        - "## Constraints and Boundaries"
+        - "## Open Questions"
+        - "## Completeness Findings"
+        - "## Required Corrections"
+        - "## Ready to Hand Off"
+        - "Verdict: BLOCK"
+        - "Missing input:"
+        - "Smallest addition to proceed:"

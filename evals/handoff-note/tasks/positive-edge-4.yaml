@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-004
+name: Local-only changes need transfer status
+description: |
+  A handoff for another machine must state whether uncommitted work is
+  available to the recipient or needs a patch/artifact.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Write a handoff for an agent on another machine. Task: finish the
+    dashboard filter refactor. Current state: I have local uncommitted
+    edits in src/dashboard/filters.ts and tests/dashboard.filters.test.ts,
+    but I have not committed or pushed them and I have not exported a
+    patch. Next step is to run the focused dashboard filter tests after
+    the recipient has the changes.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/handoff-note/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - handoff-note
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Handoff Note:'
+        - '(?i)## Goal'
+        - '(?i)## Current State'
+        - '(?i)## Completed Work'
+        - '(?i)## Tried and Avoid'
+        - '(?i)## Next Steps'
+        - '(?i)## Constraints and Boundaries'
+        - '(?i)## Open Questions'
+        - '(?is)Current State.{0,500}(uncommitted|not committed|not pushed)'
+        - '(?is)(local changes unavailable|export a patch|share a patch|push|patch|diff|artifact)'
+        - '(?is)Next Steps\s*\n\s*1\..{0,300}(export|share|push|patch|diff|artifact|recreate)'
+        - '(?is)Next Steps.{0,500}(recipient has the changes|focused dashboard filter tests|dashboard filter tests)'

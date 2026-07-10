@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Update an existing pause-point handoff
+description: |
+  The skill should activate when asked to update a continuation note
+  before pausing work, preserving validation and dirty-state details.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Before I stop for the day, update my handoff for the next person.
+    Task: fix the flaky checkout e2e test. Current branch is
+    fix/checkout-e2e-flake. Changed files are tests/checkout.e2e.ts and
+    tests/helpers/clock.ts. Already confirmed the failure reproduces
+    with --repeat 30 when tests run in parallel. Tried adding a
+    two-second sleep; it reduced the failure but made the suite slow and
+    still failed once, so it should not be repeated. Next step is to
+    isolate the shared test user fixture. npm test -- checkout.e2e was
+    not run after the latest helper edit.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/handoff-note/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - handoff-note
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Handoff Note:'
+        - '(?i)## Goal'
+        - '(?i)## Current State'
+        - '(?i)## Completed Work'
+        - '(?i)## Tried and Avoid'
+        - '(?i)## Next Steps'
+        - '(?i)## Constraints and Boundaries'
+        - '(?i)## Open Questions'
+        - '(?is)Current State.{0,500}fix/checkout-e2e-flake'
+        - '(?is)Completed Work.{0,500}--repeat 30'
+        - '(?is)Tried and Avoid.{0,500}(sleep|two-second).{0,300}(still failed|slow)'
+        - '(?is)(not run|validation).{0,300}npm test -- checkout\.e2e'
+        - '(?is)Next Steps.{0,400}shared test user fixture'
+      not_contains:
+        - "Debugging Report"
+        - "Refactoring Safety Plan"
