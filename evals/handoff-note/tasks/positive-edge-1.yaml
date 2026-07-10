@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Missing context still produces gaps not invention
+description: |
+  If the work item is clear but details are incomplete, the handoff
+  should preserve known facts and put missing details under open
+  questions rather than inventing state.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Make a handoff for continuing the settings-page accessibility fix.
+    I only know that the keyboard trap in the preferences modal is not
+    solved yet and the next agent should inspect the focus manager. I
+    do not remember which test command was run or which branch this is.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/handoff-note/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - handoff-note
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Handoff Note:'
+        - '(?i)## Goal'
+        - '(?i)## Current State'
+        - '(?i)## Completed Work'
+        - '(?i)## Tried and Avoid'
+        - '(?i)## Next Steps'
+        - '(?i)## Constraints and Boundaries'
+        - '(?i)## Open Questions'
+        - '(?is)Current State.{0,400}(keyboard trap|preferences modal)'
+        - '(?is)Next Steps.{0,400}focus manager'
+        - '(?is)Open Questions.{0,500}(branch|test command)'
+      not_contains:
+        - "branch: main"

@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: General project onboarding is not a handoff
+description: |
+  A broad onboarding document request should not activate the handoff
+  skill because there is no active continuation state to transfer.
+tags:
+  - negative-trigger
+inputs:
+  prompt: |
+    Write a general onboarding guide for new engineers joining our web
+    team. Include how the repository is organized, where to find docs,
+    and the usual development commands.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/handoff-note/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "# Handoff Note"
+        - "Handoff Note:"
+        - "# Handoff Audit"
+        - "## Goal"
+        - "## Current State"
+        - "## Completed Work"
+        - "## Tried and Avoid"
+        - "## Next Steps"
+        - "## Constraints and Boundaries"
+        - "## Open Questions"
+        - "## Completeness Findings"
+        - "## Required Corrections"
+        - "## Ready to Hand Off"
+        - "Verdict: BLOCK"
+        - "Missing input:"
+        - "Smallest addition to proceed:"

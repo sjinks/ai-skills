@@ -109,6 +109,7 @@ grader weighting takes effect.
   - `artifact-consolidation`: 0.45
   - `agent-skill-audit`: 0.45
   - `instruction-quality-audit`: 0.45
+  - `handoff-note`: 0.45
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks
   only) — requires the named skill via `required_skills` with
   `mode: any_order`. The currently released waza CLI (`v0.33.0`) defines
@@ -140,7 +141,8 @@ grader weighting takes effect.
   `dependency-choice-review`, `implementation-task-decomposition`,
   `hypothesis-driven-debugging`, `refactoring-safety`,
   `data-migration-safety`) use 10 000; the rest use 8 000;
-  `spock-voice` uses 4 000.
+  `handoff-note` is explicitly budgeted at 8 000; `spock-voice` uses
+  4 000.
 
 ## Skill-body injection
 

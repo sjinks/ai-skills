@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Create a cold-resume handoff for another agent
+description: |
+  Canonical case: the user asks for a handoff note that another agent
+  on another machine can use without chat history.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Write a handoff note for an agent on another machine. We are adding
+    CSV export to the billing page. Done: created the ExportButton
+    component and wired the route. Current state: tests fail because
+    the export service returns UTC dates but the UI test expects local
+    dates. Tried mocking Date globally and it broke unrelated tests, so
+    do not repeat that. Next likely step is to make the CSV formatter
+    accept an explicit timezone. Do not touch invoice calculation logic.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/handoff-note/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - handoff-note
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Handoff Note:'
+        - '(?i)## Goal'
+        - '(?i)## Current State'
+        - '(?i)## Completed Work'
+        - '(?i)## Tried and Avoid'
+        - '(?i)## Next Steps'
+        - '(?i)## Constraints and Boundaries'
+        - '(?i)## Open Questions'
+        - '(?is)mocking Date globally.{0,300}(broke|do not repeat|avoid)'
+        - '(?is)Next Steps.{0,500}(timezone|formatter).{0,300}Verify with:'
+        - '(?is)Constraints and Boundaries.{0,300}invoice calculation'
+      not_contains:
+        - "Implementation Step Plan"
+        - "Scope Slice Plan"

@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-007
+name: Update an existing handoff without invention
+description: |
+  Updating an existing handoff should preserve verified facts, add new
+  facts, and keep unknowns explicit without fabricating state.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Update this existing handoff with the new facts below. Preserve
+    correct existing facts and do not invent test results.
+
+    Existing handoff:
+    # Handoff Note: finish cart timeout fix
+    ## Goal
+    - Finish the cart timeout fix.
+    ## Current State
+    - Branch: fix/cart-timeout.
+    ## Completed Work
+    - Added timeout handling in CartService.
+
+    New facts: the failing test is tests/cart-timeout.test.ts. I tried
+    raising the timeout to 30 seconds and it hid the failure without
+    fixing the race, so do not repeat it. The focused test has not been
+    run after the latest edit.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/handoff-note/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - handoff-note
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Handoff Note:'
+        - '(?i)## Goal'
+        - '(?i)## Current State'
+        - '(?i)## Completed Work'
+        - '(?i)## Tried and Avoid'
+        - '(?i)## Next Steps'
+        - '(?i)## Constraints and Boundaries'
+        - '(?i)## Open Questions'
+        - '(?is)Current State.{0,500}fix/cart-timeout'
+        - '(?is)Completed Work.{0,400}CartService'
+        - '(?is)Tried and Avoid.{0,500}(30 seconds|timeout).{0,300}(race|do not repeat|avoid)'
+        - '(?is)(not run|validation).{0,300}tests/cart-timeout\.test\.ts'
+      not_contains:
+        - "result: passed"
