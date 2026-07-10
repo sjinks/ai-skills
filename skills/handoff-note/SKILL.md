@@ -111,7 +111,7 @@ Use these labels by default. Rename or omit them only when the caller supplies a
 - <question>. Smallest way to answer: <check/person/file/command>.
 ```
 
-Empty sections are written with `None`. Do not invent completed work, test results, branch names, or failed attempts. Prefer `not run` or `unknown` over guessing.
+Empty bullet-list sections are written as `- None`. Empty numbered sections, including `## Next Steps`, are written as `1. None`. Do not invent completed work, test results, branch names, or failed attempts. Prefer `not run` or `unknown` over guessing.
 
 ## Error Handling (BLOCK Template)
 
@@ -122,7 +122,7 @@ Use this reduced template only when neither an actionable work item nor usable s
 
 Verdict: BLOCK
 
-- Missing input: <no work item / no source context / continuation target unclear>
+- Missing input: <no actionable work item and no usable source context>
 - Smallest addition to proceed: <concrete ask>
 ```
 
