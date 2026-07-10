@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-008
+name: Smaller and frontier models phrasing
+description: |
+  A request framed around smaller/faster and frontier models, without naming
+  the exact default model list, should still activate the skill.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Create a custom agent prompt for triaging production incidents. It should
+    work well on both smaller/faster models and frontier GPT/Claude models,
+    and it may need runtime-specific adapter guidance.
+
+    Return a finished instruction artifact with a model-neutral core,
+    clear evidence rules, stopping conditions, and any runtime adapter notes
+    needed for portability.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cross-model-instruction-authoring/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cross-model-instruction-authoring
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(model-neutral core|runtime-specific adapters|runtime adapter)'
+        - '(?i)(evidence rules|stopping conditions|return contract|completion)'
+        - '(?i)(smaller|faster|frontier|portable)'
+        - '(?i)Finished artifact:'
+        - '(?i)Material assumptions:'
+        - '(?i)Runtime adapter:'
+        - '(?i)Compatibility note:'
+      not_contains:
+        - 'Verdict:'

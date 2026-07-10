@@ -1,12 +1,13 @@
 ---
 name: cross-model-instruction-authoring
 description: >-
-  Use when creating, revising, or adapting agent instructions or Agent Skills
-  that must work across GPT-5.4 mini, GPT-5.4, GPT-5.5, Claude Haiku 4.5,
-  Claude Sonnet 5, Claude Opus 4.8, and Claude Fable 5. Produces a
-  model-neutral core, separates runtime-specific adapters, and checks both
-  small-model executability and frontier-model overconstraint. Do not use for
-  a review-only audit when no authored or revised artifact is requested.
+  Use when creating, revising, or adapting Agent Skills, custom agent
+  prompts, subagent instructions, or instruction packages that should work
+  across multiple models or runtimes, especially smaller/faster and frontier
+  GPT/Claude models. Produces a model-neutral core, separates runtime-specific
+  adapters, and checks both small-model executability and frontier-model
+  overconstraint. Do not use for a review-only audit when no authored or
+  revised artifact is requested.
 argument-hint: "Instruction artifact(s) to create/revise, target runtimes, target model set (or subset), hard constraints/side-effect policy, and required output/return contract."
 user-invocable: true
 ---
@@ -14,6 +15,19 @@ user-invocable: true
 # Cross-Model Instruction Authoring
 
 Create or revise instruction artifacts that behave consistently across the supported GPT and Claude models without forcing every model to use the same implementation strategy.
+
+## USE FOR:
+
+- creating or revising an Agent Skill, custom agent prompt, subagent instructions, or instruction package
+- making an instruction artifact portable across multiple models or runtimes
+- adapting a prompt, skill, or agent for both smaller/faster and frontier GPT/Claude models
+- separating a model-neutral core from runtime-specific adapters
+
+## DO NOT USE FOR:
+
+- review-only audits when no authored or revised artifact is requested
+- single-model prompt tuning that explicitly excludes portability
+- generic model-choice advice without an instruction artifact to create or revise
 
 The default target set is:
 
