@@ -1,6 +1,6 @@
 # cross-model-instruction-authoring
 
-> Use when: creating, revising, or adapting agent instructions or Agent Skills that must work across multiple model families and runtimes.
+> Use when: creating, revising, or adapting Agent Skills, custom agent prompts, subagent instructions, or instruction packages that should work across multiple models or runtimes, especially smaller/faster and frontier GPT/Claude models.
 
 This skill is aimed at instruction artifacts that need a model-neutral core, runtime-specific adapters, and behavior that stays usable across both smaller models and frontier models.
 
