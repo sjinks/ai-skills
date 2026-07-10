@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
+id: positive-edge-007
+
+name: Per-model compatibility uses the full allowed verdict domain
+
+description: The model table should be able to classify different targets as unsuitable or suitable with limitations rather than emitting only Suitable.
+
+tags:
+  - positive-trigger
+  - output-contract
+  - model-portability
+
+inputs:
+  prompt: |
+    Audit this skill for GPT-5.4 mini, GPT-5.5, Haiku 4.5, and Fable 5.
+    
+    ```markdown
+    ---
+    name: giant-orchestrator
+    description: Use for any software task.
+    ---
+    Perform architecture, implementation, migration, security review, and
+    release management in one invocation. Use a 40-step mandatory workflow,
+    ask permission before every action, and always spawn five subagents.
+    ```
+
+expected:
+  should_trigger: true
+
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/agent-skill-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - agent-skill-audit
+      mode: any_order
+
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^# Agent/Skill Readiness Audit$"
+        - "(?m)^Audit:"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Readiness Ratings$"
+        - "(?m)^## Material Findings$"
+        - "(?m)^## Target-Model Compatibility$"
+        - "(?m)^## Priority Changes$"
+        - "(?m)^Verdict:"
+        - 'GPT-5\.4 mini[\s\S]*(Unsuitable|Suitable with limitations)'
+        - 'Haiku 4\.5[\s\S]*(Unsuitable|Suitable with limitations)'
+        - 'GPT-5\.5[\s\S]*(Suitable with limitations|Unsuitable)'
+        - 'Fable 5[\s\S]*(Suitable with limitations|Unsuitable)'

@@ -184,9 +184,11 @@ checks:
   coverage alongside broad web security review, quick output-depth behavior
   that still reports blockers and target-specific high-risk findings,
   explicit equivalence-class `n/a` rows for empty or inapplicable axes,
-  blocked handling for critical unresolved audit clarifications, missing
-  dependency lockfile/provenance evidence, and dev-only scanner findings that
-  should not overblock without reachability evidence.
+  blocked handling for critical unresolved audit clarifications, output-contract
+  consistency for placeholders, enum drift, partial snippets, multi-report
+  numbering and separators, missing dependency lockfile/provenance evidence,
+  and dev-only scanner findings that should not overblock without reachability
+  evidence.
 - `source-to-skill` coverage exercises generate-new-skill destination
   defaults, analyze-only mode, extract-only helper resolution relative to the
   installed `SKILL.md`, unavailable URL-source handling, and update-existing

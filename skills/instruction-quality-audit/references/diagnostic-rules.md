@@ -40,6 +40,19 @@ Common forms:
 - vague threshold;
 - vague modality where deterministic behavior is required.
 
+### Literal and Placeholder Syntax
+
+Report an `ambiguity` or `output-contract` finding when an instruction does not clearly distinguish:
+
+- a literal marker from a complete output line;
+- a placeholder from text that must be emitted verbatim;
+- a heading name from the content beneath it;
+- a report-level rule from a response-level rule.
+
+Prefer explicit forms such as `Verdict: VERDICT_VALUE`. The surrounding contract must make clear that `VERDICT_VALUE` is a placeholder rather than literal output.
+
+Use `output-contract` when the ambiguity affects a structured output contract. Use `ambiguity` for other instruction surfaces.
+
 ### `terminology`
 
 Report when:
@@ -133,6 +146,51 @@ Report:
 
 Distinguish semantic correctness from structural compliance.
 
+### Contract Consistency
+
+For every structured output or return contract, identify its canonical:
+
+- markers and field names;
+- order;
+- required and optional elements;
+- allowed value domains;
+- cardinality;
+- scope;
+- repetition and reset behavior;
+- separators;
+- termination rule.
+
+Compare the canonical contract with every prose instruction, example, partial snippet, exceptional-case template, and evaluation assertion that represents the same output.
+
+Report an `output-contract` finding when any representation:
+
+- uses different marker or field spelling;
+- changes requiredness or optionality;
+- changes the allowed value set;
+- changes ordering or cardinality;
+- is ambiguous about whether a rule applies per item, per report, or per response;
+- is ambiguous about whether numbering continues or resets;
+- conflicts with multi-report separators or final-line requirements;
+- presents a partial snippet in a way that can be mistaken for a complete output;
+- omits required surrounding markers without explicitly identifying the snippet as partial;
+- uses literal syntax that can be confused with a placeholder, such as `Verdict:` when the intended form is `Verdict: VERDICT_VALUE`;
+- disagrees with eval regexes, negative assertions, or parser expectations.
+
+Do not report abbreviated snippets when they are explicitly labeled as partial and their omitted context is stated.
+
+### Partial Examples and Snippets
+
+A partial output example must explicitly state:
+
+- where the snippet begins;
+- which required content precedes it;
+- which required content follows it, if any;
+- whether omitted sections remain mandatory.
+
+A heading such as `No-Finding Report` does not by itself establish that the following block is partial.
+
+Report an `output-contract` finding when a partial snippet can reasonably be interpreted as a complete permitted output.
+
 ## 7. Custom Diagnostics
 
 Use `custom` only for a diagnostic explicitly supplied by the user or trusted caller.
@@ -152,5 +210,7 @@ Before emitting a finding, ask:
 5. Does the repetition create behavioral or maintenance risk?
 6. Is the issue more than a style preference?
 7. Can the correction be stated concretely?
+8. Does the apparent difference concern two representations of the same contract, or two intentionally different output modes?
+9. If a snippet omits required material, is it explicitly and unambiguously labeled as partial?
 
 If any required answer is no, omit the finding.

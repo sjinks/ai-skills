@@ -1,0 +1,81 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
+id: positive-edge-009
+
+name: Readiness report replaces canonical placeholders
+
+description: The produced report must contain actual target values rather than literal schema placeholders.
+
+tags:
+  - positive-trigger
+  - output-contract
+  - placeholders
+
+inputs:
+  prompt: |
+    Audit this Agent Skill for readiness.
+    
+    ```markdown
+    ---
+    name: tiny-helper
+    description: Use when summarizing one supplied text.
+    ---
+    Summarize the supplied text. If no text is supplied, ask for it.
+    ```
+
+expected:
+  should_trigger: true
+
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/agent-skill-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - agent-skill-audit
+      mode: any_order
+
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^# Agent/Skill Readiness Audit$"
+        - "(?m)^Audit:"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Readiness Ratings$"
+        - "(?m)^## Material Findings$"
+        - "(?m)^## Target-Model Compatibility$"
+        - "(?m)^## Priority Changes$"
+        - "(?m)^Verdict:"
+      not_contains:
+        - "TARGET_NAME_OR_PATH"
+        - "ARTIFACT_TYPE"
+        - "AUDIT_MODE"
+        - "AUDIT_STATUS"
+        - "MODEL_LIST"
+        - "RUNTIME_LIST_OR_NOT_SUPPLIED"
+        - "FILE_OR_ITEM"
+        - "REASON"
+        - "NONE_OR_DESCRIPTION"
+        - "AREA_RATING"
+        - "RISK_OR_NONE"
+        - "FINDING_TITLE"
+        - "FINDING_SEVERITY"
+        - "AREA_NAME"
+        - "FILE_AND_SECTION_OR_LINE"
+        - "SHORT_EXACT_EXCERPT"
+        - "OBSERVABLE_FAILURE_OR_MAINTENANCE_RISK"
+        - "SPECIFIC_CORRECTIVE_TASK"
+        - "MODEL"
+        - "MODEL_VERDICT"
+        - "MAIN_RISK_OR_NONE"
+        - "REQUIRED_ADAPTATION_OR_NONE"
+        - "HIGHEST_IMPACT_CHANGE"
+        - "READINESS_VERDICT"
+        - "<value>"
