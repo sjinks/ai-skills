@@ -49,6 +49,7 @@ The artifact may be:
 
 - an Agent Skill;
 - a custom agent or subagent prompt;
+- an instruction package or multi-file instruction set;
 - a revision of an existing skill or agent;
 - a portable core plus runtime-specific adapters.
 
