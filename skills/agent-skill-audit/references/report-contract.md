@@ -23,6 +23,8 @@ Allowed target-model verdicts are:
 - `Unsuitable`
 - `Not assessed`
 
+These values apply only to `MODEL_VERDICT` table cells. Section-content sentences such as `Not assessed.` in blocked reports are not target-model verdict values.
+
 ```markdown
 # Agent/Skill Readiness Audit
 
