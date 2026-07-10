@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
+id: positive-contract-placeholders-001
+
+name: Diagnostic report replaces canonical placeholders
+
+description: The produced diagnostic report must replace every canonical placeholder with an actual value.
+
+tags:
+  - positive-trigger
+  - output-contract
+  - placeholders
+
+inputs:
+  prompt: |
+    Audit this instruction artifact for contradictions and output-contract defects.
+
+    ```markdown
+    Edit every relevant file.
+    Do not modify repository files.
+    ```
+
+expected:
+  should_trigger: true
+
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/instruction-quality-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - instruction-quality-audit
+      mode: any_order
+
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^# Instruction Quality Audit$"
+        - "(?m)^Audit:"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Findings$"
+        - "(?m)^## Unresolved Questions$"
+        - "(?m)^## Summary$"
+        - "(?m)^Verdict:"
+        - "Correction:"
+      not_contains:
+        - "TARGET_NAME_OR_PATH"
+        - "AUDIT_MODE"
+        - "AUDIT_STATUS"
+        - "FILE_OR_ITEM"
+        - "PATH_OR_NONE"
+        - "RULE_OR_NONE"
+        - "NONE_OR_DESCRIPTION"
+        - "FINDING_TITLE"
+        - "FINDING_SEVERITY"
+        - "FINDING_CONFIDENCE"
+        - "FINDING_TYPE"
+        - "FILE_AND_SECTION_OR_LINE"
+        - "EXACT_RELEVANT_INSTRUCTION"
+        - "SECOND_EXCERPT_WHEN_NEEDED"
+        - "CONCRETE_MODEL_OR_EVAL_FAILURE"
+        - "EXACT_REWRITE_OR_SPECIFIC_STRUCTURAL_CHANGE"
+        - "UNRESOLVED_QUESTION_OR_NONE"
+        - "ERROR_COUNT"
+        - "WARNING_COUNT"
+        - "INFORMATIONAL_FINDING_COUNT"
+        - "CORRECTION"
+        - "VERDICT_VALUE"
+        - "<value>"

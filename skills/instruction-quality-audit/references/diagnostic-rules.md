@@ -49,7 +49,7 @@ Report an `ambiguity` or `output-contract` finding when an instruction does not 
 - a heading name from the content beneath it;
 - a report-level rule from a response-level rule.
 
-Prefer explicit forms such as `Verdict: <value>`. The surrounding contract must make clear that `<value>` is a placeholder rather than literal output.
+Prefer explicit forms such as `Verdict: VERDICT_VALUE`. The surrounding contract must make clear that `VERDICT_VALUE` is a placeholder rather than literal output.
 
 Use `output-contract` when the ambiguity affects a structured output contract. Use `ambiguity` for other instruction surfaces.
 
@@ -173,7 +173,7 @@ Report an `output-contract` finding when any representation:
 - conflicts with multi-report separators or final-line requirements;
 - presents a partial snippet in a way that can be mistaken for a complete output;
 - omits required surrounding markers without explicitly identifying the snippet as partial;
-- uses literal syntax that can be confused with a placeholder, such as `Verdict:` when the intended form is `Verdict: <value>`;
+- uses literal syntax that can be confused with a placeholder, such as `Verdict:` when the intended form is `Verdict: VERDICT_VALUE`;
 - disagrees with eval regexes, negative assertions, or parser expectations.
 
 Do not report abbreviated snippets when they are explicitly labeled as partial and their omitted context is stated.

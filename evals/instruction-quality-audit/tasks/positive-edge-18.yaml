@@ -1,0 +1,156 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
+id: positive-contract-consistency-control-001
+
+name: Fully consistent structured contract yields no findings
+
+description: The contract-consistency pass should not invent findings for a fully consistent structured output contract.
+
+tags:
+  - positive-trigger
+  - output-contract
+  - no-findings
+
+inputs:
+  prompt: |
+    Audit this instruction package output contract for ambiguity and output-contract defects.
+
+    ```markdown
+    Return one report per supplied artifact.
+
+    Every report must contain these top-level markers exactly once and in this order:
+    1. `# Instruction Quality Audit`
+    2. `Audit:`
+    3. `## Audit Scope`
+    4. `## Findings`
+    5. `## Unresolved Questions`
+    6. `## Summary`
+    7. `Verdict:`
+
+    Use uppercase placeholders in the canonical template. Replace every placeholder with an actual value; do not emit placeholder names literally.
+
+    Allowed value domains:
+    - `AUDIT_MODE`: `core`, `package`, `path`
+    - `AUDIT_STATUS`: `completed`, `partial`, `blocked`
+    - `FINDING_SEVERITY`: `error`, `warning`, `information`
+    - `FINDING_CONFIDENCE`: `high`, `medium`
+    - `FINDING_TYPE`: `contradiction`, `precedence`, `ambiguity`, `terminology`, `authority`, `side-effect`, `closure`, `failure-handling`, `cognitive-load`, `duplication`, `output-contract`, `custom`
+    - `VERDICT_VALUE`: `No material defects`, `Needs revision`, `Blocked`
+
+    Number findings sequentially within each report as `IQA-001`, `IQA-002`, and so on. Restart numbering at `IQA-001` in each subsequent report.
+
+    `Verdict: VERDICT_VALUE` is the final content line of each report. Blank lines may follow it. For multiple reports, the next nonblank line is `---`. Do not add commentary between reports.
+
+    Canonical template:
+
+    ````markdown
+    # Instruction Quality Audit
+
+    Audit: TARGET_NAME_OR_PATH
+
+    ## Audit Scope
+
+    - Mode: AUDIT_MODE
+    - Status: AUDIT_STATUS
+    - Effective instruction files:
+      - FILE_OR_ITEM
+    - Mutually exclusive paths:
+      - PATH_OR_NONE
+    - Trusted custom diagnostics:
+      - RULE_OR_NONE
+    - Limitations: NONE_OR_DESCRIPTION
+
+    ## Findings
+
+    ### IQA-001 — FINDING_TITLE
+
+    Severity: FINDING_SEVERITY
+    Confidence: FINDING_CONFIDENCE
+    Type: FINDING_TYPE
+    Locations:
+    - FILE_AND_SECTION_OR_LINE
+    Evidence:
+    ```text
+    EXACT_RELEVANT_INSTRUCTION
+    ```
+    Related evidence:
+    ```text
+    SECOND_EXCERPT_WHEN_NEEDED
+    ```
+    Behavioral risk: CONCRETE_MODEL_OR_EVAL_FAILURE
+    Correction: EXACT_REWRITE_OR_SPECIFIC_STRUCTURAL_CHANGE
+
+    ## Unresolved Questions
+
+    UNRESOLVED_QUESTION_OR_NONE
+
+    ## Summary
+
+    Errors: ERROR_COUNT
+    Warnings: WARNING_COUNT
+    Informational findings: INFORMATIONAL_FINDING_COUNT
+    Highest-priority corrections:
+    1. CORRECTION
+
+    Verdict: VERDICT_VALUE
+    ````
+
+    Partial no-finding snippet: this snippet begins at `## Findings`. The required opening `# Instruction Quality Audit`, `Audit:`, and `## Audit Scope` sections must still appear before it.
+
+    ```markdown
+    ## Findings
+
+    None.
+
+    ## Unresolved Questions
+
+    None.
+
+    ## Summary
+
+    Errors: 0
+    Warnings: 0
+    Informational findings: 0
+    Highest-priority corrections:
+    None.
+
+    Verdict: No material defects
+    ```
+    ```
+
+expected:
+  should_trigger: true
+
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/instruction-quality-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - instruction-quality-audit
+      mode: any_order
+
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^# Instruction Quality Audit$"
+        - "(?m)^Audit:"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Findings$"
+        - "(?m)^## Unresolved Questions$"
+        - "(?m)^## Summary$"
+        - '(?m)^## Findings$\n\nNone\.\n'
+        - 'Errors:\s*0'
+        - 'Warnings:\s*0'
+        - 'Informational findings:\s*0'
+        - '(?m)^Verdict:\s*No material defects$'
+      not_contains:
+        - 'Type:'
+        - 'Correction:'

@@ -63,6 +63,6 @@ graders:
         - "(?m)^## Target-Model Compatibility$"
         - "(?m)^## Priority Changes$"
         - "(?m)^Verdict:"
-        - '(?s)^# Agent/Skill Readiness Audit.*?### ASR-001.*?\nVerdict: [^\n]+\n---\n# Agent/Skill Readiness Audit.*?### ASR-001.*?\nVerdict: [^\n]+\s*$'
+        - '(?s)^# Agent/Skill Readiness Audit.*?### ASR-001.*?\nVerdict: [^\n]+\n(?:[ \t]*\n)*---\n# Agent/Skill Readiness Audit.*?### ASR-001.*?\nVerdict: [^\n]+\s*$'
       not_contains:
         - 'ASR-002 — First finding in second report'

@@ -171,11 +171,13 @@ Every report must contain, in order:
 4. `## Findings`
 5. `## Unresolved Questions`
 6. `## Summary`
-7. `Verdict: <value>`
+7. `Verdict:`
 
-For one report, `Verdict: <value>` must be the final content line of the response.
+The complete emitted verdict line is `Verdict: VERDICT_VALUE`.
 
-For multiple reports, separate reports with a line containing only `---`. Within each report, `Verdict: <value>` must be the final content line before the separator or the end of the response.
+For one report, `Verdict: VERDICT_VALUE` must be the final content line of the response.
+
+For multiple reports, `Verdict: VERDICT_VALUE` must be the final content line of each report. Blank lines may appear after that content line. The next nonblank line must be `---` or the end of the response.
 
 Do not add commentary before, between, or after the reports.
 

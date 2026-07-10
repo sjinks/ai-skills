@@ -6,7 +6,30 @@ Produce one report per distinct target package or standalone artifact.
 
 Within each report, use these top-level markers exactly once and in this order.
 
-Uppercase tokens such as `TARGET_NAME_OR_PATH`, `FILE_OR_ITEM`, and `NONE_OR_DESCRIPTION`, plus angle-bracket tokens such as `<value>`, are placeholders. Replace them with actual values; do not emit the placeholder names literally.
+The canonical template uses these uppercase placeholders. Replace them with actual values; do not emit the placeholder names literally.
+
+- `TARGET_NAME_OR_PATH` - audited target name or path.
+- `AUDIT_MODE` - one of `core`, `package`, `path`.
+- `AUDIT_STATUS` - one of `completed`, `partial`, `blocked`.
+- `FILE_OR_ITEM` - one effective instruction file or item.
+- `PATH_OR_NONE` - mutually exclusive path or `None.`.
+- `RULE_OR_NONE` - trusted custom diagnostic rule or `None.`.
+- `NONE_OR_DESCRIPTION` - `None.` or a concrete limitation description.
+- `FINDING_TITLE` - concise finding title.
+- `FINDING_SEVERITY` - one of `error`, `warning`, `information`.
+- `FINDING_CONFIDENCE` - one of `high`, `medium`.
+- `FINDING_TYPE` - one of `contradiction`, `precedence`, `ambiguity`, `terminology`, `authority`, `side-effect`, `closure`, `failure-handling`, `cognitive-load`, `duplication`, `output-contract`, `custom`.
+- `FILE_AND_SECTION_OR_LINE` - grounding location.
+- `EXACT_RELEVANT_INSTRUCTION` - exact supporting quote.
+- `SECOND_EXCERPT_WHEN_NEEDED` - second exact supporting quote when needed.
+- `CONCRETE_MODEL_OR_EVAL_FAILURE` - concrete behavioral risk.
+- `EXACT_REWRITE_OR_SPECIFIC_STRUCTURAL_CHANGE` - exact rewrite or specific corrective action.
+- `UNRESOLVED_QUESTION_OR_NONE` - unresolved question text or `None.`.
+- `ERROR_COUNT` - non-negative integer count of error findings.
+- `WARNING_COUNT` - non-negative integer count of warning findings.
+- `INFORMATIONAL_FINDING_COUNT` - non-negative integer count of informational findings.
+- `CORRECTION` - highest-priority correction.
+- `VERDICT_VALUE` - one of `No material defects`, `Needs revision`, `Blocked`.
 
 ````markdown
 # Instruction Quality Audit
@@ -15,8 +38,8 @@ Audit: TARGET_NAME_OR_PATH
 
 ## Audit Scope
 
-- Mode: core | package | path
-- Status: completed | partial | blocked
+- Mode: AUDIT_MODE
+- Status: AUDIT_STATUS
 - Effective instruction files:
   - FILE_OR_ITEM
 - Mutually exclusive paths:
@@ -27,11 +50,11 @@ Audit: TARGET_NAME_OR_PATH
 
 ## Findings
 
-### IQA-001 — TITLE
+### IQA-001 — FINDING_TITLE
 
-Severity: error | warning | information
-Confidence: high | medium
-Type: contradiction | precedence | ambiguity | terminology | authority | side-effect | closure | failure-handling | cognitive-load | duplication | output-contract | custom
+Severity: FINDING_SEVERITY
+Confidence: FINDING_CONFIDENCE
+Type: FINDING_TYPE
 Locations:
 - FILE_AND_SECTION_OR_LINE
 Evidence:
@@ -47,17 +70,17 @@ Correction: EXACT_REWRITE_OR_SPECIFIC_STRUCTURAL_CHANGE
 
 ## Unresolved Questions
 
-None.
+UNRESOLVED_QUESTION_OR_NONE
 
 ## Summary
 
-Errors: N
-Warnings: N
-Informational findings: N
+Errors: ERROR_COUNT
+Warnings: WARNING_COUNT
+Informational findings: INFORMATIONAL_FINDING_COUNT
 Highest-priority corrections:
 1. CORRECTION
 
-Verdict: <value>
+Verdict: VERDICT_VALUE
 ````
 
 ## Optional Finding Fields
@@ -77,7 +100,7 @@ Use:
 
 Do not use `No material defects` for a partial audit.
 
-## No-Finding Report
+## Partial No-Finding Snippet
 
 This snippet begins at `## Findings`. Precede it with the required `# Instruction Quality Audit`, `Audit:`, and `## Audit Scope` sections.
 
@@ -122,9 +145,9 @@ Do not classify unreadable input as target `failure-handling`.
 
 ## Multiple Reports
 
-For one report, `Verdict: <value>` must be the final content line of the response.
+For one report, `Verdict: VERDICT_VALUE` must be the final content line of the response.
 
-For multiple reports, separate reports with a line containing only `---`. Within each report, `Verdict: <value>` must be the final content line before the separator or the end of the response.
+For multiple reports, `Verdict: VERDICT_VALUE` must be the final content line of each report. Blank lines may appear after that content line. The next nonblank line must be `---` or the end of the response.
 
 Number findings sequentially within each report, beginning at `IQA-001`. Restart numbering at `IQA-001` in each subsequent report.
 
