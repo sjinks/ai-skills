@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: No findings on valid clamped lookup
+description: |
+  A bounded correctness review with visible contract and matching behavior can
+  return CLEAN with Findings: None.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Review this C++ helper for functional correctness. Contract: return the
+    clamped value in the inclusive range [min_value, max_value]. Callers pass
+    `min_value <= max_value`.
+
+    ```cpp
+    int clamp_to_range(int value, int min_value, int max_value) {
+      if (value < min_value) {
+        return min_value;
+      }
+      if (value > max_value) {
+        return max_value;
+      }
+      return value;
+    }
+    ```
+
+    Return the structured correctness-review output.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-correctness-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-correctness-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*CLEAN'
+        - '(?i)Findings:\s*None'
+        - '(?i)Contract:'
+        - '(?i)Inputs/states reviewed:'
+        - '(?i)Checklist status:'
+        - '(?i)Contract and inputs:\s*(covered|missing|n/a)'
+        - '(?i)Control flow.*:\s*(covered|missing|n/a)'
+        - '(?i)Numeric and size.*:\s*(covered|missing|n/a)'
+        - '(?i)Containers.*:\s*(covered|missing|n/a)'
+        - '(?i)Consistency.*:\s*(covered|missing|n/a)'
+        - '(?i)Tests:\s*(covered|missing|n/a)'
+        - '(?i)Residual risk:\s*[A-Za-z]'
+      not_contains:
+        - "Owners:"
+        - "CERT:"

@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-004
+name: Performance-only optimization review
+description: |
+  A performance tuning question belongs to performance review, not functional
+  correctness review.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Review this C++ lookup for performance. Currently it scans a vector O(n)
+    for each lookup. Should we switch to a hash table and what is the
+    throughput improvement we should expect?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-correctness-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Contract:"
+        - "Inputs/states reviewed:"
+        - "Checklist status:"
+        - "Verdict:"
+        - "Findings:"

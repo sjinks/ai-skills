@@ -1,0 +1,94 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Remove leaves stale derived index
+description: |
+  Review must activate on a mutating operation that updates source state but
+  leaves a derived lookup table stale.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this C++ method for correctness. The contract is: after `remove(id)`
+    succeeds, looking up the removed item by either id or name must fail.
+
+    ```cpp
+    bool Registry::remove(int id) {
+      auto it = by_id_.find(id);
+      if (it == by_id_.end()) {
+        return false;
+      }
+      by_id_.erase(it);
+      return true;
+    }
+    ```
+
+    `by_name_` is an `unordered_map<std::string, int>` populated when entries
+    are added. What are the findings and required guard?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-correctness-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-correctness-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Target:'
+        - '(?i)Contract:'
+        - '(?i)Inputs/states reviewed:'
+        - '(?i)Findings:'
+        - '(?i)Severity:\s*HIGH'
+        - '(?i)Classification:\s*Confirmed issue'
+        - '(?i)Evidence:'
+        - '(?i)Rule:\s*derived-state'
+        - '(?i)(by_name_|derived|stale|reverse|index)'
+        - '(?i)(remove|erase).{0,200}(by_name_|name)|(by_name_|name).{0,200}(remove|erase)'
+        - '(?i)Expected:'
+        - '(?i)Actual:'
+        - '(?i)Required guard:'
+        - '(?i)Test expectation:'
+        - '(?i)Checklist status:'
+        - '(?i)Residual risk:\s*[A-Za-z]'
+      not_contains:
+        - "Owners:"
+        - "Thread topology:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response identifies the exact correctness bug: the
+        `remove(id)` method erases from `by_id_` but leaves `by_name_[old_name] = id`
+        stale. A lookup by name then returns a removed item, violating the contract.
+
+        A correct response must:
+        1. Identify the bug class: stale derived state, inconsistent projections.
+        2. State the failing scenario: call remove(id) for an item with name N,
+           then call a hypothetical lookup_by_name(N) which returns the removed ID.
+        3. Cite the specific contract violation: after remove(), lookup by any
+           attribute must fail.
+        4. Prescribe the fix: update both by_id_ and by_name_ on success, or test
+           remove-then-lookup to catch the inconsistency.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly identifies stale derived state, failing scenario,
+              contract violation, and required guard (both projections or test).
+        0.5 = response identifies the bug but omits scenario, contract detail, or
+              required guard; or hedges on whether by_name_ is actually left stale.
+        0.0 = response is wrong, misses the stale derived state, or does not
+              perform the skill.
+      mode: independent

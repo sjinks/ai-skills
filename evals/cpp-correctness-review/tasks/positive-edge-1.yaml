@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Insufficient context on expected behavior
+description: |
+  A prompt with code but no expected contract must produce the reduced BLOCK
+  template without guessed checklist status.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Is this C++ function correct? I cannot share what callers expect it to do.
+
+    ```cpp
+    int normalize(int value) {
+      return value < 0 ? 0 : value;
+    }
+    ```
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-correctness-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-correctness-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Target:'
+        - '(?i)Findings:'
+        - '(?i)Severity:\s*LOW'
+        - '(?i)Open question'
+        - '(?i)Evidence:'
+        - '(?i)Rule:\s*contract-inputs'
+        - '(?i)Expected:\s*[^\n]*(unknown|missing|unavailable)'
+        - '(?i)Actual:\s*[^\n]*(unknown|missing|unavailable)'
+        - '(?i)Required guard:'
+        - '(?i)Test expectation:\s*N/A'
+        - '(?i)Residual risk:\s*[A-Za-z]'
+        - '(?i)(contract|expected behavior|caller expectation)'
+        - '(?i)(unknown|missing|cannot|unavailable|not\s+(shared|provided|supplied|shown|available|visible))'
+      not_contains:
+        - "Contract:"
+        - "Inputs/states reviewed:"
+        - "Checklist status:"
+        - "Residual risk:"

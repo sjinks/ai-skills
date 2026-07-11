@@ -1,0 +1,99 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Integer truncation silently changes result
+description: |
+  Review must activate on a size or count calculation that narrows, truncates,
+  or multiplies to compute a buffer allocation and produces wrong behavior for
+  values near the type boundary.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Review this C++ function for correctness. Contract: allocate and return a
+    buffer large enough to hold `count` items of type `T`, or return nullptr if
+    allocation fails. Callers pass `count >= 0`.
+
+    ```cpp
+    template<typename T>
+    T* allocate_buffer(int count) {
+      if (count < 0) return nullptr;
+      size_t size = count * sizeof(T);
+      return new (std::nothrow) char[size];
+    }
+    ```
+
+    What are the findings when `count == INT_MAX` and `sizeof(T) > 1`?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-correctness-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-correctness-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Target:'
+        - '(?i)Contract:'
+        - '(?i)Inputs/states reviewed:'
+        - '(?i)Findings:'
+        - '(?i)Severity:\s*CRITICAL|HIGH'
+        - '(?i)Classification:\s*Confirmed issue'
+        - '(?i)Evidence:'
+        - '(?i)Rule:\s*numeric-size'
+        - '(?i)(truncation|overflow|narrow|multiply|count.*sizeof|INT_MAX)'
+        - '(?i)Expected:'
+        - '(?i)Actual:'
+        - '(?i)Required guard:'
+        - '(?i)Test expectation:'
+        - '(?i)Checklist status:'
+        - '(?i)Residual risk:\s*[A-Za-z]'
+      not_contains:
+        - "Owners:"
+        - "Thread safety:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response identifies the exact correctness bug: the line
+        `size_t size = count * sizeof(T);` multiplies a 32-bit signed `int count`
+        by sizeof(T) (e.g., 4 bytes for int). When `count == INT_MAX` (2^31-1) and
+        sizeof(T) > 1, the multiplication overflows in 32-bit arithmetic, wraps
+        silently to a small positive value (e.g., -4 becomes 0 in truncation),
+        and then allocates a tiny buffer. Subsequent writes overflow the heap.
+
+        A correct response must:
+        1. Identify the bug class: integer truncation or overflow in size
+           calculation.
+        2. State the failing input: count == INT_MAX (or large value), sizeof(T) > 1.
+        3. Trace the result: multiplication overflows in int domain, wraps to
+           small value, allocation is too small, heap corruption on use.
+        4. Cite the contract violation: allocate enough for count*sizeof(T) bytes
+           but instead allocate wrapped value.
+        5. Prescribe the fix: check for overflow before multiply (e.g.,
+           count > MAX_SIZE/sizeof(T)), cast to size_t before multiply, or use
+           safe multiplication library.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+
+        1.0 = response identifies overflow/truncation, failing input (INT_MAX or
+              large count), wrapped result, heap corruption risk, contract
+              violation, and safe guard.
+        0.5 = response identifies the bug but omits one of: overflow mechanism,
+              specific failing input, wrapped value trace, or fix detail.
+        0.0 = response is wrong, misses truncation/overflow, or does not perform
+              the skill.
+      mode: independent

@@ -1,0 +1,99 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-004
+name: Partial write leaves buffer inconsistent
+description: |
+  Review must activate on a partial-operation case where only part of the
+  requested work is done, returning success while leaving inconsistent state.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Review this C++ method for correctness. Contract: append all `count` items
+    from `values` to `items_`, or return false on failure without modifying `items_`.
+
+    ```cpp
+    bool Container::append_all(const int* values, int count) {
+      for (int i = 0; i < count; ++i) {
+        if (!items_.push_back(values[i])) {
+          return false;  // partial append left in items_
+        }
+      }
+      return true;
+    }
+    ```
+
+    The `push_back` call allocates and may fail.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-correctness-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-correctness-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Target:'
+        - '(?i)Contract:'
+        - '(?i)Inputs/states reviewed:'
+        - '(?i)Findings:'
+        - '(?i)Severity:\s*HIGH'
+        - '(?i)Classification:\s*Confirmed issue'
+        - '(?i)Evidence:'
+        - '(?i)Rule:\s*control-flow-state'
+        - '(?i)(partial|inconsistent|return false|push_back.*fail|items_)'
+        - '(?i)Expected:'
+        - '(?i)Actual:'
+        - '(?i)Required guard:'
+        - '(?i)Test expectation:'
+        - '(?i)Checklist status:'
+        - '(?i)Residual risk:\s*[A-Za-z]'
+      not_contains:
+        - "Owners:"
+        - "Performance:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response identifies the exact correctness bug: the
+        `append_all` method loops through values and calls `push_back` for each.
+        If push_back fails on the 3rd call (due to allocation failure), the loop
+        exits and returns false. However, 3 items are already in `items_`,
+        violating the all-or-nothing contract: callers expect either all items
+        appended OR no items appended (on failure, items_ unchanged).
+
+        A correct response must:
+        1. Identify the bug class: partial operation, all-or-nothing contract
+           violation.
+        2. State the failing scenario: push_back succeeds for i=0,1,2; fails at
+           i=3; function returns false with 3 items left in items_.
+        3. Cite the contract: "append all count items or fail without modifying
+           items_"; this response violates it.
+        4. Explain the risk: callers see return=false and assume items_ is
+           unchanged; they retry or error-exit, leaving stale partial state.
+        5. Prescribe the fix: either (a) rollback on failure (erase partial
+           items), or (b) pre-validate capacity, or (c) test append-with-failure.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+
+        1.0 = response identifies partial operation, failing input (mid-loop
+              failure), contract violation, caller risk (retry with stale state),
+              and rollback/validation fix.
+        0.5 = response identifies the partial-append bug but omits contract
+              detail, caller risk, or specific fix (rollback vs pre-validate).
+        0.0 = response is wrong, misses partial operation, or does not perform
+              the skill.
+      mode: independent

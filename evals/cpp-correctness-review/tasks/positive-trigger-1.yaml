@@ -1,0 +1,88 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Off-by-one lookup accepts one-past-end
+description: |
+  Review must activate on a bounded operation whose index check accepts one
+  past the last valid element.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Review this C++ lookup helper for functional correctness. The contract is:
+    return a pointer to the element at `index` when it is valid, otherwise
+    return nullptr.
+
+    ```cpp
+    const Widget* find_at(const std::vector<Widget>& widgets, std::size_t index) {
+      if (index <= widgets.size()) {
+        return &widgets[index];
+      }
+      return nullptr;
+    }
+    ```
+
+    Return the verdict, contract, inputs/states reviewed, findings, checklist
+    status, and residual risk.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-correctness-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cpp-correctness-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Target:'
+        - '(?i)Contract:'
+        - '(?i)Inputs/states reviewed:'
+        - '(?i)Findings:'
+        - '(?i)Severity:\s*HIGH'
+        - '(?i)Classification:\s*Confirmed issue'
+        - '(?i)Evidence:'
+        - '(?i)Rule:\s*(contract-inputs|control-flow-state|containers-algorithms)'
+        - '(?i)(index|one-past|size\(\)|boundary|off-by-one)'
+        - '(?i)(<=|less than|<).{0,120}(size|widgets\.size)|size.{0,120}(<=|less than|<)'
+        - '(?i)Expected:'
+        - '(?i)Actual:'
+        - '(?i)Required guard:'
+        - '(?i)Test expectation:'
+        - '(?i)Checklist status:'
+        - '(?i)Residual risk:\s*[A-Za-z]'
+        - '(?i)Residual risk:'
+      not_contains:
+        - "Owners:"
+        - "Shared state:"
+        - "CERT:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response identifies the exact correctness bug:
+        `index == widgets.size()` is not a valid element but the `<=` check
+        accepts it, so `widgets[index]` is one past the end. A correct response
+        states the expected behavior, actual reachable behavior, uses the
+        skill's structured sections, and requires `index < widgets.size()` plus
+        boundary tests for last valid and one-past-end indexes.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response correctly performs the substantive judgement defined
+              in this rubric.
+        0.5 = response is partially correct or hedges substantially.
+        0.0 = response is wrong, missing the required judgement, or did not
+              perform the skill at all.
+      mode: independent
