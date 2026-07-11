@@ -59,7 +59,6 @@ graders:
         - '(?i)Test expectation:'
         - '(?i)Checklist status:'
         - '(?i)Residual risk:\s*[A-Za-z]'
-        - '(?i)Residual risk:'
       not_contains:
         - "Owners:"
         - "Shared state:"
