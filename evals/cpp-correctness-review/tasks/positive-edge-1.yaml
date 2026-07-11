@@ -52,3 +52,4 @@ graders:
         - "Contract:"
         - "Inputs/states reviewed:"
         - "Checklist status:"
+        - "Residual risk:"
