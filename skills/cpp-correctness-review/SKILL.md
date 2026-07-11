@@ -5,7 +5,7 @@ argument-hint: "Describe the C/C++ operation, state transition, boundary case, f
 user-invocable: true
 ---
 
-# C++ Correctness Review
+# C/C++ Correctness Review
 
 Use this skill when a bounded C or C++ operation, state transition, parser step, container update, numeric calculation, or API behavior may return the wrong result or leave the wrong state for a concrete input or edge case.
 
