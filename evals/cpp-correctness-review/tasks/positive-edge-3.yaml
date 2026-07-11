@@ -48,7 +48,7 @@ graders:
         - '(?i)Contract:'
         - '(?i)Inputs/states reviewed:'
         - '(?i)Findings:'
-        - '(?i)Severity:\s*CRITICAL|HIGH'
+        - '(?i)Severity:\s*(CRITICAL|HIGH)'
         - '(?i)Classification:\s*Confirmed issue'
         - '(?i)Evidence:'
         - '(?i)Rule:\s*numeric-size'
