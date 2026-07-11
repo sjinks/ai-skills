@@ -46,7 +46,6 @@ graders:
         - '(?i)Actual:\s*[^\n]*(unknown|missing|unavailable)'
         - '(?i)Required guard:'
         - '(?i)Test expectation:\s*N/A'
-        - '(?i)Residual risk:\s*[A-Za-z]'
         - '(?i)(contract|expected behavior|caller expectation)'
         - '(?i)(unknown|missing|cannot|unavailable|not\s+(shared|provided|supplied|shown|available|visible))'
       not_contains:

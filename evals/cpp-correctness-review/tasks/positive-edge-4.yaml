@@ -14,16 +14,18 @@ inputs:
 
     ```cpp
     bool Container::append_all(const int* values, int count) {
-      for (int i = 0; i < count; ++i) {
-        if (!items_.push_back(values[i])) {
-          return false;  // partial append left in items_
+      try {
+        for (int i = 0; i < count; ++i) {
+          items_.push_back(values[i]);
         }
+      } catch (const std::bad_alloc&) {
+        return false;  // partial append left in items_
       }
       return true;
     }
     ```
 
-    The `push_back` call allocates and may fail.
+    The `push_back` call allocates and may throw `std::bad_alloc`.
 expected:
   should_trigger: true
 graders:
@@ -68,16 +70,16 @@ graders:
       prompt: |
         Grade whether the response identifies the exact correctness bug: the
         `append_all` method loops through values and calls `push_back` for each.
-        If push_back fails on the 3rd call (due to allocation failure), the loop
-        exits and returns false. However, 3 items are already in `items_`,
+        If `push_back` throws on the 3rd call (due to allocation failure), the
+        catch block returns false. However, 3 items are already in `items_`,
         violating the all-or-nothing contract: callers expect either all items
         appended OR no items appended (on failure, items_ unchanged).
 
         A correct response must:
         1. Identify the bug class: partial operation, all-or-nothing contract
            violation.
-        2. State the failing scenario: push_back succeeds for i=0,1,2; fails at
-           i=3; function returns false with 3 items left in items_.
+          2. State the failing scenario: push_back succeeds for i=0,1,2; throws at
+            i=3; function returns false with 3 items left in items_.
         3. Cite the contract: "append all count items or fail without modifying
            items_"; this response violates it.
         4. Explain the risk: callers see return=false and assume items_ is
