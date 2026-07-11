@@ -3,7 +3,7 @@ id: positive-edge-004
 name: Partial write leaves buffer inconsistent
 description: |
   Review must activate on a partial-operation case where only part of the
-  requested work is done, returning success while leaving inconsistent state.
+  requested work is done, returning failure while leaving inconsistent state.
 tags:
   - positive-trigger
   - positive-edge
