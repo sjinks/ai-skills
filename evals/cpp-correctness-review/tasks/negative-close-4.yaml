@@ -24,8 +24,18 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Verdict:"
+        - "Target:"
         - "Contract:"
         - "Inputs/states reviewed:"
-        - "Checklist status:"
-        - "Verdict:"
         - "Findings:"
+        - "Severity:"
+        - "Classification:"
+        - "Evidence:"
+        - "Rule:"
+        - "Expected:"
+        - "Actual:"
+        - "Required guard:"
+        - "Test expectation:"
+        - "Checklist status:"
+        - "Residual risk:"
