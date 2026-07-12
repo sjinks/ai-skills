@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Off-topic home repair request
+description: Unrelated everyday question must not activate the correctness skill.
+tags:
+  - negative-trigger
+inputs:
+  prompt: "What is the safest way to patch a small hole in drywall before painting?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-correctness-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Target:"
+        - "Contract:"
+        - "Inputs/states reviewed:"
+        - "Findings:"
+        - "Severity:"
+        - "Classification:"
+        - "Evidence:"
+        - "Rule:"
+        - "Expected:"
+        - "Actual:"
+        - "Required guard:"
+        - "Test expectation:"
+        - "Checklist status:"
+        - "Residual risk:"

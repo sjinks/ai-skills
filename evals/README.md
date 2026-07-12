@@ -68,6 +68,7 @@ grader weighting takes effect.
   - `cpp-object-lifetime`: 0.45
   - `cpp-cert`: 0.45
   - `cpp-const-correctness`: 0.45
+  - `cpp-correctness-review`: 0.45
   - `cpp-performance`: 0.45
   - `cpp-struct-layout`: 0.45
   - `cpp-data-structure-selection`: 0.45

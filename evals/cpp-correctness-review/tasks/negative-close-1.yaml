@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Dangling string_view lifetime review
+description: |
+  A dangling view question belongs to object-lifetime review, not generic
+  correctness review.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Review this C++ code for lifetime safety: `std::string_view name()` builds
+    a local `std::string full = first + last;` and returns `full`. Can the view
+    dangle, and what ownership fix should we use?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-correctness-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Target:"
+        - "Contract:"
+        - "Inputs/states reviewed:"
+        - "Findings:"
+        - "Severity:"
+        - "Classification:"
+        - "Evidence:"
+        - "Rule:"
+        - "Expected:"
+        - "Actual:"
+        - "Required guard:"
+        - "Test expectation:"
+        - "Checklist status:"
+        - "Residual risk:"

@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Data race review on shared counter
+description: |
+  A synchronization question belongs to concurrency review, not generic
+  correctness review.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Two C++ threads increment and read the same non-atomic `int count` without
+    a mutex. Review whether this is race-free and what synchronization we need.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-correctness-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Target:"
+        - "Contract:"
+        - "Inputs/states reviewed:"
+        - "Findings:"
+        - "Severity:"
+        - "Classification:"
+        - "Evidence:"
+        - "Rule:"
+        - "Expected:"
+        - "Actual:"
+        - "Required guard:"
+        - "Test expectation:"
+        - "Checklist status:"
+        - "Residual risk:"

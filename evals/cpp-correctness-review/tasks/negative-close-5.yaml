@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-005
+name: Sanitizer diagnostic interpretation
+description: |
+  An AddressSanitizer report interpretation question belongs to sanitizer-triage
+  review, not generic correctness review.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    I got an AddressSanitizer report: SEGV on unknown address 0x7f... (pc 0x...
+    T0 0x... in operator<). Is my comparison function broken, and what
+    correctness issue should I fix in my code?
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cpp-correctness-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Target:"
+        - "Contract:"
+        - "Inputs/states reviewed:"
+        - "Findings:"
+        - "Severity:"
+        - "Classification:"
+        - "Evidence:"
+        - "Rule:"
+        - "Expected:"
+        - "Actual:"
+        - "Required guard:"
+        - "Test expectation:"
+        - "Checklist status:"
+        - "Residual risk:"
