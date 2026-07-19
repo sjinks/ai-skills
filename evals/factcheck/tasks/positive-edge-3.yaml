@@ -48,6 +48,7 @@ graders:
         - '(?i)Date/currentness:\s*\S'
         - '(?i)Relevance:\s*\S'
         - '(?i)Limitation:\s*\S'
+        - '(?i)Location:\s*\S'
         - '(?i)Checkability:\s*(factual|partly factual|not factual)'
         - '(?i)Confidence reason:\s*\S'
         - '(?i)Evidence:\s*\S'
