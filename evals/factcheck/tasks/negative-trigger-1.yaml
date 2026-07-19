@@ -22,6 +22,9 @@ graders:
     config:
       not_contains:
         - "Fact-Check Summary"
+        - "Overall result:"
+        - "Mode:"
+        - "Sensitive domain:"
         - "Scope"
         - "Claims Checked"
         - "Evidence Reviewed"
