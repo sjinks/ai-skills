@@ -1,6 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
 name: iteration-retrospective-eval
-description: Evaluates evidence-bound retrospectives for multi-attempt work and prevention decisions.
+description: |
+  Evaluates evidence-bound retrospectives for multi-attempt work and prevention
+  decisions.
 skill: iteration-retrospective
 version: "1.0"
 config:
