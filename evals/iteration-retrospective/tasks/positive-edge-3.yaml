@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Independent repeated failures warrant new skill
+inputs:
+  prompt: |
+    Retrospect two independent repository incidents. In repo A and repo B, agents repeatedly fixed review comments one by one because each lacked a method to cluster equivalent findings. Both histories show the same root cause, a stable clustering procedure, and repeated review churn.
+    Decide whether reusable guidance is warranted and cite the evidence.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/iteration-retrospective/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills: [iteration-retrospective]
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "Attempt Timeline:"
+        - "Evidence:"
+        - "Skill Candidate: new skill"
+        - "Prevention:"
+        - "Verdict: CLEAN"

@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-trigger-001
+name: Status update request
+inputs:
+  prompt: "Give me a concise status update on the current implementation work."
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/iteration-retrospective/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Attempt Timeline:"
+        - "Assessment:"
+        - "Learnings:"
+        - "Prevention:"
+        - "Skill Candidate:"
+        - "Retrospective:"
+        - "Verdict:"

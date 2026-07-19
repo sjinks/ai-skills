@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Insufficient evidence blocks retrospective
+inputs:
+  prompt: "Write a retrospective for a project that had several attempts, but I cannot provide the goal, actions, results, logs, or validation evidence."
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/iteration-retrospective/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills: [iteration-retrospective]
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "Retrospective:"
+        - "Assessment:"
+        - "Attempt Timeline:"
+        - "Learnings:"
+        - "Prevention:"
+        - 'Not assessed\.'
+        - "(goal|action|result|evidence)"
+        - "Skill Candidate: not assessed"
+        - "Verdict: BLOCK"

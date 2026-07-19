@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Review-fix chain retrospective
+inputs:
+  prompt: |
+    Retrospect this review/fix chain. Goal: make a report generator enforce all required fields.
+    A1 added individual field checks; review found missing fields. A2 added the missing checks; tests passed.
+    A3 added a shared contract validator; the validator caught later omissions. Recommend the smallest prevention and say whether this needs a new skill.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/iteration-retrospective/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills: [iteration-retrospective]
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "Retrospective:"
+        - "Attempt Timeline:"
+        - "Action:"
+        - "Result:"
+        - "Evidence:"
+        - "Learnings:"
+        - "Prevention:"
+        - "Owner: unassigned"
+        - "Skill Candidate: no new skill"
+        - "Verdict: CLEAN"
