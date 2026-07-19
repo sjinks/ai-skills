@@ -22,7 +22,12 @@ graders:
     config:
       not_contains:
         - "Fact-Check Summary"
+        - "Scope"
         - "Claims Checked"
-        - "Verdict: SUPPORTED"
-        - "Verdict: CONTRADICTED"
+        - "Evidence Reviewed"
+        - "Findings"
+        - "Verdict:"
         - "Recommended Corrections"
+        - "Open Questions"
+        - "Verification Limits"
+        - "Residual Uncertainty"

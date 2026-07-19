@@ -15,8 +15,16 @@ inputs:
        Chrysler Building surpassed it in 1930.
     3. The Eiffel Tower is located in Berlin.
 
-    Use the facts in the prompt plus general historical knowledge if available,
-    but do not rewrite the label.
+    Evidence:
+    - Reference excerpt A: "The Eiffel Tower opened to the public in 1889."
+    - Reference excerpt B: "At 300 metres, the Eiffel Tower remained the
+      world's tallest man-made structure until the Chrysler Building was
+      completed in 1930."
+    - Reference excerpt C: "The Eiffel Tower stands on the Champ de Mars in
+      Paris, France."
+
+    Use only the supplied evidence; do not fill gaps from general historical
+    knowledge or rewrite the label.
 expected:
   should_trigger: true
 graders:
@@ -36,6 +44,15 @@ graders:
     name: task_completion
     config:
       regex_match:
+        - '(?i)E1:'
+        - '(?i)Type:\s*\S'
+        - '(?i)Date/currentness:\s*\S'
+        - '(?i)Limitation:\s*\S'
+        - '(?i)Checkability:\s*(factual|partly factual|not factual)'
+        - '(?i)Confidence reason:\s*\S'
+        - '(?i)Evidence:\s*\S'
+        - '(?i)Reasoning:\s*\S'
+        - '(?i)Recommended Corrections[\s\S]{0,240}C1:'
         - "(?i)Fact-Check Summary"
         - "(?i)Scope"
         - "(?i)Claims Checked"

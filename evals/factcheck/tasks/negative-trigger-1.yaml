@@ -22,8 +22,12 @@ graders:
     config:
       not_contains:
         - "Fact-Check Summary"
+        - "Scope"
         - "Claims Checked"
         - "Evidence Reviewed"
-        - "Verdict: SUPPORTED"
-        - "Verdict: UNVERIFIABLE"
+        - "Findings"
+        - "Verdict:"
         - "Recommended Corrections"
+        - "Open Questions"
+        - "Verification Limits"
+        - "Residual Uncertainty"

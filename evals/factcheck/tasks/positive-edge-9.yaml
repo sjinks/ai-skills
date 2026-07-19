@@ -34,6 +34,20 @@ graders:
     name: task_completion
     config:
       regex_match:
+        - "(?i)Scope"
+        - "(?i)Evidence Reviewed"
+        - "(?i)Recommended Corrections"
+        - "(?i)Open Questions"
+        - "(?i)Residual Uncertainty"
+        - '(?i)E1:'
+        - '(?i)Type:\s*\S'
+        - '(?i)Date/currentness:\s*\S'
+        - '(?i)Limitation:\s*\S'
+        - '(?i)Checkability:\s*(factual|partly factual|not factual)'
+        - '(?i)Confidence reason:\s*\S'
+        - '(?i)Evidence:\s*\S'
+        - '(?i)Reasoning:\s*\S'
+        - '(?i)Recommended Corrections[\s\S]{0,240}C1:'
         - "(?i)Fact-Check Summary"
         - "(?i)Claims Checked"
         - "(?i)Findings"

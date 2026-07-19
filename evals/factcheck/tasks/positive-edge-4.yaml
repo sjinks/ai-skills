@@ -12,8 +12,12 @@ inputs:
     Draft: "Venus is the closest planet to the Sun. It has a thick atmosphere
     dominated by carbon dioxide."
 
+    Evidence:
+    - Planetary fact sheet excerpt: "Mercury is the closest planet to the
+      Sun. Venus has a thick atmosphere made primarily of carbon dioxide."
+
     Return only the fact-check report and any minimal correction proposal tied
-    to claim IDs.
+    to claim IDs. Use only the supplied evidence; do not fill gaps from memory.
 expected:
   should_trigger: true
 graders:
@@ -33,6 +37,21 @@ graders:
     name: task_completion
     config:
       regex_match:
+        - "(?i)Scope"
+        - "(?i)Evidence Reviewed"
+        - "(?i)Findings"
+        - "(?i)Open Questions"
+        - "(?i)Verification Limits"
+        - "(?i)Residual Uncertainty"
+        - '(?i)E1:'
+        - '(?i)Type:\s*\S'
+        - '(?i)Date/currentness:\s*\S'
+        - '(?i)Limitation:\s*\S'
+        - '(?i)Checkability:\s*(factual|partly factual|not factual)'
+        - '(?i)Confidence reason:\s*\S'
+        - '(?i)Evidence:\s*\S'
+        - '(?i)Reasoning:\s*\S'
+        - '(?i)Recommended Corrections[\s\S]{0,240}C1:'
         - "(?i)Fact-Check Summary"
         - '(?i)Mode:\s*report-only'
         - "(?i)Claims Checked"
