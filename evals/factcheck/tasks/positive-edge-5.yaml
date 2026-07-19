@@ -38,12 +38,42 @@ graders:
     name: task_completion
     config:
       regex_match:
+        - '(?m)^Fact-Check Summary$[\s\S]*^Scope$[\s\S]*^Claims Checked$[\s\S]*^Evidence Reviewed$[\s\S]*^Findings$[\s\S]*^Recommended Corrections$[\s\S]*^Open Questions$[\s\S]*^Verification Limits$[\s\S]*^Residual Uncertainty$'
+        - '(?i)Overall result:[^\S\r\n]*\S'
+        - '(?i)Sensitive domain:[^\S\r\n]*no'
+        - '(?i)Target:[^\S\r\n]*\S'
+        - '(?i)In scope:[^\S\r\n]*\S'
+        - '(?i)Out of scope:[^\S\r\n]*\S'
+        - '(?i)Time frame / jurisdiction / domain:[^\S\r\n]*\S'
+        - "(?i)Scope"
+        - "(?i)Claims Checked"
+        - "(?i)Evidence Reviewed"
+        - "(?i)Findings"
+        - "(?i)Open Questions"
+        - "(?i)Verification Limits"
+        - "(?i)Residual Uncertainty"
+        - '(?i)E1:'
+        - '(?i)Type:[^\S\r\n]*\S'
+        - '(?i)Date/currentness:[^\S\r\n]*\S'
+        - '(?i)Relevance:[^\S\r\n]*\S'
+        - '(?i)Limitation:[^\S\r\n]*\S'
+        - '(?i)Location:[^\S\r\n]*\S'
+        - '(?i)Checkability:[^\S\r\n]*(factual|partly factual|not factual)'
+        - '(?i)Confidence:[^\S\r\n]*(high|medium|low)'
+        - '(?i)Confidence reason:[^\S\r\n]*\S'
+        - '(?i)Evidence:[^\S\r\n]*\S'
+        - '(?i)Reasoning:[^\S\r\n]*\S'
+        - '(?m)^Claims Checked$(?:(?!^Evidence Reviewed$)[\s\S])*^- C1:[^\r\n]+'
+        - '(?i)Claims Checked[\s\S]{0,480}- C2:'
+        - '(?m)^Findings$(?:(?!^Recommended Corrections$)[\s\S])*^- C1\n(?:(?!^- C[0-9]+$)[\s\S])*^  Verdict:'
+        - '(?i)Findings[\s\S]{0,240}- C1[\s\S]{0,240}Verdict:[^\S\r\n]*CONTRADICTED'
+        - '(?i)Findings[\s\S]{0,480}- C2[\s\S]{0,240}Verdict:[^\S\r\n]*CONTRADICTED'
+        - '(?m)^Recommended Corrections$(?:(?!^Open Questions$)[\s\S])*^- C1:[^\r\n]+'
+        - '(?i)Recommended Corrections[\s\S]{0,480}C2:[^\S\r\n]*\S'
         - "(?i)Fact-Check Summary"
-        - '(?i)Mode:\s*correction proposals approved'
+        - '(?i)Mode:[^\S\r\n]*correction proposals approved'
         - "(?i)Recommended Corrections"
-        - "(?i)C1"
-        - "(?i)C2"
-        - '(?i)Verdict:\s*CONTRADICTED'
+        - '(?i)Verdict:[^\S\r\n]*CONTRADICTED'
         - "(?i)(2025|January 15, 2025|5 GB|not unlimited)"
         - "(?i)(minimal|proposal|correction)"
       not_contains:
