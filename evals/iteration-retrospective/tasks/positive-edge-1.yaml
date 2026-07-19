@@ -27,6 +27,6 @@ graders:
         - "Learnings:"
         - "Prevention:"
         - 'Not assessed\.'
-        - "(goal|action|result|evidence)"
+        - "(?i)missing (goal|action|result|evidence)"
         - "Skill Candidate: not assessed"
         - "Verdict: BLOCK"
