@@ -30,3 +30,6 @@ graders:
         - "(?i)missing (goal|action|result|evidence)"
         - "Skill Candidate: not assessed"
         - "Verdict: BLOCK"
+      not_contains:
+        - "Fact-Check Summary"
+        - "Gate decision:"

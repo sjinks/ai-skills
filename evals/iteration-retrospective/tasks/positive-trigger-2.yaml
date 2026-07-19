@@ -32,3 +32,6 @@ graders:
         - "Cause: confirmed"
         - "Prevention:"
         - "Verdict: CLEAN"
+      not_contains:
+        - "Fact-Check Summary"
+        - "Gate decision:"

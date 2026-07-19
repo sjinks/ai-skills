@@ -34,3 +34,6 @@ graders:
         - "Owner: unassigned"
         - "Skill Candidate: no new skill"
         - "Verdict: CLEAN"
+      not_contains:
+        - "Fact-Check Summary"
+        - "Gate decision:"

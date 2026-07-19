@@ -33,3 +33,6 @@ graders:
         - "Cause: (likely|unknown)"
         - "Skill Candidate: extend existing guidance"
         - "Verdict: CONCERNS"
+      not_contains:
+        - "Fact-Check Summary"
+        - "Gate decision:"

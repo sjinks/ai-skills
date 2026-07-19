@@ -28,3 +28,6 @@ graders:
         - "Skill Candidate: new skill"
         - "Prevention:"
         - "Verdict: CLEAN"
+      not_contains:
+        - "Fact-Check Summary"
+        - "Gate decision:"
