@@ -31,6 +31,7 @@ graders:
         - "Result: unknown"
         - "Evidence: unavailable"
         - "Cause: (likely|unknown)"
+        - "Next Checks:"
         - "Skill Candidate: extend existing guidance"
         - "Verdict: CONCERNS"
       not_contains:

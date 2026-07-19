@@ -57,7 +57,9 @@ Attempt Timeline:
 Learnings:
 - L1 | Cause: confirmed | Lesson: ... | Evidence: ...
 Prevention:
-- P1 | Mechanism: validator | Decision: ... | Owner: assigned name or unassigned
+- P1 | Mechanism: one of deterministic check, shared helper, repository guidance, refactor, or reusable skill | Decision: ... | Owner: assigned name or unassigned
+Next Checks:
+- N1: <concrete verification or unresolved uncertainty>
 Skill Candidate: new skill | extend existing guidance | no new skill | not assessed
 Verdict: CLEAN | CONCERNS | BLOCK
 ```

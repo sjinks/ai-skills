@@ -22,6 +22,7 @@ graders:
         - "Assessment:"
         - "Learnings:"
         - "Prevention:"
+        - "Next Checks:"
         - "Skill Candidate:"
         - "Retrospective:"
         - "Verdict:"

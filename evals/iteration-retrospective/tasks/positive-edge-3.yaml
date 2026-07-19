@@ -27,6 +27,7 @@ graders:
         - "Evidence:"
         - "Skill Candidate: new skill"
         - "Prevention:"
+        - "Next Checks:"
         - "Verdict: CLEAN"
       not_contains:
         - "Fact-Check Summary"

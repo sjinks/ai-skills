@@ -26,6 +26,7 @@ graders:
         - "Attempt Timeline:"
         - "Learnings:"
         - "Prevention:"
+        - "Next Checks:"
         - 'Not assessed\.'
         - "(?i)missing (goal|action|result|evidence)"
         - "Skill Candidate: not assessed"

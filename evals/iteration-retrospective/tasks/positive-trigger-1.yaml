@@ -31,6 +31,7 @@ graders:
         - "Evidence:"
         - "Learnings:"
         - "Prevention:"
+        - "Next Checks:"
         - "Owner: unassigned"
         - "Skill Candidate: no new skill"
         - "Verdict: CLEAN"
