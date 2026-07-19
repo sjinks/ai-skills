@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Uncertain investigation extends guidance
+inputs:
+  prompt: |
+    Retrospect this investigation. An existing import-debugging checklist lacks a diagnostic-evidence step.
+    A1 found a failing import, but no logs identify its cause. A2 changed a parser and the failure remained.
+    A3 has unknown action and result because its evidence is unavailable. There is one prior incident with the same missing diagnostic evidence.
+    Recommend prevention without inventing a root cause or creating a new skill.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/iteration-retrospective/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills: [iteration-retrospective]
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "Attempt Timeline:"
+        - "Status: inconclusive"
+        - "Action: unknown"
+        - "Result: unknown"
+        - "Evidence: unavailable"
+        - "Cause: (likely|unknown)"
+        - "Next Checks:"
+        - "Skill Candidate: extend existing guidance"
+        - "Verdict: CONCERNS"
+      not_contains:
+        - "Fact-Check Summary"
+        - "Gate decision:"

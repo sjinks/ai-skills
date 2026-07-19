@@ -111,6 +111,7 @@ grader weighting takes effect.
   - `agent-skill-audit`: 0.45
   - `instruction-quality-audit`: 0.45
   - `handoff-note`: 0.45
+  - `iteration-retrospective`: 0.45
 - `skill_invocation` (task-level, `skill_invocation`, positive tasks
   only) — requires the named skill via `required_skills` with
   `mode: any_order`. The currently released waza CLI (`v0.33.0`) defines

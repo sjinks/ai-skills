@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Single code review request
+inputs:
+  prompt: "Review this one function for null-pointer bugs and give me findings."
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/iteration-retrospective/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Attempt Timeline:"
+        - "Assessment:"
+        - "Learnings:"
+        - "Prevention:"
+        - "Next Checks:"
+        - "Skill Candidate:"
+        - "Retrospective:"
+        - "Verdict:"

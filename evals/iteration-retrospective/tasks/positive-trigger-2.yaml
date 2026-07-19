@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-002
+name: Failed debugging attempts retrospective
+inputs:
+  prompt: |
+    Analyze these debugging attempts for future work. A service timed out because of a missing request limit.
+    A1 increased the client timeout and failed. A2 added retry logic and made latency worse. A3 added the missing server limit and a boundary test; the test passed.
+    Explain what went wrong, what not to repeat, and whether the pattern warrants reusable guidance.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/iteration-retrospective/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills: [iteration-retrospective]
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "Attempt Timeline:"
+        - "Action:"
+        - "Result:"
+        - "Evidence:"
+        - "Status: failed"
+        - "Cause: confirmed"
+        - "Prevention:"
+        - "Next Checks:"
+        - "Verdict: CLEAN"
+      not_contains:
+        - "Fact-Check Summary"
+        - "Gate decision:"

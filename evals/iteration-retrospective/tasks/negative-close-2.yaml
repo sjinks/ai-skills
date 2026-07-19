@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Generic lessons request
+inputs:
+  prompt: "What are some general lessons learned from software projects?"
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/iteration-retrospective/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Attempt Timeline:"
+        - "Assessment:"
+        - "Learnings:"
+        - "Prevention:"
+        - "Next Checks:"
+        - "Skill Candidate:"
+        - "Retrospective:"
+        - "Verdict:"
