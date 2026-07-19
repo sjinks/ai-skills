@@ -49,6 +49,7 @@ graders:
         - '(?i)Relevance:\s*\S'
         - '(?i)Limitation:\s*\S'
         - '(?i)Checkability:\s*(factual|partly factual|not factual)'
+        - '(?i)Confidence:\s*(high|medium|low)'
         - '(?i)Confidence reason:\s*\S'
         - '(?i)Evidence:\s*\S'
         - '(?i)Reasoning:\s*\S'

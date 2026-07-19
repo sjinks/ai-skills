@@ -27,7 +27,7 @@ graders:
         - "Overall result:"
         - "Mode:"
         - "Sensitive domain:"
-        - "Scope"
+        - "Scope\n- Target:"
         - "Claims Checked"
         - "Evidence Reviewed"
         - "Findings"
