@@ -57,7 +57,7 @@ Attempt Timeline:
 Learnings:
 - L1 | Cause: confirmed | Lesson: ... | Evidence: ...
 Prevention:
-- P1 | Mechanism: validator | Decision: ... | Owner: <explicit owner | unassigned>
+- P1 | Mechanism: validator | Decision: ... | Owner: assigned name or unassigned
 Skill Candidate: new skill | extend existing guidance | no new skill | not assessed
 Verdict: CLEAN | CONCERNS | BLOCK
 ```
