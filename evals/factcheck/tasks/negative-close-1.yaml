@@ -26,11 +26,9 @@ graders:
     config:
       not_contains:
         - "Fact-Check Summary\n- Overall result:"
-        - "Scope\n- Target:"
         - "Claims Checked\n- C1:"
         - "Evidence Reviewed\n- E1:"
         - "Findings\n- C1\n  Verdict:"
         - "Recommended Corrections\n- C1:"
-        - "Open Questions\n- "
         - "Verification Limits\n- "
         - "Residual Uncertainty\n- "

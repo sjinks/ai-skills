@@ -35,31 +35,42 @@ graders:
     name: task_completion
     config:
       regex_match:
+        - '(?m)^Fact-Check Summary$[\s\S]*^Scope$[\s\S]*^Claims Checked$[\s\S]*^Evidence Reviewed$[\s\S]*^Findings$[\s\S]*^Recommended Corrections$[\s\S]*^Open Questions$[\s\S]*^Verification Limits$[\s\S]*^Residual Uncertainty$'
+        - '(?i)Overall result:[^\S\r\n]*\S'
+        - '(?i)Mode:[^\S\r\n]*report-only'
+        - '(?i)Sensitive domain:[^\S\r\n]*yes,\s*(medical|public health)'
+        - '(?i)Target:[^\S\r\n]*\S'
+        - '(?i)In scope:[^\S\r\n]*\S'
+        - '(?i)Out of scope:[^\S\r\n]*\S'
+        - '(?i)Time frame / jurisdiction / domain:[^\S\r\n]*\S'
         - "(?i)Scope"
         - "(?i)Open Questions"
         - "(?i)Verification Limits"
         - "(?i)Residual Uncertainty"
         - '(?i)E1:'
-        - '(?i)Type:\s*\S'
-        - '(?i)Date/currentness:\s*\S'
-        - '(?i)Relevance:\s*\S'
-        - '(?i)Limitation:\s*\S'
-        - '(?i)Location:\s*\S'
-        - '(?i)Checkability:\s*(factual|partly factual|not factual)'
-        - '(?i)Confidence reason:\s*\S'
-        - '(?i)Evidence:\s*\S'
-        - '(?i)Reasoning:\s*\S'
-        - '(?i)Recommended Corrections[\s\S]{0,240}C1:'
+        - '(?i)Type:[^\S\r\n]*\S'
+        - '(?i)Date/currentness:[^\S\r\n]*\S'
+        - '(?i)Relevance:[^\S\r\n]*\S'
+        - '(?i)Limitation:[^\S\r\n]*\S'
+        - '(?i)Location:[^\S\r\n]*\S'
+        - '(?i)Checkability:[^\S\r\n]*(factual|partly factual|not factual)'
+        - '(?i)Confidence reason:[^\S\r\n]*\S'
+        - '(?i)Evidence:[^\S\r\n]*\S'
+        - '(?i)Reasoning:[^\S\r\n]*\S'
+        - '(?m)^Claims Checked$(?:(?!^Evidence Reviewed$)[\s\S])*^- C1:[^\r\n]+'
+        - '(?m)^Findings$(?:(?!^Recommended Corrections$)[\s\S])*^- C1\n(?:(?!^- C[0-9]+$)[\s\S])*^  Verdict:'
+        - '(?m)^Recommended Corrections$(?:(?!^Open Questions$)[\s\S])*^- C1:[^\r\n]+'
         - "(?i)Fact-Check Summary"
         - "(?i)Claims Checked"
         - "(?i)Evidence Reviewed"
         - "(?i)Findings"
         - "(?i)Recommended Corrections"
-        - '(?i)Verdict:\s*(CONTRADICTED|UNSUPPORTED)'
-        - '(?i)Confidence:\s*(high|medium|low)'
+        - '(?i)Verdict:[^\S\r\n]*(CONTRADICTED|UNSUPPORTED)'
+        - '(?i)Confidence:[^\S\r\n]*(high|medium|low)'
         - "(?i)(official|recognized-domain-authority|user-provided)"
         - "(?i)(WHO|World Health Organization|Plasmodium|parasites|virus)"
         - "(?i)(citation|source|supports?)"
+        - "(?i)(not professional advice|fact-?check.*not.*advice)"
       not_contains:
         - "Rewritten draft:"
         - "Verdict: CLEAN"
