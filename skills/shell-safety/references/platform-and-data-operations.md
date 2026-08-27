@@ -146,13 +146,27 @@ Safe replacement: Mount only a needed path, for example `-v /tmp/work:/work`.
 Example: `kubectl delete namespace staging`
 Risk: Cascade-deletes namespaced resources.
 Decision gate: Confirmable.
-Safe replacement: Run `kubectl --context=dev -n staging get all,pvc,secrets,cm`; review resources and confirm exact context and namespace before deletion.
+Safe replacement: Discover and inventory every listable namespaced API resource under the exact context:
+```sh
+resources="$(kubectl --context=<context> api-resources --namespaced=true --verbs=list -o name)" || exit 1
+[ -n "$resources" ] || exit 1
+while IFS= read -r resource; do
+	[ -n "$resource" ] || continue
+	objects="$(kubectl --context=<context> --namespace=<namespace> get "$resource" -o name)" || exit 1
+	count="$(printf '%s\n' "$objects" | awk 'NF { count++ } END { print count+0 }')" || exit 1
+	printf '%s\t%s\n' "$resource" "$count"
+	[ -z "$objects" ] || printf '%s\n' "$objects"
+done <<EOF
+$resources
+EOF
+```
+Any discovery or list failure blocks deletion. Review and bind every resource name, object name, and count; refresh the complete inventory immediately before confirming the exact context and namespace deletion.
 
 ### OK6 - Apply manifest from URL
 Example: `kubectl apply -f https://example.com/manifest.yaml`
 Risk: Applies uninspected remote workload definitions.
 Decision gate: Rewrite and confirm consequential effects.
-Safe replacement: Download and inspect: `curl -fsSL https://example.com/manifest.yaml -o /tmp/m.yaml` then `${EDITOR:-cat} /tmp/m.yaml`; verify authenticated provenance, pin context/namespace, then separately apply `kubectl --context=dev --namespace=staging apply -f /tmp/m.yaml`.
+Safe replacement: Obtain authenticated provenance and an expected digest. Have the runtime create a private temporary location and an exclusive no-follow handle, download through that handle, and bind the digest to the exact bytes reviewed. Keep the reviewed object immutable and inaccessible to other writers; immediately before apply, reverify its handle/inode and digest. Then confirm the explicit context/namespace and apply those same bytes. If `kubectl` must reopen a pathname, it must be inside the private directory with unchanged identity, permissions, ownership, and digest; otherwise return `BLOCKED`. Never use a predictable shared `/tmp` path.
 
 ### OK7 - kubectl drain
 Example: `kubectl drain node-1`
@@ -164,7 +178,7 @@ Safe replacement: Run `kubectl --context=<context> drain node-1 --dry-run=client
 Example: `kubectl delete pvc data-0`
 Risk: Dynamic provisioner reclaim policy may delete storage.
 Decision gate: Refuse without explicit confirmation.
-Safe replacement: Inspect `kubectl --context=<context> --namespace=<namespace> get pvc data-0 -o jsonpath='{.spec.storageClassName}'` and `kubectl --context=<context> get sc <sc-name> -o jsonpath='{.reclaimPolicy}'` first; confirm the same explicit context and namespace before deletion.
+Safe replacement: Read and bind the PVC UID, resource version, and current PV name with `kubectl --context=<context> --namespace=<namespace> get pvc data-0 -o jsonpath='{.metadata.uid}{" "}{.metadata.resourceVersion}{" "}{.spec.volumeName}{"\n"}'`. Require a non-empty `spec.volumeName`, then inspect that bound PV with `kubectl --context=<context> get pv <pv-name> -o jsonpath='{.metadata.uid}{" "}{.metadata.resourceVersion}{" "}{.spec.persistentVolumeReclaimPolicy}{"\n"}'`. After confirmation, re-read both objects immediately before execution; any binding, identity, version, or PV reclaim-policy change invalidates authorization and blocks deletion.
 
 ### OK9 - Implicit kubectl context
 Example: `kubectl apply -f svc.yaml`
@@ -226,7 +240,13 @@ Safe replacement: `mysql_config_editor set --login-path=prod --host=host --user=
 Example: `redis-cli FLUSHALL`
 Risk: Deletes every key.
 Decision gate: Refuse without explicit confirmation.
-Safe replacement: After confirmation, use the exact target, for example `redis-cli -h host -p 6379 FLUSHDB`.
+Safe replacement: Preserve the requested scope; never replace `FLUSHALL` with `FLUSHDB` or vice versa.
+
+- Standalone `FLUSHDB`: bind server identity, host, port, and the zero-based logical database, then confirm `redis-cli -h <host> -p <port> -n <db> FLUSHDB`.
+- Standalone `FLUSHALL`: bind server identity, host, and port, then confirm the unchanged `FLUSHALL` scope across every logical database on that server.
+- Redis Cluster: only database 0 exists, so `FLUSHDB` and `FLUSHALL` have equivalent scope on the contacted node; one endpoint is not a cluster-wide plan. Bind cluster identity, current topology, contacted node ID and role, served slots, and replication group. For cluster-wide intent, enumerate every current primary and require an explicit per-primary command plan.
+
+After confirmation, revalidate the same standalone target or complete cluster topology immediately before execution. Any identity, role, topology, slot, replication-group, or requested-scope change invalidates authorization.
 
 ### DB7 - Redis CONFIG SET
 Example: `redis-cli CONFIG SET maxmemory 0`

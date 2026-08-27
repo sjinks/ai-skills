@@ -1,0 +1,69 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-030
+name: Literal newline and assignment tilde semantics
+description: |
+  Safety review must preserve Bash's literal single-quoted characters and its
+  assignment-specific tilde expansion rules.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    Validate this exact Bash snippet with `HOME=/home/alice`:
+
+    ```bash
+    search_path=~/bin:~/tools
+    message='first line
+    second line'
+    ```
+
+    I intentionally want both tildes expanded in the assignment and a literal
+    newline inside `message`. Return every shell-safety output field without
+    rewriting valid syntax.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Result:\s*SAFE'
+        - '(?i)Matched patterns:\s*None'
+        - '(?is)Assessment:.*(single.quote|single-quoted).*(literal newline|span).*(tilde|~).*(after|assignment|colon).*(expand)'
+        - '(?is)Command:.*search_path=~/bin:~/tools.*message=''first line\nsecond line'''
+        - '(?i)Required checks:\s*None'
+      not_contains:
+        - "Result: REWRITE"
+        - "Verdict:"
+        - "Checklist status:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response keeps the Bash snippet unchanged, explains
+        that single quotes may contain a literal newline without ANSI-C quoting,
+        and resolves both unquoted tildes after `=` and `:` in the assignment
+        using `HOME=/home/alice`. It must not claim that single quotes cannot
+        contain literal newlines or that tilde expansion occurs only at a word's
+        beginning.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = both quoting and assignment-tilde semantics are correct.
+        0.5 = one semantic is correct but the other is unclear.
+        0.0 = valid syntax is rewritten or either old factual claim remains.
+      mode: independent

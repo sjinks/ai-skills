@@ -1,6 +1,6 @@
 ---
 name: shell-safety
-description: "Use when: composing or running a nontrivial shell command in run_in_terminal, terminal, bash, zsh, or sh. Triggers: git commit, git push, git reset, git rebase, git clean, git checkout, rm, mv, cp, chmod, chown, kill, pkill, sudo, dd, mkfs, npm publish, pip install, docker, kubectl, helm, terraform, pulumi, aws, gcloud, az, psql, mysql, mongosh, redis-cli, ssh, scp, rsync, gpg, curl, wget, eval, find -delete, xargs, tar, unzip, systemctl, shutdown, reboot. Also use when drafting commit messages, handling paths with spaces or special characters, quoting variables, escaping arguments, using pipes, redirects, heredocs, command substitution, glob expansion, multi-line strings, the -m or -F flag, variable expansion, force-pushing, hard-resetting, or rewriting history."
+description: "Use when: composing or running a nontrivial shell command in run_in_terminal, terminal, bash, zsh, or sh. Triggers: git commit, git push, git reset, git rebase, git clean, git checkout, rm, mv, cp, chmod, chown, kill, pkill, sudo, dd, mkfs, npm publish, pip install, docker, kubectl, helm, terraform, pulumi, aws, gcloud, az, psql, mysql, mongosh, redis-cli, ssh, scp, rsync, gpg, curl, wget, eval, find -delete, xargs, tar, unzip, systemctl, shutdown, reboot. Also use when constructing or reviewing a git commit shell invocation, handling paths with spaces or special characters, quoting variables, escaping arguments, using pipes, redirects, heredocs, command substitution, glob expansion, multi-line strings, the -m or -F flag, variable expansion, force-pushing, hard-resetting, or rewriting history. Do not use for prose-only commit-message drafting."
 argument-hint: "Paste the command you are about to run; the skill validates it."
 user-invocable: true
 ---
@@ -17,6 +17,7 @@ Before composing or running any shell command that is not trivially safe. Trivia
 
 - Portability-only shell reviews where the question is cross-shell or cross-OS compatibility rather than execution safety.
 - Generic shell tutoring, syntax explanation, or command examples that the assistant is not about to run or recommend running.
+- Prose-only requests to draft or revise a commit message when no `git commit` shell invocation is being constructed or reviewed.
 - Non-shell languages or application-level security review where no shell command is being composed, validated, or executed.
 
 Everything else needs validation. In particular:
@@ -68,7 +69,7 @@ One-line summaries grouped by category. Use [command construction](./references/
 - `GD4` `git clean -fdx` → dry-run first: `git clean -ndx`; reviewed deletion is still a confirmable effect.
 - `GD5` `git checkout <sha>` (detached) → if you want a branch, add `-b <name>`.
 - `GD6` Rebase on shared/pushed branch → require explicit user approval plus remote-tip review; without both, return `BLOCKED`; with both, treat the exact rewrite as a confirmable effect.
-- `GD7` `git submodule deinit --force` → confirm no unstaged content and then treat deinit as a confirmable effect.
+- `GD7` `git submodule deinit --force` → replace it with non-forced deinit only after a guarded, immediately repeated inspection finds no tracked changes, untracked files, or ignored files to preserve.
 - `GD8` `git push --delete origin <tag>` → confirm tag not referenced by releases and then treat remote deletion as a confirmable effect.
 
 ### Filesystem destruction
@@ -77,7 +78,7 @@ One-line summaries grouped by category. Use [command construction](./references/
 - `FS2` `rm -rf "$DIR"` → resolve and bind the target, then verify its canonical path and filesystem identity differ from `/`, `$HOME`, and every verified home path; a quoted variable containing literal `~` does not undergo tilde expansion.
 - `FS3` `rm -rf *` or any unbounded glob → refuse; require explicit paths.
 - `FS4` `rm -rf /...` or `rm -rf ~/...` → return `BLOCKED` unless the user gives strong justification; after exact-path preview, treat it as a confirmable effect.
-- `FS5` `find ... -delete` or `-exec rm` → dry-run with `-print` first; reviewed deletion is still a confirmable effect.
+- `FS5` `find ... -delete` or `-exec rm` → do not rerun discovery after review; capture one NUL-delimited structured snapshot and delete only that identity-bound set.
 - `FS6` `truncate -s 0 <log>` → confirm file path explicitly.
 - `FS7` `dd of=/dev/...` → refuse without explicit user confirmation.
 - `FS8` `mkfs.*` → refuse without explicit user confirmation.
@@ -89,7 +90,7 @@ One-line summaries grouped by category. Use [command construction](./references/
 - `Q1` Unquoted variable in argument (`rm $file`) → `rm -- "$file"`.
 - `Q2` Unquoted variable in path (`cd $dir`) → `cd -- "$dir"`.
 - `Q3` Word-splitting `for f in $(ls)` → `for f in *` or `while IFS= read -r f`.
-- `Q4` Unquoted glob (`mv *.log /tmp`) → verify expansion; quote if literal.
+- `Q4` Unquoted glob (`mv *.log /tmp`) → resolve it once into a structured path list, review an unambiguous rendering, and execute that exact bound list without re-expansion.
 - `Q5` `$@` vs `"$@"` → always `"$@"` to preserve arguments.
 - `Q6` Path with spaces (`cat /tmp/my file`) → quote: `"/tmp/my file"`.
 - `Q7` `'$HOME'` (single quotes, no expansion) → `"$HOME"` if expansion wanted.
@@ -104,7 +105,7 @@ One-line summaries grouped by category. Use [command construction](./references/
 - `CS2` Unquoted nested `$(...)` → quote: `"$(...)"`.
 - `CS3` `curl ... | sh` / `wget ... | bash` → download to temp, inspect, then run.
 - `CS4` `eval "$var"` → refuse; reconstruct the intended argv directly, scope POSIX `set -- ...; "$@"` when caller parameters must survive, then reclassify it.
-- `CS5` `find ... | xargs rm` (no NUL) → preview the NUL-safe target set, then confirm the exact `find ... -print0 | xargs -0 rm --` replacement.
+- `CS5` `find ... | xargs rm` (no NUL) → capture one NUL-delimited target snapshot, render every name unambiguously, and delete only that exact bound set without rerunning `find`.
 - `CS6` Pipelines whose earlier commands must succeed → identify the interpreter first; use `set -o pipefail` only where supported, otherwise capture component status explicitly or require a shell that supports it.
 
 ### Heredoc & multi-line
@@ -146,7 +147,7 @@ One-line summaries grouped by category. Use [command construction](./references/
 ### Shell mode safety
 
 - `SM1` Script without failure guards → identify the interpreter and review expected nonzero paths first; use `set -euo pipefail` for compatible Bash scripts, or `set -eu` plus explicit pipeline-status handling for POSIX `sh`.
-- `SM2` `cd && cmd` in script → `set -e` or `cd ... || exit 1`.
+- `SM2` `cd ...; cmd` or an unguarded next line → use `cd ... || exit 1` before the dependent command; `cd ... && cmd` is already failure-guarded.
 - `SM3` `[[ ]]` in `/bin/sh` → use `[ ]` for POSIX.
 - `SM4` `status` variable in zsh → rename it for the captured value, such as `response=$(curl ...)`; capture `$?` separately only when needed.
 - `SM5` Bare `==` in zsh → quote `'=='`.
@@ -218,7 +219,7 @@ One-line summaries grouped by category. Use [command construction](./references/
 - `DB3` `UPDATE ...;` without `WHERE` → refuse without explicit user confirmation.
 - `DB4` `psql` connection string with embedded password → use `~/.pgpass` or env from file.
 - `DB5` `mysql -p<pass>` → use an encrypted login path or another credential helper that keeps the password out of argv and environment variables.
-- `DB6` `redis-cli FLUSHALL` / `FLUSHDB` → refuse without explicit user confirmation.
+- `DB6` `redis-cli FLUSHALL` / `FLUSHDB` → refuse without explicit user confirmation; preserve the requested command's scope, bind standalone `FLUSHDB` to explicit `-n <db>`, and build a topology-aware per-primary plan for Redis Cluster.
 - `DB7` `redis-cli CONFIG SET` → confirm intent.
 - `DB8` `mongosh --eval 'db.dropDatabase()'` → refuse without explicit user confirmation.
 - `DB9` Connection defaulting to prod → verify target host explicitly.
@@ -235,12 +236,12 @@ One-line summaries grouped by category. Use [command construction](./references/
 ### Secret & environment hygiene
 
 - `SE1` `echo $SECRET` / `$TOKEN` / `$KEY` / `$PASSWORD` → refuse to echo.
-- `SE2` `env` / `printenv` piped to file/log → refuse without explicit user confirmation.
+- `SE2` `env` / `printenv` piped to file/log → block broad dumps while any value's sensitivity is unresolved; offer only an explicit allowlist of verified non-secret names.
 - `SE3` `--password=...` / `--token=...` on command line → use file/stdin.
 - `SE4` `curl -H "Authorization: Bearer $TOKEN"` in interactive shell → use config file.
 - `SE5` Writing a secret through shell redirection → use a credential helper or a pre-opened no-follow, exclusive, owner-only descriptor outside repositories; otherwise block.
 - `SE6` `set -x` with secret in scope → disable around block.
-- `SE7` Result of secret-search echoed → pipe to 0600 file.
+- `SE7` Raw secret-search matches printed or persisted → block value disclosure; report file locations only.
 - `SE8` `!` history expansion in double quotes → `set +H` or single quotes.
 - `SE9` Reading a likely secret file to terminal output → resolve the file without reading its contents; block output when sensitivity is known or uncertain.
 
@@ -250,7 +251,7 @@ One-line summaries grouped by category. Use [command construction](./references/
 - `AR2` `tar -xf` with absolute paths or `../` entries → block extraction; a member-list grep is not a substitute for AR1 validation.
 - `AR3` `unzip untrusted.zip` to existing dir → block absent AR1-equivalent ZIP validation; for a trusted archive, use a fresh destination and an explicit overwrite policy.
 - `AR4` `tar` over network without checksum → download first, verify authenticated provenance and digest, then require AR1 validation before extraction.
-- `AR5` `rm -rf <extract-dir>` after partial extract → inspect first.
+- `AR5` Partial extraction cleanup or resumption → never resume; clean the exact bound private root within the extractor, otherwise quarantine it and use separately revalidated filesystem controls.
 
 ### Encoding & locale
 
@@ -306,9 +307,8 @@ A replacement that installs or executes fetched code, applies infrastructure, mu
 Return `NEEDS-CONFIRMATION` only after every required preview, identity, environment, and recovery check has passed. Bind that result to the normalized command, working directory, shell or interpreter, resolved non-secret expansions, authenticated identity and account, repository or platform context, target identifiers, reviewed preview or plan digest, and relevant branch tips or object versions. On a later turn, re-run cheap mutable checks immediately before execution. Return `AUTHORIZED` only when the user confirmed that exact binding and every check still matches; any changed or unverifiable binding invalidates authorization and requires full reclassification. `AUTHORIZED` means approved to execute, not harmless.
 
 - `git reset --hard` with local changes, or a non-protected force push with an explicit lease.
-- Git ref or history mutations that survived the prohibited and rewrite-only gates: clean-tree `git reset --hard`, `git branch -D`, `git clean -fdx`, forced submodule deinit, remote tag deletion, or pushed/shared-branch rebase after explicit approval and remote-tip review.
-- Destructive filesystem operations that survived the prohibited gate: justified absolute/home recursive deletion after exact-path preview, `find ... -delete` or `-exec rm` after reviewed dry-run output, and `rsync --delete` after a reviewed dry run.
-- Bulk deletion through a NUL-safe `find ... -print0 | xargs -0 rm --` replacement after previewing and binding the exact target set.
+- Git ref or history mutations that survived the prohibited and rewrite-only gates: clean-tree `git reset --hard`, `git branch -D`, `git clean -fdx`, non-forced submodule deinit only after GD7's guarded status check exits successfully with no tracked changes, untracked files, or ignored files and the same check is repeated immediately before confirmation, remote tag deletion, or pushed/shared-branch rebase after explicit approval and remote-tip review.
+- Destructive filesystem operations that survived the prohibited gate: justified absolute/home recursive deletion after exact-path preview, deletion of an exact identity-bound structured snapshot captured once from `find`, and `rsync --delete` after a reviewed dry run.
 - Package installation or execution of fetched code after exact-version provenance and lifecycle-script review.
 - `npm publish` or an already reviewed package-manager command requiring privilege.
 - `dd of=/dev/...`, `mkfs.*`, or partition-table changes against an exact device.

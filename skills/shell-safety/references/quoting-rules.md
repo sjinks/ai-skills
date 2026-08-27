@@ -7,6 +7,7 @@ Read this when a shell command's quoting, expansion, globbing, heredoc, or zsh/b
 ### Single quotes `'...'`
 
 - No expansion of any kind. Every character is literal.
+- May span literal newline and tab characters; the two-character strings `\n` and `\t` remain backslash plus letter.
 - Cannot contain a single quote — not even with a backslash.
 - To include a single quote, end the single-quoted string, add an escaped quote, restart: `'it'\''s'`.
 
@@ -26,7 +27,7 @@ Read this when a shell command's quoting, expansion, globbing, heredoc, or zsh/b
 ### ANSI-C quoting `$'...'` (bash/zsh)
 
 - Like single quotes, but supports C-style escapes: `\n`, `\t`, `\xHH`, `\uHHHH`.
-- Use for embedding literal newlines/tabs that single quotes cannot contain.
+- Use when the shell source should encode characters through escape notation rather than contain literal newlines or tabs.
 
 ```bash
 printf '%s\n' $'first\nsecond'
@@ -37,7 +38,7 @@ printf '%s\n' $'first\nsecond'
 Bash performs expansions in this order on each token:
 
 1. Brace expansion: unquoted brace syntax such as `{a,b}c` expands to `ac bc` before other expansions; quoting any part of the brace operators prevents that part from being recognized as brace syntax.
-2. Tilde expansion: `~` → `$HOME`, `~user` → user's home. Only at the start of a word.
+2. Tilde expansion: `~` → `$HOME`, `~user` → user's home when an unquoted tilde starts a word. Bash also checks after an unquoted `=` in assignment words and after each unquoted `:` in an assignment value. Text produced later by parameter expansion is not rescanned for tilde expansion.
 3. Parameter expansion: `$var`, `${var:-default}`, `${var/old/new}`.
 4. Command substitution: `$(cmd)` or `` `cmd` ``.
 5. Arithmetic expansion: `$((expr))`.
@@ -124,9 +125,9 @@ echo '==='     # quote
 [[ a == b ]]   # safe; inside [[ ]]
 ```
 
-### Read-only special variables
+### `status` and other special parameters
 
-These cannot be assigned in zsh: `status`, `pipestatus`, `argv`, `path`, `cdpath`, `fpath`, `mailpath`, `manpath`, `module_path`, `prompt`, `psvar`. Choose a replacement name that describes the assigned value, such as `response` for captured stdout or `exit_code` for a separately captured status.
+`status` is read-only in zsh, so assigning captured output to it fails; choose a replacement name that describes the assigned value, such as `response`. Do not infer that every special parameter is read-only: assigning `argv` changes positional parameters, while `path` and `fpath` are assignable arrays tied to `PATH` and `FPATH`. Inspect a special parameter's documented semantics before rewriting an assignment to it.
 
 ### `setopt`/`unsetopt` shell options
 

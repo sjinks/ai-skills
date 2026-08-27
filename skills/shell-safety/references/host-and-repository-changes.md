@@ -51,7 +51,15 @@ Safe replacement: Run `git fetch origin` and `git log --oneline origin/main..HEA
 Example: `git submodule deinit --force <module>`
 Risk: Discards local submodule work.
 Decision gate: Confirmable only after no state must be preserved.
-Safe replacement: Run `cd <submodule>; git status; cd -`; after confirming nothing to preserve, run `git submodule deinit -- <submodule>`. Avoid `--force`.
+Safe replacement:
+```sh
+(
+	cd -- <submodule> || exit 1
+	git status --short --untracked-files=all --ignored=matching
+)
+```
+Proceed only when the subshell exits successfully and its output is empty, meaning no tracked changes, untracked files, or ignored files need preservation. Re-run the same guarded check immediately before confirmation, then run `git submodule deinit -- <submodule>`. Never use `--force` in the replacement.
+Before treating the inspection as complete, determine whether the target contains any initialized nested submodule. If it does, return `BLOCKED`; a non-recursive outer status can hide nested state through submodule ignore policy. Do not deinitialize the outer submodule until every nested submodule has first been deliberately preserved or separately deinitialized under the same policy.
 ### GD8 - Remote tag deletion
 Example: `git push --delete origin v1.2.3`
 Risk: Releases and consumers can lose a referenced tag.
@@ -81,8 +89,8 @@ Safe replacement: Name an exact subdirectory and apply FS2 guards.
 ### FS5 - `find` deletion
 Example: `find . -name '*.log' -delete`
 Risk: A broad expression deletes unexpected paths.
-Decision gate: Confirmable after dry run.
-Safe replacement: Run `find . -name '*.log' -print`; after complete-list review and confirmation of the same root and expression, run `find . -name '*.log' -delete`.
+Decision gate: Block until one exact deletion snapshot is bound through execution.
+Safe replacement: Use a trusted runtime/helper to capture one NUL-delimited result from the resolved root and expression into a protected structured snapshot, render every path with reversible unambiguous escaping and stable identity for review, then delete only those same identity-revalidated entries without rerunning `find`. A newline preview followed by `find ... -delete` or `-exec rm` remains `BLOCKED`.
 ### FS6 - Truncating a log
 Example: `truncate -s 0 /var/log/app.log`
 Risk: A glob or wrong path clears multiple files.
@@ -153,7 +161,7 @@ Safe replacement: Run `gpg --list-secret-keys ABCD1234`; after fingerprint verif
 Example: `gpg --export-secret-keys ABCD1234`
 Risk: Key material enters output and logs.
 Decision gate: Rewrite then confirm protected destination.
-Safe replacement: Confirm fingerprint, recipient, and cleanup. Create a unique owner-only destination outside `/tmp`, repositories, and synchronized paths through a no-follow exclusive-open facility, then write with `gpg --output <validated-open-destination> --export-secret-keys --armor ABCD1234`. If the destination cannot be bound against links and replacement races, return `BLOCKED`.
+Safe replacement: Confirm fingerprint, recipient, and cleanup. Have the runtime create a unique owner-only destination outside `/tmp`, repositories, and synchronized paths through a no-follow exclusive-open API, retain that open handle, and direct GPG stdout to the inherited descriptor, for example `gpg --export-secret-keys --armor ABCD1234 1>&3` when descriptor 3 is the validated handle. Never reopen a validated pathname. If an already-open exclusive handle cannot be carried through export, return `BLOCKED`.
 ### GP3 - Batch destructive GPG
 Example: `gpg --batch --yes --delete-keys ABCD1234`
 Risk: Suppresses the prompt for a typo.
@@ -203,7 +211,17 @@ Safe replacement: `sudo journalctl --vacuum-time=7d`.
 Example: `tar -xf received.tar`
 Risk: Entries can overwrite or escape the destination.
 Decision gate: Block without an extractor-owned validation/write path.
-Safe replacement: Run `tar -tf received.tar` only as preliminary inspection. Extraction must operate on a secured immutable copy and use one parser for validation and writes, normalize every destination under a fresh root, reject absolute, drive/UNC, traversal, unsafe backslash, symlink, hardlink, special-file, device, pre-existing-link-following, duplicate, normalized-name-collision, and disallowed-overwrite entries, enforce compressed/decompressed byte, entry-count, per-entry, depth, and ratio limits, and clean up partial output on failure. Bind the validated digest to the bytes opened for extraction and fail closed if immutability or parser identity cannot be guaranteed.
+Safe replacement: Run `tar -tf received.tar` only as preliminary inspection. Extraction must operate on a secured immutable copy and use one parser and decoded-name model for validation and writes. The extractor must:
+
+- create or receive a private, canonicalized, extractor-controlled fresh root that did not previously exist; shared roots require locking and explicit pre-existing-entry policy;
+- normalize Unicode and platform path syntax before containment and duplicate checks; reject empty names, NUL/control characters, `.`, `..`, absolute, drive-relative, drive/UNC/namespace/device, alternate-data-stream, reserved-device, trailing-dot/space, unsafe-separator, overlong, case-folding, Unicode, duplicate, and normalized-name-collision paths;
+- reject symlinks, unsafe hardlinks, devices, FIFOs, sockets, and other special files by default;
+- enforce entry/directory count, path length/depth, per-file and total decompressed bytes, sparse apparent size, metadata/header size, compression ratio, CPU, time, memory, and nested-archive recursion limits before and during extraction;
+- perform root-confined no-follow writes with containment and file-type revalidation at write time, reject disallowed overwrites and pre-existing links, and prevent path swaps;
+- restore executable bits, permissions, timestamps, and ownership only under an explicit policy, never archive uid/gid by default; and
+- clean partial output after rejection, limit failure, timeout, cancellation, or parser error so no consumer sees it as complete.
+
+Bind the validated digest to the exact bytes opened by that extractor and fail closed if destination trust, parser identity, immutability, limits, or race-resistant writes cannot be guaranteed.
 ### AR2 - Absolute or traversal archive entries
 Example: members `/etc/passwd` or `../escape`.
 Risk: Writes outside the destination.
@@ -213,7 +231,7 @@ Safe replacement: `tar -tf received.tar | awk '/^\//{abs=1} /(^|\/)\.\.($|\/)/{r
 Example: `unzip received.zip`
 Risk: Overwrites and path traversal.
 Decision gate: Block untrusted archives absent AR1 validation.
-Safe replacement: For a trusted archive and fresh destination only: `mkdir -p /tmp/extract; unzip -n received.zip -d /tmp/extract`.
+Safe replacement: Even for a trusted archive, require a runtime-created private destination that did not previously exist and root-confined no-follow writes with an explicit overwrite policy. Do not use a predictable path or `mkdir -p` as proof of freshness. For untrusted archives, apply the complete AR1 contract.
 ### AR4 - Network tar without verified checksum
 Example: `curl https://.../archive.tar.gz | tar -xzf -`
 Risk: Partial or substituted content extracts without adequate verification.
@@ -222,5 +240,5 @@ Safe replacement: Follow the network-to-execution workflow in `remote-delivery.m
 ### AR5 - Delete after partial extraction
 Example: `tar -xf foo.tar || rm -rf foo`
 Risk: Hides partial state and extraction failure.
-Decision gate: Inspect before mutation.
-Safe replacement: Run `find /tmp/extract -mindepth 1 -maxdepth 2 -print` and `tar -tf foo.tar`; compare partial state with the full list before resuming or removing any named path.
+Decision gate: Prohibited for resumption; cleanup is blocked unless bound to the extractor-owned root.
+Safe replacement: The extractor must clean its exact identity-bound private root on rejection, limit failure, timeout, cancellation, or parser error. Never resume a failed extraction. If in-process cleanup did not complete, quarantine that exact root so no consumer can observe it as complete, then remove it only through independently revalidated filesystem controls bound to the same root identity. Do not substitute a hard-coded path or shallow listing as cleanup authorization.

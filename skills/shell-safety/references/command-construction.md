@@ -127,16 +127,9 @@ Example: `mv *.log /tmp`
 
 Risk: No-match behavior differs by shell and a literal glob is ambiguous.
 
-Decision gate: Inspect then confirm matching directory state.
+Decision gate: Block until one structured expansion is captured and bound through execution.
 
-Safe replacement:
-```sh
-ls -- *.log
-```
-After reviewing the expansion:
-```sh
-mv -- *.log /tmp/
-```
+Safe replacement: Use a runtime or helper that resolves the glob once into a structured argv list, records path identity when replacement matters, renders every path with unambiguous escaping for review, and invokes `mv --` with that same stored list. Do not expand `*.log` again after review; if the exact structured list cannot survive through execution, return `BLOCKED`.
 
 ### Q5 - Unquoted `$@`
 Example: `cmd $@`
@@ -250,9 +243,9 @@ Example: `find . -name '*.log' | xargs rm`
 
 Risk: Spaces, quotes, and newlines split filenames.
 
-Decision gate: Rewrite then confirm the exact previewed deletion set.
+Decision gate: Block until the exact deletion set is captured and bound.
 
-Safe replacement: Preview the exact root and expression with `find . -name '*.log' -print`; after complete target review and confirmation, run `find . -name '*.log' -print0 | xargs -0 rm --`. Any changed root, expression, or target set requires a new preview and confirmation.
+Safe replacement: Use a trusted runtime/helper to capture one NUL-delimited result from the exact `find` root and expression into a protected structured snapshot. Render every entry with reversible, unambiguous escaping and stable identity for review. After confirmation, delete only the entries from that same snapshot without rerunning `find` or reparsing newline-delimited names; revalidate identities immediately before deletion. If the snapshot cannot remain bound through execution, return `BLOCKED`.
 
 ### CS6 - Pipeline without `pipefail`
 Example: `set -e; cmd1 | cmd2`
@@ -377,7 +370,7 @@ IFS=$'\n\t'
 For POSIX `sh`, use `set -eu` only after reviewing expected failures and handle pipeline component status explicitly; if `pipefail` is required, select a shell that supports it and update the shebang.
 
 ### SM2 - Unguarded `cd`
-Example: `cd /tmp/build && rm -rf *`
+Example: `cd /tmp/build; rm -rf -- ./cache`
 
 Risk: A failed directory change can leave a destructive operation in the wrong directory.
 
@@ -385,9 +378,10 @@ Decision gate: Rewrite.
 
 Safe replacement:
 ```sh
-cd -- "$dir" || exit 1
-rm -rf -- ./build
+cd -- /tmp/build || exit 1
+rm -rf -- ./cache
 ```
+This preserves the intended `/tmp/build/cache` target while guarding the directory change. Reclassify the deletion itself under FS1 before execution.
 
 ### SM3 - Bash constructs under `/bin/sh`
 Example: `#!/bin/sh` with `[[ ... ]]`.
@@ -467,13 +461,9 @@ Example: `env > env.txt`
 
 Risk: Credentials may be persisted.
 
-Decision gate: Refuse unless explicitly confirmed.
+Decision gate: Prohibited while any included value's sensitivity is unresolved; confirmation does not authorize a broad dump.
 
-Safe replacement:
-```sh
-env | grep -E '^(PATH|HOME|SHELL|USER|PWD|LANG|LC_|TERM)=' > env.safe.txt
-chmod 600 env.safe.txt
-```
+Safe replacement: Define an explicit allowlist of variable names, verify each current value is non-secret and acceptable to persist in the target context, and emit only those names through a structured writer. Do not dump first and filter afterward. If any value is unresolved or the destination cannot be protected and lifecycle-managed, return `BLOCKED`.
 
 ### SE3 - Secret in argv
 Example: `curl --header "Authorization: Bearer abc123"`
