@@ -76,9 +76,13 @@ Otherwise assess this default set:
 - GPT-5.4 mini
 - GPT-5.4
 - GPT-5.5
-- Claude Haiku 4.5
+- GPT-5.6 Luna
+- GPT-5.6 Terra
+- GPT-5.6 Sol
+- Claude Haiku 4.6
 - Claude Sonnet 5
 - Claude Opus 4.8
+- Claude Opus 5
 - Claude Fable 5
 
 Use `references/model-portability.md` for static model-profile checks. Treat those profiles as heuristics, not proof of compatibility.
