@@ -406,7 +406,7 @@ Risk: `status` is read-only in zsh.
 
 Decision gate: Rewrite.
 
-Safe replacement: `exit_code=$(curl ...; printf '%s' "$?")`.
+Safe replacement: `response=$(curl ...)`. This preserves the original stdout capture while avoiding zsh's read-only name. If the exit status is also needed, capture it separately immediately afterward with `curl_status=$?`.
 
 ### SM5 - Bare `==` in zsh
 Example: `echo ===`.

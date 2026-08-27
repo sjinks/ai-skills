@@ -148,7 +148,7 @@ One-line summaries grouped by category. Use [command construction](./references/
 - `SM1` Script without failure guards → identify the interpreter and review expected nonzero paths first; use `set -euo pipefail` for compatible Bash scripts, or `set -eu` plus explicit pipeline-status handling for POSIX `sh`.
 - `SM2` `cd && cmd` in script → `set -e` or `cd ... || exit 1`.
 - `SM3` `[[ ]]` in `/bin/sh` → use `[ ]` for POSIX.
-- `SM4` `status` variable in zsh → use `exit_code`.
+- `SM4` `status` variable in zsh → rename it for the captured value, such as `response=$(curl ...)`; capture `$?` separately only when needed.
 - `SM5` Bare `==` in zsh → quote `'=='`.
 - `SM6` Mutating `IFS` without restore → subshell or save/restore.
 - `SM7` `set -x` left on with secrets in scope → scope tightly.

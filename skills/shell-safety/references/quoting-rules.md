@@ -126,7 +126,7 @@ echo '==='     # quote
 
 ### Read-only special variables
 
-These cannot be assigned in zsh: `status`, `pipestatus`, `argv`, `path`, `cdpath`, `fpath`, `mailpath`, `manpath`, `module_path`, `prompt`, `psvar`. Use other names (`exit_code`, etc.).
+These cannot be assigned in zsh: `status`, `pipestatus`, `argv`, `path`, `cdpath`, `fpath`, `mailpath`, `manpath`, `module_path`, `prompt`, `psvar`. Choose a replacement name that describes the assigned value, such as `response` for captured stdout or `exit_code` for a separately captured status.
 
 ### `setopt`/`unsetopt` shell options
 
