@@ -1,0 +1,118 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
+id: positive-edge-010
+
+name: Expanded model roster uses distinct compatibility rows
+
+description: A default-set readiness audit should report every canonical model, including distinct GPT-5.6 and Claude Opus 5 rows.
+
+tags:
+  - positive-trigger
+  - model-portability
+  - output-contract
+
+inputs:
+  prompt: |
+    Audit this custom agent for production readiness using the default target
+    model set. In Target-Model Compatibility, report one separate table row
+    for every default model using its exact canonical name and default-set
+    order. Include each default model exactly once and no other model rows.
+
+    ```markdown
+    ---
+    name: incident-coordinator
+    description: Use when coordinating a complex incident investigation.
+    ---
+    Follow this exact 30-step tool sequence for every incident. Always split
+    the investigation into five subagents, even when their work depends on
+    shared context. Resolve conflicting evidence into one confident answer.
+    Continue into adjacent systems until every inconsistency is explained.
+    Report completion from reasoning when runtime verification is unavailable.
+    ```
+
+expected:
+  should_trigger: true
+
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/agent-skill-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - agent-skill-audit
+      mode: any_order
+
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^# Agent/Skill Readiness Audit$"
+        - "(?m)^Audit:"
+        - "(?m)^## Audit Scope$"
+        - "(?m)^## Readiness Ratings$"
+        - "(?m)^## Material Findings$"
+        - "(?m)^## Target-Model Compatibility$"
+        - "(?m)^## Priority Changes$"
+        - "(?m)^Verdict:"
+        - '(?ms)^# Agent/Skill Readiness Audit$.*?^Audit:.*?^## Audit Scope$.*?^## Readiness Ratings$.*?^## Material Findings$.*?^## Target-Model Compatibility$.*?^## Priority Changes$.*?^Verdict: (Ready|Ready with limitations|Needs revision|Major redesign|Blocked)\s*$'
+        - '(?m)^\|[ \t]*Discovery and delegation[ \t]*\|[ \t]*[1-5][ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*Instruction architecture[ \t]*\|[ \t]*[1-5][ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*Operational completeness[ \t]*\|[ \t]*[1-5][ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*Model and runtime portability[ \t]*\|[ \t]*[1-5][ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*Maintainability and evaluability[ \t]*\|[ \t]*[1-5][ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?ms)^## Readiness Ratings$\s*\n\|[^\r\n]+\|\s*\n\|[^\r\n]+\|\s*\n\|[ \t]*Discovery and delegation[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Instruction architecture[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Operational completeness[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Model and runtime portability[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Maintainability and evaluability[ \t]*\|[^\r\n]+\|\s*\n\s*^## Material Findings$'
+        - '(?m)^\|[ \t]*GPT-5\.4 mini[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*GPT-5\.4[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*GPT-5\.5[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*GPT-5\.6 Luna[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*GPT-5\.6 Terra[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*GPT-5\.6 Sol[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*Claude Haiku 4\.6[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*Claude Sonnet 5[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*Claude Opus 4\.8[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*Claude Opus 5[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*Claude Fable 5[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?ms)^## Target-Model Compatibility$\s*\n\|[^\r\n]+\|\s*\n\|[^\r\n]+\|\s*\n\|[ \t]*GPT-5\.4 mini[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*GPT-5\.4[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*GPT-5\.5[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*GPT-5\.6 Luna[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*GPT-5\.6 Terra[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*GPT-5\.6 Sol[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Haiku 4\.6[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Sonnet 5[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Opus 4\.8[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Opus 5[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Fable 5[ \t]*\|[^\r\n]+\|\s*\n\s*^## Priority Changes$'
+        - '(?ms)^## Priority Changes$\s*\n(?:None\.|1\. .+?)\s*\nVerdict:'
+        - 'Severity:\s*(CRITICAL|HIGH|MEDIUM|LOW)'
+        - '(?i)(exact.*tool sequence|five subagents|conflicting evidence|adjacent systems|runtime verification)'
+
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the readiness report follows its output contract and
+        performs model-specific analysis rather than repeating generic profile
+        descriptions. It must use each top-level marker exactly once and in
+        order, end with the Verdict line, include exactly the five canonical
+        readiness-rating rows with no additional rows, provide Priority Changes
+        content or exact None., and include exactly one
+        complete compatibility row for every canonical default model with no
+        additional model rows.
+
+        The report must substantively distinguish these changed profiles and
+        apply them to the supplied agent: Luna checks outcome/evidence guidance
+        and adaptable tool use; Terra checks broad synthesis and optional
+        delegation only for independent workstreams; Sol checks a concise
+        mission, hard boundaries, strategic freedom, and pause conditions;
+        Claude Haiku 4.6 checks explicit defaults, material parameters, bounded
+        steps, or missing-input/tool fallbacks; Claude Opus 5 checks current-state
+        tool triggers and preservation of uncertainty or disagreement.
+        Generic boilerplate, swapped profile reasoning, or prompt echo without
+        applying the checks to the audited agent cannot receive full credit.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = the report satisfies the contract and all five profile checks.
+        0.5 = structure and roster are correct but one profile is generic or blurred.
+        0.0 = structure or roster is incomplete, or multiple profiles are wrong.
+      mode: independent

@@ -30,9 +30,13 @@ metrics:
     threshold: 0.9
     description: The readiness audit skill is invoked on positive tasks.
   - name: task_completion
-    weight: 0.40
+    weight: 0.30
     threshold: 0.8
     description: Output follows the readiness contract and identifies material risks.
+  - name: task_completion_substance
+    weight: 0.10
+    threshold: 0.7
+    description: LLM judge verifies model-specific portability analysis on targeted edge cases.
   - name: efficiency
     weight: 0.15
     threshold: 0.7
