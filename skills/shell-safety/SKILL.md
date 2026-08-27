@@ -83,7 +83,7 @@ One-line summaries grouped by category. Use [command construction](./references/
 - `FS7` `dd of=/dev/...` → refuse without explicit user confirmation.
 - `FS8` `mkfs.*` → refuse without explicit user confirmation.
 - `FS9` `chmod -R 777` → refuse; recommend explicit minimum permission set.
-- `FS10` `chown -R` outside project root → refuse without explicit user confirmation.
+- `FS10` `chown -R` outside project root → prohibit; confirmation cannot authorize it, so restrict ownership changes to the project root.
 
 ### Quoting & expansion
 
@@ -103,7 +103,7 @@ One-line summaries grouped by category. Use [command construction](./references/
 
 - `CS1` Backticks `` `cmd` `` → `$(cmd)`.
 - `CS2` Unquoted nested `$(...)` → quote: `"$(...)"`.
-- `CS3` `curl ... | sh` / `wget ... | bash` → download to temp, inspect, then run.
+- `CS3` `curl ... | sh` / `wget ... | bash` → verify and review one protected immutable object, then execute that same identity; block when continuity cannot be preserved.
 - `CS4` `eval "$var"` → refuse; reconstruct the intended argv directly, scope POSIX `set -- ...; "$@"` when caller parameters must survive, then reclassify it.
 - `CS5` `find ... | xargs rm` (no NUL) → capture one NUL-delimited target snapshot, render every name unambiguously, and delete only that exact bound set without rerunning `find`.
 - `CS6` Pipelines whose earlier commands must succeed → identify the interpreter first; use `set -o pipefail` only where supported, otherwise capture component status explicitly or require a shell that supports it.
@@ -124,7 +124,7 @@ One-line summaries grouped by category. Use [command construction](./references/
 
 ### Network & supply-chain
 
-- `NS1` `curl ... | bash` / `wget ... | sh` → refuse; download, inspect, run.
+- `NS1` `curl ... | bash` / `wget ... | sh` → refuse; verify, review, and execute one protected immutable object without pathname reopening.
 - `NS2` `npm install -g <pkg>` → prefer project-local install.
 - `NS3` `npm publish` → refuse without explicit user confirmation.
 - `NS4` `pip install` without venv → use venv.
@@ -151,7 +151,7 @@ One-line summaries grouped by category. Use [command construction](./references/
 - `SM3` `[[ ]]` in `/bin/sh` → use `[ ]` for POSIX.
 - `SM4` `status` variable in zsh → rename it for the captured value, such as `response=$(curl ...)`; capture `$?` separately only when needed.
 - `SM5` Bare `==` in zsh → quote `'=='`.
-- `SM6` Mutating `IFS` without restore → subshell or save/restore.
+- `SM6` Persistent `IFS` mutation → use a command-scoped assignment such as `IFS=, read ...` or a subshell; do not rely on manual restoration after a fallible command.
 - `SM7` `set -x` left on with secrets in scope → scope tightly.
 
 ### SSH & remote
@@ -159,7 +159,7 @@ One-line summaries grouped by category. Use [command construction](./references/
 - `RX1` `ssh host '<long pipeline>'` → `ssh host bash -s < script.sh`.
 - `RX2` `ssh -o StrictHostKeyChecking=no` → refuse unless ephemeral CI host.
 - `RX3` `ssh-keygen -R <host>` → confirm intent.
-- `RX4` `scp host:'/path/*.log'` (remote glob) → quote glob explicitly.
+- `RX4` `scp host:'/path/*.log'` (remote glob) → capture and review one structured remote path list, then transfer only those explicit bound paths; never broaden to the whole directory.
 - `RX5` `rsync --delete` → dry-run `-n` first.
 - `RX6` `ssh -A` to untrusted host → refuse.
 - `RX7` `sshpass` in pipeline → refuse; use key auth.
@@ -193,7 +193,7 @@ One-line summaries grouped by category. Use [command construction](./references/
 - `IC3` `terraform apply` without prior `plan` → run `plan` first.
 - `IC4` `terraform state rm` / `state mv` → confirm intent; document.
 - `IC5` `terraform workspace delete` → refuse without explicit user confirmation.
-- `IC6` `pulumi destroy --yes` → refuse without explicit user confirmation.
+- `IC6` `pulumi destroy --yes` → remove `--yes`, review `pulumi preview --diff` for the exact stack, then confirm the replacement `pulumi destroy`.
 - `IC7` `pulumi stack rm --force` → refuse without explicit user confirmation.
 - `IC8` Backend reconfiguration → verify state lock.
 
@@ -299,7 +299,7 @@ A replacement that installs or executes fetched code, applies infrastructure, mu
 - `pip install` outside a virtual environment or an unreviewed `sudo <package-manager>` command.
 - `terraform apply -auto-approve`, `pulumi destroy --yes`, or another approval-bypassing flag.
 - `kubectl apply -f <url>` before the content and authenticated provenance are verified.
-- `gpg --export-secret-keys` to stdout or `--no-verify` on commits and tags.
+- `gpg --export-secret-keys` to stdout.
 - Commands that persist or pass secret values through process arguments, without printing, logging, hashing, or otherwise disclosing them, when a credential helper, protected file, or stdin/file-descriptor interface can be used.
 
 ### Confirmable Effects

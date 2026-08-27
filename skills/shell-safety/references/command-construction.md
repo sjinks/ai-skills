@@ -427,11 +427,9 @@ Decision gate: Rewrite.
 
 Safe replacement:
 ```bash
-OLDIFS=$IFS
-IFS=,
-read -r a b c <<< "$line"
-IFS=$OLDIFS
+IFS=, read -r a b c <<< "$line"
 ```
+The assignment is scoped to `read`, so a nonzero result under `set -e` cannot leave a modified `IFS` behind. For multi-command parsing, use a subshell instead of manual save/restore.
 
 ### SM7 - `set -x` with secrets in scope
 Example: `set -x; auth_call --token=$TOKEN`.

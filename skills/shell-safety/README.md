@@ -1,6 +1,6 @@
 # shell-safety
 
-> Use when: composing or running any shell command in `run_in_terminal`, terminal, bash, zsh, or sh. Covers destructive commands, quoting and expansion hazards, unsafe pipes and redirects, git history mutations, privilege escalation, cloud/IaC/container/database mutations, archive extraction, and secret leakage.
+> Use when: composing or running a nontrivial shell command in `run_in_terminal`, terminal, bash, zsh, or sh. Covers destructive commands, quoting and expansion hazards, unsafe pipes and redirects, git history mutations, privilege escalation, cloud/IaC/container/database mutations, archive extraction, and secret leakage. Prose-only commit-message drafting and other non-command tasks are out of scope.
 
 This skill is aimed at preventing data loss, credential disclosure, accidental production changes, and malformed shell invocations before a command is sent to a terminal.
 

@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-041
+name: IFS mutation is command-scoped
+description: |
+  A fallible read under set -e must not leave a manually restored IFS mutation
+  behind.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    Rewrite this Bash fragment so `IFS` cannot remain changed if `read` fails
+    under `set -e`:
+
+    ```bash
+    OLDIFS=$IFS
+    IFS=,
+    read -r a b c <<< "$line"
+    IFS=$OLDIFS
+    ```
+
+    Return every shell-safety output field.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Result:\s*REWRITE'
+        - '(?i)Matched patterns:.*SM6'
+        - '(?is)Assessment:.*IFS.*(set -e|fail|nonzero).*(persist|restore|scope)'
+        - '(?m)^Command:[ \t]*`?IFS=, read -r a b c <<< "\$line"`?[ \t]*$'
+        - '(?i)Required checks:\s*None'
+      not_contains:
+        - "Verdict:"
+        - "Checklist status:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response replaces manual save/restore with the
+        command-scoped Bash assignment `IFS=, read -r a b c <<< "$line"`, so a
+        failing read cannot persist IFS. A subshell is acceptable for a larger
+        multi-command parsing block.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = IFS lifetime is automatic and failure-safe.
+        0.5 = persistence is recognized but the replacement is incomplete.
+        0.0 = manual restoration remains or failure can leak IFS.
+      mode: independent

@@ -5,19 +5,7 @@ Each record combines its dangerous form, risk, decision gate, and safe replaceme
 Example: `curl https://example.com/install.sh | sh` or `wget ... | bash`
 Risk: A compromised or substituted server supplies uninspected code.
 Decision gate: Rewrite; block without authenticated expected digest, review, or verification.
-Safe replacement: Obtain the expected SHA-256 through an authenticated publisher channel and create a secure known-path temporary file. Download only:
-```sh
-curl -fsSL --proto '=https' --tlsv1.2 https://example.com/install.sh -o <temporary-file>
-```
-Verify separately with a mismatch-failing check:
-```sh
-printf '%s  %s\n' '<expected-sha256>' '<temporary-file>' | sha256sum --check --strict -
-```
-After content review and required confirmation, re-run that check as execution gate:
-```sh
-printf '%s  %s\n' '<expected-sha256>' '<temporary-file>' | sha256sum --check --strict - && sh <temporary-file>
-```
-Use a native check mode that exits nonzero on mismatch where GNU `sha256sum` is unavailable; printing a digest is insufficient. Clean up using the runtime's protected temporary-file lifecycle.
+Safe replacement: Obtain the expected SHA-256 through an authenticated publisher channel. Have the runtime download into a private, exclusively created object and make it immutable to other writers while retaining a stable handle/identity. Verify the digest with a mismatch-failing API over that object, review those exact bytes, and execute through the same immutable object or inherited descriptor without reopening a replaceable pathname. Immediately before execution, revalidate object identity, immutability, and digest. If the runtime cannot preserve one object identity through download, verification, review, and execution, return `BLOCKED`. Clean up through the runtime's protected object lifecycle.
 ### NS2 - Global npm install
 Example: `npm install -g some-tool`
 Risk: Pollutes and can privilege-escalate the host.
@@ -65,8 +53,8 @@ Safe replacement: State why the record is removed and expect a verified key rota
 ### RX4 - Remote glob via scp
 Example: `scp host:/var/log/*.log .`
 Risk: Remote expansion and whitespace make escaping unreliable.
-Decision gate: Rewrite.
-Safe replacement: `scp 'host:/var/log/*.log' .` or `rsync -av 'host:/var/log/' ./logs/`.
+Decision gate: Block until the exact remote source set is captured and bound.
+Safe replacement: Use an authenticated remote API or helper to resolve the glob once into a structured path list, render every remote path unambiguously for review, and transfer each explicit retained path without another remote glob expansion. Do not replace `*.log` with recursive transfer of `/var/log/`, which broadens scope to unrelated entries. If exact path boundaries cannot survive through transfer, return `BLOCKED`.
 ### RX5 - rsync delete
 Example: `rsync -a --delete src/ dst/`
 Risk: A source typo can delete destination contents.

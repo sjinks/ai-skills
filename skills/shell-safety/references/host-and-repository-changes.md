@@ -114,7 +114,7 @@ Safe replacement: `chmod -R u=rwX,g=rX,o=rX /var/www`.
 ### FS10 - `chown -R` outside project root
 Example: `sudo chown -R user:user /var`
 Risk: Breaks system ownership.
-Decision gate: Refuse without explicit confirmation.
+Decision gate: Prohibited; confirmation cannot authorize recursive ownership changes outside the project root.
 Safe replacement: Restrict ownership changes to the project root.
 ### PC1 - Immediate `SIGKILL`
 Example: `kill -9 1234`
