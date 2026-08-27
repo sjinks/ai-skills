@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-017
+name: POSIX strict mode excludes pipefail
+description: |
+  A reviewed POSIX script without pipelines can receive a portable strict-mode
+  rewrite without Bash syntax.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    This `/bin/sh` script has no pipelines, and I reviewed every expected
+    nonzero path. Rewrite it to stop on errors and unset variables without
+    changing interpreters:
+
+    ```sh
+    #!/bin/sh
+    render_report
+    publish_report
+    ```
+
+    Return every shell-safety output field.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Result:\s*REWRITE'
+        - '(?i)Matched patterns:.*SM1'
+        - '(?i)Assessment:.*(POSIX|sh|unset|error)'
+        - '(?is)Command:.*#!/bin/sh.*set -eu.*render_report.*publish_report'
+        - '(?i)Required checks:\s*None'
+      not_contains:
+        - "set -euo pipefail"
+        - "#!/usr/bin/env bash"
+        - "Verdict:"
+        - "Checklist status:"

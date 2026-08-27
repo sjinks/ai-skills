@@ -102,6 +102,7 @@ grader weighting takes effect.
   - `spec-deviation-handling`: 0.45
   - `vip-dev-env`: 0.45
   - `gh-cli`: 0.45
+  - `shell-safety`: 0.45
   - `shell-portability`: 0.45
   - `flaky-test-diagnosis`: 0.45
   - `test-quality-review`: 0.45
@@ -142,10 +143,13 @@ grader weighting takes effect.
   (`failure-mode-design`, `architecture-tradeoff-analysis`,
   `dependency-choice-review`, `implementation-task-decomposition`,
   `hypothesis-driven-debugging`, `refactoring-safety`,
-  `data-migration-safety`) use 10 000; the rest use 8 000;
+  `data-migration-safety`) use 10 000;
   `adversarial-review` uses 90 000 because paired-review tasks measure
   roughly 68 000 total tokens after fixed harness injection and cached
   multi-turn re-sends;
+  `shell-safety` omits the total-token cap because reference-first input
+  size can exceed it and retains `max_tool_calls: 10` as its runaway
+  guard; the rest use 8 000;
   `handoff-note` is explicitly budgeted at 8 000; `spock-voice` uses
   4 000.
 
