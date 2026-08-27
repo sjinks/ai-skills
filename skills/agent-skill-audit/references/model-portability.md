@@ -16,6 +16,10 @@ Use these verdicts per model:
 - `Unsuitable`
 - `Not assessed`
 
+For this rubric, use the GPT capability order `GPT-5.4 mini < GPT-5.4 < GPT-5.5 < GPT-5.6 Luna < GPT-5.6 Terra < GPT-5.6 Sol`. This is a static-review heuristic, not a benchmark guarantee for every task or runtime.
+
+Do not infer one total capability order across Claude Opus and Fable profiles. Opus targets complex reasoning and synthesis; Fable targets long-horizon autonomy.
+
 ## GPT-5.4 mini
 
 Check for:
@@ -50,7 +54,37 @@ Check for:
 - explicit scope and evidence requirements;
 - concise but complete final reporting.
 
-## Claude Haiku 4.5
+## GPT-5.6 Luna
+
+Check for:
+
+- outcome-first instructions with explicit evidence and completion criteria;
+- adaptable tool use rather than a fixed execution sequence;
+- clear scope and side-effect boundaries;
+- no legacy scaffolding that duplicates runtime behavior;
+- verification triggers for claims about current state.
+
+## GPT-5.6 Terra
+
+Check for:
+
+- literal scope across files, components, or workstreams;
+- explicit invariants and completion criteria for broad synthesis;
+- optional delegation guidance for independent workstreams;
+- preservation of evidence and unresolved disagreements;
+- no fixed planning, tool, or progress-update cadence.
+
+## GPT-5.6 Sol
+
+Check for:
+
+- a concise mission, hard boundaries, and observable completion state;
+- freedom to choose and revise an efficient execution strategy;
+- explicit pause conditions for consequential ambiguity or side effects;
+- progress and completion claims grounded in tool results;
+- protection against unrequested scope expansion without micromanaging normal work.
+
+## Claude Haiku 4.6
 
 Check for:
 
@@ -80,6 +114,16 @@ Check for:
 - useful delegation guidance for genuinely independent workstreams;
 - broad scope stated literally;
 - no assumption that tool availability alone guarantees tool use.
+
+## Claude Opus 5
+
+Check for:
+
+- outcome-first instructions for complex analysis and synthesis;
+- explicit tool and evidence triggers for claims about current state;
+- hard scope, safety, and stopping boundaries without procedural micromanagement;
+- optional delegation guidance for genuinely independent investigations;
+- preservation of uncertainty, disagreement, and verification status in final conclusions.
 
 ## Claude Fable 5
 

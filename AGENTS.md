@@ -11,7 +11,7 @@ When creating or updating skills:
 - Optimize for token efficiency: keep instructions concise, remove duplication, and prefer reusable shared rules over repeated local text.
 - Ignore Waza frontmatter complaints and hard limits on instruction size; prioritize concise, useful skill guidance over satisfying those checks.
 - When guidance conflicts, prefer concise instructions that weaker models can follow reliably.
-- Make instructions clear enough for weaker models such as GPT 5 mini and Haiku 4.5: prefer explicit ordering, simple conditionals, stable terminology, and reproducible output formats.
+- Make instructions clear enough for weaker models such as GPT-5.4 mini and Claude Haiku 4.6: prefer explicit ordering, simple conditionals, stable terminology, and reproducible output formats.
 - Check consistency: remove contradictions, incompatible constraints, and unstable priority ordering.
 - Check cohesion: ensure sections support the same task without duplication or distracting scope creep.
 - Check coherence: keep workflows, terms, and expected behavior understandable and logically ordered.

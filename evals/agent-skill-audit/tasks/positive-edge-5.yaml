@@ -12,7 +12,8 @@ tags:
 
 inputs:
   prompt: |
-    Audit this skill specifically for the seven supported models.
+    Audit this skill specifically for GPT-5.4 mini, GPT-5.5,
+    Claude Haiku 4.6, and Claude Fable 5.
 
     ```markdown
     ---
@@ -61,7 +62,7 @@ graders:
         - "(?m)^## Priority Changes$"
         - "(?m)^Verdict:"
         - 'GPT-5\.4 mini[\s\S]*(burden|complex|output|sequence|unsuitable|limitation)'
-        - 'Haiku 4\.5[\s\S]*(burden|parameter|output|sequence|unsuitable|limitation)'
+        - 'Haiku 4\.6[\s\S]*(burden|parameter|output|sequence|unsuitable|limitation)'
         - 'GPT-5\.5[\s\S]*(overconstrain|micromanage|process|sequence|limitation)'
         - 'Fable 5[\s\S]*(overconstrain|micromanage|pause|subagent|limitation)'
         - 'Severity:\s*(CRITICAL|HIGH|MEDIUM|LOW)'

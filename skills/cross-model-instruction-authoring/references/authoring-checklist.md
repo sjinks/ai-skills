@@ -102,9 +102,13 @@ Apply only to custom agents or subagents.
 - [ ] GPT-5.4 mini can execute the normal path without guessing.
 - [ ] GPT-5.4 can choose an efficient approach.
 - [ ] GPT-5.5 is not burdened by process-heavy legacy scaffolding.
-- [ ] Claude Haiku 4.5 has explicit defaults and parameters.
+- [ ] GPT-5.6 Luna receives outcomes and boundaries without a fixed execution strategy.
+- [ ] GPT-5.6 Terra retains freedom for broad synthesis and optional delegation.
+- [ ] GPT-5.6 Sol has a concise mission, hard boundaries, and grounded completion criteria.
+- [ ] Claude Haiku 4.6 has explicit defaults and parameters.
 - [ ] Claude Sonnet 5 receives explicit broad scope.
 - [ ] Claude Opus 4.8 has tool and evidence triggers where needed.
+- [ ] Claude Opus 5 has outcome-first complex-work guidance and explicit stopping boundaries.
 - [ ] Claude Fable 5 has boundaries and grounded long-run progress rules.
 - [ ] A real evaluation plan covers the actual runtime and model settings.
 

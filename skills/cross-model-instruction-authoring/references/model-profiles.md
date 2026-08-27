@@ -6,10 +6,14 @@ Use these profiles as authoring heuristics, not as guarantees. Runtime system in
 
 Use two simultaneous tests:
 
-1. **Compatibility floor:** Can GPT-5.4 mini and Claude Haiku 4.5 execute the normal path without guessing essential requirements?
-2. **Capability ceiling:** Do the same instructions leave GPT-5.5, Claude Sonnet 5, Claude Opus 4.8, and Claude Fable 5 enough freedom to use better strategies?
+1. **Compatibility floor:** Can GPT-5.4 mini and Claude Haiku 4.6 execute the normal path without guessing essential requirements?
+2. **Capability ceiling:** Do the same instructions leave GPT-5.5, the GPT-5.6 family, Claude Sonnet 5, Claude Opus 4.8, Claude Opus 5, and Claude Fable 5 enough freedom to use better strategies?
 
-GPT-5.4 is the middle reference point.
+GPT-5.4 is the balanced GPT baseline reference point.
+
+For this rubric, use the GPT capability order `GPT-5.4 mini < GPT-5.4 < GPT-5.5 < GPT-5.6 Luna < GPT-5.6 Terra < GPT-5.6 Sol`. This is an authoring heuristic, not a benchmark guarantee for every task or runtime.
+
+Do not infer one total capability order across Claude Opus and Fable profiles. Opus targets complex reasoning and synthesis; Fable targets long-horizon autonomy.
 
 ## GPT-5.4 mini
 
@@ -73,7 +77,61 @@ Failure patterns to test:
 - performing extra work because scope is not bounded;
 - compressed final reporting that omits required evidence.
 
-## Claude Haiku 4.5
+## GPT-5.6 Luna
+
+Treat as the entry GPT-5.6 profile for strong outcome-oriented coding, tool use, and bounded complex work.
+
+Authoring implications:
+
+- state outcomes, evidence requirements, hard boundaries, and completion;
+- allow the model to choose and adapt its tool sequence;
+- remove legacy scaffolding that duplicates capable runtime behavior;
+- require verification when conclusions depend on current state;
+- keep unrelated workstreams separate unless synthesis is the task.
+
+Failure patterns to test:
+
+- broadening scope while pursuing a plausible outcome;
+- compressing evidence or unresolved limitations in the final report;
+- treating a reasoned conclusion as runtime verification.
+
+## GPT-5.6 Terra
+
+Treat as the higher-capability GPT-5.6 profile for broad multi-file, multi-stage, and cross-workstream synthesis.
+
+Authoring implications:
+
+- state broad scope and cross-workstream invariants literally;
+- define what must be preserved when evidence is consolidated;
+- allow optional delegation for independent investigations;
+- provide observable completion criteria instead of a fixed process;
+- identify consequential ambiguity that requires pausing rather than improvisation.
+
+Failure patterns to test:
+
+- merging distinct findings or requirements during synthesis;
+- pursuing useful adjacent work beyond the requested scope;
+- delegating coupled workstreams that require shared context.
+
+## GPT-5.6 Sol
+
+Treat as the highest-capability GPT-5.6 profile for complex, autonomous, outcome-driven work.
+
+Authoring implications:
+
+- provide a concise mission, hard boundaries, evidence requirements, and completion state;
+- avoid mandatory plans, fixed tool sequences, and routine progress cadence;
+- define explicit pause conditions for safety, authority, or consequential ambiguity;
+- ground progress and completion claims in tool results;
+- prohibit unrequested scope expansion while preserving strategic freedom.
+
+Failure patterns to test:
+
+- taking sensible but unauthorized actions beyond the requested outcome;
+- replacing explicit contracts with a more elegant inferred objective;
+- over-compressing the final evidence trail.
+
+## Claude Haiku 4.6
 
 Treat as the smallest Claude target and prefer straightforward, bounded tasks.
 
@@ -133,6 +191,24 @@ Failure patterns to test:
 - spawning too few subagents for clearly independent investigations;
 - over-literal application of a locally worded rule;
 - producing a persuasive conclusion with insufficient tool evidence.
+
+## Claude Opus 5
+
+Treat as the newer Opus profile for high-complexity reasoning, evidence reconciliation, and synthesis.
+
+Authoring implications:
+
+- state the outcome, hard boundaries, evidence standard, and stopping conditions;
+- explicitly require tools when claims depend on current state;
+- allow optional delegation for genuinely independent investigations;
+- preserve uncertainty, disagreement, and verification status through synthesis;
+- avoid process scaffolding that constrains a better valid strategy.
+
+Failure patterns to test:
+
+- producing a coherent synthesis that hides unresolved disagreement;
+- reasoning from supplied context when current-state verification is required;
+- expanding scope to resolve adjacent inconsistencies not required by the task.
 
 ## Claude Fable 5
 

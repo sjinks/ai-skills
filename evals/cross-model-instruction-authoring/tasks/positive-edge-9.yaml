@@ -1,0 +1,105 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+
+id: positive-edge-009
+
+name: Expanded roster preserves model-specific guidance
+
+description: Default-set authoring should check every canonical model while preserving distinct GPT-5.6 and Claude Opus 5 guidance.
+
+tags:
+  - positive-trigger
+  - positive-edge
+  - model-portability
+
+inputs:
+  prompt: |
+    Create a portable custom agent prompt for coordinating a broad, multi-repo
+    incident investigation across the default target model set.
+
+    The finished artifact must require current-state evidence, preserve
+    unresolved disagreement, keep delegation optional and limited to genuinely
+    independent investigations, pause for consequential ambiguity or side
+    effects, and allow the model to adapt its execution strategy.
+
+    Under Compatibility note:, include one bullet for every default target in
+    the exact form "- <canonical model name>: <check>". For GPT-5.6 Luna,
+    GPT-5.6 Terra, GPT-5.6 Sol, Claude Haiku 4.6, and Claude Opus 5, explain how
+    the artifact addresses that model's distinct profile. For every other
+    target, state the compatibility check performed. Compatibility note must
+    contain only these eleven bullets in default-set order, with each model
+    exactly once, and the response must end after the final bullet.
+
+expected:
+  should_trigger: true
+
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/cross-model-instruction-authoring/SKILL.md
+      mode: positive
+      threshold: 0.45
+
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - cross-model-instruction-authoring
+      mode: any_order
+
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - "(?m)^Finished artifact:$"
+        - "(?m)^Material assumptions:$"
+        - "(?m)^Runtime adapter:$"
+        - "(?m)^Compatibility note:$"
+        - '(?ms)^Finished artifact:$.*?^Material assumptions:$.*?^Runtime adapter:$.*?^Compatibility note:$'
+        - '(?m)^- GPT-5\.4 mini: .+'
+        - '(?m)^- GPT-5\.4: .+'
+        - '(?m)^- GPT-5\.5: .+'
+        - '(?m)^- GPT-5\.6 Luna: .+'
+        - '(?m)^- GPT-5\.6 Terra: .+'
+        - '(?m)^- GPT-5\.6 Sol: .+'
+        - '(?m)^- Claude Haiku 4\.6: .+'
+        - '(?m)^- Claude Sonnet 5: .+'
+        - '(?m)^- Claude Opus 4\.8: .+'
+        - '(?m)^- Claude Opus 5: .+'
+        - '(?m)^- Claude Fable 5: .+'
+        - '(?ms)^Compatibility note:$\s*\n- GPT-5\.4 mini: [^\r\n]+\n- GPT-5\.4: [^\r\n]+\n- GPT-5\.5: [^\r\n]+\n- GPT-5\.6 Luna: [^\r\n]+\n- GPT-5\.6 Terra: [^\r\n]+\n- GPT-5\.6 Sol: [^\r\n]+\n- Claude Haiku 4\.6: [^\r\n]+\n- Claude Sonnet 5: [^\r\n]+\n- Claude Opus 4\.8: [^\r\n]+\n- Claude Opus 5: [^\r\n]+\n- Claude Fable 5: [^\r\n]+\s*$'
+        - '(?i)(current-state evidence|current state.*evidence|verification)'
+        - '(?i)(unresolved disagreement|preserve.*disagreement|conflicting evidence)'
+        - '(?i)(optional delegation|delegation.*optional|independent investigations)'
+        - '(?i)(consequential ambiguity|pause condition|pause.*ambiguity)'
+        - '(?i)(adapt.*strategy|revise.*strategy|choose.*strategy)'
+      not_contains:
+        - 'Verdict:'
+
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response uses Finished artifact:, Material assumptions:,
+        Runtime adapter:, and Compatibility note: exactly once and in that order,
+        ends after Compatibility note's eleven canonical bullets, includes each
+        default model exactly once with no additional model bullets, and maps each
+        changed profile to its distinct guidance: Luna gets outcome/evidence
+        guidance with adaptable tool use; Terra gets broad synthesis with optional
+        delegation for independent workstreams; Sol gets a concise mission, hard
+        boundaries, strategic freedom, and pause conditions; Claude Haiku 4.6
+        gets explicit defaults, material parameters, bounded steps, or fallback
+        behavior; Claude Opus 5 gets current-state tool triggers and preservation
+        of uncertainty or disagreement. The finished artifact itself must encode
+        the corresponding requirements; repeating the prompt only in the
+        Compatibility note cannot receive full credit.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = the output contract, full roster, and all five profiles are correct.
+        0.5 = structure and roster are correct but one profile is generic or blurred.
+        0.0 = structure or roster is incomplete, or multiple profiles are wrong.
+      mode: independent
