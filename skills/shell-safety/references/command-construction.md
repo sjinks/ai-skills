@@ -259,7 +259,7 @@ Safe replacement for Bash or another verified `pipefail`-capable shell:
 set -o pipefail
 cmd1 | cmd2 | cmd3
 ```
-For POSIX `sh`, do not emit `pipefail`; capture each component's status through an explicitly designed non-pipeline flow, or require a supporting interpreter and update the shebang.
+`pipefail` is specified by POSIX.1-2024, but older POSIX targets and shells such as dash may not support it. For a POSIX.1-2024-conforming shell or another verified supporting interpreter, the replacement above is valid. For older or unknown targets, verify the capability first; otherwise capture component status through an explicitly designed non-pipeline flow or select a supporting interpreter.
 
 ## Heredocs and multi-line text
 
@@ -297,7 +297,7 @@ Example: `cat <<EOF > /etc/foo.conf`
 
 Risk: The unprivileged shell performs the redirection.
 
-Decision gate: Confirm privilege use.
+Decision gate: Confirm both privilege use and overwrite of the exact destination.
 
 Safe replacement:
 ```sh
@@ -305,6 +305,7 @@ sudo tee /etc/foo.conf >/dev/null <<'EOF'
 content
 EOF
 ```
+`tee` without `-a` truncates the destination. Use `tee -a` only when the caller explicitly requests append behavior; never change overwrite to append or append to overwrite implicitly.
 
 ### HD4 - `echo -e`
 Example: `echo -e "a\nb"`
@@ -324,7 +325,7 @@ Risk: Existing contents are replaced.
 
 Decision gate: Confirm overwrite unless the file is verified disposable.
 
-Safe replacement: `cmd >> log.txt`; otherwise inspect and confirm before `cmd > log.txt`.
+Safe replacement: Preserve the requested write semantics. Use `cmd >> log.txt` only when the caller explicitly intends append behavior. For overwrite behavior, inspect and confirm the exact existing destination before `cmd > log.txt`, or choose a new exclusively created destination; never silently replace overwrite with append.
 
 ### OR2 - Wrong stderr-redirection order
 Example: `cmd 2>&1 > log`
@@ -345,13 +346,13 @@ Decision gate: Inspect intent.
 Safe replacement: `cmd > /dev/null 2>&1` only when both streams should be silenced.
 
 ### OR4 - `sudo` with a redirect
-Example: `echo foo | sudo > /etc/file`
+Example: `sudo echo 'content' > /etc/foo.conf`
 
 Risk: The current shell, not `sudo`, opens the file.
 
-Decision gate: Confirm privilege use.
+Decision gate: Confirm both privilege use and overwrite of the exact destination.
 
-Safe replacement: `echo 'content' | sudo tee /etc/foo.conf > /dev/null`.
+Safe replacement: After those confirmations, run `printf '%s\n' 'content' | sudo tee /etc/foo.conf > /dev/null`. The replacement preserves the requested content and overwrite behavior while moving the privileged open into `tee`.
 
 ### SM1 - Script without strict mode
 Example: A multi-step script without `set -euo pipefail`.
@@ -364,7 +365,6 @@ Safe replacement for a reviewed Bash script:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
-IFS=$'\n\t'
 ```
 
 For POSIX `sh`, use `set -eu` only after reviewing expected failures and handle pipeline component status explicitly; if `pipefail` is required, select a shell that supports it and update the shebang.
@@ -382,6 +382,7 @@ cd -- /tmp/build || exit 1
 rm -rf -- ./cache
 ```
 This preserves the intended `/tmp/build/cache` target while guarding the directory change. Reclassify the deletion itself under FS1 before execution.
+The `|| exit 1` form is for non-interactive scripts. In an interactive shell, wrap the dependent sequence in a subshell so a failed `cd` does not terminate the user's session.
 
 ### SM3 - Bash constructs under `/bin/sh`
 Example: `#!/bin/sh` with `[[ ... ]]`.
@@ -459,7 +460,7 @@ Example: `env > env.txt`
 
 Risk: Credentials may be persisted.
 
-Decision gate: Prohibited while any included value's sensitivity is unresolved; confirmation does not authorize a broad dump.
+Decision gate: Prohibited for any included value whose sensitivity is unresolved; confirmation does not authorize a broad dump.
 
 Safe replacement: Define an explicit allowlist of variable names, verify each current value is non-secret and acceptable to persist in the target context, and emit only those names through a structured writer. Do not dump first and filter afterward. If any value is unresolved or the destination cannot be protected and lifecycle-managed, return `BLOCKED`.
 

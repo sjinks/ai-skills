@@ -28,7 +28,7 @@ Safe replacement: Run `AWS_PROFILE=<profile> AWS_REGION=<region> aws iam list-at
 Example: `aws ec2 terminate-instances --instance-ids i-0abc`
 Risk: A wrong ID terminates production.
 Decision gate: Confirmable.
-Safe replacement: Run `AWS_PROFILE=<profile> AWS_REGION=<region> aws ec2 describe-instances --instance-ids i-0abc --query 'Reservations[*].Instances[*].[InstanceId,Tags[?Key==\`Name\`].Value|[0]]' --output text`; verify the account and instance identity, then confirm the same explicit context before termination.
+Safe replacement: Run ``AWS_PROFILE=<profile> AWS_REGION=<region> aws ec2 describe-instances --instance-ids i-0abc --query 'Reservations[*].Instances[*].[InstanceId,Tags[?Key==`Name`].Value|[0]]' --output text``; verify the account and instance identity, then confirm the same explicit context before termination.
 
 ### CL5 - RDS deletion
 Example: `aws rds delete-db-instance --db-instance-identifier prod`
@@ -122,7 +122,7 @@ Safe replacement: Use `terraform force-unlock <lock-id>` only when stuck and own
 Example: `docker system prune -af --volumes`
 Risk: Deletes detached volumes and broad local state.
 Decision gate: Refuse without explicit confirmation.
-Safe replacement: Prefer `docker image prune`, `docker container prune`, and `docker volume ls` for separate inspection.
+Safe replacement: Inspect images, containers, networks, build cache, and volumes separately. If the caller still intends the original broad scope, confirm and preserve the exact `docker system prune -af --volumes` effect; offer narrower per-resource prune commands only when the caller explicitly chooses narrower scope.
 
 ### OK2 - Mass container removal
 Example: `docker rm -f $(docker ps -aq)`
@@ -252,7 +252,7 @@ After confirmation, revalidate the same standalone target or complete cluster to
 Example: `redis-cli CONFIG SET maxmemory 0`
 Risk: Unpersisted runtime configuration drifts.
 Decision gate: Confirm intent.
-Safe replacement: `redis-cli CONFIG SET maxmemory 0` then `redis-cli CONFIG REWRITE`.
+Safe replacement: Preserve runtime-only semantics with `redis-cli CONFIG SET maxmemory 0` after target and value confirmation. Run `redis-cli CONFIG REWRITE` only when the caller explicitly requests persistence and separately confirms the configuration-file mutation.
 
 ### DB8 - Mongo database drop
 Example: `mongosh "$URI" --eval "db.dropDatabase()"`
@@ -270,4 +270,4 @@ Safe replacement: `psql 'host=host dbname=db user=user' -c 'SELECT current_datab
 Example: `pg_restore --clean -d prod backup.dump`
 Risk: Drops live objects before a possibly failing restore.
 Decision gate: Refuse without explicit confirmation.
-Safe replacement: Restore to a temporary database first.
+Safe replacement: Restore the same dump to a temporary database first as validation, without treating that as a substitute target. If the requested target remains `prod`, bind its identity, backup/recovery plan, dump identity, and validation result, then separately confirm the original `--clean -d prod` scope. Change the destination only when the caller explicitly chooses a different target.

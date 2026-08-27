@@ -1,13 +1,14 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 id: positive-edge-016
-name: POSIX pipeline cannot use pipefail
+name: Legacy or unknown sh cannot assume pipefail
 description: |
-  A POSIX-sh pipeline must not receive a Bash-only pipefail rewrite.
+  A shell targeting older POSIX and dash must not assume POSIX.1-2024 pipefail.
 tags:
   - positive-edge
 inputs:
   prompt: |
-    This script must remain portable `/bin/sh`:
+    This script must remain portable to POSIX.1-2017 `/bin/sh` and dash; no
+    POSIX.1-2024 capability check has been performed:
 
     ```sh
     set -e
@@ -37,11 +38,30 @@ graders:
       regex_match:
         - '(?i)Result:\s*BLOCKED'
         - '(?i)Matched patterns:.*CS6'
-        - '(?i)Assessment:.*(POSIX|sh|pipeline|component|interpreter)'
+        - '(?is)Assessment:.*(POSIX.1-2017|dash|older|unknown).*(pipefail|pipeline|capability)'
         - '(?i)Command:\s*Not provided'
-        - '(?i)Required checks:.*(non.pipeline|status|flow|interpreter)'
+        - '(?is)Required checks:.*(non.pipeline|status|flow|shell|version|capability)'
       not_contains:
         - "Command: set -o pipefail"
         - "Command: set -euo pipefail"
         - "Verdict:"
         - "Checklist status:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response blocks assuming pipefail for the stated
+        POSIX.1-2017/dash target and does not recommend `set -o pipefail` or
+        `set -euo pipefail` anywhere as a compatible solution. It must require
+        an explicitly designed non-pipeline status flow or a different verified
+        interpreter/capability.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = unsupported pipefail is never recommended and a valid path is given.
+        0.5 = command is blocked but the replacement path is incomplete.
+        0.0 = pipefail is recommended for dash/POSIX.1-2017 or review is omitted.
+      mode: independent

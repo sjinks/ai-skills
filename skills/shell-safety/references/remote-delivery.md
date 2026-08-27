@@ -15,7 +15,7 @@ Safe replacement: Pin an exact reviewed version and prefer a project-local depen
 Example: `npm publish`
 Risk: Registry publication is supply-chain affecting and may be irreversible.
 Decision gate: Refuse without explicit confirmation.
-Safe replacement: After confirmation, run `npm publish --dry-run`; review complete package contents and confirm package, version, registry, and access before `npm publish --access public`.
+Safe replacement: Run `npm publish --dry-run`; review complete package contents and confirm package, version, registry, and the intended access level. Then publish with that exact confirmed scope, using `--access public` or `--access restricted` only when the caller explicitly selected it. Never default a scoped or private package to public visibility.
 ### NS4 - pip install outside a virtual environment
 Example: `pip install requests`
 Risk: Pollutes or breaks system Python.
@@ -43,7 +43,7 @@ This form is for a reviewed script with no dynamic arguments. SSH does not provi
 ### RX2 - Disabled SSH host-key checking
 Example: `ssh -o StrictHostKeyChecking=no user@host`
 Risk: Defeats host authentication; unauthenticated `ssh-keyscan` does not restore it.
-Decision gate: Prohibited unless the target is verified as an ephemeral CI host whose lifecycle and threat model permit the exception. Return `BLOCKED` for normal or unresolved hosts; for the verified exception, reclassify the complete replacement and return `SAFE` only when no other pattern applies.
+Decision gate: Block while the host is normal or unresolved. A verified ephemeral CI host whose lifecycle and threat model explicitly permit disabled host-key checking satisfies only this RX2 prerequisite when the client and known-host state share the same disposable lifecycle or the command uses an isolated non-persistent known-host store; then reclassify the complete command and return `SAFE` only when no other pattern applies.
 Safe replacement: Obtain expected `SHA256:` fingerprint through an authenticated channel; bind it to hostname, port, and algorithm; write `ssh-keyscan -t ed25519 host` to a secure temporary file; inspect each candidate with `ssh-keygen -lf <candidate-record> -E sha256`; require exactly one matching record, append only it to `known_hosts`, then connect with strict checking enabled.
 ### RX3 - Remove known-host entry
 Example: `ssh-keygen -R host`

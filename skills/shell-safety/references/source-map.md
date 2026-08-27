@@ -2,12 +2,24 @@
 
 Read this when you need to understand where the shell-safety rules came from and which claims are guidance versus locally enforced policy.
 
-## Source Confidence
+## Authoritative Sources
 
-- Shell quoting, expansion, heredoc, `set`, and pipeline behavior: high confidence from POSIX shell behavior plus bash and zsh manuals.
-- Git command-risk guidance: high confidence from git command semantics for commit-message options, destructive working-tree operations, branch deletion, and force push behavior.
-- Filesystem, process, archive, SSH, cloud, IaC, container, database, service-control, and secret-handling rules: policy guidance derived from common incident classes and safe-operations practice. Treat these as conservative assistant-side guardrails, not a substitute for organization-specific production change policy.
-- Tool-specific recommendations can change. For high-impact production mutations, verify the current vendor documentation and the exact target environment before authorizing the command.
+Sources were checked on 2026-08-27. Version-sensitive commands must be rechecked against the installed version and target environment before authorization.
+
+| Pattern IDs | Category | Checked baseline, section, and source |
+| --- | --- | --- |
+| `Q`, `CS1-2`, `CS4-6`, `HD`, `OR`, `SM`, `EN`, `FS2` | Shell quoting, expansion, `IFS`, pipelines, parameter assertions | [POSIX.1-2017 Shell Command Language](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html) for the legacy baseline and interactive/non-interactive `${parameter:?}` behavior; [POSIX.1-2024 Shell Command Language](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html) for Quoting, Word Expansions, and `set -o pipefail`; local GNU Bash 5.2.21 probes plus [GNU Bash Shell Syntax/Expansions](https://www.gnu.org/software/bash/manual/bash.html); local dash 0.5.12-6ubuntu5 probes plus [`dash(1)`](https://manpages.debian.org/bookworm/dash/dash.1.en.html); [zsh 5.9.2 Parameters](https://zsh.sourceforge.io/Doc/Release/Parameters.html) |
+| `GC`, `GD` | Git commit and repository mutation | Git 2.43.0 manuals for [`git commit`](https://git-scm.com/docs/git-commit/2.43.0), [`git reset`](https://git-scm.com/docs/git-reset/2.43.0), [`git clean`](https://git-scm.com/docs/git-clean/2.43.0), [`git push`](https://git-scm.com/docs/git-push/2.43.0), and [`git submodule`](https://git-scm.com/docs/git-submodule/2.43.0), especially OPTIONS and `deinit` |
+| `FS1`, `FS3-10`, `PC` | Filesystem and process utilities | [POSIX.1-2024 Utilities](https://pubs.opengroup.org/onlinepubs/9799919799/idx/utilities.html) entries for `rm`, `mv`, `cp`, `chmod`, `chown`, `find`, and `kill`; installed manuals govern non-POSIX flags |
+| `PE`, `GP`, `SS` | Privilege, GPG, and services | [`sudo` manual](https://www.sudo.ws/docs/man/sudo.man/); GnuPG 2.4 semantics checked against local 2.4.4 and the [`gpg(1)` manual](https://man.archlinux.org/man/gpg.1.en), Input/Output and key commands; [systemd manuals](https://www.freedesktop.org/software/systemd/man/latest/) for `systemctl` and `journalctl`, checked 2026-08-27 |
+| `AR` | Archive extraction | [GNU tar Reliability and Security](https://www.gnu.org/software/tar/manual/html_node/Reliability-and-security.html), [Python 3.14 tarfile extraction filters](https://docs.python.org/3.14/library/tarfile.html#extraction-filters), and the selected parser version; platform/path/limit gates beyond vendor guarantees are conservative local policy |
+| `CS3`, `NS`, `RX` | Network, packages, SSH, remote transfer | OpenBSD 7.8 manuals for [`ssh`](https://man.openbsd.org/OpenBSD-7.8/ssh), [`scp`](https://man.openbsd.org/OpenBSD-7.8/scp), and [`ssh-keygen`](https://man.openbsd.org/OpenBSD-7.8/ssh-keygen); installed package-manager and `rsync` manuals; network-to-execution binding and the isolated ephemeral-CI RX2 exception are conservative local policy |
+| `CL` | Cloud CLIs | [AWS CLI v2 command reference](https://docs.aws.amazon.com/cli/latest/reference/), [Google Cloud CLI reference](https://cloud.google.com/sdk/gcloud/reference), and [Azure CLI reference](https://learn.microsoft.com/cli/azure/reference-index), command pages checked 2026-08-27; installed versions must be rechecked |
+| `IC`, `OK` | Infrastructure, containers, orchestration | [Terraform v1.x CLI](https://developer.hashicorp.com/terraform/cli), [Pulumi CLI](https://www.pulumi.com/docs/iac/cli/), [Docker CLI](https://docs.docker.com/reference/cli/docker/), [generated kubectl reference](https://kubernetes.io/docs/reference/kubectl/generated/) checked 2026-08-27, and [Helm v3 commands](https://helm.sh/docs/helm/) |
+| `DB` | Databases | [PostgreSQL current SQL commands](https://www.postgresql.org/docs/current/sql-commands.html), [Oracle MySQL 8.4 client programs](https://docs.oracle.com/cd/E17952_01/mysql-8.4-en/programs-client.html), [Redis command reference](https://redis.io/docs/latest/commands/) for `SELECT`/`FLUSHDB`/`FLUSHALL`, and [MongoDB `mongosh`](https://www.mongodb.com/docs/mongodb-shell/), checked 2026-08-27 |
+| `SE` | Secret handling | [OWASP Secrets Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html), Secret Handling; [CWE-532](https://cwe.mitre.org/data/definitions/532.html); concrete storage follows the selected runtime credential-helper version |
+
+These sources establish command semantics and vendor behavior. Confirmation thresholds, protected-branch fallbacks, fail-closed defaults, and cross-tool binding requirements are conservative assistant-side policy, not claims that vendor tools enforce them automatically.
 
 ## Provenance Notes
 

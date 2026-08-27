@@ -32,6 +32,7 @@ base_ref="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD)" || exit 
 git log --oneline "$base_ref..$candidate_ref"
 ```
 Bind `candidate_ref`, `base_ref`, the candidate tip, and the reviewed commit set. Refresh them immediately before execution; after reviewing every unmerged commit and confirming that exact binding, run `git branch -D -- "$candidate_ref"`.
+The `|| exit 1` sequence is for non-interactive use. In an interactive shell, wrap the inspection in a subshell so failure does not terminate the user's session.
 ### GD4 - Clean untracked files
 Example: `git clean -fdx`
 Risk: Removes ignored configuration, artifacts, and notes.
@@ -75,7 +76,7 @@ Safe replacement: Resolve the explicit target with a platform-appropriate truste
 Example: `rm -rf "$BUILD_DIR"`
 Risk: An unset, empty, or root-like value is unsafe.
 Decision gate: Block unresolved values.
-Safe replacement: First require a non-empty value with `: "${BUILD_DIR:?BUILD_DIR is unset}"`. Parameter expansion does not re-run tilde expansion, so literal `~` is relative to the current directory. Resolve that concrete target and apply FS1's canonical-path, filesystem-identity, preview, and immediate-reverification gates before deletion; reject alternate spellings or aliases of root and every verified home path.
+Safe replacement: In a non-interactive script, first require a non-empty value with `: "${BUILD_DIR:?BUILD_DIR is unset}"`; the expansion error exits that shell before later mutations. In an interactive shell, inspect and resolve the value separately and keep deletion `BLOCKED` while it is unset or empty. Parameter expansion does not re-run tilde expansion, so literal `~` is relative to the current directory. Resolve that concrete target and apply FS1's canonical-path, filesystem-identity, preview, and immediate-reverification gates before deletion; reject alternate spellings or aliases of root and every verified home path.
 ### FS3 - Unbounded glob delete
 Example: `rm -rf *`
 Risk: Deletes the current directory's contents.
@@ -84,8 +85,8 @@ Safe replacement: Enumerate explicit paths: `rm -rf -- build/ dist/ .cache/`.
 ### FS4 - Recursive delete below `/` or `~`
 Example: `rm -rf /something`, `rm -rf ~/Downloads/old`
 Risk: A spacing or expansion error can affect root or home.
-Decision gate: Block absent strong justification; otherwise preview and confirm exact path.
-Safe replacement: Name an exact subdirectory and apply FS2 guards.
+Decision gate: Confirmable when the canonical resolved target is any absolute path or lies within a verified account home, after FS1/FS2 prove it is not `/` or a home directory itself.
+Safe replacement: Apply FS1/FS2 canonical-path and filesystem-identity checks, bind and preview the exact target, reverify it immediately before execution, and require confirmation of that exact recursive deletion. Root and verified home directories themselves remain blocked.
 ### FS5 - `find` deletion
 Example: `find . -name '*.log' -delete`
 Risk: A broad expression deletes unexpected paths.
@@ -201,12 +202,12 @@ Safe replacement: `sudo systemctl daemon-reload` then `sudo systemctl restart fo
 Example: `shutdown now`
 Risk: Host downtime and remote disconnection.
 Decision gate: Refuse without explicit confirmation.
-Safe replacement: After confirmation, `sudo shutdown -r +1 'reboot for kernel upgrade'`.
+Safe replacement: Preserve the requested power action and timing. After confirming an immediate shutdown/power-off, run `sudo shutdown now`; use `sudo shutdown -r now` only when an immediate reboot was explicitly requested. Any delay or message must likewise come from the caller rather than being introduced by the rewrite.
 ### SS5 - Vacuum journal to zero
 Example: `journalctl --vacuum-size=0`
 Risk: Destroys forensic logs.
 Decision gate: Confirm.
-Safe replacement: `sudo journalctl --vacuum-time=7d`.
+Safe replacement: Preserve the requested size-based policy. After privilege, journal scope, and exact size confirmation, run `sudo journalctl --vacuum-size=0`; use `--vacuum-time=<duration>` only when the caller explicitly requests a time-based retention policy.
 ### AR1 - Extract untrusted tar
 Example: `tar -xf received.tar`
 Risk: Entries can overwrite or escape the destination.

@@ -39,12 +39,10 @@ Bash performs expansions in this order on each token:
 
 1. Brace expansion: unquoted brace syntax such as `{a,b}c` expands to `ac bc` before other expansions; quoting any part of the brace operators prevents that part from being recognized as brace syntax.
 2. Tilde expansion: `~` → `$HOME`, `~user` → user's home when an unquoted tilde starts a word. Bash also checks after an unquoted `=` in assignment words and after each unquoted `:` in an assignment value. Text produced later by parameter expansion is not rescanned for tilde expansion.
-3. Parameter expansion: `$var`, `${var:-default}`, `${var/old/new}`.
-4. Command substitution: `$(cmd)` or `` `cmd` ``.
-5. Arithmetic expansion: `$((expr))`.
-6. Word splitting: splits unquoted expansions on `IFS`.
-7. Pathname expansion (globbing): `*`, `?`, `[abc]`.
-8. Quote removal: removes the quote characters that survived.
+3. Parameter expansion (`$var`), command substitution (`$(cmd)`), and arithmetic expansion (`$((expr))`) are performed in one phase, left-to-right; process substitution participates where the shell supports it.
+4. Word splitting: splits unquoted expansion results on `IFS`.
+5. Pathname expansion (globbing): `*`, `?`, `[abc]`.
+6. Quote removal: removes the quote characters that survived.
 
 Key point: **word splitting** and **pathname expansion** happen on **unquoted** expansions. Quoting suppresses both.
 
@@ -72,13 +70,14 @@ fn 'a b' c
 | `${var:-default}` | Use `default` if `var` is unset or empty. |
 | `${var-default}` | Use `default` if `var` is unset (empty is OK). |
 | `${var:=default}` | Assign `default` if unset/empty, then expand. |
-| `${var:?error}` | Error and exit if unset/empty. Useful as an assertion. |
+| `${var:?error}` | Raise an expansion error if unset/empty. A non-interactive shell exits; an interactive shell need not exit, so do not rely on it alone to stop later user-entered mutations. |
 | `${var:+alt}` | Use `alt` if `var` is set and non-empty. |
 
 ```sh
 : "${BUILD_DIR:?must be set}"
 rm -rf -- "$BUILD_DIR"
 ```
+Use this sequential form only in a non-interactive script with the required exit behavior. In an interactive shell, inspect and resolve the value separately and do not issue the mutation while it remains unset or empty.
 
 ## 5. Argument separator `--`
 
@@ -155,15 +154,13 @@ Resolve the interpreter and review expected nonzero paths before enabling strict
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
-IFS=$'\n\t'
 ```
 
 - `set -e` — exit on error.
 - `set -u` — error on unset variable.
-- `set -o pipefail` — exit if any command in a pipeline fails.
-- `IFS=$'\n\t'` — restrict word splitting to newline and tab; safer than the default space-tab-newline.
+- `set -o pipefail` — make the pipeline's status reflect a failing component; it does not exit the shell by itself. Exit behavior additionally depends on `errexit` and its contextual exceptions.
 
-POSIX `sh` has no portable `pipefail`. Use `set -eu` only after reviewing control flow, handle pipeline component status explicitly, or select a shell that supports the required behavior and update the shebang.
+POSIX.1-2024 specifies `pipefail`, but older POSIX baselines and some `/bin/sh` implementations such as dash do not. Verify the target shell/version before using it; otherwise handle component status explicitly or select a supporting interpreter. `set -eu` still requires review of expected failures and does not substitute for pipeline-status handling.
 
 For finer control, wrap risky blocks:
 

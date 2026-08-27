@@ -36,230 +36,27 @@ Everything else needs validation. In particular:
 
 ## Procedure
 
-1. **Classify.** Identify every applicable pattern ID and category for every segment of the command, including hazards created by interactions between segments.
-2. **Match.** Walk the Danger Checklist and matching domain references for all matched categories. A command is not safe until every matched pattern is addressed.
-3. **Resolve conflicts.** Apply decision gates in this order: prohibited > rewrite-only > confirmable > safe. If two applicable rules cannot be satisfied together, return `BLOCKED`; do not choose one silently.
-4. **Rewrite.** Apply the matching entry in the appropriate domain reference and reassess the complete rewritten command, not only the segment that triggered the first match.
-5. **Resolve.** Determine non-secret variable values, substitutions, globs, working directory, and external targets without executing unsafe fragments. For a secret-bearing variable, verify only its source and presence; keep its name in the restatement and never expose its value. If a material non-secret value cannot be resolved, do not run the command.
-6. **Apply the decision gate.** Use the [Decision Gates](#decision-gates) to distinguish prohibited forms, mandatory rewrites, and confirmable effects. Confirmation applies only to the exact restated command and targets.
-7. **Restate.** Before sending a command, show the exact resolved form with quoting visible, except that secret values remain represented by their variable names or `<redacted>`.
+1. **Categorize.** Split the command into segments and map each segment and interaction to every applicable [Category Index](#category-index) row; do not guess pattern IDs before loading their definitions.
+2. **Load.** Read every reference selected by the category pass. Linked reference records are the gating source of truth for each pattern ID, risk, per-pattern decision-gate phrase, and replacement/check sequence; the global [Decision Gates](#decision-gates) and [Output](#output) in this file remain authoritative for interpreting gates and emitting results.
+3. **Match.** Identify every applicable pattern ID from the loaded references. A command is not safe until every segment and cross-segment interaction is matched and addressed.
+4. **Resolve conflicts.** Apply decision gates in this order: prohibited > rewrite-only > confirmable > safe. If two applicable rules cannot be satisfied together, return `BLOCKED`; do not choose one silently.
+5. **Rewrite.** Apply the matching reference record and reassess the complete rewritten command, not only the segment that triggered the first match.
+6. **Resolve.** Determine every safety-relevant non-secret variable value, substitution, glob, working directory, and external target without executing unsafe fragments. Preserve unresolved source forms when their values are non-material to the safety decision. For a secret-bearing variable, verify only its source and presence; keep its name in the restatement and never expose its value. If a material non-secret value cannot be resolved, do not run the command.
+7. **Apply the decision gate.** Use the [Decision Gates](#decision-gates) to distinguish prohibited forms, mandatory rewrites, and confirmable effects. Confirmation applies only to the exact restated command and targets.
+8. **Restate.** Before sending a command, show the exact form with quoting visible and every safety-relevant non-secret expansion resolved. Preserve non-material source expressions when resolution is unnecessary; keep secret values represented by their variable names or `<redacted>`.
 
 For deep quoting questions, consult [quoting-rules.md](./references/quoting-rules.md).
 
-## Danger Checklist
+## Category Index
 
-One-line summaries grouped by category. Use [command construction](./references/command-construction.md) for commit messages, quoting, shell composition, secrets, and encoding; [host and repository changes](./references/host-and-repository-changes.md) for Git, local files, processes, privilege, signing, services, and archives; [remote delivery](./references/remote-delivery.md) for network-to-shell and SSH; [platform and data operations](./references/platform-and-data-operations.md) for cloud, IaC, containers, and databases.
+| Category | Pattern IDs | Reference |
+| --- | --- | --- |
+| Command construction | `GC`, `Q`, `CS1-2`, `CS4-6`, `HD`, `OR`, `SM`, `SE`, `EN` | [command-construction.md](./references/command-construction.md) |
+| Host/repository | `GD`, `FS`, `PC`, `PE`, `GP`, `SS`, `AR` | [host-and-repository-changes.md](./references/host-and-repository-changes.md) |
+| Remote delivery | `CS3`, `NS`, `RX` | [remote-delivery.md](./references/remote-delivery.md) |
+| Platform/data | `CL`, `IC`, `OK`, `DB` | [platform-and-data-operations.md](./references/platform-and-data-operations.md) |
 
-### Git commit messages
-
-- `GC1` Multi-line message via `-m "...\n..."` → review exact literal bytes, then use `git commit -F -` with a quoted heredoc.
-- `GC2` Repeated `-m` for paragraphs → prefer the reviewed stdin form for multi-paragraph bodies.
-- `GC3` `-m "... $(cmd) ..."` → resolve and review the substitution, then use the reviewed stdin form.
-- `GC4` `-m "... $VAR ..."` with whitespace-sensitive content → resolve and review the value, then use the reviewed stdin form.
-- `GC5` Backtick substitution in `-m` → resolve and review the value, then use the reviewed stdin form.
-- `GC6` Backtick or quote character inside `-m` → use `git commit -F -` with a quoted heredoc.
-- `GC7` Apostrophe in single-quoted `-m` → use the reviewed stdin form.
-- `GC8` Emoji/unicode + non-UTF-8 terminal → provide reviewed UTF-8 bytes through stdin.
-
-### Git destructive operations
-
-- `GD1` `git reset --hard` → confirm the exact reset target and preserve local changes first; any ref-moving reset is a confirmable effect even when the tree is clean.
-- `GD2` `git push --force` / `-f` → require `--force-with-lease=<ref>:<expected-sha>` and block any discovered protected, default, release, production, or shared branch; treat `main|master|release/*|production|prod` as protected fallbacks.
-- `GD3` `git branch -D` → confirm unmerged commits are intentional and then treat deletion as a confirmable effect.
-- `GD4` `git clean -fdx` → dry-run first: `git clean -ndx`; reviewed deletion is still a confirmable effect.
-- `GD5` `git checkout <sha>` (detached) → if you want a branch, add `-b <name>`.
-- `GD6` Rebase on shared/pushed branch → require explicit user approval plus remote-tip review; without both, return `BLOCKED`; with both, treat the exact rewrite as a confirmable effect.
-- `GD7` `git submodule deinit --force` → replace it with non-forced deinit only after a guarded, immediately repeated inspection finds no tracked changes, untracked files, or ignored files to preserve.
-- `GD8` `git push --delete origin <tag>` → confirm tag not referenced by releases and then treat remote deletion as a confirmable effect.
-
-### Filesystem destruction
-
-- `FS1` `rm -rf <path>` → path must be explicit, not a glob, not a bare variable.
-- `FS2` `rm -rf "$DIR"` → resolve and bind the target, then verify its canonical path and filesystem identity differ from `/`, `$HOME`, and every verified home path; a quoted variable containing literal `~` does not undergo tilde expansion.
-- `FS3` `rm -rf *` or any unbounded glob → refuse; require explicit paths.
-- `FS4` `rm -rf /...` or `rm -rf ~/...` → return `BLOCKED` unless the user gives strong justification; after exact-path preview, treat it as a confirmable effect.
-- `FS5` `find ... -delete` or `-exec rm` → do not rerun discovery after review; capture one NUL-delimited structured snapshot and delete only that identity-bound set.
-- `FS6` `truncate -s 0 <log>` → confirm file path explicitly.
-- `FS7` `dd of=/dev/...` → refuse without explicit user confirmation.
-- `FS8` `mkfs.*` → refuse without explicit user confirmation.
-- `FS9` `chmod -R 777` → refuse; recommend explicit minimum permission set.
-- `FS10` `chown -R` outside project root → prohibit; confirmation cannot authorize it, so restrict ownership changes to the project root.
-
-### Quoting & expansion
-
-- `Q1` Unquoted variable in argument (`rm $file`) → `rm -- "$file"`.
-- `Q2` Unquoted variable in path (`cd $dir`) → `cd -- "$dir"`.
-- `Q3` Word-splitting `for f in $(ls)` → `for f in *` or `while IFS= read -r f`.
-- `Q4` Unquoted glob (`mv *.log /tmp`) → resolve it once into a structured path list, review an unambiguous rendering, and execute that exact bound list without re-expansion.
-- `Q5` `$@` vs `"$@"` → always `"$@"` to preserve arguments.
-- `Q6` Path with spaces (`cat /tmp/my file`) → quote: `"/tmp/my file"`.
-- `Q7` `'$HOME'` (single quotes, no expansion) → `"$HOME"` if expansion wanted.
-- `Q8` Mixed quoting → verify intent.
-- `Q9` `'a\nb'` (backslash literal in single quotes) → `printf '%s\n%s\n' a b`.
-- `Q10` Filename starting with `-` (`rm -file`) → `rm -- -file`.
-- `Q11` `!` inside Bash double quotes with history expansion enabled → use single quotes, disable history expansion, or avoid interactive history expansion context.
-
-### Command substitution & pipes
-
-- `CS1` Backticks `` `cmd` `` → `$(cmd)`.
-- `CS2` Unquoted nested `$(...)` → quote: `"$(...)"`.
-- `CS3` `curl ... | sh` / `wget ... | bash` → verify and review one protected immutable object, then execute that same identity; block when continuity cannot be preserved.
-- `CS4` `eval "$var"` → refuse; reconstruct the intended argv directly, scope POSIX `set -- ...; "$@"` when caller parameters must survive, then reclassify it.
-- `CS5` `find ... | xargs rm` (no NUL) → capture one NUL-delimited target snapshot, render every name unambiguously, and delete only that exact bound set without rerunning `find`.
-- `CS6` Pipelines whose earlier commands must succeed → identify the interpreter first; use `set -o pipefail` only where supported, otherwise capture component status explicitly or require a shell that supports it.
-
-### Heredoc & multi-line
-
-- `HD1` `EOF` indented but `<<EOF` not `<<-EOF` → use `<<-EOF` with tabs.
-- `HD2` `cat <<EOF` with `$var` literal → use `cat <<'EOF'` (quoted terminator).
-- `HD3` `cat <<EOF > /etc/...` (root-owned) → use `sudo tee`.
-- `HD4` `echo -e` → use `printf` for portable escapes.
-
-### Process control
-
-- `PC1` `kill -9 <pid>` → send `SIGTERM`, wait through a terminal or process-supervisor completion primitive, then re-verify process identity before considering `SIGKILL`.
-- `PC2` `pkill <pattern>` → inspect matching PIDs and complete command identities, select one intended PID, then signal that PID directly.
-- `PC3` `cmd &` (background in agent terminal) → use a supervised async/background capability when available; if unavailable, do not launch it and return the needed runtime capability.
-- `PC4` `sleep` to wait for a process → refuse; rely on terminal completion signal.
-
-### Network & supply-chain
-
-- `NS1` `curl ... | bash` / `wget ... | sh` → refuse; verify, review, and execute one protected immutable object without pathname reopening.
-- `NS2` `npm install -g <pkg>` → prefer project-local install.
-- `NS3` `npm publish` → refuse without explicit user confirmation.
-- `NS4` `pip install` without venv → use venv.
-- `NS5` `sudo <package-manager>` → confirm intent.
-- `NS6` `ssh host '<long pipeline>'` → use `ssh host bash -s < script.sh`.
-
-### Permission escalation
-
-- `PE1` `sudo <anything>` → confirm intent; do not chain into pipes silently.
-- `PE2` `sudo -i` / `sudo su` → refuse.
-- `PE3` `chmod u+s` (setuid) → refuse.
-
-### Output capture & redirection
-
-- `OR1` `> file` overwriting important file → use `>>` or confirm overwrite.
-- `OR2` `cmd 2>&1 > log` (wrong order) → `cmd > log 2>&1`.
-- `OR3` `cmd > /dev/null` swallowing only stdout → explicit; add `2>&1` only if intended.
-- `OR4` `cmd | sudo > file` → `cmd | sudo tee file`.
-
-### Shell mode safety
-
-- `SM1` Script without failure guards → identify the interpreter and review expected nonzero paths first; use `set -euo pipefail` for compatible Bash scripts, or `set -eu` plus explicit pipeline-status handling for POSIX `sh`.
-- `SM2` `cd ...; cmd` or an unguarded next line → use `cd ... || exit 1` before the dependent command; `cd ... && cmd` is already failure-guarded.
-- `SM3` `[[ ]]` in `/bin/sh` → use `[ ]` for POSIX.
-- `SM4` `status` variable in zsh → rename it for the captured value, such as `response=$(curl ...)`; capture `$?` separately only when needed.
-- `SM5` Bare `==` in zsh → quote `'=='`.
-- `SM6` Persistent `IFS` mutation → use a command-scoped assignment such as `IFS=, read ...` or a subshell; do not rely on manual restoration after a fallible command.
-- `SM7` `set -x` left on with secrets in scope → scope tightly.
-
-### SSH & remote
-
-- `RX1` `ssh host '<long pipeline>'` → `ssh host bash -s < script.sh`.
-- `RX2` `ssh -o StrictHostKeyChecking=no` → refuse unless ephemeral CI host.
-- `RX3` `ssh-keygen -R <host>` → confirm intent.
-- `RX4` `scp host:'/path/*.log'` (remote glob) → capture and review one structured remote path list, then transfer only those explicit bound paths; never broaden to the whole directory.
-- `RX5` `rsync --delete` → dry-run `-n` first.
-- `RX6` `ssh -A` to untrusted host → refuse.
-- `RX7` `sshpass` in pipeline → refuse; use key auth.
-
-### GPG & signing
-
-- `GP1` `gpg --delete-secret-keys` → refuse without explicit user confirmation.
-- `GP2` `gpg --export-secret-keys` to stdout → use a uniquely and exclusively created owner-only destination outside repositories and synchronized paths, then confirm its lifecycle.
-- `GP3` `gpg --batch --yes` with destructive op → confirm intent.
-- `GP4` `git commit -S --no-verify` / `git tag -s --no-verify` → refuse; address the hook.
-- `GP5` `gpg --import` from untrusted source → verify first.
-- `GP6` `--passphrase` on command line → use `--pinentry-mode loopback` with file/stdin.
-
-### Cloud CLIs (AWS / gcloud / az)
-
-- `CL1` `aws s3 rm --recursive` → require `--dryrun` first and confirmation.
-- `CL2` `aws s3 sync --delete` → run `--dryrun` first.
-- `CL3` `aws iam delete-*` → refuse without explicit user confirmation.
-- `CL4` `aws ec2 terminate-instances` → confirm instance IDs explicitly.
-- `CL5` `aws rds delete-db-instance` → require final snapshot decision.
-- `CL6` `gcloud projects delete` → refuse without explicit user confirmation.
-- `CL7` `gcloud compute instances delete` → confirm names explicitly.
-- `CL8` `az group delete` → refuse without explicit user confirmation.
-- `CL9` Default `--profile`/`--region`/context unset → always specify explicitly.
-- `CL10` Echo of secret env var (`echo $AWS_SECRET_ACCESS_KEY`) → refuse.
-
-### Infrastructure as Code
-
-- `IC1` `terraform destroy` → refuse without explicit user confirmation and workspace.
-- `IC2` `terraform apply -auto-approve` → require plan review in same session.
-- `IC3` `terraform apply` without prior `plan` → run `plan` first.
-- `IC4` `terraform state rm` / `state mv` → confirm intent; document.
-- `IC5` `terraform workspace delete` → refuse without explicit user confirmation.
-- `IC6` `pulumi destroy --yes` → remove `--yes`, review `pulumi preview --diff` for the exact stack, then confirm the replacement `pulumi destroy`.
-- `IC7` `pulumi stack rm --force` → refuse without explicit user confirmation.
-- `IC8` Backend reconfiguration → verify state lock.
-
-### Containers & orchestration
-
-- `OK1` `docker system prune -af --volumes` → refuse without explicit user confirmation.
-- `OK2` `docker rm -f $(docker ps -aq)` → confirm intent; show resolved IDs.
-- `OK3` `docker run --privileged` / `--cap-add=ALL` → refuse without explicit need.
-- `OK4` `docker run -v /:/host` → refuse.
-- `OK5` `kubectl delete namespace <ns>` → confirm namespace and show object counts.
-- `OK6` `kubectl apply -f <url>` → download and inspect first.
-- `OK7` `kubectl drain` → show plan; decide on `--ignore-daemonsets`.
-- `OK8` `kubectl delete pvc` → refuse without explicit user confirmation.
-- `OK9` Default `kubectl --context` unset → always specify explicitly.
-- `OK10` `helm uninstall <release>` → confirm release and namespace.
-- `OK11` `helm install` without `--atomic` → use `--atomic --timeout`.
-- `OK12` `kubectl exec -it ... -- sh` for write ops → suggest manifest edit.
-
-### Database CLIs
-
-- `DB1` `DROP DATABASE`, `DROP TABLE` → refuse without explicit user confirmation.
-- `DB2` `TRUNCATE` / `DELETE FROM ...;` without `WHERE` → refuse without explicit user confirmation.
-- `DB3` `UPDATE ...;` without `WHERE` → refuse without explicit user confirmation.
-- `DB4` `psql` connection string with embedded password → use `~/.pgpass` or env from file.
-- `DB5` `mysql -p<pass>` → use an encrypted login path or another credential helper that keeps the password out of argv and environment variables.
-- `DB6` `redis-cli FLUSHALL` / `FLUSHDB` → refuse without explicit user confirmation; preserve the requested command's scope, bind standalone `FLUSHDB` to explicit `-n <db>`, and build a topology-aware per-primary plan for Redis Cluster.
-- `DB7` `redis-cli CONFIG SET` → confirm intent.
-- `DB8` `mongosh --eval 'db.dropDatabase()'` → refuse without explicit user confirmation.
-- `DB9` Connection defaulting to prod → verify target host explicitly.
-- `DB10` `pg_restore --clean` to wrong target → refuse without explicit user confirmation.
-
-### Systemd & service control
-
-- `SS1` `systemctl stop <critical>` (sshd/network) → confirm; warn about lockout.
-- `SS2` `systemctl disable --now <critical>` → confirm intent.
-- `SS3` Unit file edit without `daemon-reload` → reminder.
-- `SS4` `shutdown` / `reboot` / `halt` / `poweroff` → refuse without explicit user confirmation.
-- `SS5` `journalctl --vacuum-size=0` → confirm intent.
-
-### Secret & environment hygiene
-
-- `SE1` `echo $SECRET` / `$TOKEN` / `$KEY` / `$PASSWORD` → refuse to echo.
-- `SE2` `env` / `printenv` piped to file/log → block broad dumps while any value's sensitivity is unresolved; offer only an explicit allowlist of verified non-secret names.
-- `SE3` `--password=...` / `--token=...` on command line → use file/stdin.
-- `SE4` `curl -H "Authorization: Bearer $TOKEN"` in interactive shell → use config file.
-- `SE5` Writing a secret through shell redirection → use a credential helper or a pre-opened no-follow, exclusive, owner-only descriptor outside repositories; otherwise block.
-- `SE6` `set -x` with secret in scope → disable around block.
-- `SE7` Raw secret-search matches printed or persisted → block value disclosure; report file locations only.
-- `SE8` `!` history expansion in double quotes → `set +H` or single quotes.
-- `SE9` Reading a likely secret file to terminal output → resolve the file without reading its contents; block output when sensitivity is known or uncertain.
-
-### Archives
-
-- `AR1` `tar -xf untrusted.tar` → block extraction until one extractor-owned validation/write path handles the same immutable bytes under a fresh destination with containment, entry/type, resource-limit, collision, overwrite, and cleanup enforcement; `tar -tf` is preliminary inspection only.
-- `AR2` `tar -xf` with absolute paths or `../` entries → block extraction; a member-list grep is not a substitute for AR1 validation.
-- `AR3` `unzip untrusted.zip` to existing dir → block absent AR1-equivalent ZIP validation; for a trusted archive, use a fresh destination and an explicit overwrite policy.
-- `AR4` `tar` over network without checksum → download first, verify authenticated provenance and digest, then require AR1 validation before extraction.
-- `AR5` Partial extraction cleanup or resumption → never resume; clean the exact bound private root within the extractor, otherwise quarantine it and use separately revalidated filesystem controls.
-
-### Encoding & locale
-
-- `EN1` Shell script with CRLF → `dos2unix`.
-- `EN2` UTF-8 BOM in shell script → strip BOM.
-- `EN3` `sort` / `tr` / `grep` on bytes without `LC_ALL=C` → set `LC_ALL=C`.
-- `EN4` `grep -P` portability → use `grep -E` or `rg`.
-- `EN5` `date` with locale leakage → set `LC_ALL=C` or use `date -u +'%Y-%m-%dT%H:%M:%SZ'`.
+Commands matching multiple rows require loading every matching reference and applying every applicable pattern. References are the sole per-pattern definitions; do not duplicate any individual pattern rule in the core.
 
 ## Decision Gates
 
@@ -267,11 +64,14 @@ Classify each exact command segment with the narrowest matching rule below. A co
 
 Reference phrases select a Decision Gate section; they are not `Result:` values.
 
-| Reference phrase | Decision Gate section | Allowed `Result:` values |
+| Reference phrase | Interpretation | Allowed `Result:` values |
 | --- | --- | --- |
 | `Prohibited`, unconditional `Block` | **Prohibited** | `BLOCKED` |
+| `Prohibited for <condition>` | Conditional prohibition | `BLOCKED` while the condition holds; otherwise reclassify the complete command |
+| `Block <condition>` (for example `until`, `while`, `without`, `absent`, `unresolved`, or a named unsafe form) | Prerequisite failure, not permanent prohibition | `BLOCKED` while the stated condition holds; otherwise reclassify the complete command |
 | `Rewrite` | **Rewrite-Only** | `REWRITE` if the replacement is safe; otherwise `BLOCKED`, `NEEDS-CONFIRMATION`, or later `AUTHORIZED` after reclassification |
-| `Confirm`, `Confirmable`, `Refuse without explicit confirmation` | **Confirmable Effects** | `BLOCKED` until prerequisites pass, then `NEEDS-CONFIRMATION` or `AUTHORIZED` |
+| `Confirm`, `Confirmable`, `Refuse without explicit confirmation/need`, `Last-resort confirmation` | **Confirmable Effects** | `BLOCKED` until prerequisites pass, then `NEEDS-CONFIRMATION` or `AUTHORIZED` |
+| `Confirm <effect> unless <verified-safe-condition>` | Verified-safe exception or **Confirmable Effects** | `SAFE` when the named safe condition is verified; otherwise `BLOCKED` until prerequisites pass, then `NEEDS-CONFIRMATION` or `AUTHORIZED` |
 | `Inspect`, `Verify`, `Require` | Prerequisite, not a gate or result | `BLOCKED` while unresolved; otherwise reclassify the complete command |
 
 For compound phrases, apply every named phase in order and keep the most restrictive result.
@@ -279,54 +79,26 @@ For compound phrases, apply every named phase in order and keep the most restric
 ### Prohibited
 
 Return `BLOCKED`. Confirmation never authorizes the original command.
-
-- `rm -rf /`, `rm -rf ~`, or `rm -rf $VAR` when `$VAR` is empty or unresolved.
-- Any force push to a branch discovered to be protected, default, release, production, or shared; when repository metadata is unavailable, treat `main|master|release/*|production|prod` as protected fallbacks and return `BLOCKED` if the branch's status cannot be established.
-- `eval` on a variable or other untrusted text.
-- `chmod -R 777`, `chmod u+s`, or `chown -R` outside the project root.
-- `docker run -v /:/host` or equivalent host-root mounts.
-- Printing, logging, hashing, or otherwise disclosing a credential, token, password, or other secret value or deterministic derivative, except a secret-key export handled by the rewrite-only and confirmable rules below.
-- `ssh -A` to a host the user does not control.
+Pattern membership and exceptions are defined only by the loaded reference records.
 
 ### Rewrite-Only
 
 Confirmation never authorizes the original form. Provide a concrete replacement that removes it, then classify the replacement from the beginning. Return `REWRITE` if the replacement is safe without confirmation, `NEEDS-CONFIRMATION` if the replacement has a confirmable effect, or `BLOCKED` if no deterministic replacement exists.
 
 A replacement that installs or executes fetched code, applies infrastructure, mutates a cluster, or otherwise has a confirmable effect is not a `REWRITE` result merely because its syntax is safer. Verify provenance and target context, then return `NEEDS-CONFIRMATION` for the exact replacement; unresolved provenance or context returns `BLOCKED`.
-
-- Bare `git push --force`, `-f`, or `--force-with-lease` without `<ref>:<expected-sha>`.
-- `curl ... | sh`, `wget ... | bash`, or another network-to-interpreter pipe.
-- `pip install` outside a virtual environment or an unreviewed `sudo <package-manager>` command.
-- `terraform apply -auto-approve`, `pulumi destroy --yes`, or another approval-bypassing flag.
-- `kubectl apply -f <url>` before the content and authenticated provenance are verified.
-- `gpg --export-secret-keys` to stdout.
-- Commands that persist or pass secret values through process arguments, without printing, logging, hashing, or otherwise disclosing them, when a credential helper, protected file, or stdin/file-descriptor interface can be used.
+Pattern membership, mandatory rewrites, and prerequisites are defined only by the loaded reference records.
 
 ### Confirmable Effects
 
-Return `NEEDS-CONFIRMATION` only after every required preview, identity, environment, and recovery check has passed. Bind that result to the normalized command, working directory, shell or interpreter, resolved non-secret expansions, authenticated identity and account, repository or platform context, target identifiers, reviewed preview or plan digest, and relevant branch tips or object versions. On a later turn, re-run cheap mutable checks immediately before execution. Return `AUTHORIZED` only when the user confirmed that exact binding and every check still matches; any changed or unverifiable binding invalidates authorization and requires full reclassification. `AUTHORIZED` means approved to execute, not harmless.
-
-- `git reset --hard` with local changes, or a non-protected force push with an explicit lease.
-- Git ref or history mutations that survived the prohibited and rewrite-only gates: clean-tree `git reset --hard`, `git branch -D`, `git clean -fdx`, non-forced submodule deinit only after GD7's guarded status check exits successfully with no tracked changes, untracked files, or ignored files and the same check is repeated immediately before confirmation, remote tag deletion, or pushed/shared-branch rebase after explicit approval and remote-tip review.
-- Destructive filesystem operations that survived the prohibited gate: justified absolute/home recursive deletion after exact-path preview, deletion of an exact identity-bound structured snapshot captured once from `find`, and `rsync --delete` after a reviewed dry run.
-- Package installation or execution of fetched code after exact-version provenance and lifecycle-script review.
-- `npm publish` or an already reviewed package-manager command requiring privilege.
-- `dd of=/dev/...`, `mkfs.*`, or partition-table changes against an exact device.
-- `terraform destroy`, applying a destroy plan, `terraform workspace delete`, `pulumi destroy` without approval-bypassing flags, or forced stack removal without approval-bypassing flags.
-- `docker system prune`, justified `docker run --privileged`, Kubernetes namespace/PVC deletion, or node draining with data loss.
-- `helm uninstall` after release and namespace verification.
-- `kubectl apply`, `helm install`, `helm upgrade`, and other cluster mutations after manifest or chart review plus explicit context and namespace verification.
-- `DROP`, `TRUNCATE`, unguarded `DELETE`/`UPDATE`, Redis flush, or database deletion.
-- Shutdown, reboot, or disabling/stopping a critical service.
-- Cloud IAM, project, resource-group, recursive object, instance, or database deletion.
-- Secret-key deletion or export to a protected destination.
+Return `NEEDS-CONFIRMATION` only after every required preview, identity, environment, and recovery check has passed. Bind that result to the normalized command, working directory, shell or interpreter, resolved safety-relevant non-secret expansions, authenticated identity and account, repository or platform context, target identifiers, reviewed preview or plan digest, and relevant branch tips or object versions. On a later turn, re-run cheap mutable checks immediately before execution. Return `AUTHORIZED` only when the user confirmed that exact binding and every check still matches; any changed or unverifiable binding invalidates authorization and requires full reclassification. `AUTHORIZED` means approved to execute, not harmless.
+Pattern membership and all command-specific prerequisites are defined only by the loaded reference records.
 
 ## Output
 
 When the user directly asks to validate a command, return these fields in order:
 
 - `Result:` one of `SAFE`, `REWRITE`, `NEEDS-CONFIRMATION`, `AUTHORIZED`, or `BLOCKED`.
-- `Matched patterns:` every applicable pattern as `ID (category)`, or `None`.
+- `Matched patterns:` every pattern that matched during classification as `ID (category)`, where `category` is the exact Category Index row label; include patterns whose prerequisites were later satisfied, and use `None` only when no pattern matched at all.
 - `Assessment:` the concrete risk and decision.
 - `Command:` the exact safe or rewritten command, or `Not provided` when blocked; never include secret values.
 - `Required checks:` checks that must pass before execution, or `None`.
@@ -343,7 +115,7 @@ See [source-map.md](./references/source-map.md) for provenance, source-confidenc
 
 Before sending the command:
 
-1. Restate the command with non-secret `$VAR` and `$(cmd)` expansions resolved and quoting visible. Keep secret values represented by the variable name or `<redacted>`.
+1. Restate the command with safety-relevant non-secret `$VAR` and `$(cmd)` expansions resolved and quoting visible. Preserve non-material source expressions; keep secret values represented by the variable name or `<redacted>`.
 2. If a material non-secret value is unknown, do not run; ask or inspect first. For secret variables, verify the source and presence without reading or echoing the value.
 3. Apply the most restrictive matching Decision Gate. Do not treat confirmation as authorization for a prohibited or rewrite-only original form, and reclassify every replacement from the beginning.
 4. For destructive operations, name the exact target (path, branch, instance, table, namespace) in your restatement.
