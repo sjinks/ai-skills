@@ -74,7 +74,7 @@ One-line summaries grouped by category. Use [command construction](./references/
 ### Filesystem destruction
 
 - `FS1` `rm -rf <path>` → path must be explicit, not a glob, not a bare variable.
-- `FS2` `rm -rf "$DIR"` → verify `$DIR` is set, non-empty, and not `/` or `~`.
+- `FS2` `rm -rf "$DIR"` → resolve and bind the target, then verify its canonical path and filesystem identity differ from `/`, `$HOME`, and every verified home path; a quoted variable containing literal `~` does not undergo tilde expansion.
 - `FS3` `rm -rf *` or any unbounded glob → refuse; require explicit paths.
 - `FS4` `rm -rf /...` or `rm -rf ~/...` → return `BLOCKED` unless the user gives strong justification; after exact-path preview, treat it as a confirmable effect.
 - `FS5` `find ... -delete` or `-exec rm` → dry-run with `-print` first; reviewed deletion is still a confirmable effect.
@@ -103,7 +103,7 @@ One-line summaries grouped by category. Use [command construction](./references/
 - `CS1` Backticks `` `cmd` `` → `$(cmd)`.
 - `CS2` Unquoted nested `$(...)` → quote: `"$(...)"`.
 - `CS3` `curl ... | sh` / `wget ... | bash` → download to temp, inspect, then run.
-- `CS4` `eval "$var"` → refuse; restructure.
+- `CS4` `eval "$var"` → refuse; reconstruct the intended argv directly, scope POSIX `set -- ...; "$@"` when caller parameters must survive, then reclassify it.
 - `CS5` `find ... | xargs rm` (no NUL) → preview the NUL-safe target set, then confirm the exact `find ... -print0 | xargs -0 rm --` replacement.
 - `CS6` Pipelines whose earlier commands must succeed → identify the interpreter first; use `set -o pipefail` only where supported, otherwise capture component status explicitly or require a shell that supports it.
 

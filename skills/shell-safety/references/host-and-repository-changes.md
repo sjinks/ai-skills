@@ -62,12 +62,12 @@ Safe replacement: Check release and package references, then after confirmation 
 Example: `rm -rf ./build`
 Risk: A typo can delete the parent.
 Decision gate: Require an explicit, non-glob path.
-Safe replacement: `target='./build'; [ -n "$target" ] && [ "$target" != "/" ] && [ "$target" != "$HOME" ] && [ -d "$target" ] && rm -rf -- "$target"`.
+Safe replacement: Resolve the explicit target with a platform-appropriate trusted canonicalization facility, compare both canonical path and filesystem identity against `/`, `$HOME`, and every verified account home, preview the bound target, then reverify the same identity immediately before deletion. Return `BLOCKED` when resolution, protected-path discovery, or identity binding is unavailable.
 ### FS2 - Variable recursive delete
 Example: `rm -rf "$BUILD_DIR"`
 Risk: An unset, empty, or root-like value is unsafe.
 Decision gate: Block unresolved values.
-Safe replacement: `: "${BUILD_DIR:?BUILD_DIR is unset}"; [ -n "$BUILD_DIR" ] && [ "$BUILD_DIR" != "/" ] && [ "$BUILD_DIR" != "$HOME" ] && [ -d "$BUILD_DIR" ] && rm -rf -- "$BUILD_DIR"`.
+Safe replacement: First require a non-empty value with `: "${BUILD_DIR:?BUILD_DIR is unset}"`. Parameter expansion does not re-run tilde expansion, so literal `~` is relative to the current directory. Resolve that concrete target and apply FS1's canonical-path, filesystem-identity, preview, and immediate-reverification gates before deletion; reject alternate spellings or aliases of root and every verified home path.
 ### FS3 - Unbounded glob delete
 Example: `rm -rf *`
 Risk: Deletes the current directory's contents.

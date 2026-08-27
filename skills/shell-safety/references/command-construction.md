@@ -236,11 +236,14 @@ Risk: Text executes with the shell's privileges and cannot be safely sanitized.
 
 Decision gate: Prohibited.
 
-Safe replacement:
-```bash
-cmd=(rsync -av --delete src/ dst/)
-"${cmd[@]}"
+Safe replacement for POSIX `sh`, Bash, or zsh:
+```sh
+(
+	set -- rsync -av --delete src/ dst/
+	"$@"
+)
 ```
+Construct the arguments directly rather than parsing a command string. The subshell preserves the caller's positional parameters; omit it only when replacing the caller's `$@` is explicitly intended. This removes `eval` injection risk but does not authorize the reconstructed command: reclassify it from the beginning, including RX5 dry-run and confirmation requirements for `rsync --delete`.
 
 ### CS5 - `xargs` without NUL delimiters
 Example: `find . -name '*.log' | xargs rm`
