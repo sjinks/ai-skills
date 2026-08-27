@@ -12,7 +12,8 @@ tags:
 
 inputs:
   prompt: |
-    Audit this skill specifically across the default supported model set.
+    Audit this skill specifically for GPT-5.4 mini, GPT-5.5,
+    Claude Haiku 4.6, and Claude Fable 5.
 
     ```markdown
     ---
