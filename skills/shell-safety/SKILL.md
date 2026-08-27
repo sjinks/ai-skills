@@ -264,7 +264,16 @@ One-line summaries grouped by category. Use [command construction](./references/
 
 Classify each exact command segment with the narrowest matching rule below. A compound command can match several gates; the most restrictive matching gate wins for the complete command.
 
-Reference records use shorter gate phrases. Map `Prohibited` and unconditional `Block` to **Prohibited**; map `Rewrite` to **Rewrite-Only**; and map `Confirm`, `Confirmable`, or `Refuse without explicit confirmation` to **Confirmable Effects**. `Inspect`, `Verify`, and `Require` name prerequisites rather than outcomes: return `BLOCKED` while they are unresolved, then reclassify the complete command after they pass. For compound phrases, apply every named phase in order and keep the most restrictive result.
+Reference phrases select a Decision Gate section; they are not `Result:` values.
+
+| Reference phrase | Decision Gate section | Allowed `Result:` values |
+| --- | --- | --- |
+| `Prohibited`, unconditional `Block` | **Prohibited** | `BLOCKED` |
+| `Rewrite` | **Rewrite-Only** | `REWRITE` if the replacement is safe; otherwise `BLOCKED`, `NEEDS-CONFIRMATION`, or later `AUTHORIZED` after reclassification |
+| `Confirm`, `Confirmable`, `Refuse without explicit confirmation` | **Confirmable Effects** | `BLOCKED` until prerequisites pass, then `NEEDS-CONFIRMATION` or `AUTHORIZED` |
+| `Inspect`, `Verify`, `Require` | Prerequisite, not a gate or result | `BLOCKED` while unresolved; otherwise reclassify the complete command |
+
+For compound phrases, apply every named phase in order and keep the most restrictive result.
 
 ### Prohibited
 
