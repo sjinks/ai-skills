@@ -32,14 +32,16 @@ Everything else needs validation. In particular:
 - Any IaC mutation (`terraform destroy`, `terraform apply -auto-approve`, `pulumi destroy --yes`).
 - Any container mass-mutation (`docker system prune`, `docker rm $(docker ps -aq)`, `kubectl delete namespace`).
 - Any database mutation executed or proposed for execution through a terminal database CLI or REPL (`DROP`, `TRUNCATE`, `DELETE FROM ... ;` without `WHERE`, `FLUSHALL`, `dropDatabase()`). Ask for the terminal execution context when it is absent.
-- Any secret variable in echo, env dump, or command-line flag (`--password=<redacted>`, `--token=<redacted>`).
+- Any secret variable in echo, env dump, or a command-line flag carrying a secret, including:
+	- `--password=<redacted>`
+	- `--token=<redacted>`
 
 ## Procedure
 
 1. **Categorize.** Split the command into segments and map each segment and interaction to every applicable [Category Index](#category-index) row; do not guess pattern IDs before loading their definitions.
 2. **Load.** Read every reference selected by the category pass. Linked reference records are the gating source of truth for each pattern ID, risk, per-pattern decision-gate phrase, and replacement/check sequence; the global [Decision Gates](#decision-gates) and [Output](#output) in this file remain authoritative for interpreting gates and emitting results. If a selected reference is unreadable, return `Result: BLOCKED`, `Matched patterns: None`, name the unavailable reference in `Assessment:`, use `Command: Not provided`, and request the reference under `Required checks:`. Never infer `SAFE`, `REWRITE`, or `AUTHORIZED` from the Category Index alone.
 3. **Match.** Check every segment and cross-segment interaction against the loaded reference records, identify every applicable pattern ID, and address every actual match. A fully checked command with no applicable pattern may be `SAFE` with `Matched patterns: None`.
-	An in-scope command with a write, delete, overwrite, process, service, privilege, repository, or other mutation effect may not use that fallback: if no loaded record positively classifies the effect, return `BLOCKED` with `Matched patterns: None` and request an applicable rule or a narrower proven-safe action.
+	An in-scope command that mutates external resources may not use that fallback. This includes filesystem or repository objects, processes or services, privileges, packages, remote systems, and cloud, infrastructure, or database state. Process-local shell assignments by themselves are not external-resource mutations and may use `SAFE` with `Matched patterns: None` after all values and downstream execution effects are checked. If no loaded record positively classifies an external mutation, return `BLOCKED` with `Matched patterns: None` and request an applicable rule or a narrower proven-safe action.
 	Subsumption is explicit only. A command-specific record may declare `Subsumes: <IDs>` when it fully incorporates the same hazard, gate, and required checks; apply and report the specific record and omit only those declared generic IDs. Without that declaration, report and resolve every applicable record. Distinct hazards never subsume one another.
 4. **Resolve conflicts.** Apply decision gates in this order: prohibited > rewrite-only > confirmable > safe. If two applicable rules cannot be satisfied together, return `BLOCKED`; do not choose one silently.
 5. **Rewrite.** Apply the matching reference record and reassess the complete rewritten command, not only the segment that triggered the first match.
@@ -51,7 +53,7 @@ For deep quoting questions, consult [quoting-rules.md](./references/quoting-rule
 
 | Category | Pattern IDs | Reference |
 | --- | --- | --- |
-| Command construction | `GC`, `Q`, `CS1-2`, `CS4-6`, `HD`, `OR`, `SM`, `SE`, `EN` | [command-construction.md](./references/command-construction.md) |
+| Command construction | `GC`, `Q`, `CS1-2`, `CS4-7`, `HD`, `OR`, `SM`, `SE`, `EN` | [command-construction.md](./references/command-construction.md) |
 | Host/repository | `GD`, `FS`, `PC`, `PE`, `GP`, `SS`, `AR` | [host-and-repository-changes.md](./references/host-and-repository-changes.md) |
 | Remote delivery | `CS3`, `NS`, `RX` | [remote-delivery.md](./references/remote-delivery.md) |
 | Platform/data | `CL`, `IC`, `OK`, `DB` | [platform-and-data-operations.md](./references/platform-and-data-operations.md) |

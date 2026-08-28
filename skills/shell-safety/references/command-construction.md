@@ -272,6 +272,15 @@ cmd1 | cmd2 | cmd3
 ```
 `pipefail` is specified by POSIX.1-2024, but older POSIX targets and shells such as dash may not support it. For a POSIX.1-2024-conforming shell or another verified supporting interpreter, the replacement above is valid. For older or unknown targets, verify the capability first; otherwise capture component status through an explicitly designed non-pipeline flow or select a supporting interpreter.
 
+### CS7 - Untrusted executable invocation
+Example: `./downloaded-tool --version`
+
+Risk: Resolving and starting an untrusted script, wrapper, or binary can execute side effects before or instead of parsing an apparently informational flag.
+
+Decision gate: Block until executable identity, provenance, and pre-flag behavior are resolved.
+
+Safe replacement: Resolve the exact executable without running it; require a canonical regular non-symlink file under trusted non-writable parents, bind its filesystem identity and digest, verify ownership and writability, establish authenticated provenance or complete review of the exact bytes, and account for interpreter, loader, startup configuration, plugins, and wrappers that can execute before argument parsing. Return `BLOCKED` when any execution path or identity binding remains unresolved, then reclassify the actual invocation under every additional record.
+
 ## Heredocs and multi-line text
 
 ### HD1 - Indented heredoc terminator
