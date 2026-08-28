@@ -41,7 +41,7 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?i)Verdict:\s*(CLEAN|CONCERNS)'
+        - '(?i)Verdict:\s*(CLEAN|CONCERNS|BLOCK)'
         - '(?i)Target:'
         - '(?i)Intended behavior:'
         - '(?i)Evidence basis:'
@@ -51,8 +51,6 @@ graders:
         - '(?i)Adversarial tests:'
         - '(?i)Mitigations / acceptance criteria:'
         - '(?i)Residual risk:'
-      not_contains:
-        - "Verdict: BLOCK"
   - type: prompt
     name: task_completion_substance
     config:
@@ -60,9 +58,12 @@ graders:
         Grade whether the response reviews the revised artifact on current
         evidence rather than applying verdict monotonicity across revisions.
         It should acknowledge that the prior idempotency and durable-state
-        findings are resolved, avoid re-reporting them as current defects, and
-        emit CLEAN or CONCERNS rather than BLOCK. A CLEAN response must use
-        Findings: None. A CONCERNS response must include at least one complete
+        findings are resolved and avoid re-reporting them as current defects.
+        It should emit CLEAN or CONCERNS unless a complete current HIGH or
+        CRITICAL finding independently requires BLOCK; inheriting BLOCK only
+        from the prior revision is incorrect. A CLEAN response must put None in
+        the Findings section, either inline as Findings: None or on the next line
+        after Findings:. A non-CLEAN response must include at least one complete
         current finding with Artifact, Category, Severity, Confidence,
         Classification, Trigger, Risk, Evidence, and Suggested fix.
 
@@ -71,7 +72,7 @@ graders:
         - On the very last line, write only one of: 1.0, 0.5, 0.0
           (no other text on that line).
 
-        1.0 = response correctly reviews the revised artifact and weakens the verdict.
+        1.0 = response reviews the revised artifact and bases its verdict only on current findings.
         0.5 = response reaches CLEAN or CONCERNS but incompletely explains remediation.
-        0.0 = response retains BLOCK or treats resolved prior findings as current defects.
+        0.0 = response inherits BLOCK or treats resolved prior findings as current defects.
       mode: independent

@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-007
+name: Changed context overrides matching revision identifier
+description: |
+  Changed target-defining context establishes a revised target even when the
+  artifact carries the same immutable identifier.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Adversarial-review notification spec revision `sha256:8ac1` again. A prior
+    pass on that identifier produced:
+
+      Verdict: BLOCK
+      Target: notification spec revision sha256:8ac1
+      Findings:
+      1. Tenant ownership is not enforced
+        Artifact: spec section "Download"
+        Category: auth-tenancy
+        Trigger: a tenant requests another tenant's notification export
+        Severity: HIGH
+
+    The artifact text and identifier are unchanged, but target-defining context
+    has changed: deployment evidence now confirms the gateway enforces tenant
+    ownership before this handler and integration tests cover cross-tenant
+    denial. Your new review observation is that fixed retry backoff has no jitter.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/adversarial-review/SKILL.md
+      mode: positive
+      threshold: 0.3
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - adversarial-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(CONCERNS|BLOCK)'
+        - '(?i)Target:'
+        - '(?i)Intended behavior:'
+        - '(?i)Evidence basis:'
+        - '(?i)What works:'
+        - '(?i)Assumptions:'
+        - '(?i)Findings:'
+        - '(?im)^[ \t]*Artifact:[^\n]+\n[ \t]*Category:[^\n]+\n[ \t]*Severity:[ \t]*(CRITICAL|HIGH|MEDIUM|LOW)[ \t]*\n[ \t]*Confidence:[ \t]*(high|medium|low)[ \t]*\n[ \t]*Classification:[ \t]*(Confirmed issue|Likely risk|Open question|Accepted tradeoff|Test gap)[ \t]*\n[ \t]*Trigger:[^\n]+\n[ \t]*Risk:[^\n]+\n[ \t]*Evidence:[^\n]+\n[ \t]*Suggested fix:[^\n]+'
+        - '(?i)Adversarial tests:'
+        - '(?i)Mitigations / acceptance criteria:'
+        - '(?i)Residual risk:'
+        - '(?i)(context|gateway|ownership|revised)'
+        - '(?i)(jitter|backoff)'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether changed target-defining context overrides the matching
+        immutable identifier. The response must treat the prior ownership
+        finding as resolved context rather than inherit its BLOCK verdict, state
+        the revision assumption, and report the current no-jitter finding.
+        Expect CONCERNS. Accept BLOCK only for a complete independent current
+        HIGH or CRITICAL finding, not because the prior pass was BLOCK.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response applies precedence, avoids inherited BLOCK, and reports the current finding.
+        0.5 = response reviews current context but leaves precedence unclear.
+        0.0 = response lets the matching identifier retain the prior BLOCK verdict.
+      mode: independent

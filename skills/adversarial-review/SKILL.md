@@ -26,6 +26,8 @@ Use the same evidence standard whether invoked directly or after another workflo
 
 When invoked after a *prior adversarial-review pass on the same target revision*, two extra cross-pass rules govern deduplication and verdict strength. Read [paired-review](./references/paired-review.md) before reconciling findings or emitting a verdict in that case.
 
+Classify revised-target evidence first: changed artifact content; changed target-defining context such as intended behavior, requirements, constraints, controls, or evidence about the artifact; an explicitly new or changed revision; differing revision identifiers; or missing or ambiguous identity. Revised-target evidence overrides matching identifiers and unchanged claims. A new observation produced by the later review alone does not change the revision. When no revised-target evidence exists, treat two passes as the same revision if the caller confirms they are unchanged without contradiction or both carry the same explicit immutable revision identifier. For a revised target, use prior findings as context but do not apply cross-pass deduplication or verdict monotonicity; state the revision assumption in `Assumptions`.
+
 ## Boundaries
 
 - Review only artifacts and systems the user is authorized to inspect.

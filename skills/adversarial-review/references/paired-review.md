@@ -2,6 +2,8 @@
 
 Read this when this skill runs *after a prior adversarial-review pass on the same target revision* and you must decide which findings are new and what verdict to emit. For a first pass, a revised target, or prior output from a different skill or review, these rules do not apply as monotonic constraints. When a revised target is supplied, verify whether prior findings were resolved and review the revised artifact on its current evidence.
 
+Revision identity follows the precedence rule in `SKILL.md`. Changed artifact content or target-defining context, an explicitly new or changed revision, differing revision identifiers, or missing or ambiguous identity means a revised target and overrides matching identifiers or unchanged claims. Target-defining context includes intended behavior, requirements, constraints, controls, and evidence about the artifact; a new observation produced by the later review alone does not change the revision. Otherwise, an uncontradicted unchanged claim or matching explicit immutable identifiers establishes the same revision. For a revised target, use prior findings as context without suppressing current findings or retaining the prior verdict, and record the assumption.
+
 These rules apply only against a prior pass that emitted this skill's Output Format markers (`Artifact:`, `Category:`, `Trigger:`, `Verdict:`). A prior output lacking those fields is the target under review, not a prior pass; the Paired-review "avoid re-reporting" guidance in `SKILL.md` still applies to it.
 
 ## Dedup criterion

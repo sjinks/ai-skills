@@ -12,7 +12,7 @@ It helps an assistant:
 - distinguish confirmed issues, likely risks, open questions, accepted tradeoffs, and test gaps
 - convert top risks into adversarial tests, mitigations, or acceptance criteria
 - return `BLOCK`, `CONCERNS`, or `CLEAN` verdicts without inventing findings
-- deduplicate findings and retain verdict strength for unresolved findings across repeated passes on the same target revision (paired review)
+- classify target revisions deterministically, then deduplicate findings and retain verdict strength for unresolved findings across repeated passes on the same revision (paired review)
 
 ## Files
 
