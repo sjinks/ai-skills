@@ -115,7 +115,7 @@ Every substantive finding must name a concrete trigger or scenario. Do not prese
 4. Steel-man the target before challenging it: briefly state what the current approach gets right, why it is reasonable, or what constraints it appears to satisfy. State this regardless of how many findings follow; if nothing works, write `What works: None identified` rather than inventing strengths to balance the review.
 5. List assumptions the review depends on, including missing context.
 6. Challenge those assumptions using the relevant lenses and taxonomy.
-7. Deduplicate overlapping findings so the same risk is not reported multiple ways; in paired review, apply the dedup criterion in `references/paired-review.md` against every prior adversarial-review pass on the same target, not only the most recent one.
+7. Deduplicate overlapping findings so the same risk is not reported multiple ways; in paired review, apply the dedup criterion in `references/paired-review.md` against every prior adversarial-review pass on the same target revision, not only the most recent one.
 8. Apply the "so what?" filter and drop findings whose ignored consequence is immaterial for the target's context.
 9. Rank findings by severity, impact, likelihood, and confidence.
 10. Convert the top risks into concrete adversarial tests, mitigations, or acceptance criteria.

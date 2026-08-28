@@ -2,7 +2,7 @@
 id: positive-edge-003
 name: Second pass holds verdict monotonicity and dedups
 description: |
-  A second adversarial-review pass on the same target must not emit a verdict
+  A second adversarial-review pass on the same target revision must not emit a verdict
   weaker than the strongest prior pass, and must not re-report a finding that
   matches the same artifact, category, and trigger as a prior finding.
 tags:

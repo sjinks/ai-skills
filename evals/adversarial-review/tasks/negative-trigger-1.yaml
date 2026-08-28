@@ -19,6 +19,9 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Intended behavior:"
+        - "Evidence basis:"
+        - "What works:"
         - "Findings:"
         - "Verdict: BLOCK"
         - "Verdict: CONCERNS"
