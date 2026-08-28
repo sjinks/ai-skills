@@ -24,3 +24,5 @@ graders:
         - "Verdict: CONCERNS"
         - "Verdict: CLEAN"
         - "Adversarial tests:"
+        - "Mitigations / acceptance criteria:"
+        - "Residual risk:"

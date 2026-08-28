@@ -32,6 +32,31 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - "(?i)Verdict:\\s*BLOCK"
-        - "(?i)(Open question|target unavailable|insufficient|unreadable|empty)"
-        - "(?i)Pending - target unavailable"
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Target:'
+        - '(?i)Intended behavior:'
+        - '(?i)Evidence basis:'
+        - '(?i)What works:\s*Pending - target unavailable'
+        - '(?i)Assumptions:'
+        - '(?i)Findings:'
+        - '(?im)^[ \t]*Artifact:[^\n]+\n[ \t]*Category:[^\n]+\n[ \t]*Severity:[ \t]*(CRITICAL|HIGH|MEDIUM|LOW)[ \t]*\n[ \t]*Confidence:[ \t]*(high|medium|low)[ \t]*\n[ \t]*Classification:[ \t]*Open question[ \t]*\n[ \t]*Trigger:[^\n]+\n[ \t]*Risk:[^\n]+\n[ \t]*Evidence:[^\n]+\n[ \t]*Suggested fix:[^\n]+'
+        - '(?i)Adversarial tests:\s*Pending - target unavailable'
+        - '(?i)Mitigations / acceptance criteria:\s*Pending - target unavailable'
+        - '(?i)Residual risk:'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the missing-target response emits exactly one finding,
+        classifies it as Open question, explains that the target is unavailable,
+        and does not invent any substantive defect or additional finding.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = exactly one blocker finding and no fabricated target claims.
+        0.5 = the blocker is correct but cardinality or wording is ambiguous.
+        0.0 = additional findings or fabricated target claims are present.
+      mode: independent

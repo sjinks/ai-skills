@@ -49,9 +49,18 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - "(?i)Verdict:\\s*(BLOCK|CONCERNS)"
-        - "(?i)Target:"
-        - "(?i)(jitter|backoff|thundering)"
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Target:'
+        - '(?i)Intended behavior:'
+        - '(?i)Evidence basis:'
+        - '(?i)What works:'
+        - '(?i)Assumptions:'
+        - '(?i)Findings:'
+        - '(?im)^[ \t]*Artifact:[^\n]+\n[ \t]*Category:[^\n]+\n[ \t]*Severity:[ \t]*(CRITICAL|HIGH|MEDIUM|LOW)[ \t]*\n[ \t]*Confidence:[ \t]*(high|medium|low)[ \t]*\n[ \t]*Classification:[ \t]*(Confirmed issue|Likely risk|Open question|Accepted tradeoff|Test gap)[ \t]*\n[ \t]*Trigger:[^\n]+\n[ \t]*Risk:[^\n]+\n[ \t]*Evidence:[^\n]+\n[ \t]*Suggested fix:[^\n]+'
+        - '(?i)Adversarial tests:'
+        - '(?i)Mitigations / acceptance criteria:'
+        - '(?i)Residual risk:'
+        - '(?i)(jitter|backoff|thundering)'
   - type: prompt
     name: task_completion_substance
     config:
@@ -59,10 +68,20 @@ graders:
         The response is a second adversarial-review pass on a target whose prior
         pass emitted Verdict: CONCERNS over a missing idempotency key. Grade
         whether the response:
-        - Emits a verdict no weaker than CONCERNS (CONCERNS or BLOCK), NOT CLEAN,
-          even though its net-new finding (fixed backoff / no jitter) is only a
-          bounded MEDIUM/LOW concern — verdict monotonicity must be held.
+        - Emits BLOCK because the unresolved prior HIGH finding has no documented
+          compensating control or owner-accepted tradeoff. The bounded MEDIUM/LOW
+          no-jitter finding does not weaken that required verdict.
         - Does NOT re-report the missing idempotency key as a fresh finding with
           the same trigger (a retried POST re-sending the notification); it may
-          reference the prior finding but must not duplicate it.
+          reference the prior finding in Evidence basis but must not duplicate it.
         - Surfaces the no-jitter backoff observation as its net-new finding.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response emits BLOCK and correctly performs both paired-review behaviors.
+        0.5 = response is partially correct or violates one paired-review rule.
+        0.0 = response misses the required verdict, deduplication, or net-new finding.
+      mode: independent

@@ -33,10 +33,18 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - "(?i)Verdict:\\s*(BLOCK|CONCERNS|CLEAN)"
-        - "(?i)Target:"
-        - "(?i)(Findings|Adversarial tests|Residual risk)"
-        - "(?i)(cross-?tenant|IDOR|ownership\\s+check|tenant\\s+isolation|ACL\\s+(check|missing))"
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Target:'
+        - '(?i)Intended behavior:'
+        - '(?i)Evidence basis:'
+        - '(?i)What works:'
+        - '(?i)Assumptions:'
+        - '(?i)Findings:'
+        - '(?im)^[ \t]*Artifact:[^\n]+\n[ \t]*Category:[^\n]+\n[ \t]*Severity:[ \t]*(CRITICAL|HIGH|MEDIUM|LOW)[ \t]*\n[ \t]*Confidence:[ \t]*(high|medium|low)[ \t]*\n[ \t]*Classification:[ \t]*(Confirmed issue|Likely risk|Open question|Accepted tradeoff|Test gap)[ \t]*\n[ \t]*Trigger:[^\n]+\n[ \t]*Risk:[^\n]+\n[ \t]*Evidence:[^\n]+\n[ \t]*Suggested fix:[^\n]+'
+        - '(?i)Adversarial tests:'
+        - '(?i)Mitigations / acceptance criteria:'
+        - '(?i)Residual risk:'
+        - '(?i)(cross-?tenant|IDOR|ownership\s+check|tenant\s+isolation|ACL\s+(check|missing))'
       not_contains:
         - "Gate decision:"
         - "Lenses applied:"
@@ -51,9 +59,8 @@ graders:
         CONCERNS. The decisive issue is the missing per-job ACL check combined
         with a client-generated job ID, which is a cross-tenant IDOR risk that
         the spec text confirms. The response should:
-        - Reach verdict BLOCK (or argue persuasively that compensating controls
-          downgrade it to CONCERNS — accept either if the cross-tenant risk is
-          named explicitly).
+        - Reach verdict BLOCK. The supplied artifact documents no compensating
+          control or owner-accepted tradeoff that permits a weaker verdict.
         - Identify the cross-tenant / IDOR / ownership issue as CRITICAL or HIGH
           with classification "Confirmed issue".
         - Mention error-message leakage (HTTP 500 with upstream error string in

@@ -24,7 +24,7 @@ Use the same evidence standard whether invoked directly or after another workflo
 - **Standalone review:** Ask for, read, or infer the concrete target artifact before judging it. If the target is missing or too vague, follow the blocker path in Required Input Context.
 - **Paired review:** When invoked after another skill, agent, plan, review, or implementation, treat that prior output as the target artifact. Challenge what it produced, identify what it got right, and avoid re-reporting issues it already raised unless the prior output understated the severity, missed evidence, or left the mitigation ambiguous.
 
-When invoked after a *prior adversarial-review pass on the same target*, two extra cross-pass rules govern deduplication and verdict strength. Read [paired-review](./references/paired-review.md) before reconciling findings or emitting a verdict in that case.
+When invoked after a *prior adversarial-review pass on the same target revision*, two extra cross-pass rules govern deduplication and verdict strength. Read [paired-review](./references/paired-review.md) before reconciling findings or emitting a verdict in that case.
 
 ## Boundaries
 
@@ -48,7 +48,7 @@ Collect or read the narrowest useful context before judging:
 - Release context, blast radius, reversibility, and whether the target is prototype, internal, production, regulated, security-sensitive, or safety-sensitive.
 - Existing tests, verification evidence, monitoring, runbooks, or acceptance criteria.
 
-Halt and ask for more context, or report a blocker, when the target is empty, missing, unreadable, or too vague to identify intended behavior. If context is partial but usable, proceed with explicitly listed assumptions and caveats. If the assistant halts to ask for context instead of emitting a verdict, the halt must still include the `Target`, best-effort `Intended behavior`, and the specific missing context; otherwise emit `BLOCK`.
+When the target is empty, missing, unreadable, or too vague for meaningful review, emit `BLOCK` using the missing-target template in Output Format and state the exact context required to continue. Do not emit an unstructured clarification-only response. If context is partial but usable, proceed with explicitly listed assumptions and caveats.
 
 ## Optional Review Lenses
 
@@ -120,7 +120,7 @@ Every substantive finding must name a concrete trigger or scenario. Do not prese
 9. Rank findings by severity, impact, likelihood, and confidence.
 10. Convert the top risks into concrete adversarial tests, mitigations, or acceptance criteria.
 11. Mark each mitigation or acceptance criterion as blocking or non-blocking when the distinction matters.
-12. Assign the overall verdict. In paired review, hold the verdict monotonicity rule in `references/paired-review.md`: do not emit a verdict weaker than the strongest prior verdict across all prior adversarial-review passes on the same target.
+12. Assign the overall verdict. In paired review, apply the remediation-aware verdict rule in `references/paired-review.md`: do not emit a verdict weaker than the strongest prior verdict supported by unresolved findings on the same target revision.
 
 ## Output Format
 

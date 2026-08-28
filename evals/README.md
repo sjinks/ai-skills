@@ -143,6 +143,9 @@ grader weighting takes effect.
   `dependency-choice-review`, `implementation-task-decomposition`,
   `hypothesis-driven-debugging`, `refactoring-safety`,
   `data-migration-safety`) use 10 000; the rest use 8 000;
+  `adversarial-review` uses 90 000 because paired-review tasks measure
+  roughly 68 000 total tokens after fixed harness injection and cached
+  multi-turn re-sends;
   `handoff-note` is explicitly budgeted at 8 000; `spock-voice` uses
   4 000.
 

@@ -39,5 +39,4 @@ graders:
         - "Verdict: CLEAN"
         - "Adversarial tests:"
         - "Mitigations / acceptance criteria:"
-        - "Failure modes:"
         - "Residual risk:"
