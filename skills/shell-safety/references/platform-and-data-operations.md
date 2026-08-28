@@ -58,7 +58,7 @@ Safe replacement: Verify the signed-in tenant and inspect `az --subscription=<su
 Example: `aws s3 rm s3://bucket --recursive` using defaults.
 Risk: Defaults can target production.
 Decision gate: Rewrite.
-Safe replacement: Specify environment explicitly: `AWS_PROFILE=dev AWS_REGION=us-east-1 aws s3 ls`, `gcloud --project=dev compute instances list`, `az --subscription=dev resource list`, and `kubectl --context=dev get pods`.
+Safe replacement: First determine the caller-selected account/profile, region, project, subscription, cluster context, and namespace that apply; never invent or hard-code `dev`. Use read-only `ls`/`list`/`get` commands with those explicit selectors only as inspection prerequisites. Then add the same verified selector to the original mutation, preserve its action and target, and reclassify the complete explicit-context command under every applicable mutation rule.
 
 ### CL10 - Echoing cloud secret
 Example: `echo $AWS_SECRET_ACCESS_KEY`
@@ -145,7 +145,7 @@ Safe replacement: Mount only a needed path, for example `-v /tmp/work:/work`.
 ### OK5 - Namespace deletion
 Example: `kubectl delete namespace staging`
 Risk: Cascade-deletes namespaced resources.
-Decision gate: Confirmable.
+Decision gate: Confirm dynamic namespace-wide scope, or require server-side stability for an exact reviewed set.
 Safe replacement: Discover and inventory every listable namespaced API resource under the exact context:
 ```sh
 resources="$(kubectl --context=<context> api-resources --namespaced=true --verbs=list -o name)" || exit 1
@@ -160,7 +160,7 @@ done <<EOF
 $resources
 EOF
 ```
-Any discovery or list failure blocks deletion. Review and bind every resource name, object name, and count; refresh the complete inventory immediately before confirming the exact context and namespace deletion.
+Any discovery or list failure blocks deletion. The client-side inventory is an inspection prerequisite only; refreshing it cannot bind the resource set through the delete request. Before deletion, either (a) explicitly confirm dynamic namespace-wide scope, including resources created or changed before the server processes deletion, while binding the namespace UID and exact context, or (b) use a server-side admission, freeze, or equivalent control that keeps the reviewed set stable and submit the namespace deletion with server-enforced UID/resourceVersion preconditions. If the caller requires only the exact reviewed object set and no server-side stability mechanism is available, return `BLOCKED`.
 
 ### OK6 - Apply manifest from URL
 Example: `kubectl apply -f https://example.com/manifest.yaml`

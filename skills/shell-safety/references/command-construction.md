@@ -133,14 +133,14 @@ Decision gate: Block until one structured expansion is captured and bound throug
 
 Safe replacement: Use a runtime or helper that resolves the glob once into a structured argv list, records path identity when replacement matters, renders every path with unambiguous escaping for review, and invokes `mv --` with that same stored list. Do not expand `*.log` again after review; if the exact structured list cannot survive through execution, return `BLOCKED`. This record applies to a glob expanded into an external command's argument list. A glob used as an in-shell `for` list with Q3's existence/link guard is classified under Q3 and does not additionally match Q4.
 
-### Q5 - Unquoted `$@`
-Example: `cmd $@`
+### Q5 - Unquoted `$@` or `$*`
+Example: `cmd $@`, `cmd $*`
 
-Risk: Each argument can split further.
+Risk: Each positional parameter can split and glob further; unquoted `$*` does not perform the single-string `IFS[0]` join of quoted `"$*"`.
 
 Decision gate: Rewrite.
 
-Safe replacement: `cmd "$@"`.
+Safe replacement: Use `cmd "$@"` when preserving argument boundaries. Use `cmd "$*"` only when the caller explicitly intends one argument joined by the first character of `IFS` and that separator is resolved.
 
 ### Q6 - Path with spaces
 Example: `cat /tmp/my file.txt`
@@ -172,7 +172,7 @@ Safe replacement: `printf "%s\n" "it's $name"`.
 ### Q9 - Backslash escapes in single quotes
 Example: `echo 'a\nb'`
 
-Risk: `\n` remains literal and `echo -e` is non-portable.
+Risk: Single quotes pass `\n` literally through shell parsing, but `echo` handling of a backslash-containing operand is implementation-defined and may emit literal characters or interpret an escape; `echo -e` is also non-portable.
 
 Decision gate: Block until escape intent is known, then rewrite.
 
@@ -445,7 +445,7 @@ For multi-command parsing, use a subshell instead of manual save/restore.
 ### SE1 - Echoing a secret variable
 Example: `echo $TOKEN`
 
-Risk: The value enters output, history, and logs.
+Risk: The expanded value is exposed through terminal output and any transcript or log capture. Interactive shell history records the source text `echo $TOKEN`, not the expanded value.
 
 Decision gate: Prohibited.
 

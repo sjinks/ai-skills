@@ -152,7 +152,12 @@ Safe replacement: Use `sudo -- <command>` for a one-shot action.
 Example: `chmod u+s /usr/local/bin/myscript`
 Risk: Users can run with owner privileges.
 Decision gate: Prohibited.
-Safe replacement: Use sudoers rules or a specific `setcap` capability.
+Safe replacement: Prefer a narrowly scoped sudoers rule only after reviewing the exact principal, canonical command path, permitted arguments, environment, ownership, and writability. Do not substitute `setcap` as an automatic rewrite; file capabilities are a separate persistent privilege grant classified under PE4.
+### PE4 - File capability grant
+Example: `sudo setcap cap_net_bind_service=+ep /usr/local/bin/app`
+Risk: A capability granted to a replaceable or attacker-writable binary can elevate untrusted code.
+Decision gate: On Linux with libcap `getcap` and `setcap` available, block until the exact capability need, canonical regular non-symlink target, filesystem identity, owner, group/other writability, parent-directory trust, package/update lifecycle, current capabilities, and rollback are resolved; then confirm the exact grant. On other targets or without libcap, return `BLOCKED` until a platform-specific privilege mechanism is selected and reviewed.
+Safe replacement: On a verified Linux/libcap target, use `getcap` to inspect the identity-bound target, verify that the binary and every parent are trusted and not writable by untrusted users, bind its digest and filesystem identity, choose the minimum required capability and flags, preview the exact change, and revalidate immediately before a separately confirmed `setcap`. Return `BLOCKED` when platform support, target identity, trust, lifecycle, rollback, or least-privilege capability scope cannot be established.
 ### GP1 - Delete secret keys
 Example: `gpg --delete-secret-keys ABCD1234`
 Risk: Encrypted data may become unrecoverable.

@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-078
+name: Secret output is not expanded shell history
+description: |
+  Secret expansion leaks through output capture, while history stores source.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    Review `echo $TOKEN` in an interactive shell with history enabled and a
+    captured terminal transcript. Explain exactly where the source text and
+    expanded secret value can appear. Return every shell-safety output field.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?mi)^Result:\s*BLOCKED\s*$'
+        - '(?mi)^Matched patterns:\s*SE1 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:[^\n]*history[^\n]*(source|echo \\$TOKEN)[^\n]*(output|transcript|log)[^\n]*(expanded|value|secret)[^\n]*$'
+        - '(?mi)^Command:\s*Not provided\s*$'
+        - '(?ims)^Required checks:.*(presence|set).*(without|not).*(print|read|echo)'
+      not_contains:
+        - 'expanded value enters history'
+        - 'secret value enters history'
+        - 'Verdict:'
+        - 'Checklist status:'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response distinguishes source command text in shell
+        history from the expanded secret in terminal output/transcript capture.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the last line, write only: 1.0, 0.5, or 0.0
+
+        1.0 = source-history and expanded-output locations are both accurate.
+        0.5 = disclosure is blocked but history semantics are omitted.
+        0.0 = it claims shell history stores the expanded secret value.
+      mode: independent

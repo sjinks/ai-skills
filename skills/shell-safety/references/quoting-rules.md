@@ -20,8 +20,8 @@ Read this when a shell command's quoting, expansion, globbing, heredoc, or zsh/b
 
 ### Backslash `\`
 
-- Outside quotes, escapes the next character (loses any special meaning).
-- Inside double quotes, only meaningful before `$`, `` ` ``, `"`, `\`, newline.
+- Outside quotes, escapes the next character (loses any special meaning), except that a backslash-newline pair is removed as a line continuation before tokenization; it does not preserve a newline or separate tokens.
+- Inside double quotes, only meaningful before `$`, `` ` ``, `"`, `\`, and newline; before newline, the backslash-newline pair is removed as a line continuation.
 - Inside single quotes, literal.
 
 ### ANSI-C quoting `$'...'` (bash/zsh)
@@ -35,7 +35,7 @@ printf '%s\n' $'first\nsecond'
 
 ## 2. Expansions and their order
 
-Bash performs expansions in this order on each token:
+Bash removes unquoted and double-quoted backslash-newline continuations before tokenization, then performs expansions in this order on each token:
 
 1. Brace expansion: unquoted brace syntax such as `{a,b}c` expands to `ac bc` before other expansions; quoting any part of the brace operators prevents that part from being recognized as brace syntax.
 2. Tilde expansion: `~` → `$HOME`, `~user` → user's home when an unquoted tilde starts a word. Bash also checks after an unquoted `=` in assignment words and after each unquoted `:` in an assignment value. Text produced later by parameter expansion is not rescanned for tilde expansion.
@@ -50,7 +50,7 @@ Key point: **word splitting** and **pathname expansion** happen on **unquoted** 
 
 | Form | Behavior |
 |------|----------|
-| `$*` | All positional arguments joined by the first character of `IFS` (default: space). Word-splits and globbed. |
+| `$*` | Each positional parameter expands separately, then the resulting unquoted words undergo word splitting and pathname expansion; parameter boundaries are not preserved. |
 | `$@` | All positional arguments as separate words. Word-splits and globbed. |
 | `"$*"` | All arguments as a single string, joined by `IFS[0]`. |
 | `"$@"` | Each argument as a separate quoted word. Preserves spaces in arguments. **Always prefer this.** |
