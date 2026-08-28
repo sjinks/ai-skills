@@ -37,7 +37,7 @@ The `|| exit 1` sequence is for non-interactive use. In an interactive shell, wr
 Example: `git clean -fdx`
 Risk: Removes ignored configuration, artifacts, and notes.
 Decision gate: Confirmable after review.
-Safe replacement: Run `git clean -ndx`; after reviewing every listed path and confirming exact targets, run `git clean -fdx`.
+Safe replacement: Treat `git clean -ndx` as discovery only. Capture one complete candidate set with canonical repository-relative paths and stable filesystem identities, render and review every candidate, retain that protected set through confirmation, then delete only those same identity-revalidated entries without rerunning repository discovery. Do not execute a second broad `git clean` traversal after review. Return `BLOCKED` when the exact retained set cannot be carried through deletion or any candidate is new, missing, changed, or unverifiable.
 ### GD5 - Detached checkout
 Example: `git checkout 4a8c2f1`
 Risk: New commits may be lost when switching away.
@@ -81,7 +81,7 @@ Safe replacement: In a non-interactive script, first require a non-empty value w
 Example: `rm -rf *`
 Risk: Deletes the current directory's contents.
 Decision gate: Prohibited.
-Safe replacement: Enumerate explicit paths: `rm -rf -- build/ dist/ .cache/`.
+Safe replacement: Have the caller select reviewed explicit paths from the original glob's immediate non-hidden scope, capture and bind their identities, and delete only that same revalidated set. Preserve the caller's complete confirmed non-hidden set or an explicitly selected subset; never invent hidden paths or arbitrary names. Return `BLOCKED` when the selected set cannot remain identity-bound through deletion.
 ### FS4 - Recursive delete below `/` or `~`
 Example: `rm -rf /something`, `rm -rf ~/Downloads/old`
 Risk: A spacing or expansion error can affect root or home.
@@ -125,8 +125,8 @@ Safe replacement: Resolve PID and full identity, send `kill <pid>`, wait through
 ### PC2 - Broad `pkill`
 Example: `pkill node`
 Risk: Matches unrelated processes.
-Decision gate: Rewrite.
-Safe replacement: Inspect all candidate PIDs and complete identities, select one, re-read it immediately before signaling, then run `kill <pid>` and follow PC1.
+Decision gate: Rewrite, then confirm the reviewed candidate set.
+Safe replacement: Capture the complete matcher result once with every PID and stable process identity, and review the full set. Preserve either all matching processes when the caller confirms the original broad intent or an explicitly selected subset; do not silently select one PID. Immediately before signaling, revalidate every retained identity, signal only those same PIDs without rerunning the broad matcher, and follow PC1 for escalation. Return `BLOCKED` when the complete set cannot be captured, retained, or revalidated.
 ### PC3 - Background agent-terminal job
 Example: `node server.js &`
 Risk: Completion and cleanup cannot be reliably observed.

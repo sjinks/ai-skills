@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-070
+name: Two path arguments remain separate
+description: |
+  A path-looking command must not be joined when two arguments are intentional.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    Validate `cat /tmp/my file.txt`. I intentionally mean two separate files,
+    `/tmp/my` and `file.txt`, not one filename containing a space. Return every
+    shell-safety output field.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Result:\s*SAFE'
+        - '(?mi)^Matched patterns:\s*None\s*$'
+        - '(?is)Assessment:.*(two|separate).*(path|argument|file).*(intent|requested)'
+        - '(?m)^Command:\s*cat /tmp/my file\.txt\s*$'
+        - '(?i)Required checks:\s*None'
+      not_contains:
+        - 'Command: cat "/tmp/my file.txt"'
+        - 'Result: REWRITE'
+        - 'Verdict:'
+        - 'Checklist status:'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response preserves the two intentional argv entries
+        and classifies the unchanged command as safe without Q6.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the last line, write only: 1.0, 0.5, or 0.0
+
+        1.0 = two arguments are preserved and the result is SAFE.
+        0.5 = intent is recognized but output fields are incomplete.
+        0.0 = the arguments are joined into one path or execution is blocked.
+      mode: independent

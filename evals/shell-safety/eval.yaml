@@ -39,6 +39,15 @@ metrics:
     threshold: 0.7
     description: Stays within the tool-call budget; no total-token cap is set for this suite (see evals/README.md).
 graders:
+  - type: code
+    name: task_completion
+    config:
+      language: python
+      assertions:
+        - >-
+          not any(line.startswith(('Result:', 'Matched patterns:', 'Assessment:', 'Command:', 'Required checks:')) for line in output.splitlines()) or
+          [marker for line in output.splitlines() for marker in ['Result:', 'Matched patterns:', 'Assessment:', 'Command:', 'Required checks:'] if line.startswith(marker)] ==
+          ['Result:', 'Matched patterns:', 'Assessment:', 'Command:', 'Required checks:']
   - type: behavior
     name: efficiency
     config:

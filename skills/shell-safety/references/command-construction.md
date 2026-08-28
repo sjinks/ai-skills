@@ -145,11 +145,11 @@ Safe replacement: `cmd "$@"`.
 ### Q6 - Path with spaces
 Example: `cat /tmp/my file.txt`
 
-Risk: This supplies two paths.
+Risk: This supplies two paths even when one path containing a space was intended.
 
-Decision gate: Rewrite.
+Decision gate: Rewrite when the caller confirms single-path intent.
 
-Safe replacement: `cat "/tmp/my file.txt"`.
+Safe replacement: For confirmed single-path intent, use `cat "/tmp/my file.txt"`. Otherwise preserve the two original arguments, `/tmp/my` and `file.txt`, and reclassify the unchanged command without Q6.
 
 ### Q7 - Variable in single quotes
 Example: `echo '$HOME'`
@@ -174,9 +174,9 @@ Example: `echo 'a\nb'`
 
 Risk: `\n` remains literal and `echo -e` is non-portable.
 
-Decision gate: Rewrite.
+Decision gate: Block until escape intent is known, then rewrite.
 
-Safe replacement: `printf '%s\n%s\n' a b`.
+Safe replacement: When the caller intends two lines, use `printf '%s\n%s\n' a b`. When the caller intends the literal characters `a\nb`, preserve them with `printf '%s\n' 'a\nb'`. Do not infer escape interpretation from the original `echo` form.
 
 ### Q10 - Filename beginning with `-`
 Example: `rm -file`
