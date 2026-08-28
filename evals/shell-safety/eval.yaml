@@ -65,6 +65,26 @@ graders:
           Command:[ ](?:(?:[^|\s]|[^|\n][^\n]*\S)\n|\|\n(?:[ ][ ][^\n]*\n)+)
           Required[ ]checks:[ ](?:(?:[^|\s]|[^|\n][^\n]*\S)\n?|\|\n(?:[ ][ ][^\n]*(?:\n|\Z))+)
           \Z''', output) is not None
+        - >-
+          not __import__('re').search(r'(?im)^[ \t]*(?:result|matched patterns|assessment|command|required checks):', output) or
+          (lambda items, allowed: items == ['None'] or
+          (len(items) == len(set(items)) and all(item in allowed for item in items) and
+          [allowed.index(item) for item in items] == sorted(allowed.index(item) for item in items)))(
+          next(line.removeprefix('Matched patterns: ') for line in output.splitlines() if line.startswith('Matched patterns: ')).split(', '),
+          [*(f'GC{i} (Command construction)' for i in range(1, 9)),
+          *(f'Q{i} (Command construction)' for i in range(1, 11)), 'Q11/SE8 (Command construction)', 'Q12 (Command construction)',
+          *(f'CS{i} (Command construction)' for i in (1, 2, 4, 5, 6)), *(f'HD{i} (Command construction)' for i in range(1, 5)),
+          *(f'OR{i} (Command construction)' for i in range(1, 5)), *(f'SM{i} (Command construction)' for i in range(1, 7)),
+          *(f'SE{i} (Command construction)' for i in range(1, 6)), 'SM7/SE6 (Command construction)', 'SE7 (Command construction)',
+          'SE9 (Command construction)', *(f'EN{i} (Command construction)' for i in range(1, 6)),
+          *(f'GD{i} (Host/repository)' for i in range(1, 10)), *(f'FS{i} (Host/repository)' for i in range(1, 11)),
+          *(f'PC{i} (Host/repository)' for i in range(1, 5)), *(f'PE{i} (Host/repository)' for i in range(1, 5)),
+          *(f'GP{i} (Host/repository)' for i in range(1, 7)), *(f'SS{i} (Host/repository)' for i in range(1, 6)),
+          *(f'AR{i} (Host/repository)' for i in range(1, 6)), 'CS3/NS1 (Remote delivery)',
+          *(f'NS{i} (Remote delivery)' for i in range(2, 6)), 'NS6/RX1 (Remote delivery)',
+          *(f'RX{i} (Remote delivery)' for i in range(2, 8)), *(f'CL{i} (Platform/data)' for i in range(1, 11)),
+          *(f'IC{i} (Platform/data)' for i in range(1, 9)), *(f'OK{i} (Platform/data)' for i in range(1, 13)),
+          *(f'DB{i} (Platform/data)' for i in range(1, 11))])
   - type: behavior
     name: efficiency
     config:
