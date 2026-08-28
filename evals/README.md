@@ -130,6 +130,10 @@ grader weighting takes effect.
   words echoed from the prompt. Positive tasks also `not_contains`
   the structured-output markers of unrelated skills so cross-skill
   leakage fails the task.
+- `shell-safety` prevents positive-task volume from diluting close-domain
+  failures: positive and negative trigger/completion graders use separate
+  metric names, both negative metrics require 1.0, and a separate 1.0
+  `output_contract` metric enforces the ordered top-level field serialization.
 - `tone_quality` (`spock-voice` positives only, `prompt`) — LLM judge.
   The rubric asks for one sentence of reasoning followed by a final
   line containing only `1.0`, `0.5`, or `0.0`, so waza's prompt-grader

@@ -9,7 +9,7 @@ user-invocable: true
 
 ## When to Use
 
-Before composing or running any shell command that is not trivially safe. Trivially safe means: `git status`, `git log --oneline`, `ls`, `ls -la`, `pwd`, `whoami`, `which <cmd>`, `--version` / `--help` queries. File-content reads are not unconditionally trivial because they can disclose secrets.
+Before composing or running any shell command that is not trivially safe. Trivially safe means these exact literal forms after trusted executable resolution: `git status`, `git log --oneline`, `ls`, `ls -la`, `pwd`, `whoami`, and `which <cmd>`. Arbitrary `<program> --version` and `<program> --help` invocations remain in the normal classification path because resolving and executing an untrusted program can have side effects before or instead of flag parsing. File-content reads are not unconditionally trivial because they can disclose secrets.
 
 **UTILITY SKILL.** INVOKES: terminal command composition and execution only after safety classification. FOR SINGLE OPERATIONS: use to classify one proposed command, rewrite a risky command, or decide what checks must pass before execution.
 
@@ -100,7 +100,7 @@ Whenever you classify a non-trivially-safe command you are about to send, return
 - `Matched patterns:` every pattern that matched during classification as `ID (category)`, where `category` is exactly one of `Command construction`, `Host/repository`, `Remote delivery`, or `Platform/data`; do not use reference titles. Include patterns whose prerequisites were later satisfied, and use `None` only when no pattern matched at all. A reference record headed by two IDs is one pattern and uses `/` with no spaces, for example `CS3/NS1 (Remote delivery)`.
 - A conditional record whose condition does not hold does not match for output and is omitted from `Matched patterns:`.
 - `Assessment:` the concrete risk and decision.
-- `Command:` the exact safe or rewritten command, or `Not provided` when blocked; never include secret values.
+- `Command:` the exact safe or rewritten command, or `Not provided` when blocked; never include secret values. For one physical line, emit it after `Command:`. For multiple lines, emit `Command: |` and indent every physical command line, including heredoc bodies and delimiters, by two spaces. That two-space prefix is serialization only and must be removed from every line before execution. Top-level fields are always unindented, so an indented payload line such as `  Required checks:` is command data, not a field.
 - `Required checks:` checks that must pass before execution, or `None`.
 
 If the user asks for command safety but supplies no command, still use the same fields: `Result: BLOCKED`, `Matched patterns: None`, `Assessment:` explaining that no exact command was provided, `Command: Not provided`, and `Required checks:` asking for the exact command plus relevant working directory, shell, target, and whether any variables or secrets are involved.

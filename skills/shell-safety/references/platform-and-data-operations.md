@@ -234,7 +234,7 @@ Safe replacement: Use a protected `~/.pgpass` with mode `0600` or credential hel
 Example: `mysql -uuser -psecret`
 Risk: Password leaks in argv.
 Decision gate: Rewrite.
-Safe replacement: `mysql_config_editor set --login-path=prod --host=host --user=user --password`, then `mysql --login-path=prod`.
+Safe replacement: For the original one-time connection, remove the password value but keep `-p` so MySQL prompts without placing the secret in argv, for example `mysql -uuser -p`; preserve any caller-supplied host, port, database, and options. Create a persistent `mysql_config_editor` login path only when the caller explicitly requests credential storage, after separately classifying the exact login-path name, host, user, existing-entry replacement, credential-store destination, ownership, permissions, lifecycle, and confirmation. Never invent a `prod` login path.
 
 ### DB6 - Redis flush
 Example: `redis-cli FLUSHALL`

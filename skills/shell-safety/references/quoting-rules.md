@@ -109,11 +109,16 @@ EOF
 
 ### Unmatched globs
 
-By default, zsh raises `zsh: no matches found` when a glob has no matches. Quote the glob or use the `(N)` qualifier to make it expand to empty.
+By default, zsh raises `zsh: no matches found` when a glob has no matches. Quoting the glob suppresses expansion and passes the literal pattern; it does not produce an empty list. The `(N)` qualifier produces zero arguments on no match, but a command whose zero-argument form has broader behavior must not be invoked bare.
 
 ```zsh
-ls *.foo(N)   # expands to empty if no matches
+files=( *.foo(N) )
+if (( ${#files} )); then
+	ls -- "${files[@]}"
+fi
 ```
+
+The guard prevents `ls` from receiving zero path arguments and listing the whole current directory. Preserve the caller's intended no-match behavior explicitly for every command.
 
 ### Equals expansion
 
