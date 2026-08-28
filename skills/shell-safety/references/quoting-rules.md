@@ -150,7 +150,7 @@ diff <(sort a.txt) <(sort b.txt)
 tee >(grep foo > foo.log) >(grep bar > bar.log)
 ```
 
-For a reviewed commit message, avoid filename-like process-substitution paths. Put the exact reviewed literal bytes in a quoted heredoc and feed them directly with `git commit -F -`.
+For a reviewed commit message, avoid filename-like process-substitution paths. Put the exact reviewed literal bytes in a quoted heredoc and feed them directly with `git commit --cleanup=verbatim -F -`; GD9 must also verify that applicable Git config and hooks do not rewrite the bound message or index.
 
 ## 9. Shell-mode safety idioms
 

@@ -17,13 +17,13 @@ Decision gate: Rewrite.
 
 Safe replacement:
 ```sh
-git commit -F - <<'EOF'
+git commit --cleanup=verbatim -F - <<'EOF'
 Subject
 
 Body paragraph.
 EOF
 ```
-Review the exact literal heredoc before execution. Git consumes those bytes directly from stdin, so no replaceable temporary pathname exists between review and use.
+Review the exact literal heredoc before execution. `--cleanup=verbatim` prevents Git's message cleanup from normalizing those bytes, and stdin avoids a replaceable temporary pathname. Ordinary-commit authorization remains subject to GD9's config and hook checks.
 
 ### GC2 - Repeated `-m`
 Example: `git commit -m "Subject" -m "Body line 1" -m "Body line 2"`

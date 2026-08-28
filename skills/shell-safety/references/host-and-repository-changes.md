@@ -67,10 +67,10 @@ Risk: Releases and consumers can lose a referenced tag.
 Decision gate: Confirmable.
 Safe replacement: Check release and package references, then after confirmation run `git push --delete origin v1.2.3`.
 ### GD9 - Ordinary commit creation
-Example: `git commit -F -`
+Example: `git commit --cleanup=verbatim -F -`
 Risk: Records the current index and message as a new repository-history object.
 Decision gate: Confirm the ordinary commit effect.
-Safe replacement: Verify this creates a new commit rather than amending, fixing up, squashing, bypassing hooks, or reusing another message. Review and bind the exact index/staged diff, repository and branch, parent tip, author/signing context, and exact message bytes; then confirm the exact ordinary commit command. Reclassify `--amend`, `--fixup`, `--squash`, `--no-verify`, pathspec commits, and other history variants under their own effects; an uncovered variant remains `BLOCKED`.
+Safe replacement: Verify this creates a new commit rather than amending, fixing up, squashing, bypassing hooks, or reusing another message. Use `--cleanup=verbatim` when exact message bytes are bound. Review applicable Git cleanup configuration and `pre-commit`, `prepare-commit-msg`, and `commit-msg` hooks; require them to be absent or verified not to rewrite the bound message or index, otherwise bind and review the resulting post-processing state through a deterministic non-committing mechanism or return `BLOCKED`. Review and bind the exact index/staged diff, repository and branch, parent tip, author/signing context, and final message bytes; revalidate mutable state immediately before the exact ordinary commit confirmation. Reclassify `--amend`, `--fixup`, `--squash`, `--no-verify`, pathspec commits, and other history variants under their own effects; an uncovered variant remains `BLOCKED`.
 ## Filesystem and processes
 ### FS1 - Recursive force delete
 Example: `rm -rf ./build`
