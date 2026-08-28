@@ -20,7 +20,7 @@ Safe replacement: Inspect `package.json` lifecycle hooks before executing any pu
 Example: `pip install requests`
 Risk: Pollutes or breaks system Python.
 Decision gate: Rewrite.
-Safe replacement: Preserve the one-package request. Create and select an isolated virtual environment, resolve an exact reviewed `requests` version from the intended index, verify distribution provenance and hashes, and install that same package/version rather than an unrelated `requirements.txt`. A virtual environment limits installation scope but does not make fetched code safe: an sdist build backend or package install can execute code, so reclassify the pinned install under fetched-code provenance and lifecycle-script/build checks; remain `BLOCKED` while those checks are unresolved.
+Safe replacement: Preserve the originally requested package set and cardinality. Create and select an isolated virtual environment, resolve an exact reviewed version of each requested package from the intended index, verify distribution provenance and hashes, and install those same package/version pairs rather than an unrelated `requirements.txt`; for the example, retain `requests==<reviewed-version>`. A virtual environment limits installation scope but does not make fetched code safe: an sdist build backend or package install can execute code, so reclassify the pinned install under fetched-code provenance and lifecycle-script/build checks; remain `BLOCKED` while those checks are unresolved.
 ### NS5 - Privileged package manager
 Example: `sudo apt install foo`
 Risk: Privileged install can violate host policy.

@@ -72,13 +72,13 @@ Safe replacement: Do not print resolved secret environment variables.
 Example: `terraform destroy -auto-approve`
 Risk: Tears down all managed resources.
 Decision gate: Refuse without explicit confirmation and reviewed workspace.
-Safe replacement: Run `terraform workspace show`, `terraform providers`, and `terraform plan -destroy -out=destroy.plan`; record workspace, backend, targets, plan digest, and complete set. After exact plan review and confirmation, recheck its digest then run `terraform apply destroy.plan`; changed plan, backend, workspace, or target blocks execution.
+Safe replacement: Run `terraform workspace show` and `terraform providers`, then create the saved destroy plan in a fresh private owner-only directory outside the repository and synchronized/shared paths, with trusted non-writable parents. Treat the saved plan and every machine-readable rendering as sensitive: do not print, log, upload, or persist unredacted content, and keep derived review artifacts under the same private-location and cleanup controls. Bind the plan's filesystem identity and digest to the exact workspace, backend, targets, and reviewed changes; prevent replacement while Terraform opens it for `apply`, revalidate identity and digest immediately before execution, and clean the plan on success, failure, timeout, or cancellation. If review cannot avoid disclosure or identity cannot remain bound through pathname reopening, return `BLOCKED`.
 
-### IC2 - Auto-approved Terraform apply
-Example: `terraform apply -auto-approve`
-Risk: Bypasses plan review.
+### IC2 - Auto-approved or saved-plan Terraform apply
+Example: `terraform apply -auto-approve`, `terraform apply apply.plan`
+Risk: Bypasses interactive approval or reopens a saved plan whose review, identity, or sensitive-data lifecycle may be unbound.
 Decision gate: Rewrite then confirm the reviewed replacement.
-Safe replacement: Run `terraform plan -out=apply.plan`; review exact workspace, backend, targets, and digest, then confirm before `terraform apply apply.plan`.
+Safe replacement: Create the saved plan in a fresh private owner-only directory outside the repository and synchronized/shared paths, with trusted non-writable parents. Treat the saved plan and every machine-readable rendering as sensitive: do not print, log, upload, or persist unredacted content, and keep derived review artifacts under the same private-location and cleanup controls. Review and bind its filesystem identity and digest to the exact workspace, backend, targets, and changes; prevent replacement while Terraform opens it for `apply`, revalidate immediately before execution, and clean it on every outcome. Confirm only that retained plan. If review cannot avoid disclosure or identity cannot remain bound through pathname reopening, return `BLOCKED`.
 
 ### IC3 - Terraform apply without plan
 Example: `terraform apply`
@@ -228,13 +228,15 @@ Safe replacement: Preserve the caller's requested scope. If the all-row update i
 Example: `psql postgres://user:secret@host/db`
 Risk: Password leaks through history and process listings.
 Decision gate: Rewrite.
+Subsumes: `SE3` for the password-in-argv hazard because DB4 preserves the one-time database connection while applying the same no-secret-argv requirement.
 Safe replacement: For the original one-time connection, remove the password from the URI and force an interactive prompt without persisting it, for example `psql -W 'host=host dbname=db user=user'`; preserve the caller's host, port, database, user, TLS, and other options. Use an existing approved `.pgpass` or credential helper only after verifying it without reading the secret. Create or modify persistent credential state only when the caller explicitly requests storage, after separately classifying its destination, replacement behavior, ownership, permissions, and lifecycle.
 
 ### DB5 - MySQL argv password
 Example: `mysql -uuser -psecret`
 Risk: Password leaks in argv.
 Decision gate: Rewrite.
-Safe replacement: For the original one-time connection, remove the password value but keep `-p` so MySQL prompts without placing the secret in argv, for example `mysql -uuser -p`; preserve any caller-supplied host, port, database, and options. Create a persistent `mysql_config_editor` login path only when the caller explicitly requests credential storage, after separately classifying the exact login-path name, host, user, existing-entry replacement, credential-store destination, ownership, permissions, lifecycle, and confirmation. Never invent a `prod` login path.
+Subsumes: `SE3` for the password-in-argv hazard because DB5 preserves the requested MySQL connection while applying the same no-secret-argv requirement.
+Safe replacement: For the original one-time connection, remove the password value but keep `-p` so MySQL prompts without placing the secret in argv, for example `mysql -uuser -p`; preserve any caller-supplied host, port, database, and options. A login path stores host, user, password, port, and socket, not the default database, so pass any requested database explicitly as a positional argument such as `mysql --login-path=<name> <database>`. Create a persistent `mysql_config_editor` login path only when the caller explicitly requests credential storage, after separately classifying the exact login-path name, host, user, existing-entry replacement, credential-store destination, ownership, permissions, lifecycle, and confirmation. Never invent a `prod` login path.
 
 ### DB6 - Redis flush
 Example: `redis-cli FLUSHALL`

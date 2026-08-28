@@ -97,7 +97,7 @@ Risk: Word splitting and pathname expansion change the argument list.
 
 Decision gate: Block until the intended argv boundary is known, then rewrite.
 
-Safe replacement: Use `rm -- "$file"` only when `$file` is confirmed to represent one argument. When it intentionally represents multiple arguments, require a structured argv source such as an array or positional parameters, preserve each reviewed element, and invoke the command with that structure's boundary-preserving expansion. Never collapse an intended list into one quoted scalar.
+Safe replacement: Replace only the unquoted expansion in the original command. When the value is confirmed to represent one argument, quote that occurrence in place, for example `rm -- "$file"` for the example above. When it intentionally represents multiple arguments, preserve the original executable, fixed operands, option ordering, and expansion position; require a structured argv source such as an array or positional parameters and expand that structure with preserved boundaries. Never substitute a different command or collapse an intended list into one quoted scalar.
 
 ### Q2 - Unquoted variable in a path
 Example: `cd $dir`
@@ -131,7 +131,7 @@ Risk: No-match behavior differs by shell and a literal glob is ambiguous.
 
 Decision gate: Block until one structured expansion is captured and bound through execution.
 
-Safe replacement: Use a runtime or helper that resolves the glob once into a structured argv list, records path identity when replacement matters, renders every path with unambiguous escaping for review, and invokes `mv --` with that same stored list. Do not expand `*.log` again after review; if the exact structured list cannot survive through execution, return `BLOCKED`. This record applies to a glob expanded into an external command's argument list. A glob used as an in-shell `for` list with Q3's existence/link guard is classified under Q3 and does not additionally match Q4.
+Safe replacement: Use a runtime or helper that resolves the glob once into a structured argv list, records path identity when replacement matters, and renders every path with unambiguous escaping for review. Substitute that stored list only at the original glob position while preserving the original executable, options, fixed operands, and argument ordering; `mv --` is specific to the example, not a generic replacement. Do not expand the glob again after review; if the exact structured list cannot survive through execution, return `BLOCKED`. This record applies to a glob expanded into an external command's argument list. A glob used as an in-shell `for` list with Q3's existence/link guard is classified under Q3 and does not additionally match Q4.
 
 ### Q5 - Unquoted `$@` or `$*`
 Example: `cmd $@`, `cmd $*`
@@ -149,7 +149,7 @@ Risk: This supplies two paths even when one path containing a space was intended
 
 Decision gate: Rewrite when the caller confirms single-path intent.
 
-Safe replacement: For confirmed single-path intent, use `cat "/tmp/my file.txt"`. Otherwise preserve the two original arguments, `/tmp/my` and `file.txt`, and reclassify the unchanged command without Q6.
+Safe replacement: For confirmed single-path intent, quote the intended path in place while preserving the original executable, options, and every other argument; `cat "/tmp/my file.txt"` is only the example's rewrite. Otherwise preserve the two original arguments, `/tmp/my` and `file.txt`, in the original command and reclassify without Q6.
 
 ### Q7 - Variable in single quotes
 Example: `echo '$HOME'`
@@ -363,7 +363,15 @@ Risk: The current shell, not `sudo`, opens the file.
 
 Decision gate: Confirm both privilege use and overwrite of the exact destination.
 
-Safe replacement: After those confirmations, run `printf '%s\n' 'content' | sudo tee /etc/foo.conf > /dev/null`. The replacement preserves the requested content and overwrite behavior while moving the privileged open into `tee`.
+Subsumes: `HD3`, `PE1`, and `OR1` for this exact privileged-overwrite replacement because OR4 includes their privilege, destination, and overwrite checks.
+
+Safe replacement: Use HD3's quoted-heredoc form so no pipeline-status ambiguity is introduced:
+```sh
+sudo tee /etc/foo.conf >/dev/null <<'EOF'
+content
+EOF
+```
+The replacement preserves the requested content and overwrite behavior while moving the privileged open into `tee`; use `tee -a` only for explicit append intent.
 
 ### SM1 - Script without strict mode
 Example: A multi-step script without `set -euo pipefail`.
@@ -389,10 +397,10 @@ Decision gate: Rewrite.
 
 Safe replacement:
 ```sh
-cd -- /tmp/build || exit 1
-rm -rf -- ./cache
+cd /tmp/build || exit 1
+rm -rf ./cache
 ```
-This preserves the intended `/tmp/build/cache` target while guarding the directory change. Reclassify the deletion itself under FS1 before execution.
+This preserves the intended `/tmp/build/cache` target while guarding the directory change. The known operands cannot be parsed as options, so the example does not rely on non-POSIX `--`; for a caller-supplied operand beginning with `-`, use a safe `./` or absolute spelling. Reclassify the deletion itself under FS1 before execution.
 The `|| exit 1` form is for non-interactive scripts. In an interactive shell, wrap the dependent sequence in a subshell so a failed `cd` does not terminate the user's session.
 
 ### SM3 - Bash constructs under `/bin/sh`
@@ -415,7 +423,7 @@ Risk: `status` is read-only in zsh.
 
 Decision gate: Rewrite.
 
-Safe replacement: `response=$(curl ...)`. This preserves the original stdout capture while avoiding zsh's read-only name. If the exit status is also needed, capture it separately immediately afterward with `curl_status=$?`.
+Safe replacement: Change only the assignment target and preserve the complete original right-hand side, options, substitutions, and command. For example, `status=$(printf '%s' data)` becomes `response=$(printf '%s' data)`. If the substitution's exit status is also needed, capture it separately immediately afterward with a descriptive status variable.
 
 ### SM5 - Bare `==` in zsh
 Example: `echo ===`.
