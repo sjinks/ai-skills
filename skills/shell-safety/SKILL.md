@@ -70,6 +70,7 @@ Reference phrases select a Decision Gate section; they are not `Result:` values.
 | `Block <condition>` (for example `until`, `while`, `without`, `absent`, `unresolved`, or a named unsafe form) | Prerequisite failure, not permanent prohibition | `BLOCKED` while the stated condition holds; otherwise reclassify the complete command |
 | `Rewrite` | **Rewrite-Only** | `REWRITE` if the replacement is safe; otherwise `BLOCKED`, `NEEDS-CONFIRMATION`, or later `AUTHORIZED` after reclassification |
 | `Rewrite when <condition>` | Conditional rewrite | Apply **Rewrite-Only** while the condition holds; otherwise this pattern does not apply and the segment is reclassified without it |
+| `Rewrite unless <verified-safe-condition>` | Verified-safe exception or **Rewrite-Only** | `SAFE` when the named condition is verified and the pattern remains matched; otherwise apply **Rewrite-Only** after its prerequisites pass |
 | `Confirm`, `Confirmable`, `Refuse without explicit confirmation/need`, `Last-resort confirmation` | **Confirmable Effects** | `BLOCKED` until prerequisites pass, then `NEEDS-CONFIRMATION` or `AUTHORIZED` |
 | `Confirm <effect> unless <verified-safe-condition>` | Verified-safe exception or **Confirmable Effects** | `SAFE` when the named safe condition is verified; otherwise `BLOCKED` until prerequisites pass, then `NEEDS-CONFIRMATION` or `AUTHORIZED` |
 | `Inspect`, `Verify`, `Require` | Prerequisite, not a gate or result | `BLOCKED` while unresolved; otherwise reclassify the complete command |
@@ -95,7 +96,7 @@ Pattern membership and all command-specific prerequisites are defined only by th
 
 ## Output
 
-Whenever you classify a non-trivially-safe command you are about to send, return these fields in order, even when the user did not explicitly request validation. Omit them only for commands that meet the trivially-safe definition in [When to Use](#when-to-use).
+Whenever you classify a non-trivially-safe command you are about to send, return exactly these five fields in order, with no introductory or trailing content, even when the user did not explicitly request validation. Omit them only for commands that meet the trivially-safe definition in [When to Use](#when-to-use).
 
 - `Result:` one of `SAFE`, `REWRITE`, `NEEDS-CONFIRMATION`, `AUTHORIZED`, or `BLOCKED`.
 - `Matched patterns:` every pattern that matched during classification as `ID (category)`, where `category` is exactly one of `Command construction`, `Host/repository`, `Remote delivery`, or `Platform/data`; do not use reference titles. Separate multiple records with comma-space. Include patterns whose prerequisites were later satisfied, and use `None` only when no pattern matched at all. A reference record headed by two IDs is one pattern and uses `/` with no spaces, for example `CS3/NS1 (Remote delivery)`.

@@ -66,6 +66,11 @@ Example: `git push --delete origin v1.2.3`
 Risk: Releases and consumers can lose a referenced tag.
 Decision gate: Confirmable.
 Safe replacement: Check release and package references, then after confirmation run `git push --delete origin v1.2.3`.
+### GD9 - Ordinary commit creation
+Example: `git commit -F -`
+Risk: Records the current index and message as a new repository-history object.
+Decision gate: Confirm the ordinary commit effect.
+Safe replacement: Verify this creates a new commit rather than amending, fixing up, squashing, bypassing hooks, or reusing another message. Review and bind the exact index/staged diff, repository and branch, parent tip, author/signing context, and exact message bytes; then confirm the exact ordinary commit command. Reclassify `--amend`, `--fixup`, `--squash`, `--no-verify`, pathspec commits, and other history variants under their own effects; an uncovered variant remains `BLOCKED`.
 ## Filesystem and processes
 ### FS1 - Recursive force delete
 Example: `rm -rf ./build`
@@ -85,7 +90,7 @@ Safe replacement: Have the caller select reviewed explicit paths from the origin
 ### FS4 - Recursive delete below `/` or `~`
 Example: `rm -rf /something`, `rm -rf ~/Downloads/old`
 Risk: A spacing or expansion error can affect root or home.
-Decision gate: Confirmable when the canonical resolved target is any absolute path or lies within a verified account home, after FS1/FS2 prove it is not `/` or a home directory itself.
+Decision gate: Confirmable when the original or safety-restated operand is syntactically absolute or tilde-prefixed, after FS1/FS2 prove its canonical target is not `/` or a home directory itself. A relative operand does not match FS4 merely because canonicalization produces an absolute path.
 Safe replacement: Apply FS1/FS2 canonical-path and filesystem-identity checks, bind and preview the exact target, reverify it immediately before execution, and require confirmation of that exact recursive deletion. Root and verified home directories themselves remain blocked.
 ### FS5 - `find` deletion
 Example: `find . -name '*.log' -delete`

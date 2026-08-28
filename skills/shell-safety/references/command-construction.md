@@ -204,6 +204,15 @@ set +H
 echo "deploy!"
 ```
 
+### Q12 - Backslash-escaped downstream literals inside shell single quotes
+Example: `aws ... --query 'Tags[?Key==\`Name\`]'`
+
+Risk: Shell single quotes preserve the backslashes, so a downstream language such as JMESPath receives different or invalid literal delimiters.
+
+Decision gate: Rewrite.
+
+Safe replacement: Verify the downstream grammar, remove only backslashes that were incorrectly added before its literal delimiters, and preserve the exact shell quoting, command, selector, target, and expression structure. For JMESPath backtick literals inside shell single quotes, use raw backticks such as `--query 'Tags[?Key==`Name`]'`.
+
 ## Command substitution and pipes
 
 ### CS1 - Backtick substitution
