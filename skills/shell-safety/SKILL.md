@@ -1,6 +1,6 @@
 ---
 name: shell-safety
-description: "Use when: composing or running a nontrivial shell command in run_in_terminal, terminal, bash, zsh, or sh. Triggers: git commit, git push, git reset, git rebase, git clean, git checkout, rm, mv, cp, chmod, chown, kill, pkill, sudo, dd, mkfs, npm publish, pip install, docker, kubectl, helm, terraform, pulumi, aws, gcloud, az, psql, mysql, mongosh, redis-cli, ssh, scp, rsync, gpg, curl, wget, eval, find -delete, xargs, tar, unzip, systemctl, shutdown, reboot. Also use when constructing or reviewing a git commit shell invocation, handling paths with spaces or special characters, quoting variables, escaping arguments, using pipes, redirects, heredocs, command substitution, glob expansion, multi-line strings, the -m or -F flag, variable expansion, force-pushing, hard-resetting, or rewriting history. Do not use for prose-only commit-message drafting."
+description: "Use when: an exact nontrivial shell or terminal command is being composed, recommended, validated, or considered for execution in run_in_terminal, bash, zsh, sh, a database CLI/REPL, or another terminal. Execution-scoped triggers include git commit/push/reset/rebase/clean/checkout, rm/mv/cp/chmod/chown, kill/pkill/sudo/dd/mkfs, package/container/cloud/IaC/database/SSH/GPG/network/archive/service commands, pipes, redirects, heredocs, substitutions, globs, quoting, variables, paths, and history rewrites. Do not use for portability-only review, generic shell tutoring or syntax explanation, example commands not being considered for execution, non-shell application review, or prose-only commit-message drafting."
 argument-hint: "Paste the command you are about to run; the skill validates it."
 user-invocable: true
 ---
@@ -9,7 +9,7 @@ user-invocable: true
 
 ## When to Use
 
-Before composing or running any shell command that is not trivially safe. Trivially safe means these exact literal forms after trusted executable resolution: `git status`, `git log --oneline`, `ls`, `ls -la`, `pwd`, `whoami`, and `which <cmd>`. Arbitrary `<program> --version` and `<program> --help` invocations remain in the normal classification path because resolving and executing an untrusted program can have side effects before or instead of flag parsing. File-content reads are not unconditionally trivial because they can disclose secrets.
+Before composing or running any shell command that is not trivially safe. Trivially safe means these exact literal forms after trusted executable resolution: `ls`, `ls -la`, `pwd`, `whoami`, and `which <cmd>`. Git read commands remain in normal classification because configuration, pagers, and fsmonitor integration can execute auxiliary programs. Arbitrary `<program> --version` and `<program> --help` invocations likewise remain in the normal classification path because resolving and executing an untrusted program can have side effects before or instead of flag parsing. File-content reads are not unconditionally trivial because they can disclose secrets.
 
 **UTILITY SKILL.** INVOKES: terminal command composition and execution only after safety classification. FOR SINGLE OPERATIONS: use to classify one proposed command, rewrite a risky command, or decide what checks must pass before execution.
 

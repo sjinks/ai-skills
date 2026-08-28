@@ -77,7 +77,7 @@ graders:
           *(f'OR{i} (Command construction)' for i in range(1, 5)), *(f'SM{i} (Command construction)' for i in range(1, 7)),
           *(f'SE{i} (Command construction)' for i in range(1, 6)), 'SM7/SE6 (Command construction)', 'SE7 (Command construction)',
           'SE9 (Command construction)', *(f'EN{i} (Command construction)' for i in range(1, 6)),
-          *(f'GD{i} (Host/repository)' for i in range(1, 10)), *(f'FS{i} (Host/repository)' for i in range(1, 11)),
+          *(f'GD{i} (Host/repository)' for i in range(1, 11)), *(f'FS{i} (Host/repository)' for i in range(1, 11)),
           *(f'PC{i} (Host/repository)' for i in range(1, 5)), *(f'PE{i} (Host/repository)' for i in range(1, 5)),
           *(f'GP{i} (Host/repository)' for i in range(1, 7)), *(f'SS{i} (Host/repository)' for i in range(1, 6)),
           *(f'AR{i} (Host/repository)' for i in range(1, 6)), 'CS3/NS1 (Remote delivery)',
@@ -85,6 +85,18 @@ graders:
           *(f'RX{i} (Remote delivery)' for i in range(2, 8)), *(f'CL{i} (Platform/data)' for i in range(1, 11)),
           *(f'IC{i} (Platform/data)' for i in range(1, 9)), *(f'OK{i} (Platform/data)' for i in range(1, 13)),
           *(f'DB{i} (Platform/data)' for i in range(1, 11))])
+        - >-
+          not __import__('re').search(r'(?im)^[ \t]*(?:result|matched patterns|assessment|command|required checks):', output) or
+          (lambda lines, command_index, checks_index:
+          ((lines[0] == 'Result: BLOCKED') == (lines[command_index] == 'Command: Not provided')) and
+          (lines[command_index] != 'Command: |' or
+          (checks_index > command_index + 1 and all(line.startswith('  ') for line in lines[command_index + 1:checks_index]) and
+          any(line.strip() for line in lines[command_index + 1:checks_index]))) and
+          (lines[checks_index] != 'Required checks: |' or
+          (len(lines) > checks_index + 1 and all(line.startswith('  ') for line in lines[checks_index + 1:]) and
+          any(line.strip() for line in lines[checks_index + 1:]))))(
+          output.splitlines(), next(i for i, line in enumerate(output.splitlines()) if line.startswith('Command:')),
+          next(i for i, line in enumerate(output.splitlines()) if line.startswith('Required checks:')))
   - type: behavior
     name: efficiency
     config:
