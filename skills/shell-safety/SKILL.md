@@ -32,7 +32,7 @@ Everything else needs validation. In particular:
 - Any IaC mutation (`terraform destroy`, `terraform apply -auto-approve`, `pulumi destroy --yes`).
 - Any container mass-mutation (`docker system prune`, `docker rm $(docker ps -aq)`, `kubectl delete namespace`).
 - Any database mutation executed or proposed for execution through a terminal database CLI or REPL (`DROP`, `TRUNCATE`, `DELETE FROM ... ;` without `WHERE`, `FLUSHALL`, `dropDatabase()`). Ask for the terminal execution context when it is absent.
-- Any secret variable in echo, env dump, or command-line flag (`--password=`, `--token=`).
+- Any secret variable in echo, env dump, or command-line flag (`--password=<redacted>`, `--token=<redacted>`).
 
 ## Procedure
 
@@ -73,7 +73,7 @@ Reference phrases select a Decision Gate section; they are not `Result:` values.
 | `Rewrite when <condition>` | Conditional rewrite | Apply **Rewrite-Only** while the condition holds; otherwise this pattern does not apply and the segment is reclassified without it |
 | `Rewrite unless <verified-safe-condition>` | Verified-safe exception or **Rewrite-Only** | `SAFE` when the named condition is verified and the pattern remains matched; otherwise apply **Rewrite-Only** after its prerequisites pass |
 | `Confirm`, `Confirmable`, `Refuse without explicit confirmation/need`, `Last-resort confirmation` | **Confirmable Effects** | `BLOCKED` until prerequisites pass, then `NEEDS-CONFIRMATION` or `AUTHORIZED` |
-| `Confirm <effect> unless <verified-safe-condition>` | Verified-safe exception or **Confirmable Effects** | `SAFE` when the named safe condition is verified; otherwise `BLOCKED` until prerequisites pass, then `NEEDS-CONFIRMATION` or `AUTHORIZED` |
+| `Confirm <effect> unless <verified-safe-condition>` | Verified-safe exception or **Confirmable Effects** | `SAFE` when the named safe condition is verified and the pattern remains matched; otherwise `BLOCKED` until prerequisites pass, then `NEEDS-CONFIRMATION` or `AUTHORIZED` |
 | `Inspect`, `Verify`, `Require` | Prerequisite, not a gate or result | `BLOCKED` while unresolved; otherwise reclassify the complete command |
 
 For sequential compound phrases such as `Inspect ... then rewrite`, apply every phase in order and keep the most restrictive result. For disjunctive phrases such as `Rewrite or block`, use the block branch only while its stated condition holds; if no condition is stated, treat the record as `Rewrite` and return `BLOCKED` only when no deterministic replacement exists.
@@ -100,9 +100,9 @@ Pattern membership and all command-specific prerequisites are defined only by th
 Whenever you classify a non-trivially-safe command you are about to send, return exactly these five fields in order, with no introductory or trailing content, even when the user did not explicitly request validation. Omit them only for commands that meet the trivially-safe definition in [When to Use](#when-to-use).
 
 - `Result:` one of `SAFE`, `REWRITE`, `NEEDS-CONFIRMATION`, `AUTHORIZED`, or `BLOCKED`.
-- `Matched patterns:` every pattern that matched during classification as `ID (category)`, where `category` is exactly one of `Command construction`, `Host/repository`, `Remote delivery`, or `Platform/data`; do not use reference titles. Separate multiple records with comma-space. Include patterns whose prerequisites were later satisfied, and use `None` only when no pattern matched at all. A reference record headed by two IDs is one pattern and uses `/` with no spaces, for example `CS3/NS1 (Remote delivery)`.
+- `Matched patterns:` every pattern that matched during classification as `ID (category)`, where `category` is exactly one of `Command construction`, `Host/repository`, `Remote delivery`, or `Platform/data`; do not use reference titles. After applying explicit subsumption, order records by Category Index row (`Command construction`, `Host/repository`, `Remote delivery`, `Platform/data`), then by their order in that row's reference file, and separate them with comma-space. Include patterns whose prerequisites were later satisfied, and use `None` only when no pattern matched at all. A reference record headed by two IDs is one pattern and uses `/` with no spaces, for example `CS3/NS1 (Remote delivery)`.
 - A conditional record whose condition does not hold does not match for output and is omitted from `Matched patterns:`.
-- `Assessment:` the concrete risk and decision.
+- `Assessment:` the concrete risk and decision on exactly one non-empty physical line.
 - `Command:` the exact safe or rewritten command, or `Not provided` when blocked; never include secret values. For one physical line, emit it after `Command:`. For multiple lines, emit `Command: |` and indent every physical command line, including heredoc bodies and delimiters, by two spaces. That two-space prefix is serialization only and must be removed from every line before execution. Top-level fields are always unindented, so an indented payload line such as `  Required checks:` is command data, not a field.
 - `Required checks:` checks that must pass before execution, or `None`. Keep a single check or `None` inline. For multiple lines, emit `Required checks: |` and serialize each check line with the same two-space block indentation used by multiline `Command:`.
 

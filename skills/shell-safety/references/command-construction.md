@@ -483,7 +483,7 @@ Safe replacement: Never authorize the broad form, even after all current values 
 ### SE3 - Secret in argv
 Example: `curl --header "Authorization: Bearer abc123"`
 
-Risk: Values are visible in history and process listings.
+Risk: The resolved argv value is visible in process listings. Interactive history records the source command: a literal secret typed directly is stored there, while a value introduced by expanding `$TOKEN` is not substituted into the history entry.
 
 Decision gate: Rewrite.
 
