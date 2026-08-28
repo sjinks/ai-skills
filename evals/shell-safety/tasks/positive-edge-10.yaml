@@ -30,7 +30,7 @@ graders:
     config:
       regex_match:
         - '(?i)Result:\s*BLOCKED'
-        - '(?i)Matched patterns:.*AR1'
+        - '(?s)Matched patterns:.*AR1 \(Host/repository\)'
         - '(?i)Assessment:.*(untrusted|validator|single.parser|immutable|extract)'
         - '(?i)Command:\s*Not provided'
         - '(?is)(digest.{0,120}(immutable|same bytes|opened bytes)|(immutable|same bytes|opened bytes).{0,120}digest)'

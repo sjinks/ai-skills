@@ -35,7 +35,7 @@ graders:
     config:
       regex_match:
         - '(?i)Result:\s*REWRITE'
-        - '(?i)Matched patterns:.*CL4'
+        - '(?s)Matched patterns:.*CL4 \(Platform/data\)'
         - '(?is)Assessment:.*(single.quote|backslash).*(literal|JMESPath|backtick).*(preserve|invalid|raw)'
         - '(?i)Command:.*Tags\[\?Key==`Name`\]\.Value\|\[0\]'
         - '(?i)Required checks:\s*None'

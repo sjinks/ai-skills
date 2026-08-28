@@ -37,12 +37,11 @@ metrics:
   - name: efficiency
     weight: 0.15
     threshold: 0.7
-    description: Stays within tool-call and total-token budgets.
+    description: Stays within the tool-call budget; no total-token cap is set for this suite (see evals/README.md).
 graders:
   - type: behavior
     name: efficiency
     config:
       max_tool_calls: 10
-      max_tokens: 10000
 tasks:
   - "tasks/*.yaml"

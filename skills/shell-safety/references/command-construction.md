@@ -4,6 +4,8 @@ Read this when a command review involves commit-message construction, quoting, s
 
 Each record keeps the unsafe form, its risk, decision gate, and safe replacement together; retain separate inspection and mutation phases.
 
+When a replacement names a tool not guaranteed by the target baseline, provide a baseline-compatible alternative or list tool availability under `Required checks:` before emitting the command.
+
 ## Git commit messages
 
 ### GC1 - Multi-line `-m`
@@ -113,14 +115,14 @@ Risk: Whitespace in names becomes separate iterations.
 
 Decision gate: Rewrite.
 
-Safe replacement:
+Safe replacement: First define whether the intended set is immediate non-hidden entries, regular files only, recursive entries, or another scope. To preserve plain `ls`'s default immediate non-hidden entry set in Bash or POSIX-style shells:
 ```sh
-for f in *; do ...; done
+for f in ./*; do
+	[ -e "$f" ] || [ -L "$f" ] || continue
+	...
+done
 ```
-For Bash/zsh NUL-delimited input:
-```bash
-while IFS= read -r -d '' f; do ...; done < <(find . -type f -print0)
-```
+The existence/link guard prevents a literal `./*` no-match iteration while retaining files, directories, and symlinks. zsh's default `NOMATCH` aborts before the loop on an empty directory; use a deliberately scoped zsh null-glob form such as `./*(N)` only for a zsh target. Use `find` only when the caller explicitly requests its recursive/type-filtered scope, and consume names through a NUL-safe structured path.
 
 ### Q4 - Unquoted glob
 Example: `mv *.log /tmp`
@@ -156,14 +158,14 @@ Risk: Single quotes prevent the intended expansion.
 
 Decision gate: Rewrite when expansion is wanted.
 
-Safe replacement: `echo "$HOME"`.
+Safe replacement: `printf '%s\n' "$HOME"`.
 
 ### Q8 - Mixed quotes
 Example: `echo "it's $name"`
 
 Risk: A missing closing quote can consume the rest of a script.
 
-Decision gate: Inspect intent.
+Decision gate: Inspect intent, then rewrite.
 
 Safe replacement: `printf "%s\n" "it's $name"`.
 
@@ -185,18 +187,18 @@ Decision gate: Rewrite.
 
 Safe replacement: `rm -- -file`.
 
-### Q11 - Bash history expansion in double quotes
+### Q11/SE8 - Bash history expansion in double quotes
 Example: `echo "deploy!"`
 
 Risk: Interactive history expansion can substitute history or fail.
 
 Decision gate: Rewrite.
 
-Safe replacement:
+Safe replacement: Use single quotes for a literal `!`:
 ```sh
 echo 'deploy!'
 ```
-Or in Bash:
+Or disable history expansion before the double-quoted command in Bash:
 ```bash
 set +H
 echo "deploy!"
@@ -211,7 +213,7 @@ Risk: Backticks do not nest and are hard to escape.
 
 Decision gate: Rewrite.
 
-Safe replacement: `echo "today is $(date)"`.
+Safe replacement: `printf 'today is %s\n' "$(date)"`.
 
 ### CS2 - Unquoted nested substitution
 Example: `echo $(echo $(date))`
@@ -220,7 +222,7 @@ Risk: Output word-splits at each level.
 
 Decision gate: Rewrite.
 
-Safe replacement: `echo "$(echo "$(date)")"`.
+Safe replacement: `printf '%s\n' "$(date)"`.
 
 ### CS4 - `eval` on text
 Example: `eval "$cmd"`
@@ -341,7 +343,7 @@ Example: `cmd > /dev/null`
 
 Risk: stderr remains visible, which may surprise the caller.
 
-Decision gate: Inspect intent.
+Decision gate: Inspect intent; rewrite only when the caller confirms both streams should be silenced, otherwise return `SAFE` for the original.
 
 Safe replacement: `cmd > /dev/null 2>&1` only when both streams should be silenced.
 
@@ -430,16 +432,13 @@ Safe replacement:
 ```bash
 IFS=, read -r a b c <<< "$line"
 ```
-The assignment is scoped to `read`, so a nonzero result under `set -e` cannot leave a modified `IFS` behind. For multi-command parsing, use a subshell instead of manual save/restore.
-
-### SM7 - `set -x` with secrets in scope
-Example: `set -x; auth_call --token=$TOKEN`.
-
-Risk: Trace output exposes the resolved token.
-
-Decision gate: Rewrite or block when argv is the only interface.
-
-Safe replacement: Disable tracing before the secret enters scope and use a credential helper, protected file, stdin, or file descriptor; redirecting output does not hide argv.
+The assignment is scoped to `read`, so a nonzero result under `set -e` cannot leave a modified `IFS` behind. For POSIX `sh`, here-strings are unavailable; use a command-scoped assignment with a heredoc:
+```sh
+IFS=, read -r a b c <<EOF
+$line
+EOF
+```
+For multi-command parsing, use a subshell instead of manual save/restore.
 
 ## Secret and environment hygiene
 
@@ -491,14 +490,14 @@ Decision gate: Block direct shell redirection of secret material.
 
 Safe replacement: Use a credential helper or runtime secret store. When a file is unavoidable, create it outside repositories and synchronized paths through a platform API that atomically enforces no-follow, exclusive creation, owner-only permissions, and descriptor-bound writes; if that facility is unavailable, return `BLOCKED`. Never interpolate the secret into a displayed command.
 
-### SE6 - Tracing around secret use
+### SM7/SE6 - Tracing around secret use
 Example: `set -x; do_thing --token=$TOKEN`
 
 Risk: Trace output prints the token.
 
-Decision gate: Rewrite or block.
+Decision gate: Rewrite; block when argv is the only available interface.
 
-Safe replacement: Disable tracing before the secret enters scope; use a credential helper, protected file, stdin, or file descriptor.
+Safe replacement: Disable tracing before the secret enters scope; use a credential helper, protected file, stdin, or file descriptor. Redirecting output does not hide argv.
 
 ### SE7 - Echoing secret-search results
 Example: `grep -r PASSWORD . > findings.txt`
@@ -507,16 +506,7 @@ Risk: Raw matches persist secret values.
 
 Decision gate: Rewrite.
 
-Safe replacement: `rg -l 'PASSWORD|TOKEN|SECRET|PRIVATE[ _-]?KEY' .`; report locations only.
-
-### SE8 - History expansion in double quotes
-Example: `echo "wow!"`
-
-Risk: Interactive Bash can expand prior history.
-
-Decision gate: Rewrite.
-
-Safe replacement: `set +H` before the double-quoted command, or use single quotes.
+Safe replacement: Report locations only. On POSIX.1-2024 or a target whose `grep` supports recursive search, use `grep -rlE 'PASSWORD|TOKEN|SECRET|PRIVATE[ _-]?KEY' .`; on POSIX.1-2017 use `find . -type f -exec grep -lE 'PASSWORD|TOKEN|SECRET|PRIVATE[ _-]?KEY' {} +`. `rg -l` is an optional accelerator only after verifying ripgrep is installed.
 
 ### SE9 - Reading a likely secret file to output
 Example: `cat credentials`
@@ -536,7 +526,7 @@ Risk: `\r` corrupts commands and can break the shebang.
 
 Decision gate: Rewrite.
 
-Safe replacement: `dos2unix script.sh`, or resolve the platform before using its supported in-place-edit syntax.
+Safe replacement: First verify the file is CRLF text with no intentional carriage returns. Use a runtime-created private temporary file and a baseline text transform such as `tr -d '\r' < script.sh > "$temporary_file"`, review the result, then atomically replace the original under the filesystem policy. `dos2unix` is only an optional convenience after verifying it is installed; do not assume compatible `mktemp` or `sed -i` forms across targets.
 
 ### EN2 - UTF-8 BOM in a shell script
 Example: An editor writes a BOM before `#!`.

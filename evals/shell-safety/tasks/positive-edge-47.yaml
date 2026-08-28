@@ -38,7 +38,7 @@ graders:
     config:
       regex_match:
         - '(?i)Result:\s*REWRITE'
-        - '(?i)Matched patterns:.*CS6'
+        - '(?s)Matched patterns:.*CS6 \(Command construction\)'
         - '(?is)Assessment:.*POSIX.1-2024.*pipefail.*(status|not.*exit|errexit)'
         - '(?is)Command:.*set -o pipefail.*produce \| consume'
         - '(?i)Required checks:\s*None'

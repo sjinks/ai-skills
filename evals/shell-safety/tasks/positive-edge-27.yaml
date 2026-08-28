@@ -30,7 +30,7 @@ graders:
     config:
       regex_match:
         - '(?i)Result:\s*BLOCKED'
-        - '(?i)Matched patterns:.*OK5'
+        - '(?s)Matched patterns:.*OK5 \(Platform/data\)'
         - '(?is)Assessment:.*(all|category|shortcut).*(incomplete|exclude|miss).*(custom|API|resource)'
         - '(?i)Command:\s*Not provided'
         - '(?is)Required checks:.*api-resources.*namespaced.*verbs=list.*(every|each).*(count|object).*(fail|inaccessible|error)'

@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-063
+name: POSIX IFS scoping avoids here-strings
+description: |
+  The POSIX sh branch of SM6 must scope IFS without Bash here-string syntax.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    Rewrite this for POSIX.1-2017 `/bin/sh`, preserving `a`, `b`, and `c` after
+    the read:
+
+    ```sh
+    IFS=,
+    read -r a b c
+    ```
+
+    The input is in `$line`. Return every shell-safety output field without a
+    Bash here-string.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Result:\s*REWRITE'
+        - '(?s)Matched patterns:.*SM6 \(Command construction\)'
+        - '(?is)Assessment:.*(POSIX|/bin/sh).*(here.string|<<<|unavailable).*(IFS|scope)'
+        - '(?is)Command:.*IFS=, read -r a b c <<EOF.*\$line.*EOF'
+        - '(?i)Required checks:\s*None'
+      not_contains:
+        - "Verdict:"
+        - "Checklist status:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response uses a POSIX heredoc with command-scoped IFS,
+        leaves a/b/c in the current shell, and does not use a here-string or a
+        pipeline subshell that discards the assigned variables.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the last line, write only: 1.0, 0.5, or 0.0
+
+        1.0 = POSIX syntax, scope, and variable persistence are correct.
+        0.5 = IFS is scoped but input or variable lifetime is unclear.
+        0.0 = a here-string or variable-losing pipeline is recommended.
+      mode: independent

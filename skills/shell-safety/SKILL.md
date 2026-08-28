@@ -37,13 +37,11 @@ Everything else needs validation. In particular:
 ## Procedure
 
 1. **Categorize.** Split the command into segments and map each segment and interaction to every applicable [Category Index](#category-index) row; do not guess pattern IDs before loading their definitions.
-2. **Load.** Read every reference selected by the category pass. Linked reference records are the gating source of truth for each pattern ID, risk, per-pattern decision-gate phrase, and replacement/check sequence; the global [Decision Gates](#decision-gates) and [Output](#output) in this file remain authoritative for interpreting gates and emitting results.
+2. **Load.** Read every reference selected by the category pass. Linked reference records are the gating source of truth for each pattern ID, risk, per-pattern decision-gate phrase, and replacement/check sequence; the global [Decision Gates](#decision-gates) and [Output](#output) in this file remain authoritative for interpreting gates and emitting results. If a selected reference is unreadable, return `Result: BLOCKED`, `Matched patterns: None`, name the unavailable reference in `Assessment:`, use `Command: Not provided`, and request the reference under `Required checks:`. Never infer `SAFE`, `REWRITE`, or `AUTHORIZED` from the Category Index alone.
 3. **Match.** Identify every applicable pattern ID from the loaded references. A command is not safe until every segment and cross-segment interaction is matched and addressed.
 4. **Resolve conflicts.** Apply decision gates in this order: prohibited > rewrite-only > confirmable > safe. If two applicable rules cannot be satisfied together, return `BLOCKED`; do not choose one silently.
 5. **Rewrite.** Apply the matching reference record and reassess the complete rewritten command, not only the segment that triggered the first match.
-6. **Resolve.** Determine every safety-relevant non-secret variable value, substitution, glob, working directory, and external target without executing unsafe fragments. Preserve unresolved source forms when their values are non-material to the safety decision. For a secret-bearing variable, verify only its source and presence; keep its name in the restatement and never expose its value. If a material non-secret value cannot be resolved, do not run the command.
-7. **Apply the decision gate.** Use the [Decision Gates](#decision-gates) to distinguish prohibited forms, mandatory rewrites, and confirmable effects. Confirmation applies only to the exact restated command and targets.
-8. **Restate.** Before sending a command, show the exact form with quoting visible and every safety-relevant non-secret expansion resolved. Preserve non-material source expressions when resolution is unnecessary; keep secret values represented by their variable names or `<redacted>`.
+6. **Verify and report.** Resolve values, apply the decision gate, and restate the command according to [Verification Before Execution](#verification-before-execution), then emit the [Output](#output) contract.
 
 For deep quoting questions, consult [quoting-rules.md](./references/quoting-rules.md).
 
@@ -70,11 +68,12 @@ Reference phrases select a Decision Gate section; they are not `Result:` values.
 | `Prohibited for <condition>` | Conditional prohibition | `BLOCKED` while the condition holds; otherwise reclassify the complete command |
 | `Block <condition>` (for example `until`, `while`, `without`, `absent`, `unresolved`, or a named unsafe form) | Prerequisite failure, not permanent prohibition | `BLOCKED` while the stated condition holds; otherwise reclassify the complete command |
 | `Rewrite` | **Rewrite-Only** | `REWRITE` if the replacement is safe; otherwise `BLOCKED`, `NEEDS-CONFIRMATION`, or later `AUTHORIZED` after reclassification |
+| `Rewrite when <condition>` | Conditional rewrite | Apply **Rewrite-Only** while the condition holds; otherwise this pattern does not apply and the segment is reclassified without it |
 | `Confirm`, `Confirmable`, `Refuse without explicit confirmation/need`, `Last-resort confirmation` | **Confirmable Effects** | `BLOCKED` until prerequisites pass, then `NEEDS-CONFIRMATION` or `AUTHORIZED` |
 | `Confirm <effect> unless <verified-safe-condition>` | Verified-safe exception or **Confirmable Effects** | `SAFE` when the named safe condition is verified; otherwise `BLOCKED` until prerequisites pass, then `NEEDS-CONFIRMATION` or `AUTHORIZED` |
 | `Inspect`, `Verify`, `Require` | Prerequisite, not a gate or result | `BLOCKED` while unresolved; otherwise reclassify the complete command |
 
-For compound phrases, apply every named phase in order and keep the most restrictive result.
+For sequential compound phrases such as `Inspect ... then rewrite`, apply every phase in order and keep the most restrictive result. For disjunctive phrases such as `Rewrite or block`, use the block branch only while its stated condition holds; if no condition is stated, treat the record as `Rewrite` and return `BLOCKED` only when no deterministic replacement exists.
 
 ### Prohibited
 
@@ -95,10 +94,10 @@ Pattern membership and all command-specific prerequisites are defined only by th
 
 ## Output
 
-When the user directly asks to validate a command, return these fields in order:
+Whenever you classify a non-trivially-safe command you are about to send, return these fields in order, even when the user did not explicitly request validation. Omit them only for commands that meet the trivially-safe definition in [When to Use](#when-to-use).
 
 - `Result:` one of `SAFE`, `REWRITE`, `NEEDS-CONFIRMATION`, `AUTHORIZED`, or `BLOCKED`.
-- `Matched patterns:` every pattern that matched during classification as `ID (category)`, where `category` is the exact Category Index row label; include patterns whose prerequisites were later satisfied, and use `None` only when no pattern matched at all.
+- `Matched patterns:` every pattern that matched during classification as `ID (category)`, where `category` is exactly one of `Command construction`, `Host/repository`, `Remote delivery`, or `Platform/data`; do not use reference titles. Include patterns whose prerequisites were later satisfied, and use `None` only when no pattern matched at all. A reference record headed by two IDs is one pattern and uses `/` with no spaces, for example `CS3/NS1 (Remote delivery)`.
 - `Assessment:` the concrete risk and decision.
 - `Command:` the exact safe or rewritten command, or `Not provided` when blocked; never include secret values.
 - `Required checks:` checks that must pass before execution, or `None`.

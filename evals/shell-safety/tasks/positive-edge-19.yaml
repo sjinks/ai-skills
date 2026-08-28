@@ -41,7 +41,7 @@ graders:
     config:
       regex_match:
         - '(?i)Result:\s*REWRITE'
-        - '(?i)Matched patterns:.*GC1'
+        - '(?s)Matched patterns:.*GC1 \(Command construction\)'
         - '(?i)Assessment:.*(path|reopen|replace|identity|race)'
         - '(?is)Command:.*git commit -F -.*<<''EOF''.*feat: add report.*Explain why this is needed'
         - '(?i)Required checks:\s*None'

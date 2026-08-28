@@ -39,7 +39,7 @@ graders:
     config:
       regex_match:
         - '(?i)Result:\s*REWRITE'
-        - '(?i)Matched patterns:.*SM6'
+        - '(?s)Matched patterns:.*SM6 \(Command construction\)'
         - '(?is)Assessment:.*IFS.*(set -e|fail|nonzero).*(persist|restore|scope)'
         - '(?m)^Command:[ \t]*`?IFS=, read -r a b c <<< "\$line"`?[ \t]*$'
         - '(?i)Required checks:\s*None'

@@ -6,7 +6,7 @@ Read this when you need to understand where the shell-safety rules came from and
 
 Sources were checked on 2026-08-27. Version-sensitive commands must be rechecked against the installed version and target environment before authorization.
 
-| Pattern IDs | Category | Checked baseline, section, and source |
+| Pattern IDs | Source domain | Checked baseline, section, and source |
 | --- | --- | --- |
 | `Q`, `CS1-2`, `CS4-6`, `HD`, `OR`, `SM`, `EN`, `FS2` | Shell quoting, expansion, `IFS`, pipelines, parameter assertions | [POSIX.1-2017 Shell Command Language](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html) for the legacy baseline and interactive/non-interactive `${parameter:?}` behavior; [POSIX.1-2024 Shell Command Language](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html) for Quoting, Word Expansions, and `set -o pipefail`; local GNU Bash 5.2.21 probes plus [GNU Bash Shell Syntax/Expansions](https://www.gnu.org/software/bash/manual/bash.html); local dash 0.5.12-6ubuntu5 probes plus [`dash(1)`](https://manpages.debian.org/bookworm/dash/dash.1.en.html); [zsh 5.9.2 Parameters](https://zsh.sourceforge.io/Doc/Release/Parameters.html) |
 | `GC`, `GD` | Git commit and repository mutation | Git 2.43.0 manuals for [`git commit`](https://git-scm.com/docs/git-commit/2.43.0), [`git reset`](https://git-scm.com/docs/git-reset/2.43.0), [`git clean`](https://git-scm.com/docs/git-clean/2.43.0), [`git push`](https://git-scm.com/docs/git-push/2.43.0), and [`git submodule`](https://git-scm.com/docs/git-submodule/2.43.0), especially OPTIONS and `deinit` |
@@ -23,6 +23,7 @@ These sources establish command semantics and vendor behavior. Confirmation thre
 
 ## Provenance Notes
 
+- `Source domain` values are provenance groupings only. The `category` emitted in `Matched patterns:` always uses one of the four Category Index labels defined in the core skill.
 - The skill is intentionally command-centric: it reviews one command, script fragment, or proposed terminal action before execution.
 - The pattern IDs are local stable labels for reporting and eval assertions; they are not external standards identifiers.
 - Confirmation gates are scoped to the normalized command, working directory, interpreter, resolved non-secret expansions, authenticated identity, platform/repository context, target identifiers, reviewed preview or plan digest, and relevant branch tips or object versions. Refresh mutable evidence immediately before execution; any changed or unverifiable binding requires reclassification.

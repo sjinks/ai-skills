@@ -39,7 +39,7 @@ graders:
     config:
       regex_match:
         - '(?i)Result:\s*REWRITE'
-        - '(?i)Matched patterns:.*SM1'
+        - '(?s)Matched patterns:.*SM1 \(Command construction\)'
         - '(?i)Assessment:.*(POSIX|sh|unset|error)'
         - '(?is)Command:.*#!/bin/sh.*set -eu.*render_report.*publish_report'
         - '(?i)Required checks:\s*None'

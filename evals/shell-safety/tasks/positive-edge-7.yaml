@@ -30,7 +30,7 @@ graders:
     config:
       regex_match:
         - '(?i)Result:\s*BLOCKED'
-        - '(?i)Matched patterns:.*GD3'
+        - '(?s)Matched patterns:.*GD3 \(Host/repository\)'
         - '(?i)Assessment:.*(changed|stale|invalid|reclass)'
         - '(?i)Command:\s*Not provided'
         - '(?i)Required checks:.*(commit|tip|review|confirm)'

@@ -37,7 +37,7 @@ graders:
     config:
       regex_match:
         - '(?i)Result:\s*REWRITE'
-        - '(?i)Matched patterns:.*SM4'
+        - '(?s)Matched patterns:.*SM4 \(Command construction\)'
         - '(?i)Assessment:.*(read.only|zsh|captur|stdout|rename)'
         - '(?m)^Command:[ \t]*`?response=\$\(printf ''%s\\n'' ''ready''\)`?[ \t]*$'
         - '(?i)Required checks:\s*None'

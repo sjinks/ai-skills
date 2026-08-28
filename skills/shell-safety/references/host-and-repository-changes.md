@@ -96,12 +96,12 @@ Safe replacement: Use a trusted runtime/helper to capture one NUL-delimited resu
 Example: `truncate -s 0 /var/log/app.log`
 Risk: A glob or wrong path clears multiple files.
 Decision gate: Confirm exact path.
-Safe replacement: `[ -f /var/log/app.log ] && truncate -s 0 /var/log/app.log`.
+Safe replacement: Resolve and canonicalize the explicit target, require a regular non-symlink file, bind its filesystem identity, and reverify that same identity immediately before truncation; a separate `[ -f ... ]` check is insufficient. Preserve the caller's truncation semantics: use `truncate -s 0` only where that utility is available, or the POSIX shell redirection `: > file` through an identity-bound no-follow mechanism. Return `BLOCKED` for a glob, unresolved path, unavailable tool without a valid alternative, or a target that cannot remain identity-bound.
 ### FS7 - `dd` to a device
 Example: `dd if=image.iso of=/dev/sdb`
 Risk: A wrong device destroys its data.
 Decision gate: Confirmable.
-Safe replacement: Run `lsblk /dev/sdb`; after exact device identity verification and confirmation, run `sudo dd if=image.iso of=/dev/sdb bs=4M status=progress conv=fdatasync`.
+Safe replacement: Resolve the exact device and all holders/children, then use platform-appropriate checks for mounted filesystems, active swap, LVM physical/logical volumes, device-mapper users, software RAID, and other in-use relationships. Unmount or deactivate only through separately reviewed actions, verify backup/recovery and image identity, and bind stable device attributes such as major/minor number, serial, size, and topology. Re-run every in-use and identity check immediately before confirmation and execution; remain `BLOCKED` while any use, holder, recovery gap, or identity uncertainty exists. Only then confirm the exact `dd` command.
 ### FS8 - `mkfs.*`
 Example: `mkfs.ext4 /dev/sdb1`
 Risk: Formats the wrong partition.
@@ -111,7 +111,7 @@ Safe replacement: Apply FS7's exact-device inspection and confirmation before fo
 Example: `chmod -R 777 /var/www`
 Risk: Makes all content world-writable and executable.
 Decision gate: Prohibited.
-Safe replacement: `chmod -R u=rwX,g=rX,o=rX /var/www`.
+Safe replacement: There is no generic replacement mode. Inventory current ownership, modes, ACLs, file types, and application access requirements; have the caller choose an explicit least-privilege owner/group/other and ACL plan, preview every resulting change, and reclassify that exact plan. Never prescribe `o=rX` or rewrite owner/group permissions without an application-specific access model.
 ### FS10 - `chown -R` outside project root
 Example: `sudo chown -R user:user /var`
 Risk: Breaks system ownership.
@@ -202,7 +202,7 @@ Safe replacement: `sudo systemctl daemon-reload` then `sudo systemctl restart fo
 Example: `shutdown now`
 Risk: Host downtime and remote disconnection.
 Decision gate: Refuse without explicit confirmation.
-Safe replacement: Preserve the requested power action and timing. After confirming an immediate shutdown/power-off, run `sudo shutdown now`; use `sudo shutdown -r now` only when an immediate reboot was explicitly requested. Any delay or message must likewise come from the caller rather than being introduced by the rewrite.
+Safe replacement: Preserve the requested power action and timing, and resolve the target platform's `shutdown` implementation before emitting a command. For immediate power-off, use the platform's explicit form: for example systemd/Linux `sudo shutdown -P now` (or its documented power-off equivalent), macOS `sudo shutdown -h now`, and FreeBSD `sudo shutdown -p now`. Use `-r` only for an explicitly requested reboot. Bare `shutdown now` is not assumed to power off on every target. Any delay or message must likewise come from the caller rather than being introduced by the rewrite.
 ### SS5 - Vacuum journal to zero
 Example: `journalctl --vacuum-size=0`
 Risk: Destroys forensic logs.

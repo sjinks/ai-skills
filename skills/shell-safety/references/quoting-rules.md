@@ -56,7 +56,7 @@ Key point: **word splitting** and **pathname expansion** happen on **unquoted** 
 | `"$@"` | Each argument as a separate quoted word. Preserves spaces in arguments. **Always prefer this.** |
 
 ```sh
-fn() { for a in "$@"; do echo "[$a]"; done; }
+fn() { for a in "$@"; do printf '[%s]\n' "$a"; done; }
 fn 'a b' c
 # Output:
 # [a b]

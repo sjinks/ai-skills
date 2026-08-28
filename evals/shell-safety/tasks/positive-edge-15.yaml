@@ -32,7 +32,7 @@ graders:
     config:
       regex_match:
         - '(?i)Result:\s*REWRITE'
-        - '(?i)Matched patterns:.*DB5'
+        - '(?s)Matched patterns:.*DB5 \(Platform/data\)'
         - '(?i)Assessment:.*(password|argv|login.path|credential)'
         - '(?i)Command:.*mysql --login-path=prod-app'
         - '(?i)Required checks:\s*None'

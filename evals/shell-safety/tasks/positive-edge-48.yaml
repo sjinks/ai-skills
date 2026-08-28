@@ -29,7 +29,7 @@ graders:
     config:
       regex_match:
         - '(?i)Result:\s*BLOCKED'
-        - '(?i)Matched patterns:.*RX2'
+        - '(?s)Matched patterns:.*RX2 \(Remote delivery\)'
         - '(?is)Assessment:.*(normal|unresolved|not.*ephemeral).*(host.key|authentication|checking)'
         - '(?i)Command:\s*Not provided'
         - '(?is)Required checks:.*(fingerprint|strict checking|known_hosts|ephemeral)'

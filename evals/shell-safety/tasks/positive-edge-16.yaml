@@ -37,7 +37,7 @@ graders:
     config:
       regex_match:
         - '(?i)Result:\s*BLOCKED'
-        - '(?i)Matched patterns:.*CS6'
+        - '(?s)Matched patterns:.*CS6 \(Command construction\)'
         - '(?is)Assessment:.*(POSIX.1-2017|dash|older|unknown).*(pipefail|pipeline|capability)'
         - '(?i)Command:\s*Not provided'
         - '(?is)Required checks:.*(non.pipeline|status|flow|shell|version|capability)'

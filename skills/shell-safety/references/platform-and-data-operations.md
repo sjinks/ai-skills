@@ -177,8 +177,8 @@ Safe replacement: Run `kubectl --context=<context> drain node-1 --dry-run=client
 ### OK8 - PVC deletion
 Example: `kubectl delete pvc data-0`
 Risk: Dynamic provisioner reclaim policy may delete storage.
-Decision gate: Refuse without explicit confirmation.
-Safe replacement: Read and bind the PVC UID, resource version, and current PV name with `kubectl --context=<context> --namespace=<namespace> get pvc data-0 -o jsonpath='{.metadata.uid}{" "}{.metadata.resourceVersion}{" "}{.spec.volumeName}{"\n"}'`. Require a non-empty `spec.volumeName`, then inspect that bound PV with `kubectl --context=<context> get pv <pv-name> -o jsonpath='{.metadata.uid}{" "}{.metadata.resourceVersion}{" "}{.spec.persistentVolumeReclaimPolicy}{"\n"}'`. After confirmation, re-read both objects immediately before execution; any binding, identity, version, or PV reclaim-policy change invalidates authorization and blocks deletion.
+Decision gate: Block without server-side preconditions and PV-policy coordination that preserve the reviewed state through deletion.
+Safe replacement: Read and bind the PVC UID, resource version, and current non-empty `spec.volumeName`, then inspect that exact PV's UID, resource version, and `spec.persistentVolumeReclaimPolicy`. The PVC delete request must use server-side UID and resourceVersion preconditions so a recreated or modified claim cannot match. Because PV reclaim policy is independently mutable, keep deletion `BLOCKED` unless an admission policy, controller, lock, or equivalent server-side mechanism guarantees the reviewed PV identity and reclaim policy through the PVC deletion request. A final client-side re-read alone is insufficient.
 
 ### OK9 - Implicit kubectl context
 Example: `kubectl apply -f svc.yaml`
@@ -216,13 +216,13 @@ Safe replacement: Take a backup or snapshot first, then confirm exact target.
 Example: `DELETE FROM orders;`
 Risk: Removes all rows.
 Decision gate: Refuse without explicit confirmation.
-Safe replacement: Run `SELECT COUNT(*) FROM orders WHERE created_at < '2020-01-01';`; review target/count and recovery, then confirm `BEGIN; DELETE FROM orders WHERE created_at < '2020-01-01'; COMMIT;`.
+Safe replacement: Preserve the caller's requested scope. If all-row deletion is intentional, inspect `SELECT COUNT(*) FROM orders;`, bind the exact database/schema/table and recovery plan, then confirm the unchanged all-row transaction. If a subset is intended, require the caller to supply the exact predicate and validate its count; never invent a date or business criterion.
 
 ### DB3 - Unqualified UPDATE
 Example: `UPDATE users SET status='inactive';`
 Risk: Mutates all rows.
 Decision gate: Refuse without explicit confirmation.
-Safe replacement: Run `SELECT COUNT(*) FROM users WHERE last_login < '2020-01-01';`; review target/count and recovery, then confirm `BEGIN; UPDATE users SET status='inactive' WHERE last_login < '2020-01-01'; COMMIT;`.
+Safe replacement: Preserve the caller's requested scope. If the all-row update is intentional, inspect `SELECT COUNT(*) FROM users;`, bind the exact database/schema/table, new value, rollback/recovery plan, and transaction, then confirm the unchanged all-row update. If a subset is intended, require the caller to supply the exact predicate and validate its count; never invent a date or business criterion.
 
 ### DB4 - psql URI password
 Example: `psql postgres://user:secret@host/db`

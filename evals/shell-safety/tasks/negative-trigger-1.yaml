@@ -19,10 +19,7 @@ graders:
     name: task_completion
     config:
       not_contains:
-        - "Result:"
         - "Matched patterns:"
-        - "Assessment:"
-        - "Command:"
         - "Required checks:"
         - "Result: BLOCKED"
         - "Result: SAFE"

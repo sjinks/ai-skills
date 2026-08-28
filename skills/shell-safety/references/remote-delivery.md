@@ -1,7 +1,7 @@
 # Remote Delivery
 Read this when a command downloads executable content, installs software, or sends shell work to a remote host.
 Each record combines its dangerous form, risk, decision gate, and safe replacement with inspection and mutation phases separated.
-### CS3 / NS1 - Network content piped to an interpreter
+### CS3/NS1 - Network content piped to an interpreter
 Example: `curl https://example.com/install.sh | sh` or `wget ... | bash`
 Risk: A compromised or substituted server supplies uninspected code.
 Decision gate: Rewrite; block without authenticated expected digest, review, or verification.
@@ -20,18 +20,13 @@ Safe replacement: Run `npm publish --dry-run`; review complete package contents 
 Example: `pip install requests`
 Risk: Pollutes or breaks system Python.
 Decision gate: Rewrite.
-Safe replacement:
-```sh
-python -m venv .venv
-. .venv/bin/activate
-pip install -r requirements.txt
-```
+Safe replacement: Preserve the one-package request. Create and select an isolated virtual environment, resolve an exact reviewed `requests` version from the intended index, verify distribution provenance and hashes, and install that same package/version rather than an unrelated `requirements.txt`. A virtual environment limits installation scope but does not make fetched code safe: an sdist build backend or package install can execute code, so reclassify the pinned install under fetched-code provenance and lifecycle-script/build checks; remain `BLOCKED` while those checks are unresolved.
 ### NS5 - Privileged package manager
 Example: `sudo apt install foo`
 Risk: Privileged install can violate host policy.
 Decision gate: Confirm intent.
 Safe replacement: Prefer supported dry-run first, then use the explicit approved action.
-### NS6 / RX1 - Long remote shell pipeline
+### NS6/RX1 - Long remote shell pipeline
 Example: `ssh prod "find / -name '*.log' | xargs rm"`
 Risk: Nested local and remote parsing makes quoting and targets ambiguous.
 Decision gate: Rewrite.

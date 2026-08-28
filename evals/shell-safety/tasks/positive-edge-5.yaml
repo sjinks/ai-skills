@@ -37,7 +37,7 @@ graders:
     config:
       regex_match:
         - '(?i)Result:\s*NEEDS-CONFIRMATION'
-        - '(?i)Matched patterns:.*OK11'
+        - '(?s)Matched patterns:.*OK11 \(Platform/data\)'
         - '(?i)Assessment:.*(cluster|install|mutat|confirm)'
         - '(?i)Command:.*--kube-context[= ]dev-cluster.*--namespace[= ]reports.*--atomic.*--timeout'
         - '(?i)Required checks:'
