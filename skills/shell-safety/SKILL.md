@@ -98,6 +98,7 @@ Whenever you classify a non-trivially-safe command you are about to send, return
 
 - `Result:` one of `SAFE`, `REWRITE`, `NEEDS-CONFIRMATION`, `AUTHORIZED`, or `BLOCKED`.
 - `Matched patterns:` every pattern that matched during classification as `ID (category)`, where `category` is exactly one of `Command construction`, `Host/repository`, `Remote delivery`, or `Platform/data`; do not use reference titles. Include patterns whose prerequisites were later satisfied, and use `None` only when no pattern matched at all. A reference record headed by two IDs is one pattern and uses `/` with no spaces, for example `CS3/NS1 (Remote delivery)`.
+- A conditional record whose condition does not hold does not match for output and is omitted from `Matched patterns:`.
 - `Assessment:` the concrete risk and decision.
 - `Command:` the exact safe or rewritten command, or `Not provided` when blocked; never include secret values.
 - `Required checks:` checks that must pass before execution, or `None`.

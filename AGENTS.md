@@ -3,6 +3,11 @@
 - NEVER run `waza run` (or any command that issues live model/API calls) without explicit per-run approval from the user. A full eval suite costs roughly 200-270 premium Copilot requests; even a single `--task ... --trials 1` probe costs about 9-18. Before running, state the expected scope and cost, prefer the smallest scope that answers the question, and do not re-run to "confirm" a result that existing measurements already establish.
 - `waza check`, schema validation, `cmp`, `git`, `gh`, and file reads/searches are free and do not need approval.
 
+## Review scope
+
+- `instruction-quality-audit` applies only to behavior-bearing instruction artifacts: `AGENTS.md`, `.github/instructions/**`, and `SKILL.md` plus instruction-bearing `references/**` under `skills/<name>/` or its `.github/skills/<name>/` symlink alias. Audit one symlink alias, never both. Never include `evals/**` or any `README.md` in instruction-quality-audit scope.
+- Review eval files with `test-quality-review`. Review `README.md` files as ordinary documentation without invoking instruction-quality-audit.
+
 When creating or materially updating skills:
 
 - When creating a new skill, use cross-model-instruction-authoring to keep the instruction portable across target models.

@@ -128,7 +128,7 @@ Safe replacement: Inspect images, containers, networks, build cache, and volumes
 Example: `docker rm -f $(docker ps -aq)`
 Risk: Stops and removes all containers.
 Decision gate: Confirm selected IDs.
-Safe replacement: Run `docker ps -aq --filter status=exited`; review and pass only selected IDs in `docker rm <container-id> <container-id>`.
+Safe replacement: Capture the complete `docker ps -aq` ID set once and review each captured ID with its name, image, and state. If the caller still intends force-removing all containers, confirm that exact captured set and pass those same IDs to `docker rm -f`; if the caller chooses a subset, preserve only that explicit subset and its requested force behavior. Do not silently narrow all containers to exited containers, and do not recalculate the ID set inside the removal command. Return `BLOCKED` when the captured set is empty, incomplete, changed, or cannot be reviewed.
 
 ### OK3 - Privileged container
 Example: `docker run --privileged ...`

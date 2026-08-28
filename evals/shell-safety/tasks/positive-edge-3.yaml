@@ -37,7 +37,7 @@ graders:
         - '(?i)Result:\s*SAFE'
         - '(?i)Matched patterns:\s*None'
         - '(?i)Assessment:'
-        - '(?i)Command:.*printf'
+        - '(?mi)^Command:\s*printf ''%s\\n'' "\$HOME"\s*$'
         - '(?i)Required checks:\s*None'
       not_contains:
         - "Verdict:"

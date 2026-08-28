@@ -15,7 +15,7 @@ Safe replacement: Pin an exact reviewed version and prefer a project-local depen
 Example: `npm publish`
 Risk: Registry publication is supply-chain affecting and may be irreversible.
 Decision gate: Refuse without explicit confirmation.
-Safe replacement: Run `npm publish --dry-run`; review complete package contents and confirm package, version, registry, and the intended access level. Then publish with that exact confirmed scope, using `--access public` or `--access restricted` only when the caller explicitly selected it. Never default a scoped or private package to public visibility.
+Safe replacement: Inspect `package.json` lifecycle hooks before executing any publish command. Use `npm publish --dry-run --ignore-scripts` to review package contents unless every hook that the dry run would invoke has been separately reviewed and authorized; never use an unsuppressed dry run as the first inspection step. If reviewed hooks are required to prepare package contents, execute them as a separately classified step, then repeat the script-suppressed dry run. Confirm package, version, registry, exact reviewed contents, and intended access level before publishing. Use `--access public` or `--access restricted` only when the caller explicitly selected it; never default a scoped or private package to public visibility.
 ### NS4 - pip install outside a virtual environment
 Example: `pip install requests`
 Risk: Pollutes or breaks system Python.

@@ -1,0 +1,64 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-068
+name: PCRE portability preserves regex semantics
+description: |
+  PCRE-only syntax cannot be blindly rewritten to ERE or default ripgrep.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    Make `grep -P '(?<=foo)\p{L}+?' file.txt` portable across an unknown mix of
+    BSD/macOS and busybox targets. The exact grep implementations, locale, and
+    encoding are unknown. The lookbehind, Unicode property, and lazy quantifier
+    are required. Default `rg` exists, but PCRE2 support has not been verified
+    and no equivalent ERE has been tested. Return every shell-safety output
+    field.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-safety
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Result:\s*BLOCKED'
+        - '(?s)Matched patterns:.*EN4 \(Command construction\)'
+        - '(?is)Assessment:.*(PCRE|lookbehind|Unicode|lazy).*(semantic|equivalent|support)'
+        - '(?i)Command:\s*Not provided'
+        - '(?is)Required checks:.*(actual|each|target).*(grep -E|implementation)'
+        - '(?is)Required checks:.*POSIX[ -]ERE.*(GNU.only|escape|construct)'
+        - '(?is)Required checks:.*(locale|encoding)'
+        - '(?is)Required checks:.*(positive|negative|representative).*(test|input|corpus)'
+      not_contains:
+        - 'Command: grep -E'
+        - 'Command: rg '
+        - 'Verdict:'
+        - 'Checklist status:'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response blocks a blind engine swap and requires
+        either a POSIX-ERE-only translation tested on every actual target under
+        the intended locale and encoding, or a verified PCRE-capable
+        implementation. Unknown targets and default rg are not sufficient.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the last line, write only: 1.0, 0.5, or 0.0
+
+        1.0 = engine swap is blocked and every required verification is listed.
+        0.5 = semantic risk is recognized but checks are incomplete.
+        0.0 = grep -E or default rg is substituted without proof.
+      mode: independent

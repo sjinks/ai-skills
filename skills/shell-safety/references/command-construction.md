@@ -122,16 +122,16 @@ for f in ./*; do
 	...
 done
 ```
-The existence/link guard prevents a literal `./*` no-match iteration while retaining files, directories, and symlinks. zsh's default `NOMATCH` aborts before the loop on an empty directory; use a deliberately scoped zsh null-glob form such as `./*(N)` only for a zsh target. Use `find` only when the caller explicitly requests its recursive/type-filtered scope, and consume names through a NUL-safe structured path.
+The existence/link guard prevents a literal `./*` no-match iteration while retaining files, directories, and symlinks. This record also covers a bare glob used directly as an in-shell `for` list, such as `for f in *.log`; an unguarded glob list matches Q3, and the guarded form above is the compliant result. zsh's default `NOMATCH` aborts before the loop on an empty directory; use a deliberately scoped zsh null-glob form such as `./*(N)` only for a zsh target. Use `find` only when the caller explicitly requests its recursive/type-filtered scope, and consume names through a NUL-safe structured path.
 
-### Q4 - Unquoted glob
+### Q4 - Unquoted glob in a command's argument list
 Example: `mv *.log /tmp`
 
 Risk: No-match behavior differs by shell and a literal glob is ambiguous.
 
 Decision gate: Block until one structured expansion is captured and bound through execution.
 
-Safe replacement: Use a runtime or helper that resolves the glob once into a structured argv list, records path identity when replacement matters, renders every path with unambiguous escaping for review, and invokes `mv --` with that same stored list. Do not expand `*.log` again after review; if the exact structured list cannot survive through execution, return `BLOCKED`.
+Safe replacement: Use a runtime or helper that resolves the glob once into a structured argv list, records path identity when replacement matters, renders every path with unambiguous escaping for review, and invokes `mv --` with that same stored list. Do not expand `*.log` again after review; if the exact structured list cannot survive through execution, return `BLOCKED`. This record applies to a glob expanded into an external command's argument list. A glob used as an in-shell `for` list with Q3's existence/link guard is classified under Q3 and does not additionally match Q4.
 
 ### Q5 - Unquoted `$@`
 Example: `cmd $@`
@@ -343,7 +343,7 @@ Example: `cmd > /dev/null`
 
 Risk: stderr remains visible, which may surprise the caller.
 
-Decision gate: Inspect intent; rewrite only when the caller confirms both streams should be silenced, otherwise return `SAFE` for the original.
+Decision gate: Rewrite when the caller confirms both streams should be silenced; otherwise this pattern does not apply and the segment is reclassified without it.
 
 Safe replacement: `cmd > /dev/null 2>&1` only when both streams should be silenced.
 
@@ -459,9 +459,9 @@ Example: `env > env.txt`
 
 Risk: Credentials may be persisted.
 
-Decision gate: Prohibited for any included value whose sensitivity is unresolved; confirmation does not authorize a broad dump.
+Decision gate: Rewrite; block while any allowlisted variable's current value has unresolved sensitivity or persistence acceptability.
 
-Safe replacement: Define an explicit allowlist of variable names, verify each current value is non-secret and acceptable to persist in the target context, and emit only those names through a structured writer. Do not dump first and filter afterward. If any value is unresolved or the destination cannot be protected and lifecycle-managed, return `BLOCKED`.
+Safe replacement: Never authorize the broad form, even after all current values are classified. Define an explicit allowlist and establish from each variable's name, trusted producer, documented purpose, and data contract that its current value is non-secret and acceptable to persist; never print a value to determine its sensitivity. For each concrete variable, verify presence only with a `[ "${PATH+x}" = x ]`-style check. Emit only allowlisted names with `printf`, using a fixed format string and passing every name and value through quoted `%s` arguments. Do not dump first and filter afterward. If classification would require reading a value, any allowlisted variable is unresolved, or the destination cannot be protected and lifecycle-managed, return `BLOCKED`.
 
 ### SE3 - Secret in argv
 Example: `curl --header "Authorization: Bearer abc123"`
@@ -558,7 +558,7 @@ Risk: BSD `grep` lacks PCRE support.
 
 Decision gate: Rewrite.
 
-Safe replacement: `grep -E 'foo' file` or `rg 'foo' file`.
+Safe replacement: First determine whether the pattern uses PCRE-only semantics. Translate it only to POSIX ERE constructs, without GNU-only escapes, and only when semantic equivalence has been tested against representative positive and negative inputs on every actual target `grep -E` implementation under the intended locale and encoding; default `rg` is not a PCRE-preserving substitute. Otherwise use a verified available PCRE-capable implementation, such as `rg -P` after checking PCRE2 support or `pcre2grep`, and preserve the original flags, input scope, locale, encoding, and match/output behavior. Return `BLOCKED` when a target implementation is unknown or no semantics-preserving translation or verified PCRE implementation is available.
 
 ### EN5 - Locale-dependent date
 Example: `date +'%B %d'`.

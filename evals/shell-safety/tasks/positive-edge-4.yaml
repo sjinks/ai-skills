@@ -38,7 +38,7 @@ graders:
         - '(?i)Result:\s*REWRITE'
         - '(?s)Matched patterns:.*Q1 \(Command construction\)'
         - '(?i)Assessment:.*(quote|split|glob|expansion)'
-        - '(?i)Command:.*\$HOME'
+        - '(?mi)^Command:\s*printf ''%s\\n'' "\$HOME"\s*$'
         - '(?i)Required checks:\s*None'
       not_contains:
         - "Verdict:"
