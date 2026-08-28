@@ -71,7 +71,7 @@ Safe replacement: Check release and package references, then after confirmation 
 Example: `rm -rf ./build`
 Risk: A typo can delete the parent.
 Decision gate: Require an explicit, non-glob path.
-Safe replacement: Resolve the explicit target with a platform-appropriate trusted canonicalization facility, compare both canonical path and filesystem identity against `/`, `$HOME`, and every verified account home, preview the bound target, then reverify the same identity immediately before deletion. Return `BLOCKED` when resolution, protected-path discovery, or identity binding is unavailable.
+Safe replacement: Resolve the explicit target with a platform-appropriate trusted canonicalization facility, compare both canonical path and filesystem identity against `/`, `$HOME`, and every verified account home, and preview the bound target. Require every parent directory to be trusted and non-replaceable for the operation's duration, or use a platform mechanism that holds root-confined no-follow directory handles and prevents path swaps throughout traversal and deletion. A final pathname recheck followed by plain `rm` is insufficient. Return `BLOCKED` when resolution, protected-path discovery, parent trust, or whole-operation identity binding is unavailable.
 ### FS2 - Variable recursive delete
 Example: `rm -rf "$BUILD_DIR"`
 Risk: An unset, empty, or root-like value is unsafe.

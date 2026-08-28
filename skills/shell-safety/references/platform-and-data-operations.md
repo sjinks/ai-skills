@@ -228,7 +228,7 @@ Safe replacement: Preserve the caller's requested scope. If the all-row update i
 Example: `psql postgres://user:secret@host/db`
 Risk: Password leaks through history and process listings.
 Decision gate: Rewrite.
-Safe replacement: Use a protected `~/.pgpass` with mode `0600` or credential helper; verify ownership and permission without reading it, then `psql 'host=host dbname=db user=user'`.
+Safe replacement: For the original one-time connection, remove the password from the URI and force an interactive prompt without persisting it, for example `psql -W 'host=host dbname=db user=user'`; preserve the caller's host, port, database, user, TLS, and other options. Use an existing approved `.pgpass` or credential helper only after verifying it without reading the secret. Create or modify persistent credential state only when the caller explicitly requests storage, after separately classifying its destination, replacement behavior, ownership, permissions, and lifecycle.
 
 ### DB5 - MySQL argv password
 Example: `mysql -uuser -psecret`

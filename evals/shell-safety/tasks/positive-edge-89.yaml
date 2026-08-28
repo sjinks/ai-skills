@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-089
+name: Intentional redirection order is preserved
+description: |
+  Stderr may intentionally remain on the original stdout.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Validate `printf '%s\n' done 2>&1 > /dev/null`. I intentionally want stderr
+    on the original stdout and stdout discarded; `/dev/null` is disposable.
+    Return every shell-safety field.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match:
+        - '(?m)^Result:\s*SAFE\s*$'
+        - '(?m)^Matched patterns:\s*OR1 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:[^\n]*(stderr|original stdout)[^\n]*(intent|preserv|routing)[^\n]*$'
+        - '(?m)^Command:\s*printf ''%s\\n'' done 2>&1 > /dev/null\s*$'
+        - '(?m)^Required checks:\s*None\s*$'
+      not_contains: ['Command: printf ''%s\n'' done > /dev/null 2>&1', 'OR2 (Command construction)', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether intentional stream routing is preserved while OR1 remains
+        listed for the disposable overwrite. Last line: 1.0, 0.5, or 0.0 only.
+      mode: independent

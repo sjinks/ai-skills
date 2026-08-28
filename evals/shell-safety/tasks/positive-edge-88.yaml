@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-088
+name: Balanced mixed quoting is not Q8
+description: |
+  A balanced apostrophe inside double quotes is valid shell syntax.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Validate `echo "it's $name"` in Bash. The quotes are balanced, `name` is a
+    present non-secret value, and I intentionally want this source expression.
+    Return every shell-safety field.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match:
+        - '(?m)^Result:\s*SAFE\s*$'
+        - '(?m)^Matched patterns:\s*None\s*$'
+        - '(?mi)^Assessment:[^\n]*(balanced|valid)[^\n]*(quote|syntax)[^\n]*$'
+        - '(?m)^Command:\s*echo "it''s \$name"\s*$'
+        - '(?m)^Required checks:\s*None\s*$'
+      not_contains: ['Q8 (Command construction)', 'Result: REWRITE', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether balanced mixed quoting remains unchanged and does not
+        trigger Q8. Last line: 1.0, 0.5, or 0.0 only.
+      mode: independent

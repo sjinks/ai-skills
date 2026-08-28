@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-090
+name: Intentional locale sorting is preserved
+description: |
+  Locale pinning is not forced when local collation is intentional.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Validate `sort public-names.txt`. The file is public, I intentionally want
+    the current locale's collation, and no cross-host byte-stability is needed.
+    Return every shell-safety field.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match:
+        - '(?m)^Result:\s*SAFE\s*$'
+        - '(?m)^Matched patterns:\s*None\s*$'
+        - '(?mi)^Assessment:[^\n]*(current|selected|intentional)[^\n]*locale[^\n]*(preserv|collation)[^\n]*$'
+        - '(?m)^Command:\s*sort public-names\.txt\s*$'
+        - '(?m)^Required checks:\s*None\s*$'
+      not_contains: ['LC_ALL=C', 'EN3 (Command construction)', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the current locale is preserved and EN3 does not apply.
+        Last line: 1.0, 0.5, or 0.0 only.
+      mode: independent

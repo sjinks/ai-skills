@@ -23,3 +23,5 @@ graders:
         - "Required checks:"
         - "Result: BLOCKED"
         - "Result: SAFE"
+      regex_not_match:
+        - '(?im)^[ \t]*(result|matched patterns|assessment|command|required checks):'

@@ -18,7 +18,7 @@ Before composing or running any shell command that is not trivially safe. Trivia
 - Portability-only shell reviews where the question is cross-shell or cross-OS compatibility rather than execution safety.
 - Generic shell tutoring, syntax explanation, or command examples that the assistant is not about to run or recommend running.
 - Prose-only requests to draft or revise a commit message when no `git commit` shell invocation is being constructed or reviewed.
-- Non-shell languages or application-level security review where no shell command is being composed, validated, or executed.
+- Non-shell languages or application-level security review where no shell command is being composed, validated, or executed. A database statement explicitly intended for execution in a terminal database CLI or REPL is a terminal action and remains in scope.
 
 Everything else needs validation. In particular:
 
@@ -31,7 +31,7 @@ Everything else needs validation. In particular:
 - Any cloud CLI mutation (`aws *-delete`, `aws s3 sync --delete`, `gcloud ... delete`, `az ... delete`).
 - Any IaC mutation (`terraform destroy`, `terraform apply -auto-approve`, `pulumi destroy --yes`).
 - Any container mass-mutation (`docker system prune`, `docker rm $(docker ps -aq)`, `kubectl delete namespace`).
-- Any database mutation (`DROP`, `TRUNCATE`, `DELETE FROM ... ;` without `WHERE`, `FLUSHALL`, `dropDatabase()`).
+- Any database mutation executed or proposed for execution through a terminal database CLI or REPL (`DROP`, `TRUNCATE`, `DELETE FROM ... ;` without `WHERE`, `FLUSHALL`, `dropDatabase()`). Ask for the terminal execution context when it is absent.
 - Any secret variable in echo, env dump, or command-line flag (`--password=`, `--token=`).
 
 ## Procedure
@@ -39,6 +39,7 @@ Everything else needs validation. In particular:
 1. **Categorize.** Split the command into segments and map each segment and interaction to every applicable [Category Index](#category-index) row; do not guess pattern IDs before loading their definitions.
 2. **Load.** Read every reference selected by the category pass. Linked reference records are the gating source of truth for each pattern ID, risk, per-pattern decision-gate phrase, and replacement/check sequence; the global [Decision Gates](#decision-gates) and [Output](#output) in this file remain authoritative for interpreting gates and emitting results. If a selected reference is unreadable, return `Result: BLOCKED`, `Matched patterns: None`, name the unavailable reference in `Assessment:`, use `Command: Not provided`, and request the reference under `Required checks:`. Never infer `SAFE`, `REWRITE`, or `AUTHORIZED` from the Category Index alone.
 3. **Match.** Check every segment and cross-segment interaction against the loaded reference records, identify every applicable pattern ID, and address every actual match. A fully checked command with no applicable pattern may be `SAFE` with `Matched patterns: None`.
+	An in-scope command with a write, delete, overwrite, process, service, privilege, repository, or other mutation effect may not use that fallback: if no loaded record positively classifies the effect, return `BLOCKED` with `Matched patterns: None` and request an applicable rule or a narrower proven-safe action.
 4. **Resolve conflicts.** Apply decision gates in this order: prohibited > rewrite-only > confirmable > safe. If two applicable rules cannot be satisfied together, return `BLOCKED`; do not choose one silently.
 5. **Rewrite.** Apply the matching reference record and reassess the complete rewritten command, not only the segment that triggered the first match.
 6. **Verify and report.** Resolve values, apply the decision gate, and restate the command according to [Verification Before Execution](#verification-before-execution), then emit the [Output](#output) contract.
@@ -97,11 +98,11 @@ Pattern membership and all command-specific prerequisites are defined only by th
 Whenever you classify a non-trivially-safe command you are about to send, return these fields in order, even when the user did not explicitly request validation. Omit them only for commands that meet the trivially-safe definition in [When to Use](#when-to-use).
 
 - `Result:` one of `SAFE`, `REWRITE`, `NEEDS-CONFIRMATION`, `AUTHORIZED`, or `BLOCKED`.
-- `Matched patterns:` every pattern that matched during classification as `ID (category)`, where `category` is exactly one of `Command construction`, `Host/repository`, `Remote delivery`, or `Platform/data`; do not use reference titles. Include patterns whose prerequisites were later satisfied, and use `None` only when no pattern matched at all. A reference record headed by two IDs is one pattern and uses `/` with no spaces, for example `CS3/NS1 (Remote delivery)`.
+- `Matched patterns:` every pattern that matched during classification as `ID (category)`, where `category` is exactly one of `Command construction`, `Host/repository`, `Remote delivery`, or `Platform/data`; do not use reference titles. Separate multiple records with comma-space. Include patterns whose prerequisites were later satisfied, and use `None` only when no pattern matched at all. A reference record headed by two IDs is one pattern and uses `/` with no spaces, for example `CS3/NS1 (Remote delivery)`.
 - A conditional record whose condition does not hold does not match for output and is omitted from `Matched patterns:`.
 - `Assessment:` the concrete risk and decision.
 - `Command:` the exact safe or rewritten command, or `Not provided` when blocked; never include secret values. For one physical line, emit it after `Command:`. For multiple lines, emit `Command: |` and indent every physical command line, including heredoc bodies and delimiters, by two spaces. That two-space prefix is serialization only and must be removed from every line before execution. Top-level fields are always unindented, so an indented payload line such as `  Required checks:` is command data, not a field.
-- `Required checks:` checks that must pass before execution, or `None`.
+- `Required checks:` checks that must pass before execution, or `None`. Keep a single check or `None` inline. For multiple lines, emit `Required checks: |` and serialize each check line with the same two-space block indentation used by multiline `Command:`.
 
 If the user asks for command safety but supplies no command, still use the same fields: `Result: BLOCKED`, `Matched patterns: None`, `Assessment:` explaining that no exact command was provided, `Command: Not provided`, and `Required checks:` asking for the exact command plus relevant working directory, shell, target, and whether any variables or secrets are involved.
 

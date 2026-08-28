@@ -57,9 +57,14 @@ graders:
       language: python
       assertions:
         - >-
-          not any(line.startswith(('Result:', 'Matched patterns:', 'Assessment:', 'Command:', 'Required checks:')) for line in output.splitlines()) or
-          [marker for line in output.splitlines() for marker in ['Result:', 'Matched patterns:', 'Assessment:', 'Command:', 'Required checks:'] if line.startswith(marker)] ==
-          ['Result:', 'Matched patterns:', 'Assessment:', 'Command:', 'Required checks:']
+          not __import__('re').search(r'(?im)^[ \t]*(?:result|matched patterns|assessment|command|required checks):', output) or
+          __import__('re').fullmatch(r'''(?x)\A
+          Result:[ ](?:SAFE|REWRITE|NEEDS-CONFIRMATION|AUTHORIZED|BLOCKED)\n
+          Matched[ ]patterns:[ ](?:None|[A-Z]+[0-9]*(?:/[A-Z]+[0-9]*)?[ ]\((?:Command[ ]construction|Host/repository|Remote[ ]delivery|Platform/data)\)(?:,[ ][A-Z]+[0-9]*(?:/[A-Z]+[0-9]*)?[ ]\((?:Command[ ]construction|Host/repository|Remote[ ]delivery|Platform/data)\))*)\n
+          Assessment:[ ][^\n]*\S[^\n]*\n
+          Command:[ ](?:[^|\n][^\n]*\S\n|\|\n(?:[ ][ ][^\n]*\n)+)
+          Required[ ]checks:[ ](?:[^|\n][^\n]*\S\n?|\|\n(?:[ ][ ][^\n]*(?:\n|\Z))+)
+          \Z''', output) is not None
   - type: behavior
     name: efficiency
     config:

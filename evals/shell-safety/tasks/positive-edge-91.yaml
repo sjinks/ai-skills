@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-091
+name: Intentional localized date is preserved
+description: |
+  Stable English or UTC output must not replace requested localization.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Validate `date +'%B %d'`. I intentionally want localized month names in the
+    current local timezone, not stable English or UTC ISO output. Return every
+    shell-safety field.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match:
+        - '(?m)^Result:\s*SAFE\s*$'
+        - '(?m)^Matched patterns:\s*None\s*$'
+        - '(?mi)^Assessment:[^\n]*(localized|locale)[^\n]*(local timezone|current timezone)[^\n]*(intent|preserv)[^\n]*$'
+        - '(?m)^Command:\s*date \+''%B %d''\s*$'
+        - '(?m)^Required checks:\s*None\s*$'
+      not_contains: ['LC_ALL=C', 'date -u', 'EN5 (Command construction)', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether localized local-time output is preserved without EN5.
+        Last line: 1.0, 0.5, or 0.0 only.
+      mode: independent

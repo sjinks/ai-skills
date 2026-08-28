@@ -95,9 +95,9 @@ Example: `rm $file`
 
 Risk: Word splitting and pathname expansion change the argument list.
 
-Decision gate: Rewrite.
+Decision gate: Block until the intended argv boundary is known, then rewrite.
 
-Safe replacement: `rm -- "$file"`.
+Safe replacement: Use `rm -- "$file"` only when `$file` is confirmed to represent one argument. When it intentionally represents multiple arguments, require a structured argv source such as an array or positional parameters, preserve each reviewed element, and invoke the command with that structure's boundary-preserving expansion. Never collapse an intended list into one quoted scalar.
 
 ### Q2 - Unquoted variable in a path
 Example: `cd $dir`
@@ -161,13 +161,13 @@ Decision gate: Rewrite when expansion is wanted.
 Safe replacement: `printf '%s\n' "$HOME"`.
 
 ### Q8 - Mixed quotes
-Example: `echo "it's $name"`
+Example: `echo "it's $name`
 
-Risk: A missing closing quote can consume the rest of a script.
+Risk: The unbalanced double quote can consume the rest of a script or fail parsing.
 
-Decision gate: Inspect intent, then rewrite.
+Decision gate: Block until the intended quote boundary and text are known, then rewrite.
 
-Safe replacement: `printf "%s\n" "it's $name"`.
+Safe replacement: After confirming the intended text, use `printf '%s\n' "it's $name"`. A balanced command such as `echo "it's $name"` does not match Q8 merely for mixing a double-quoted string with an apostrophe.
 
 ### Q9 - Backslash escapes in single quotes
 Example: `echo 'a\nb'`
@@ -332,9 +332,9 @@ Safe replacement: Preserve the requested write semantics. Use `cmd >> log.txt` o
 ### OR2 - Wrong stderr-redirection order
 Example: `cmd 2>&1 > log`
 
-Risk: stderr remains at the terminal.
+Risk: stderr remains on the original stdout, which differs from sending both streams to `log`.
 
-Decision gate: Rewrite.
+Decision gate: Rewrite when the caller confirms that both streams should go to `log`; otherwise this pattern does not apply and the original routing is preserved for reclassification.
 
 Safe replacement: `cmd > log 2>&1`.
 
@@ -542,7 +542,7 @@ Example: `sort file.txt`.
 
 Risk: Locale collation changes cross-host output.
 
-Decision gate: Rewrite.
+Decision gate: Rewrite when the caller requires bytewise, cross-host-stable semantics; otherwise this pattern does not apply and the selected locale is preserved for reclassification.
 
 Safe replacement:
 ```sh
@@ -565,6 +565,6 @@ Example: `date +'%B %d'`.
 
 Risk: Localized output changes scripts across hosts.
 
-Decision gate: Rewrite.
+Decision gate: Rewrite when the caller requires stable English local-time output or UTC ISO output; block while the intended format, language, or timezone is unresolved. When localized local-time output is intentional, this pattern does not apply and the original is preserved.
 
-Safe replacement: `LC_ALL=C date '+%B %d'` or `date -u '+%Y-%m-%dT%H:%M:%SZ'`.
+Safe replacement: For stable English month names while preserving the original local-time format, use `LC_ALL=C date '+%B %d'`. Use `date -u '+%Y-%m-%dT%H:%M:%SZ'` only when the caller explicitly selects UTC ISO output. Preserve `date +'%B %d'` when localized local-time output is intended.
