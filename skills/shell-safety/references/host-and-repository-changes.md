@@ -65,7 +65,8 @@ Before treating the inspection as complete, determine whether the target contain
 Example: `git push --delete origin v1.2.3`
 Risk: Releases and consumers can lose a referenced tag.
 Decision gate: Confirmable.
-Safe replacement: Check release and package references, then after confirmation run `git push --delete origin v1.2.3`.
+Subsumes: `GD10` for this exact remote mutation because GD8 incorporates executable, repository, remote-config, environment, helper, and auxiliary-execution checks.
+Safe replacement: Check release and package references; resolve and bind every effective push destination, authenticated repository/account, remote configuration, credential/helper path, environment, and executable. Reject unresolved or unreviewed multiple push URLs. Read the exact current `refs/tags/v1.2.3` object ID from those same destinations, require the same expected value everywhere, and confirm deletion of that current ref/object pair. Use a server-side explicit lease such as `git push --force-with-lease=refs/tags/v1.2.3:<expected-object-id> --delete origin refs/tags/v1.2.3`, then refresh destination/config/identity immediately before execution. The lease compares current value only and cannot detect delete/recreate ABA at the same object; when generation identity matters, require a server-side generation/audit token or return `BLOCKED`. Also block when the ref is absent, moved to another object, peeled differently than expected, or any destination cannot enforce the lease.
 ### GD9 - Ordinary commit creation
 Example: `git commit --cleanup=verbatim -F -`
 Risk: Records the current index and message as a new repository-history object.
@@ -172,17 +173,17 @@ Safe replacement: On a verified Linux/libcap target, use `getcap` to inspect the
 Example: `gpg --delete-secret-keys ABCD1234`
 Risk: Encrypted data may become unrecoverable.
 Decision gate: Confirmable.
-Safe replacement: Run `gpg --list-secret-keys ABCD1234`; after fingerprint verification and exact-key confirmation, delete it.
+Safe replacement: Resolve the complete primary-key fingerprint, run `gpg --list-secret-keys <FULL_FINGERPRINT>`, and bind the reviewed key material to that full selector. After exact-key confirmation, delete with `gpg --delete-secret-keys <FULL_FINGERPRINT>`; never fall back to a short key ID for mutation.
 ### GP2 - Export secret keys to stdout
 Example: `gpg --export-secret-keys ABCD1234`
 Risk: Key material enters output and logs.
 Decision gate: Rewrite then confirm protected destination.
-Safe replacement: Confirm fingerprint, recipient, and cleanup. Have the runtime create a unique owner-only destination outside `/tmp`, repositories, and synchronized paths through a no-follow exclusive-open API, retain that open handle, and direct GPG stdout to the inherited descriptor, for example `gpg --export-secret-keys --armor ABCD1234 1>&3` when descriptor 3 is the validated handle. Never reopen a validated pathname. If an already-open exclusive handle cannot be carried through export, return `BLOCKED`.
+Safe replacement: Confirm the complete primary-key fingerprint, recipient, and cleanup. Have the runtime create a unique owner-only destination outside `/tmp`, repositories, and synchronized paths through a no-follow exclusive-open API, retain that open handle, and direct GPG stdout to the inherited descriptor, for example `gpg --export-secret-keys --armor <FULL_FINGERPRINT> 1>&3` when descriptor 3 is the validated handle. Never reopen a validated pathname or substitute a short key ID. If an already-open exclusive handle cannot be carried through export, return `BLOCKED`.
 ### GP3 - Batch destructive GPG
 Example: `gpg --batch --yes --delete-keys ABCD1234`
 Risk: Suppresses the prompt for a typo.
 Decision gate: Confirm fingerprint.
-Safe replacement: If batch is required, confirm that exact fingerprint first.
+Safe replacement: Preserve the original deletion operation. For public-key deletion, resolve and confirm the complete fingerprint, then use `gpg --batch --yes --delete-keys <FULL_FINGERPRINT>`. For `--delete-secret-keys`, apply GP1 as well and retain that exact operation with the same full fingerprint. Never replace secret-key deletion with public-key deletion or mutate by short key ID.
 ### GP4 - `--no-verify` on signed Git actions
 Example: `git commit -S --no-verify`
 Risk: Bypasses policy hooks.
@@ -192,7 +193,7 @@ Safe replacement: Fix the hook failure; never pass `--no-verify`.
 Example: `gpg --import < untrusted.asc`
 Risk: Pollutes trust with attacker-controlled keys.
 Decision gate: Inspect then import.
-Safe replacement: Run `gpg --show-keys received.asc`; after authenticated out-of-band fingerprint verification, run `gpg --import received.asc`.
+Safe replacement: Have the runtime place the untrusted bytes in a private immutable object with trusted non-writable parents and retain its stable identity or handle. Inspect that exact object with `gpg --show-keys`, bind its digest and every full fingerprint to authenticated out-of-band evidence, then revalidate identity, immutability, and digest immediately before importing those same bytes through the retained object or inherited descriptor. If GPG must reopen a replaceable pathname or the same object cannot survive inspection through import, return `BLOCKED`.
 ### GP6 - Passphrase in argv
 Example: `gpg --passphrase "secret" --decrypt file.gpg`
 Risk: Exposes the passphrase in process lists and history.
