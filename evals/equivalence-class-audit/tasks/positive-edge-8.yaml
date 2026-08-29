@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-008
+name: Partial deferral metadata blocks each candidate
+description: |
+  Explicit deferrals with only an owner or only a reason must each block and
+  request the missing metadata rather than becoming fix-now or deferred.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Apply equivalence-class-audit.
+
+    Triggering finding: `maxRetries` accepts `0`, which disables retries.
+
+    Locked audit scope: `config/retry.yml`, the Retry Configuration section of
+    `docs/api.md`, and the Retry Operations section of `docs/operations.md`.
+
+    Required disposition boundary:
+    - The `docs/api.md` defect must be deferred to owner Platform Docs, but no
+      reason for deferral is supplied.
+    - The `docs/operations.md` defect must be deferred because it is maintained
+      outside this change, but no owner or owning team is supplied.
+
+    Return the standard audit. Block each documentation disposition separately
+    and ask for its missing metadata.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/equivalence-class-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - equivalence-class-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Equivalence-Class Audit Report'
+        - '(?im)^Output depth:\s*standard\s*$'
+        - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|[^\n|]*docs/api\.md[^\n|]*\|\s*present\s*\|\s*blocked\s*\|'
+        - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|[^\n|]*docs/operations\.md[^\n|]*\|\s*present\s*\|\s*blocked\s*\|'
+        - '(?i)Blocking questions[\s\S]*(docs/api\.md[\s\S]*reason|reason[\s\S]*docs/api\.md)'
+        - '(?i)Blocking questions[\s\S]*(docs/operations\.md[\s\S]*(owner|owning team)|(owner|owning team)[\s\S]*docs/operations\.md)'
+      not_contains:
+        - "Output depth: quick"
+        - "Output depth: exhaustive"
+        - "Gate decision:"
+        - "Adversarial tests:"

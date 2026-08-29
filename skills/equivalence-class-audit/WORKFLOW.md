@@ -9,8 +9,8 @@ The deliverable is one audit report. This skill package is standalone and does n
 - The triggering finding and locked audit scope are required before candidate enumeration. If either is missing, stop before enumeration.
 - Do not invent scope or candidates. Use the user's stated scope, supplied artifacts, current project files, tests, specs, and observable behavior as the source of truth.
 - The audit scope is locked before candidate enumeration. Do not silently expand it. If an equivalent candidate is discovered outside the locked scope, record it under **Out-of-scope candidates discovered** with provenance.
-- If no disposition boundary is provided, default in-scope present defects to `fix-now`.
-- `defer-with-owner` requires a named owner or owning team and a reason. A ticket, issue, or reference alone is not enough.
+- If no disposition boundary is provided, default in-scope present defects to `fix-now`. Missing deferral metadata does not override this default.
+- Use `defer-with-owner` only when deferral is explicitly requested and includes a named owner or owning team and a reason. A ticket, issue, or reference alone is not enough. If deferral is explicitly required but its owner or reason is missing, use `blocked`.
 - Every catalogue axis should be represented at least once in the table when the table is included (i.e., only after both the triggering finding and locked audit scope are available), except in explicit `quick` mode. If an axis has no candidates or is structurally inapplicable, include one explicit `n/a` row with evidence or a reason.
 
 ## When to Use
@@ -36,14 +36,14 @@ Do not use this workflow for:
 
 ## Required Inputs
 
-Before auditing, state the required inputs. The triggering finding and locked audit scope are the minimum inputs needed before candidate enumeration. If either is missing, do not enumerate candidates, do not invent scope, and do not add table rows. Return the report header and sections, and use **Blocking questions** to name the smallest missing input needed to proceed. Use table rows only when enough scope exists to identify at least one axis or candidate safely. This rule applies across languages, frameworks, configuration, schemas, documentation, tests, and other artifacts.
+Before auditing, state the required inputs. The triggering finding and locked audit scope are the minimum inputs needed before candidate enumeration. If either is missing, do not enumerate candidates, do not invent scope, and do not add table rows. Return the report header and sections, and use **Blocking questions** to name the smallest missing input needed to proceed. Include table rows only after both required inputs are available. This rule applies across languages, frameworks, configuration, schemas, documentation, tests, and other artifacts.
 
 If another critical fact is missing after the triggering finding and locked audit scope are known, record the affected row as `blocked — clarification needed` with `blocked` disposition instead of guessing.
 
 - **Triggering finding:** the concrete defect, incident, failing assertion, review comment, or bug report.
 - **Locked audit scope:** exact files, modules, API surfaces, resources, specs, tests, schemas, migrations, configuration artifacts, or documentation sections to inspect.
 - **Severity or criticality:** especially whether the defect class affects security, authorization, data integrity, public contracts, or user-visible behavior.
-- **Allowed disposition boundary:** optional. If omitted, default in-scope present defects to `fix-now`. Use `defer-with-owner` only when an explicit named owner or owning team and a reason are available. Use `blocked` only when clarification is needed before deciding safely.
+- **Allowed disposition boundary:** optional. If omitted, default in-scope present defects to `fix-now`, even when deferral metadata is unavailable. Use `defer-with-owner` only when deferral is explicitly requested and a named owner or owning team and a reason are available. If deferral is explicitly required but its owner or reason is missing, use `blocked` and ask for that metadata.
 
 ## Output Depth
 
@@ -53,7 +53,7 @@ Default to `standard` unless the user asks for another depth.
 - `standard`: represent every catalogue axis at least once when the table is included. Add candidate rows where evidence exists and explicit `n/a` rows for axes with no candidates or structural inapplicability.
 - `exhaustive`: represent every catalogue axis at least once and expand all reasonably discoverable candidates inside the locked scope.
 
-If the user asks for `quick` or `exhaustive`, name the selected depth in the report. If quick mode omits an axis that has a target-specific blocker or high-risk concern, the quick report is incomplete.
+Always emit the selected depth as `Output depth: quick`, `Output depth: standard`, or `Output depth: exhaustive`. If quick mode omits an axis that has a target-specific blocker or high-risk concern, the quick report is incomplete.
 
 ## Procedure
 
@@ -88,7 +88,7 @@ The report table must use only these values.
 - `fix-now` - the present defect should be fixed in the current change.
 - `defer-with-owner` - the present defect is intentionally deferred with a named owner or owning team and a reason. A ticket, issue, or reference alone is not enough.
 - `n/a` - used for `absent` and `n/a` presence rows.
-- `blocked` - used when clarification is required before deciding or fixing, including when a present defect would be deferred but no named owner or owning team is available.
+- `blocked` - used when clarification is required before deciding or fixing, including when the caller explicitly requires deferral but no named owner or owning team and reason are available. Missing deferral metadata alone does not override the `fix-now` default.
 
 **Evidence** must cite a file, section, test, spec, schema, migration, configuration artifact, log, incident note, or state the reason for an `n/a` row. A row without evidence is incomplete.
 
@@ -210,6 +210,7 @@ Only include the table after both the triggering finding and locked audit scope 
 
 Triggering finding: <one concrete defect or finding>
 Locked audit scope: <files/modules/API surfaces/specs/tests/artifacts>
+Output depth: <quick | standard | exhaustive; select exactly one>
 
 | Axis | Candidate | Presence | Disposition | Evidence |
 |------|-----------|----------|-------------|----------|
@@ -257,6 +258,7 @@ Locked audit scope: `config/service.yml`, `docs/retry-policy.md`, and `tests/ret
 
 Triggering finding: `maxRetries` accepts `0`, disabling retry behavior unexpectedly.
 Locked audit scope: config/service.yml, docs/retry-policy.md, tests/retry_policy_spec.rb
+Output depth: standard
 
 | Axis | Candidate | Presence | Disposition | Evidence |
 |------|-----------|----------|-------------|----------|

@@ -51,11 +51,13 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
+        - '(?im)^Output depth:\s*standard\s*$'
         - '(?i)\|\s*Axis\s*\|\s*Candidate\s*\|\s*Presence\s*\|\s*Disposition\s*\|\s*Evidence\s*\|'
         - '(?i)Permission/Authorization Class'
         - '(?i)Test Mirror'
         - '(?i)blocked\s+—\s+clarification needed'
-        - '(?i)\|[^\n|]*\|[^\n|]*\|\s*blocked\s+—\s+clarification needed\s*\|\s*blocked\s*\|'
+        - '(?i)\|\s*Permission/Authorization Class\s*\|[^\n|]*(DELETE|tenant)[^\n|]*\|\s*blocked\s+—\s+clarification needed\s*\|\s*blocked\s*\|'
+        - '(?i)\|\s*Test Mirror\s*\|[^\n|]*tenant mismatch[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
         - '(?i)Blocking questions'
         - '(?i)tenantGuard'
         - '(?i)tenant ownership'
@@ -63,6 +65,8 @@ graders:
         - '(?i)GET /teams/\{teamId\}/members'
         - '(?i)tenant mismatch'
       not_contains:
+        - "Output depth: quick"
+        - "Output depth: exhaustive"
         - "probably enforced"
         - "assume tenantGuard"
         - "Gate decision:"

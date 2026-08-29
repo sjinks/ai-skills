@@ -25,6 +25,7 @@ inputs:
     - Tests cover `maxRetries=0` only.
     - The docs still say `0` means "retry forever" and are tracked in
       ticket DOC-22, but no named owner or owning team is available.
+    - No disposition boundary or explicit deferral requirement is supplied.
 
     Produce the audit report and identify what should be fixed now versus
     deferred. Do not treat DOC-22 alone as enough for defer-with-owner.
@@ -48,6 +49,7 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
+        - '(?im)^Output depth:\s*standard\s*$'
         - '(?i)\|\s*Axis\s*\|\s*Candidate\s*\|\s*Presence\s*\|\s*Disposition\s*\|\s*Evidence\s*\|'
         - '(?i)Presence'
         - '(?i)Disposition'
@@ -55,10 +57,12 @@ graders:
         - '(?i)(Opposite Bound|opposite bound).*(present|fix-now)'
         - '(?i)(Sibling Parameter/Field|sibling).*(retryDelaySeconds|present|fix-now)'
         - '(?i)(Empty/Sentinel Equivalence|sentinel).*(null|present|fix-now|blocked)'
-        - '(?i)(Documentation/Spec Prose Twin|docs).*(present).*(fix-now|blocked)'
+        - '(?i)(Documentation/Spec Prose Twin|docs).*(present).*(fix-now)'
         - '(?i)Defects to fix now'
         - '(?i)Deferred follow-ups'
       not_contains:
+        - "Output depth: quick"
+        - "Output depth: exhaustive"
         - "defer-with-owner"
         - "Gate decision:"
         - "Verdict: BLOCK"

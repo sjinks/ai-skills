@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-007
+name: Exhaustive output depth is explicit
+description: |
+  Exhaustive mode must identify its selected depth and expand every reasonably
+  discoverable candidate inside the locked scope.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Apply equivalence-class-audit in exhaustive mode.
+
+    Triggering finding: `minItems` accepts zero and crashes pagination.
+
+    Locked audit scope: `src/pagination.ts`, `src/batch-pagination.ts`,
+    `tests/pagination.test.ts`, and the Pagination section of `docs/api.md`.
+
+    Known facts:
+    - `maxItems` and `minItems` are sibling fields.
+    - Both synchronous and asynchronous pagination use the same validator.
+    - Tests cover negative values but not zero or the asynchronous path.
+    - The docs say zero is valid.
+
+    Expand every reasonably discoverable candidate in scope and represent all
+    catalogue axes, using explicit n/a rows where necessary.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/equivalence-class-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - equivalence-class-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Equivalence-Class Audit Report'
+        - '(?im)^Output depth:\s*exhaustive\s*$'
+        - '(?i)\|\s*Opposite Bound\s*\|'
+        - '(?i)\|\s*Sibling Parameter/Field\s*\|[^\n|]*maxItems[^\n|]*\|'
+        - '(?i)\|\s*Mirror Call Site/Use Site\s*\|'
+        - '(?i)\|\s*Inverse Operation\s*\|'
+        - '(?i)\|\s*Type/Schema Narrowing\s*\|'
+        - '(?i)\|\s*Validation vs Normalization/Sanitization\s*\|'
+        - '(?i)\|\s*Happy/Error/Retry/Cancel Path Twin\s*\|'
+        - '(?i)\|\s*Race/Shared-State Twin\s*\|'
+        - '(?i)\|\s*Permission/Authorization Class\s*\|'
+        - '(?i)\|\s*Observability Twin\s*\|'
+        - '(?i)\|\s*Resource Cleanup\s*\|'
+        - '(?i)\|\s*Contract Symmetry\s*\|'
+        - '(?i)\|\s*Equivalence by Naming\s*\|'
+        - '(?i)\|\s*Async/Sync or Mode Twin\s*\|[^\n|]*(async|asynchronous)[^\n|]*\|'
+        - '(?i)\|\s*Test Mirror\s*\|[^\n|]*(zero|async|asynchronous)[^\n|]*\|'
+        - '(?i)\|\s*Empty/Sentinel Equivalence\s*\|'
+        - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|[^\n|]*zero[^\n|]*\|\s*present\s*\|'
+        - '(?i)\|\s*Cache/Projection/Source-of-Truth Twin\s*\|'
+      not_contains:
+        - "Output depth: quick"
+        - "Output depth: standard"
+        - "Gate decision:"
+        - "Adversarial tests:"

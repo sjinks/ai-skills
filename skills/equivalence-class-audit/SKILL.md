@@ -7,19 +7,54 @@ user-invocable: true
 
 # Equivalence-Class Audit
 
+**UTILITY SKILL.** INVOKES: read-only inspection of supplied artifacts; no other skill required. FOR SINGLE OPERATIONS: audit one concrete finding across one locked scope.
+
 Turn one confirmed defect into a locked-scope audit of equivalent defects: for each applicable axis below, enumerate candidate locations in scope, check each, and report presence and disposition. Standalone; same skill package, no other skill required. Use local `WORKFLOW.md` for detailed per-axis guidance and full report rules.
 
-Trigger: one concrete finding implies equivalent defects in a locked scope. Not for greenfield, broad review, formatting-only, isolated typos, or out-of-scope vendor/gen artifacts.
+## Routing
+
+Use only when one concrete finding implies equivalent defects in a locked scope.
+
+## DO NOT USE FOR:
+
+Do not use for greenfield work, broad initial review, formatting-only changes, isolated typos, or scoped-out vendor/generated artifacts.
+
+## Procedure
+
+1. Require a triggering finding and locked audit scope. If either is missing, do not enumerate or invent candidates; return the complete report shell without a table and put the smallest missing input under `### Blocking questions`.
+2. Select `quick`, `standard` (default), or `exhaustive`; always emit one `Output depth:` value. `quick` reports only missing context, blockers, high-risk concerns, and target-specific axes, then summarizes omitted axes. Other depths represent every catalogue axis at least once.
+3. Enumerate candidates in scope using the catalogue below. Record other critical unknowns as Presence `blocked — clarification needed` and Disposition `blocked`.
+4. Mark present defects `fix-now` by default. Use `defer-with-owner` only for an explicit deferral with a named owner/team and reason. If a required deferral lacks either, use `blocked`.
+
+## Error Handling
+
+Never guess missing evidence. Use the reduced report shell for missing required inputs and a blocked row for other critical unknowns.
+
+## Example
+
+For a quick audit, emit `Output depth: quick`, only target-specific rows, and `Omitted axes`. For standard depth, emit all 18 axes.
+
+## Catalogue
 
 Catalogue axes (18): Opposite Bound; Sibling Parameter/Field; Mirror Call Site/Use Site; Inverse Operation; Type/Schema Narrowing; Validation vs Normalization/Sanitization; Happy/Error/Retry/Cancel Path Twin; Race/Shared-State Twin; Permission/Authorization Class; Observability Twin; Resource Cleanup; Contract Symmetry; Equivalence by Naming; Test Mirror; Empty/Sentinel Equivalence; Async/Sync or Mode Twin; Documentation/Spec Prose Twin; Cache/Projection/Source-of-Truth Twin.
 
-Must have: Triggering finding and locked audit scope. If missing, do not enumerate/invent scope/candidates; return only Blocking questions. Other unknowns: Presence `blocked — clarification needed`, Disposition `blocked`.
-
-Output depth: default `standard`. `quick` is the only full-axis exception: report missing context, blockers, high-risk concerns, and target-specific applicable axes, then summarize omitted axes. `standard`/`exhaustive` represent every catalogue axis at least once when the table is included. Name requested `quick` or `exhaustive` depth in the report.
-
-Defaults: present in-scope defects are `fix-now` unless boundary says otherwise. `defer-with-owner` needs named owner/team and reason. Represent every axis unless depth is `quick`.
+## Values
 
 Presence: `present`, `absent`, `n/a — structurally inapplicable`, `n/a — no candidates in scope`, `blocked — clarification needed`.
 Disposition: `fix-now`, `defer-with-owner`, `n/a`, `blocked`.
 
-Output: `## Equivalence-Class Audit Report`; Triggering finding; Locked audit scope; table: `Axis | Candidate | Presence | Disposition | Evidence`; sections: `Defects to fix now`, `Deferred follow-ups`, `Out-of-scope candidates discovered`, `Blocking questions`, `Test/doc implications`.
+## Output
+
+```text
+## Equivalence-Class Audit Report
+Triggering finding:
+Locked audit scope:
+Output depth: quick | standard | exhaustive
+Axis | Candidate | Presence | Disposition | Evidence
+Defects to fix now
+Deferred follow-ups
+Out-of-scope candidates discovered
+Blocking questions
+Test/doc implications
+Omitted axes (quick mode only)
+```

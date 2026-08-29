@@ -39,17 +39,31 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - "(?i)Equivalence-Class Audit Report"
-        - "(?i)(quick|target-specific|blockers|concerns)"
-        - "(?i)Omitted axes"
-        - "(?i)Locked audit scope"
-        - "(?is)(zero.*pagination|pagination.*zero)"
-        - "(?i)(fix-now|Defects to fix now)"
+        - '(?i)Equivalence-Class Audit Report'
+        - '(?im)^Output depth:\s*quick\s*$'
+        - '(?i)Omitted axes'
+        - '(?i)Omitted axes[^\n]*(scope|inapplicable|material)|Omitted axes[\s\S]{0,300}(scope|inapplicable|material)'
+        - '(?i)Locked audit scope'
+        - '(?is)(zero.*pagination|pagination.*zero)'
+        - '(?i)\|\s*Opposite Bound\s*\|[^\n|]*(zero|maxItems)[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
       not_contains:
-        - "| Cache/Projection/Source-of-Truth Twin |"
-        - "| Permission/Authorization Class |"
-        - "| Resource Cleanup |"
-        - "| Observability Twin |"
+        - "Output depth: standard"
+        - "Output depth: exhaustive"
+        - "Sibling Parameter/Field"
+        - "Mirror Call Site/Use Site"
+        - "Inverse Operation"
+        - "Type/Schema Narrowing"
+        - "Validation vs Normalization/Sanitization"
+        - "Happy/Error/Retry/Cancel Path Twin"
+        - "Race/Shared-State Twin"
+        - "Cache/Projection/Source-of-Truth Twin"
+        - "Permission/Authorization Class"
+        - "Resource Cleanup"
+        - "Observability Twin"
+        - "Contract Symmetry"
+        - "Equivalence by Naming"
+        - "Async/Sync or Mode Twin"
+        - "Documentation/Spec Prose Twin"
         - "Egress policy:"
         - "Trusted root:"
         - "Adversarial tests:"

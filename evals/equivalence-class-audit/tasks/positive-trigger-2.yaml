@@ -47,6 +47,7 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
+        - '(?im)^Output depth:\s*standard\s*$'
         - '(?i)\|\s*Axis\s*\|\s*Candidate\s*\|\s*Presence\s*\|\s*Disposition\s*\|\s*Evidence\s*\|'
         - '(?i)Presence'
         - '(?i)Disposition'
@@ -59,6 +60,8 @@ graders:
         - '(?i)Documentation/Spec Prose Twin'
         - '(?i)(defer-with-owner|fix-now|blocked)'
       not_contains:
+        - "Output depth: quick"
+        - "Output depth: exhaustive"
         - "Gate decision:"
         - "Lenses applied:"
         - "Adversarial tests:"
