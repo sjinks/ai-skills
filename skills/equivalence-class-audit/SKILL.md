@@ -22,7 +22,7 @@ Do not use for greenfield work, broad initial review, formatting-only changes, i
 ## Procedure
 
 1. Require a triggering finding and locked audit scope. If either is missing, do not enumerate or invent candidates; return the reduced report without a table and put the smallest missing input under `### Blocking questions`.
-2. Select `quick`, `standard` (default), or `exhaustive`; always emit one `Output depth:` value. `quick` reports only missing context, blockers, high-risk concerns, and target-specific axes, then summarizes omitted axes. Other depths represent every catalogue axis at least once. Missing required input takes precedence over depth-specific sections: preserve an explicitly requested depth, but use the reduced report without a table or `Omitted axes`.
+2. Select `quick`, `standard` (default), or `exhaustive`; always emit one `Output depth:` value. `quick` reports only missing context, blockers, high-risk concerns, and target-specific axes, then summarizes omitted axes. Other depths represent every catalogue axis at least once. Missing required input suppresses the table, not depth-specific sections: preserve an explicitly requested depth and append `Omitted axes` for `quick`.
 3. Enumerate candidates in scope using the catalogue below. Record other critical unknowns as Presence `blocked — clarification needed` and Disposition `blocked`.
 4. Mark present defects `fix-now` by default. Use `defer-with-owner` only for an explicit deferral with a named owner/team and reason. If a required deferral lacks either, use `blocked`.
 
@@ -67,8 +67,6 @@ Output depth: <quick | standard | exhaustive; select exactly one>
 - <implication, or `None`>
 ```
 
-When `Output depth: quick`, append `### Omitted axes (quick mode only)` and summarize why the remaining axes were not expanded. Omit this section for `standard` and `exhaustive`.
-
 If either required input is missing, omit the table and use this reduced form:
 
 ```text
@@ -87,3 +85,5 @@ Output depth: <quick | standard | exhaustive; select exactly one>
 ### Test/doc implications
 - None
 ```
+
+For either form, when `Output depth: quick`, append `### Omitted axes (quick mode only)` and summarize why axes were not expanded. In a reduced report, state that required input is missing and no axes were enumerated. Omit this section for `standard` and `exhaustive`.

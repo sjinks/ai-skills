@@ -45,13 +45,13 @@ graders:
         - '(?im)^### Out-of-scope candidates discovered[ \t]*\r?\n-[ \t]*None[ \t]*$'
         - '(?im)^### Blocking questions[ \t]*\r?\n-[ \t]*(?=[^\r\n]*triggering finding)(?=[^\r\n]*(missing|provide|required|needed|specify))[^\r\n]*$'
         - '(?im)^### Test/doc implications[ \t]*\r?\n-[ \t]*None[ \t]*$'
+        - '(?im)^### Omitted axes \(quick mode only\)[ \t]*\r?\n-[ \t]*(?=[^\r\n]*(missing|required input|triggering finding))(?=[^\r\n]*(no axes|not enumerated|not expanded|omitted))[^\r\n]*$'
         - '(?i)Defects to fix now'
         - '(?i)Deferred follow-ups'
         - '(?i)Out-of-scope candidates discovered'
         - '(?i)Blocking questions'
         - '(?i)Test/doc implications'
       not_contains:
-        - "### Omitted axes (quick mode only)"
         - "|"
         - "Output depth: standard"
         - "Output depth: exhaustive"
