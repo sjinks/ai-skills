@@ -1,10 +1,12 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 id: positive-edge-003
-name: Second pass holds verdict monotonicity and dedups
+name: Second pass applies severity rules and dedups
 description: |
-  A second adversarial-review pass on the same target revision must not emit a verdict
-  weaker than the strongest prior pass, and must not re-report a finding that
-  matches the same artifact, category, and trigger as a prior finding.
+  A second adversarial-review pass on the same target revision must apply current
+  severity rules to unresolved prior findings, treat the strongest still-supported
+  prior verdict as a lower bound, and avoid re-reporting an equivalent prior
+  finding. This case upgrades prior CONCERNS to BLOCK because an unresolved HIGH
+  finding has no documented control or accepted tradeoff.
 tags:
   - positive-trigger
   - positive-edge
