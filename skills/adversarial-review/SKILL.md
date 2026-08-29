@@ -50,7 +50,7 @@ Collect or read the narrowest useful context before judging:
 - Release context, blast radius, reversibility, and whether the target is prototype, internal, production, regulated, security-sensitive, or safety-sensitive.
 - Existing tests, verification evidence, monitoring, runbooks, or acceptance criteria.
 
-When the target is empty, missing, unreadable, or too vague for meaningful review, emit `BLOCK` using the missing-target template in Output Format and state the exact context required to continue. Do not emit an unstructured clarification-only response. If context is partial but usable, proceed with explicitly listed assumptions and caveats.
+When the target is empty, missing, unreadable, or too vague for meaningful review, emit `BLOCK` using the missing-target template in Output Format. In the blocker finding's `Suggested fix`, request the exact artifact or context required to continue. Do not emit an unstructured clarification-only response. If context is partial but usable, proceed with explicitly listed assumptions and caveats.
 
 ## Optional Review Lenses
 
@@ -153,7 +153,7 @@ Mitigations / acceptance criteria: <blocking items before reliance, shipping, or
 Residual risk: <remaining caveats after suggested mitigations, or "No material residual risk identified">
 ```
 
-For `CLEAN`, replace each empty section with `None`; `What works` should still name the strongest evidence supporting the clean verdict when available; `Residual risk` must list caveats or `No material residual risk identified`. For `BLOCK` on a missing, unreadable, or insufficient target, emit a single `Open question` finding describing the blocker and use `Pending - target unavailable` for `What works`, `Adversarial tests`, and `Mitigations / acceptance criteria`.
+For `CLEAN`, replace each empty section with `None`; `What works` should still name the strongest evidence supporting the clean verdict when available; `Residual risk` must list caveats or `No material residual risk identified`. For `BLOCK` on a missing, unreadable, or insufficient target, emit a single `Open question` finding describing the blocker, put the exact artifact or context required to continue in that finding's `Suggested fix`, and use `Pending - target unavailable` for `What works`, `Adversarial tests`, and `Mitigations / acceptance criteria`.
 
 ## Anti-Patterns
 

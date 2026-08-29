@@ -2,7 +2,9 @@
 id: positive-edge-001
 name: Unreadable artifact triggers BLOCK
 description: |
-  Per the skill, an empty or unreadable target must produce a BLOCK verdict with an Open question finding, not a fabricated review.
+  Per the skill, an empty or unreadable target must produce a BLOCK verdict with
+  one Open question finding whose Suggested fix requests the exact missing
+  artifact or context, not a fabricated review.
 tags:
   - positive-trigger
   - positive-edge
@@ -49,14 +51,17 @@ graders:
       prompt: |
         Grade whether the missing-target response emits exactly one finding,
         classifies it as Open question, explains that the target is unavailable,
-        and does not invent any substantive defect or additional finding.
+        and does not invent any substantive defect or additional finding. The
+        finding's Suggested fix must explicitly request the exact missing
+        material needed to continue; for this prompt, that is the specification
+        body or equivalent target content.
 
         Output format (strict):
         - Write one sentence of reasoning on its own line.
         - On the very last line, write only one of: 1.0, 0.5, 0.0
           (no other text on that line).
 
-        1.0 = exactly one blocker finding and no fabricated target claims.
-        0.5 = the blocker is correct but cardinality or wording is ambiguous.
-        0.0 = additional findings or fabricated target claims are present.
+        1.0 = exactly one blocker finding, an exact request in Suggested fix, and no fabricated claims.
+        0.5 = the request is vague or in the wrong field, but the blocker is otherwise correct.
+        0.0 = no context request, additional findings, or fabricated target claims are present.
       mode: independent
