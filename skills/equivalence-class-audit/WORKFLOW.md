@@ -36,7 +36,7 @@ Do not use this workflow for:
 
 ## Required Inputs
 
-Before auditing, state the required inputs. The triggering finding and locked audit scope are the minimum inputs needed before candidate enumeration. If either is missing, do not enumerate candidates, do not invent scope, and do not add table rows. Return the report header and sections, and use **Blocking questions** to name the smallest missing input needed to proceed. Include table rows only after both required inputs are available. This rule applies across languages, frameworks, configuration, schemas, documentation, tests, and other artifacts.
+Before auditing, state the required inputs. The triggering finding and locked audit scope are the minimum inputs needed before candidate enumeration. If either is missing, do not enumerate candidates, do not invent scope, and do not add table rows. Return the reduced report, and use **Blocking questions** to name the smallest missing input needed to proceed. Preserve an explicitly requested output depth, but omit the table and the quick-only **Omitted axes** section because no axis enumeration occurred. Include table rows only after both required inputs are available. This rule applies across languages, frameworks, configuration, schemas, documentation, tests, and other artifacts.
 
 If another critical fact is missing after the triggering finding and locked audit scope are known, record the affected row as `blocked — clarification needed` with `blocked` disposition instead of guessing.
 

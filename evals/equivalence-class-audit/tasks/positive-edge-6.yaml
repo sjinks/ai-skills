@@ -9,7 +9,7 @@ tags:
   - positive-edge
 inputs:
   prompt: |
-    Apply equivalence-class-audit.
+    Apply equivalence-class-audit in quick mode.
 
     Locked audit scope: `src/pagination.ts` and `tests/pagination.test.ts`.
 
@@ -37,8 +37,14 @@ graders:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
         - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
-        - '(?im)^Output depth:\s*standard\s*$'
-        - '(?i)(missing|not provided).*(triggering finding|defect)|triggering finding.*(missing|not provided)'
+        - '(?im)^Triggering finding:[ \t]+(missing|not provided|not supplied|required|needed)[^\r\n]*$'
+        - '(?im)^Locked audit scope:[ \t]+\S[^\r\n]*$'
+        - '(?im)^Output depth:\s*quick\s*$'
+        - '(?im)^### Defects to fix now[ \t]*\r?\n-[ \t]*None[ \t]*$'
+        - '(?im)^### Deferred follow-ups[ \t]*\r?\n-[ \t]*None[ \t]*$'
+        - '(?im)^### Out-of-scope candidates discovered[ \t]*\r?\n-[ \t]*None[ \t]*$'
+        - '(?im)^### Blocking questions[ \t]*\r?\n-[ \t]*(?=[^\r\n]*triggering finding)(?=[^\r\n]*(missing|provide|required|needed|specify))[^\r\n]*$'
+        - '(?im)^### Test/doc implications[ \t]*\r?\n-[ \t]*None[ \t]*$'
         - '(?i)Defects to fix now'
         - '(?i)Deferred follow-ups'
         - '(?i)Out-of-scope candidates discovered'
@@ -47,7 +53,7 @@ graders:
       not_contains:
         - "### Omitted axes (quick mode only)"
         - "|"
-        - "Output depth: quick"
+        - "Output depth: standard"
         - "Output depth: exhaustive"
         - "| Axis | Candidate | Presence | Disposition | Evidence |"
         - "|------|-----------|----------|-------------|----------|"

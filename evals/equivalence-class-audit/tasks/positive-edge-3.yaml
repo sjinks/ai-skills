@@ -42,6 +42,8 @@ graders:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
         - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
+        - '(?im)^Triggering finding:[ \t]+\S[^\r\n]*$'
+        - '(?im)^Locked audit scope:[ \t]+(missing|not provided|not supplied|required|needed)[^\r\n]*$'
         - '(?im)^Output depth:\s*standard\s*$'
         - '(?i)Triggering finding'
         - '(?i)(missing|not provided).*locked audit scope|locked audit scope.*(missing|not provided)'
@@ -50,7 +52,11 @@ graders:
         - '(?i)Out-of-scope candidates discovered'
         - '(?i)Blocking questions'
         - '(?i)Test/doc implications'
-        - '(?i)(exact files|modules|API surfaces|specs|tests|artifacts|locked scope)'
+        - '(?im)^### Defects to fix now[ \t]*\r?\n-[ \t]*None[ \t]*$'
+        - '(?im)^### Deferred follow-ups[ \t]*\r?\n-[ \t]*None[ \t]*$'
+        - '(?im)^### Out-of-scope candidates discovered[ \t]*\r?\n-[ \t]*None[ \t]*$'
+        - '(?im)^### Blocking questions[ \t]*\r?\n-[ \t]*(?=[^\r\n]*locked audit scope)(?=[^\r\n]*(missing|provide|required|needed|specify))[^\r\n]*$'
+        - '(?im)^### Test/doc implications[ \t]*\r?\n-[ \t]*None[ \t]*$'
       not_contains:
         - "### Omitted axes (quick mode only)"
         - "|"

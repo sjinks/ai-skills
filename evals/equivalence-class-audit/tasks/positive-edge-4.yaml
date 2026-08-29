@@ -40,32 +40,22 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
-        - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
+        - '(?im)^### Defects to fix now[ \t]*\r?\n-[ \t]*\S[^\r\n]*$'
+        - '(?im)^### Deferred follow-ups[ \t]*\r?\n-[ \t]*\S[^\r\n]*$'
+        - '(?im)^### Out-of-scope candidates discovered[ \t]*\r?\n-[ \t]*\S[^\r\n]*$'
+        - '(?im)^### Blocking questions[ \t]*\r?\n-[ \t]*\S[^\r\n]*$'
+        - '(?im)^### Test/doc implications[ \t]*\r?\n-[ \t]*\S[^\r\n]*$'
         - '(?im)^Output depth:\s*quick\s*$'
         - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
         - '(?im)^### Omitted axes \(quick mode only\)[ \t]*$'
         - '(?i)Omitted axes[^\n]*(scope|inapplicable|material)|Omitted axes[\s\S]{0,300}(scope|inapplicable|material)'
         - '(?i)Locked audit scope'
         - '(?is)(zero.*pagination|pagination.*zero)'
-        - '(?i)\|\s*Opposite Bound\s*\|[^\n|]*(zero|maxItems)[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
+        - '(?im)^\|[ \t]*Opposite Bound[ \t]*\|[^\r\n|]*(zero|maxItems)[^\r\n|]*\|[ \t]*present[ \t]*\|[ \t]*fix-now[ \t]*\|(?![ \t]*<!--)(?![ \t]*(?:&nbsp;|&#160;|&#xA0;)[ \t]*\|)(?=[^\r\n|]*(?:src/pagination\.ts|tests/pagination\.test\.ts|triggering finding))[^\r\n|]+\|[ \t]*$'
+        - '(?ims)\A(?!.*^[ \t]*\|(?=[^\r\n|]*(?:Sibling[ \t]+Parameter/Field|Mirror[ \t]+Call[ \t]+Site/Use[ \t]+Site|Inverse[ \t]+Operation|Type/Schema[ \t]+Narrowing|Validation[ \t]+vs[ \t]+Normalization/Sanitization|Happy/Error/Retry/Cancel[ \t]+Path[ \t]+Twin|Race/Shared-State[ \t]+Twin|Cache/Projection/Source-of-Truth[ \t]+Twin|Permission/Authorization[ \t]+Class|Resource[ \t]+Cleanup|Observability[ \t]+Twin|Contract[ \t]+Symmetry|Equivalence[ \t]+by[ \t]+Naming|Test[ \t]+Mirror|Empty/Sentinel[ \t]+Equivalence|Async/Sync[ \t]+or[ \t]+Mode[ \t]+Twin|Documentation/Spec[ \t]+Prose[ \t]+Twin))[^\r\n]*).*\Z'
       not_contains:
         - "Output depth: standard"
         - "Output depth: exhaustive"
-        - "| Sibling Parameter/Field |"
-        - "| Mirror Call Site/Use Site |"
-        - "| Inverse Operation |"
-        - "| Type/Schema Narrowing |"
-        - "| Validation vs Normalization/Sanitization |"
-        - "| Happy/Error/Retry/Cancel Path Twin |"
-        - "| Race/Shared-State Twin |"
-        - "| Cache/Projection/Source-of-Truth Twin |"
-        - "| Permission/Authorization Class |"
-        - "| Resource Cleanup |"
-        - "| Observability Twin |"
-        - "| Contract Symmetry |"
-        - "| Equivalence by Naming |"
-        - "| Async/Sync or Mode Twin |"
-        - "| Documentation/Spec Prose Twin |"
         - "Egress policy:"
         - "Trusted root:"
         - "Adversarial tests:"
