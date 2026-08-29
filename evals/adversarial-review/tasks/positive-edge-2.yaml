@@ -30,6 +30,34 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - "(?i)Verdict:\\s*(CLEAN|CONCERNS)"
-        - "(?i)Residual risk:"
-        - "(?i)(rollback|reversible|feature flag|default)"
+        - '(?i)Verdict:\s*(CLEAN|CONCERNS)'
+        - '(?i)Target:'
+        - '(?i)Intended behavior:'
+        - '(?i)Evidence basis:'
+        - '(?i)What works:'
+        - '(?i)Assumptions:'
+        - '(?i)Findings:'
+        - '(?i)Adversarial tests:'
+        - '(?i)Mitigations / acceptance criteria:'
+        - '(?i)Residual risk:'
+        - '(?i)(rollback|reversible|feature flag|default)'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response follows the finding contract for its verdict.
+        A CLEAN response must put None in the Findings section, either inline as
+        Findings: None or on the next line after Findings:. A CONCERNS response
+        must include at least one current actionable finding with Artifact,
+        Category, Severity, Confidence, Classification, Trigger, Risk, Evidence,
+        and Suggested fix.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = the verdict and finding representation are fully consistent.
+        0.5 = the substantive verdict is plausible but finding structure is incomplete.
+        0.0 = CLEAN invents findings or CONCERNS provides no actionable finding.
+      mode: independent

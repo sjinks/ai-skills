@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-006
+name: Matching immutable revision retains prior verdict
+description: |
+  Matching immutable revision identifiers establish the same target revision
+  even when the caller names that revision explicitly.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Do another adversarial-review pass on notification spec revision
+    `sha256:4fd2`. The prior pass reviewed that exact immutable revision and
+    produced:
+
+      Verdict: BLOCK
+      Target: notification-retry spec revision sha256:4fd2
+      Findings:
+      1. Retry has no idempotency key
+        Artifact: spec section "Retry"
+        Category: error-rollback
+        Trigger: a timeout after acceptance re-sends the same notification
+        Severity: HIGH
+
+    Your new review observation is that fixed one-second backoff without jitter
+    could cause a bounded thundering herd. Do not duplicate the prior finding.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/adversarial-review/SKILL.md
+      mode: positive
+      threshold: 0.3
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - adversarial-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*BLOCK'
+        - '(?i)Target:'
+        - '(?i)Intended behavior:'
+        - '(?i)Evidence basis:'
+        - '(?i)What works:'
+        - '(?i)Assumptions:'
+        - '(?i)Findings:'
+        - '(?im)^[ \t]*Artifact:[^\n]+\n[ \t]*Category:[^\n]+\n[ \t]*Severity:[ \t]*(CRITICAL|HIGH|MEDIUM|LOW)[ \t]*\n[ \t]*Confidence:[ \t]*(high|medium|low)[ \t]*\n[ \t]*Classification:[ \t]*(Confirmed issue|Likely risk|Open question|Accepted tradeoff|Test gap)[ \t]*\n[ \t]*Trigger:[^\n]+\n[ \t]*Risk:[^\n]+\n[ \t]*Evidence:[^\n]+\n[ \t]*Suggested fix:[^\n]+'
+        - '(?i)Adversarial tests:'
+        - '(?i)Mitigations / acceptance criteria:'
+        - '(?i)Residual risk:'
+        - '(?i)(jitter|backoff|thundering)'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response treats the matching immutable identifier as
+        sufficient same-revision evidence when no revised-target evidence is
+        supplied. It must retain BLOCK for the unresolved prior HIGH finding,
+        reference that prior finding without duplicating it as fresh, and report
+        the no-jitter review observation as net-new.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response retains BLOCK, deduplicates, and reports the new finding.
+        0.5 = response gets two of those three behaviors right.
+        0.0 = response treats the matching revision as revised or misses the core behavior.
+      mode: independent

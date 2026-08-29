@@ -24,7 +24,9 @@ Use the same evidence standard whether invoked directly or after another workflo
 - **Standalone review:** Ask for, read, or infer the concrete target artifact before judging it. If the target is missing or too vague, follow the blocker path in Required Input Context.
 - **Paired review:** When invoked after another skill, agent, plan, review, or implementation, treat that prior output as the target artifact. Challenge what it produced, identify what it got right, and avoid re-reporting issues it already raised unless the prior output understated the severity, missed evidence, or left the mitigation ambiguous.
 
-When invoked after a *prior adversarial-review pass on the same target*, two extra cross-pass rules govern deduplication and verdict strength. Read [paired-review](./references/paired-review.md) before reconciling findings or emitting a verdict in that case.
+When invoked after a *prior adversarial-review pass on the same target revision*, two extra cross-pass rules govern deduplication and verdict strength. Read [paired-review](./references/paired-review.md) before reconciling findings or emitting a verdict in that case.
+
+Classify revised-target evidence first: changed artifact content; changed target-defining context such as intended behavior, requirements, constraints, controls, or evidence about the artifact; an explicitly new or changed revision; differing revision identifiers; or missing or ambiguous identity. Revised-target evidence overrides matching identifiers and unchanged claims. A new observation produced by the later review alone does not change the revision. When no revised-target evidence exists, treat two passes as the same revision if the caller confirms they are unchanged without contradiction or both carry the same explicit immutable revision identifier. For a revised target, use prior findings as context but do not apply cross-pass deduplication or verdict monotonicity; state the revision assumption in `Assumptions`.
 
 ## Boundaries
 
@@ -48,7 +50,7 @@ Collect or read the narrowest useful context before judging:
 - Release context, blast radius, reversibility, and whether the target is prototype, internal, production, regulated, security-sensitive, or safety-sensitive.
 - Existing tests, verification evidence, monitoring, runbooks, or acceptance criteria.
 
-Halt and ask for more context, or report a blocker, when the target is empty, missing, unreadable, or too vague to identify intended behavior. If context is partial but usable, proceed with explicitly listed assumptions and caveats. If the assistant halts to ask for context instead of emitting a verdict, the halt must still include the `Target`, best-effort `Intended behavior`, and the specific missing context; otherwise emit `BLOCK`.
+When the target is empty, missing, unreadable, or too vague for meaningful review, emit `BLOCK` using the missing-target template in Output Format. In the blocker finding's `Suggested fix`, request the exact artifact or context required to continue. Do not emit an unstructured clarification-only response. If context is partial but usable, proceed with explicitly listed assumptions and caveats.
 
 ## Optional Review Lenses
 
@@ -115,12 +117,12 @@ Every substantive finding must name a concrete trigger or scenario. Do not prese
 4. Steel-man the target before challenging it: briefly state what the current approach gets right, why it is reasonable, or what constraints it appears to satisfy. State this regardless of how many findings follow; if nothing works, write `What works: None identified` rather than inventing strengths to balance the review.
 5. List assumptions the review depends on, including missing context.
 6. Challenge those assumptions using the relevant lenses and taxonomy.
-7. Deduplicate overlapping findings so the same risk is not reported multiple ways; in paired review, apply the dedup criterion in `references/paired-review.md` against every prior adversarial-review pass on the same target, not only the most recent one.
+7. Deduplicate overlapping findings so the same risk is not reported multiple ways; in paired review, apply the dedup criterion in `references/paired-review.md` against every prior adversarial-review pass on the same target revision, not only the most recent one.
 8. Apply the "so what?" filter and drop findings whose ignored consequence is immaterial for the target's context.
 9. Rank findings by severity, impact, likelihood, and confidence.
 10. Convert the top risks into concrete adversarial tests, mitigations, or acceptance criteria.
 11. Mark each mitigation or acceptance criterion as blocking or non-blocking when the distinction matters.
-12. Assign the overall verdict. In paired review, hold the verdict monotonicity rule in `references/paired-review.md`: do not emit a verdict weaker than the strongest prior verdict across all prior adversarial-review passes on the same target.
+12. Assign the overall verdict. In paired review, apply the remediation-aware verdict rule in `references/paired-review.md`: do not emit a verdict weaker than the strongest prior verdict supported by unresolved findings on the same target revision.
 
 ## Output Format
 
@@ -151,7 +153,7 @@ Mitigations / acceptance criteria: <blocking items before reliance, shipping, or
 Residual risk: <remaining caveats after suggested mitigations, or "No material residual risk identified">
 ```
 
-For `CLEAN`, replace each empty section with `None`; `What works` should still name the strongest evidence supporting the clean verdict when available; `Residual risk` must list caveats or `No material residual risk identified`. For `BLOCK` on a missing, unreadable, or insufficient target, emit a single `Open question` finding describing the blocker and use `Pending - target unavailable` for `What works`, `Adversarial tests`, and `Mitigations / acceptance criteria`.
+For `CLEAN`, replace each empty section with `None`; `What works` should still name the strongest evidence supporting the clean verdict when available; `Residual risk` must list caveats or `No material residual risk identified`. For `BLOCK` on a missing, unreadable, or insufficient target, emit a single `Open question` finding describing the blocker, put the exact artifact or context required to continue in that finding's `Suggested fix`, and use `Pending - target unavailable` for `What works`, `Adversarial tests`, and `Mitigations / acceptance criteria`.
 
 ## Anti-Patterns
 

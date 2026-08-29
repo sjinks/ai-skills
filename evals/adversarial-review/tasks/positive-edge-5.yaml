@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-005
+name: Ambiguous revision defaults to revised target
+description: |
+  Missing revision identity must not silently activate cross-pass deduplication
+  or verdict monotonicity.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Adversarial-review the notification retry spec below. A prior review of a
+    copy I no longer have produced this report, but I cannot confirm whether the
+    current text is the same revision:
+
+      Verdict: BLOCK
+      Target: notification-retry spec
+      Findings:
+      1. Retries can duplicate notifications
+        Artifact: prior spec section "Retry"
+        Category: error-rollback
+        Trigger: a timeout after acceptance causes the same notification to be sent again
+        Severity: HIGH
+
+    Current spec: Each notification has a persisted idempotency key that every
+    retry reuses. The receiver atomically records accepted keys and returns the
+    original result for duplicates. Tests cover timeout after acceptance and
+    worker restart. Retries use fixed one-second backoff without jitter.
+
+    Produce the normal review report.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/adversarial-review/SKILL.md
+      mode: positive
+      threshold: 0.3
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - adversarial-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:\s*(CONCERNS|BLOCK)'
+        - '(?i)Target:'
+        - '(?i)Intended behavior:'
+        - '(?i)Evidence basis:'
+        - '(?i)What works:'
+        - '(?i)Assumptions:'
+        - '(?i)Findings:'
+        - '(?im)^[ \t]*Artifact:[^\n]+\n[ \t]*Category:[^\n]+\n[ \t]*Severity:[ \t]*(CRITICAL|HIGH|MEDIUM|LOW)[ \t]*\n[ \t]*Confidence:[ \t]*(high|medium|low)[ \t]*\n[ \t]*Classification:[ \t]*(Confirmed issue|Likely risk|Open question|Accepted tradeoff|Test gap)[ \t]*\n[ \t]*Trigger:[^\n]+\n[ \t]*Risk:[^\n]+\n[ \t]*Evidence:[^\n]+\n[ \t]*Suggested fix:[^\n]+'
+        - '(?i)Adversarial tests:'
+        - '(?i)Mitigations / acceptance criteria:'
+        - '(?i)Residual risk:'
+        - '(?i)(revision|identity|ambiguous|cannot confirm)'
+        - '(?i)(jitter|backoff)'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response treats missing revision identity as a revised
+        target. It must use the prior finding as context without suppressing
+        the current no-jitter finding or retaining the prior BLOCK verdict, and
+        it must state the revision assumption. Expect CONCERNS for the bounded
+        current finding. Accept BLOCK only if a complete independent current HIGH
+        or CRITICAL finding justifies it; BLOCK inherited from the prior pass fails.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = response applies the revised-target default and reports the current finding.
+        0.5 = response reviews the current target but leaves revision handling unclear.
+        0.0 = response inherits BLOCK or suppresses the current finding based on the prior pass.
+      mode: independent

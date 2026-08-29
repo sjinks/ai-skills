@@ -33,11 +33,13 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Intended behavior:"
+        - "Evidence basis:"
+        - "What works:"
         - "Findings:"
         - "Verdict: BLOCK"
         - "Verdict: CONCERNS"
         - "Verdict: CLEAN"
         - "Adversarial tests:"
         - "Mitigations / acceptance criteria:"
-        - "Failure modes:"
         - "Residual risk:"
