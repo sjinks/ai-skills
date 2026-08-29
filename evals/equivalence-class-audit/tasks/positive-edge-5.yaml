@@ -44,15 +44,15 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
+        - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
         - '(?im)^Output depth:\s*standard\s*$'
         - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
         - '(?i)Documentation/Spec Prose Twin'
         - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|[^\n|]*(documentation|docs)[^\n|]*\|\s*present\s*\|\s*blocked\s*\|'
         - '(?i)\|\s*Opposite Bound\s*\|[^\n|]*maxRetries[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
-        - '(?i)Blocking questions'
-        - '(?i)(owner|owning team)'
-        - '(?i)reason'
+        - '(?im)^### Blocking questions[ \t]*\r?\n-[ \t]*(?=[^\r\n]*(documentation|docs/operations\.md))(?=[^\r\n]*(owner|owning team))(?=[^\r\n]*reason)[^\r\n]*$'
       not_contains:
+        - "### Omitted axes (quick mode only)"
         - "Output depth: quick"
         - "Output depth: exhaustive"
         - 'Gate decision:'

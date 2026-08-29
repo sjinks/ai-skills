@@ -44,13 +44,15 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
+        - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
         - '(?im)^Output depth:\s*standard\s*$'
         - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
-        - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|[^\n|]*docs/api\.md[^\n|]*\|\s*present\s*\|\s*blocked\s*\|'
-        - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|[^\n|]*docs/operations\.md[^\n|]*\|\s*present\s*\|\s*blocked\s*\|'
-        - '(?i)Blocking questions[\s\S]*(docs/api\.md[\s\S]*reason|reason[\s\S]*docs/api\.md)'
-        - '(?i)Blocking questions[\s\S]*(docs/operations\.md[\s\S]*(owner|owning team)|(owner|owning team)[\s\S]*docs/operations\.md)'
+        - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|(?![^\n]*docs/operations\.md)(?=[^\n|]*docs/api\.md)[^\n|]*\|\s*present\s*\|\s*blocked\s*\|'
+        - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|(?![^\n]*docs/api\.md)(?=[^\n|]*docs/operations\.md)[^\n|]*\|\s*present\s*\|\s*blocked\s*\|'
+        - '(?im)^### Blocking questions[ \t]*\r?\n(?:-[^\r\n]*\r?\n)*-[ \t]*(?=[^\r\n]*docs/api\.md)(?![^\r\n]*docs/operations\.md)(?=[^\r\n]*reason)[^\r\n]*$'
+        - '(?im)^### Blocking questions[ \t]*\r?\n(?:-[^\r\n]*\r?\n)*-[ \t]*(?=[^\r\n]*docs/operations\.md)(?![^\r\n]*docs/api\.md)(?=[^\r\n]*(owner|owning team))[^\r\n]*$'
       not_contains:
+        - "### Omitted axes (quick mode only)"
         - "Output depth: quick"
         - "Output depth: exhaustive"
         - "Gate decision:"

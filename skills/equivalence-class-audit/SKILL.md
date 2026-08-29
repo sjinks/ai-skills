@@ -13,7 +13,7 @@ Turn one confirmed defect into a locked-scope audit of equivalent defects: for e
 
 ## Routing
 
-Use only when one concrete finding implies equivalent defects in a locked scope.
+Automatically activate when one concrete finding implies equivalent defects in a locked scope. When explicitly invoked with either input missing, activate and return the reduced report from Procedure 1.
 
 ## DO NOT USE FOR:
 
@@ -21,7 +21,7 @@ Do not use for greenfield work, broad initial review, formatting-only changes, i
 
 ## Procedure
 
-1. Require a triggering finding and locked audit scope. If either is missing, do not enumerate or invent candidates; return the complete report shell without a table and put the smallest missing input under `### Blocking questions`.
+1. Require a triggering finding and locked audit scope. If either is missing, do not enumerate or invent candidates; return the reduced report without a table and put the smallest missing input under `### Blocking questions`.
 2. Select `quick`, `standard` (default), or `exhaustive`; always emit one `Output depth:` value. `quick` reports only missing context, blockers, high-risk concerns, and target-specific axes, then summarizes omitted axes. Other depths represent every catalogue axis at least once.
 3. Enumerate candidates in scope using the catalogue below. Record other critical unknowns as Presence `blocked — clarification needed` and Disposition `blocked`.
 4. Mark present defects `fix-now` by default. Use `defer-with-owner` only for an explicit deferral with a named owner/team and reason. If a required deferral lacks either, use `blocked`.
@@ -45,17 +45,33 @@ Disposition: `fix-now`, `defer-with-owner`, `n/a`, `blocked`.
 
 ## Output
 
+Use this complete form only when both required inputs are available:
+
 ```text
 ## Equivalence-Class Audit Report
-Triggering finding:
-Locked audit scope:
+Triggering finding: <one concrete finding>
+Locked audit scope: <exact files, modules, or artifacts>
 Output depth: <quick | standard | exhaustive; select exactly one>
 | Axis | Candidate | Presence | Disposition | Evidence |
 |------|-----------|----------|-------------|----------|
-Defects to fix now
-Deferred follow-ups
-Out-of-scope candidates discovered
-Blocking questions
-Test/doc implications
-Omitted axes (quick mode only)
+### Defects to fix now
+### Deferred follow-ups
+### Out-of-scope candidates discovered
+### Blocking questions
+### Test/doc implications
+### Omitted axes (quick mode only)
+```
+
+If either required input is missing, omit the table and use this reduced form:
+
+```text
+## Equivalence-Class Audit Report
+Triggering finding: <value or missing>
+Locked audit scope: <value or missing>
+Output depth: <quick | standard | exhaustive; select exactly one>
+### Defects to fix now
+### Deferred follow-ups
+### Out-of-scope candidates discovered
+### Blocking questions
+### Test/doc implications
 ```

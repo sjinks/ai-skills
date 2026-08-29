@@ -40,9 +40,10 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
+        - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
         - '(?im)^Output depth:\s*quick\s*$'
         - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
-        - '(?i)Omitted axes'
+        - '(?im)^### Omitted axes \(quick mode only\)[ \t]*$'
         - '(?i)Omitted axes[^\n]*(scope|inapplicable|material)|Omitted axes[\s\S]{0,300}(scope|inapplicable|material)'
         - '(?i)Locked audit scope'
         - '(?is)(zero.*pagination|pagination.*zero)'
@@ -50,21 +51,21 @@ graders:
       not_contains:
         - "Output depth: standard"
         - "Output depth: exhaustive"
-        - "Sibling Parameter/Field"
-        - "Mirror Call Site/Use Site"
-        - "Inverse Operation"
-        - "Type/Schema Narrowing"
-        - "Validation vs Normalization/Sanitization"
-        - "Happy/Error/Retry/Cancel Path Twin"
-        - "Race/Shared-State Twin"
-        - "Cache/Projection/Source-of-Truth Twin"
-        - "Permission/Authorization Class"
-        - "Resource Cleanup"
-        - "Observability Twin"
-        - "Contract Symmetry"
-        - "Equivalence by Naming"
-        - "Async/Sync or Mode Twin"
-        - "Documentation/Spec Prose Twin"
+        - "| Sibling Parameter/Field |"
+        - "| Mirror Call Site/Use Site |"
+        - "| Inverse Operation |"
+        - "| Type/Schema Narrowing |"
+        - "| Validation vs Normalization/Sanitization |"
+        - "| Happy/Error/Retry/Cancel Path Twin |"
+        - "| Race/Shared-State Twin |"
+        - "| Cache/Projection/Source-of-Truth Twin |"
+        - "| Permission/Authorization Class |"
+        - "| Resource Cleanup |"
+        - "| Observability Twin |"
+        - "| Contract Symmetry |"
+        - "| Equivalence by Naming |"
+        - "| Async/Sync or Mode Twin |"
+        - "| Documentation/Spec Prose Twin |"
         - "Egress policy:"
         - "Trusted root:"
         - "Adversarial tests:"

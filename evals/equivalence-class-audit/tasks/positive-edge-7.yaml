@@ -44,9 +44,10 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
+        - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
         - '(?im)^Output depth:\s*exhaustive\s*$'
         - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
-        - '(?i)\|\s*Opposite Bound\s*\|'
+        - '(?i)\|\s*Opposite Bound\s*\|[^\n|]*(minItems|zero)[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
         - '(?i)\|\s*Sibling Parameter/Field\s*\|[^\n|]*maxItems[^\n|]*\|'
         - '(?i)\|\s*Mirror Call Site/Use Site\s*\|'
         - '(?i)\|\s*Inverse Operation\s*\|'
@@ -59,12 +60,14 @@ graders:
         - '(?i)\|\s*Resource Cleanup\s*\|'
         - '(?i)\|\s*Contract Symmetry\s*\|'
         - '(?i)\|\s*Equivalence by Naming\s*\|'
-        - '(?i)\|\s*Async/Sync or Mode Twin\s*\|[^\n|]*(async|asynchronous)[^\n|]*\|'
-        - '(?i)\|\s*Test Mirror\s*\|[^\n|]*(zero|async|asynchronous)[^\n|]*\|'
+        - '(?i)\|\s*Async/Sync or Mode Twin\s*\|[^\n|]*(async|asynchronous)[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
+        - '(?i)\|\s*Test Mirror\s*\|(?=[^\n|]*zero)(?![^\n|]*(async|asynchronous))[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
+        - '(?i)\|\s*Test Mirror\s*\|(?=[^\n|]*(async|asynchronous))(?![^\n|]*zero)[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
         - '(?i)\|\s*Empty/Sentinel Equivalence\s*\|'
-        - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|[^\n|]*zero[^\n|]*\|\s*present\s*\|'
+        - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|[^\n|]*zero[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
         - '(?i)\|\s*Cache/Projection/Source-of-Truth Twin\s*\|'
       not_contains:
+        - "### Omitted axes (quick mode only)"
         - "Output depth: quick"
         - "Output depth: standard"
         - "Gate decision:"

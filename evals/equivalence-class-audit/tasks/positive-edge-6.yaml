@@ -14,7 +14,7 @@ inputs:
     Locked audit scope: `src/pagination.ts` and `tests/pagination.test.ts`.
 
     No concrete defect, incident, review finding, test failure, or bug report is
-    supplied. Produce the report shell, omit the table and candidate rows, and
+    supplied. Produce the reduced report, omit the table and candidate rows, and
     ask for the smallest missing triggering finding needed to proceed.
 expected:
   should_trigger: true
@@ -36,6 +36,7 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
+        - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
         - '(?im)^Output depth:\s*standard\s*$'
         - '(?i)(missing|not provided).*(triggering finding|defect)|triggering finding.*(missing|not provided)'
         - '(?i)Defects to fix now'
@@ -44,6 +45,7 @@ graders:
         - '(?i)Blocking questions'
         - '(?i)Test/doc implications'
       not_contains:
+        - "### Omitted axes (quick mode only)"
         - "|"
         - "Output depth: quick"
         - "Output depth: exhaustive"

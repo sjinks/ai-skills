@@ -232,7 +232,7 @@ Output depth: <quick | standard | exhaustive; select exactly one>
 - <test, documentation, spec, migration, or contract implications, or `None`>
 
 ### Omitted axes (quick mode only)
-- <summary of omitted catalogue axes and why they were not expanded, or `None` when depth is not quick>
+- <summary of omitted catalogue axes and why they were not expanded>
 ```
 
 When the table is included after both the triggering finding and locked audit scope are available, every catalogue axis must be represented in the table at least once for `standard` and `exhaustive` depth. If an axis has candidates, add one row per candidate. If an axis has no candidates or is structurally inapplicable, add one explicit `n/a` row with evidence explaining why. In explicit `quick` mode, include only target-specific applicable axes and add an omitted-axis summary instead of full-axis enumeration.
@@ -252,6 +252,8 @@ When the table is included after both the triggering finding and locked audit sc
 Triggering finding: a review found that `maxRetries` in `config/service.yml` accepts `0`, causing permanent failure without retry.
 
 Locked audit scope: `config/service.yml`, `docs/retry-policy.md`, and `tests/retry_policy_spec.rb`.
+
+Allowed disposition boundary: defer documentation corrections to owner Platform Docs because that team owns `docs/retry-policy.md` outside the current code change.
 
 ```markdown
 ## Equivalence-Class Audit Report

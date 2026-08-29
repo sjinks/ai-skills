@@ -41,6 +41,7 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
+        - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
         - '(?im)^Output depth:\s*standard\s*$'
         - '(?i)Triggering finding'
         - '(?i)(missing|not provided).*locked audit scope|locked audit scope.*(missing|not provided)'
@@ -51,6 +52,7 @@ graders:
         - '(?i)Test/doc implications'
         - '(?i)(exact files|modules|API surfaces|specs|tests|artifacts|locked scope)'
       not_contains:
+        - "### Omitted axes (quick mode only)"
         - "|"
         - "Output depth: quick"
         - "Output depth: exhaustive"

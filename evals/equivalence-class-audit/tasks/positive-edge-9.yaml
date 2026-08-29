@@ -42,6 +42,7 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
+        - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
         - '(?im)^Output depth:\s*standard\s*$'
         - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
         - '(?i)\|\s*Opposite Bound\s*\|[^\n|]*maxRetries[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
@@ -50,6 +51,7 @@ graders:
         - '(?i)Deferred follow-ups[\s\S]*Platform Docs'
         - '(?i)Deferred follow-ups[\s\S]*public API reference'
       not_contains:
+        - "### Omitted axes (quick mode only)"
         - "Output depth: quick"
         - "Output depth: exhaustive"
         - "Gate decision:"
