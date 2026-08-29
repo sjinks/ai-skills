@@ -17,6 +17,8 @@ inputs:
 
     Locked audit scope: `src/pagination.ts` and `tests/pagination.test.ts`.
 
+    Known fact: `tests/pagination.test.ts` does not cover zero values.
+
     Only report target-specific blockers and concerns; do not enumerate the
     full axis checklist. Summarize omitted axes without listing every axis as
     a table row.
@@ -40,6 +42,7 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
+        - '(?ims)\A(?!.*^[ \t]*Output depth:[^\r\n]*\r?\n[\s\S]*^[ \t]*Output depth:).*\Z'
         - '(?im)^### Defects to fix now[ \t]*\r?\n-[ \t]*\S[^\r\n]*$'
         - '(?im)^### Deferred follow-ups[ \t]*\r?\n-[ \t]*\S[^\r\n]*$'
         - '(?im)^### Out-of-scope candidates discovered[ \t]*\r?\n-[ \t]*\S[^\r\n]*$'
@@ -52,7 +55,8 @@ graders:
         - '(?i)Locked audit scope'
         - '(?is)(zero.*pagination|pagination.*zero)'
         - '(?im)^\|[ \t]*Opposite Bound[ \t]*\|[^\r\n|]*(zero|maxItems)[^\r\n|]*\|[ \t]*present[ \t]*\|[ \t]*fix-now[ \t]*\|(?![ \t]*<!--)(?![ \t]*(?:&nbsp;|&#160;|&#xA0;)[ \t]*\|)(?=[^\r\n|]*(?:src/pagination\.ts|tests/pagination\.test\.ts|triggering finding))[^\r\n|]+\|[ \t]*$'
-        - '(?ims)\A(?!.*^[ \t]*\|(?=[^\r\n|]*(?:Sibling[ \t]+Parameter/Field|Mirror[ \t]+Call[ \t]+Site/Use[ \t]+Site|Inverse[ \t]+Operation|Type/Schema[ \t]+Narrowing|Validation[ \t]+vs[ \t]+Normalization/Sanitization|Happy/Error/Retry/Cancel[ \t]+Path[ \t]+Twin|Race/Shared-State[ \t]+Twin|Cache/Projection/Source-of-Truth[ \t]+Twin|Permission/Authorization[ \t]+Class|Resource[ \t]+Cleanup|Observability[ \t]+Twin|Contract[ \t]+Symmetry|Equivalence[ \t]+by[ \t]+Naming|Test[ \t]+Mirror|Empty/Sentinel[ \t]+Equivalence|Async/Sync[ \t]+or[ \t]+Mode[ \t]+Twin|Documentation/Spec[ \t]+Prose[ \t]+Twin))[^\r\n]*).*\Z'
+        - '(?im)^\|[ \t]*Test Mirror[ \t]*\|[^\r\n|]*zero[^\r\n|]*\|[ \t]*present[ \t]*\|[ \t]*fix-now[ \t]*\|(?![ \t]*<!--)(?![ \t]*(?:&nbsp;|&#160;|&#xA0;)[ \t]*\|)(?=[^\r\n|]*(?:tests/pagination\.test\.ts|triggering finding))[^\r\n|]+\|[ \t]*$'
+        - '(?ims)\A(?!.*^[ \t]*\|(?=[^\r\n|]*(?:Sibling[^\r\n|]*Parameter|Mirror[^\r\n|]*Call|Inverse|Type[^\r\n|]*Schema|Validation|Happy[^\r\n|]*Error|Race[^\r\n|]*Shared|Cache[^\r\n|]*Projection|Permission[^\r\n|]*Authorization|Resource[^\r\n|]*Cleanup|Observability|Contract[^\r\n|]*Symmetry|Equivalence[^\r\n|]*Naming|Empty[^\r\n|]*Sentinel|Async[^\r\n|]*Sync|Documentation[^\r\n|]*Spec))[^\r\n]*).*\Z'
       not_contains:
         - "Output depth: standard"
         - "Output depth: exhaustive"

@@ -41,6 +41,7 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
+        - '(?ims)\A(?!.*^[ \t]*Output depth:[^\r\n]*\r?\n[\s\S]*^[ \t]*Output depth:).*\Z'
         - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
         - '(?im)^Triggering finding:[ \t]+\S[^\r\n]*$'
         - '(?im)^Locked audit scope:[ \t]+(missing|not provided|not supplied|required|needed)[^\r\n]*$'

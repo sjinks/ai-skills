@@ -13,7 +13,7 @@ Turn one confirmed defect into a locked-scope audit of equivalent defects: for e
 
 ## Routing
 
-Automatically activate when one concrete finding implies equivalent defects in a locked scope. When explicitly invoked with either input missing, activate and return the reduced report from Procedure 1.
+Automatically activate when one concrete finding implies equivalent defects in a locked scope. When explicitly invoked with either input missing, activate and follow the missing-input branch in the procedure.
 
 ## DO NOT USE FOR:
 
@@ -21,8 +21,8 @@ Do not use for greenfield work, broad initial review, formatting-only changes, i
 
 ## Procedure
 
-1. Require a triggering finding and locked audit scope. If either is missing, do not enumerate or invent candidates; return the reduced report without a table and put the smallest missing input under `### Blocking questions`.
-2. Select `quick`, `standard` (default), or `exhaustive`; always emit one `Output depth:` value. `quick` reports only missing context, blockers, high-risk concerns, and target-specific axes, then summarizes omitted axes. Other depths represent every catalogue axis at least once. Missing required input suppresses the table, not depth-specific sections: preserve an explicitly requested depth and append `Omitted axes` for `quick`.
+1. Select `quick`, `standard` (default), or `exhaustive`; always emit one `Output depth:` value.
+2. Require a triggering finding and locked audit scope. If either is missing, do not enumerate or invent candidates; return the reduced report without a table and put the smallest missing input under `### Blocking questions`. Missing required input suppresses the table, not depth-specific sections: preserve an explicitly requested depth and append `Omitted axes` for `quick`.
 3. Enumerate candidates in scope using the catalogue below. Record other critical unknowns as Presence `blocked — clarification needed` and Disposition `blocked`.
 4. Mark present defects `fix-now` by default. Use `defer-with-owner` only for an explicit deferral with a named owner/team and reason. If a required deferral lacks either, use `blocked`.
 

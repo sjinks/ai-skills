@@ -44,6 +44,7 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
+        - '(?ims)\A(?!.*^[ \t]*Output depth:[^\r\n]*\r?\n[\s\S]*^[ \t]*Output depth:).*\Z'
         - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
         - '(?im)^Output depth:\s*standard\s*$'
         - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
@@ -51,10 +52,17 @@ graders:
         - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|[^\n|]*(documentation|docs)[^\n|]*\|\s*present\s*\|\s*blocked\s*\|'
         - '(?i)\|\s*Opposite Bound\s*\|[^\n|]*maxRetries[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
         - '(?im)^### Blocking questions[ \t]*\r?\n-[ \t]*(?=[^\r\n]*(documentation|docs/operations\.md))(?=[^\r\n]*(owner|owning team))(?=[^\r\n]*reason)[^\r\n]*$'
+        - '(?im)^### Defects to fix now[ \t]*\r?\n-[ \t]*(?![^\r\n]*(?:docs|documentation))[^\r\n]*maxRetries[^\r\n]*(?:\r?\n)+### Deferred follow-ups[ \t]*$'
+        - '(?im)^### Deferred follow-ups[ \t]*\r?\n-[ \t]*None[ \t]*(?:\r?\n)+### Out-of-scope candidates discovered[ \t]*$'
+        - '(?ims)\A(?![\s\S]*^\|[ \t]*Documentation/Spec Prose Twin[ \t]*\|[^\r\n]*\|[ \t]*present[ \t]*\|[ \t]*(?:fix-now|defer-with-owner)[ \t]*\|).*\Z'
+        - '(?ims)\A(?![\s\S]*^\|[ \t]*Documentation/Spec Prose Twin[ \t]*\|[^\r\n]*$[\s\S]*^\|[ \t]*Documentation/Spec Prose Twin[ \t]*\|).*\Z'
+        - '(?ims)\A(?![\s\S]*^[ \t]*### (Defects to fix now|Deferred follow-ups|Out-of-scope candidates discovered|Blocking questions|Test/doc implications)[ \t]*\r?$[\s\S]*^[ \t]*### \1[ \t]*\r?$).*\Z'
+        - '(?ims)\A(?![\s\S]*^[ \t]*\|[ \t]*([^|\r\n]+?)[ \t]*\|[ \t]*([^|\r\n]+?)[ \t]*\|[^\r\n]*$[\s\S]*^[ \t]*\|[ \t]*\1[ \t]*\|[ \t]*\2[ \t]*\|).*\Z'
       not_contains:
         - "### Omitted axes (quick mode only)"
         - "Output depth: quick"
         - "Output depth: exhaustive"
+        - "defer-with-owner"
         - 'Gate decision:'
         - 'Adversarial tests:'
         - 'Egress policy:'

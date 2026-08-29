@@ -58,8 +58,8 @@ Always emit the selected depth as `Output depth: quick`, `Output depth: standard
 ## Procedure
 
 1. Restate the triggering finding and locked audit scope.
-2. If the triggering finding or locked audit scope is missing, stop before candidate enumeration and ask the smallest blocking question in the report sections.
-3. Select output depth. In `quick` mode, identify target-specific blockers, high-risk concerns, and applicable axes, then summarize omitted axes instead of walking the full catalogue in the table. In `standard` and `exhaustive`, walk every axis in the catalogue below.
+2. Select output depth. In `quick` mode, identify target-specific blockers, high-risk concerns, and applicable axes, then summarize omitted axes instead of walking the full catalogue in the table. In `standard` and `exhaustive`, walk every axis in the catalogue below.
+3. If the triggering finding or locked audit scope is missing, stop before candidate enumeration and ask the smallest blocking question in the report sections while preserving the selected depth.
 4. For each axis, enumerate candidates inside the locked scope.
 5. When the table is included after the triggering finding and locked audit scope are available, represent every catalogue axis at least once unless the selected depth is `quick`.
 6. If an axis has candidates, add one row per candidate.
