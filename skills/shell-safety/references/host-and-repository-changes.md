@@ -72,11 +72,11 @@ Example: `git commit --cleanup=verbatim -F -`
 Risk: Records the current index and message as a new repository-history object.
 Decision gate: Confirm the ordinary commit effect.
 Safe replacement: Verify this creates a new commit rather than amending, fixing up, squashing, bypassing hooks, or reusing another message. Use `--cleanup=verbatim` when exact message bytes are bound. Review applicable Git cleanup configuration and `pre-commit`, `prepare-commit-msg`, and `commit-msg` hooks; require them to be absent or verified not to rewrite the bound message or index, otherwise bind and review the resulting post-processing state through a deterministic non-committing mechanism or return `BLOCKED`. Review and bind the exact index/staged diff, repository and branch, parent tip, author/signing context, and final message bytes; revalidate mutable state immediately before the exact ordinary commit confirmation. Reclassify `--amend`, `--fixup`, `--squash`, `--no-verify`, pathspec commits, and other history variants under their own effects; an uncovered variant remains `BLOCKED`.
-### GD10 - Git command with auxiliary execution paths
+### GD10 - Git read command with auxiliary execution paths
 Example: `git status`, `git log --oneline`
 Risk: Git configuration or environment can launch a pager, fsmonitor command/daemon, external diff, or another auxiliary program even for an apparently read-only subcommand.
 Decision gate: Block until auxiliary execution paths and repository/config/environment trust are resolved.
-Safe replacement: Resolve the Git executable and repository, inspect relevant system/global/local/worktree configuration and environment, and explicitly disable or trust every auxiliary execution path for the exact subcommand. For status, include fsmonitor configuration; for paged output, bind or disable the pager. Return `BLOCKED` when an applicable auxiliary path or configuration layer cannot be inspected or constrained, then reclassify the exact command under any additional Git record.
+Safe replacement: This record applies to read-only Git subcommands and inspection steps, not effect-specific repository mutations. Resolve the Git executable and repository, inspect relevant system/global/local/worktree configuration and environment, and explicitly disable or trust every auxiliary execution path for the exact read operation. For status, include fsmonitor configuration; for paged output, bind or disable the pager. Return `BLOCKED` when an applicable auxiliary path or configuration layer cannot be inspected or constrained, then reclassify the exact command under any additional record.
 ## Filesystem and processes
 ### FS1 - Recursive force delete
 Example: `rm -rf ./build`
