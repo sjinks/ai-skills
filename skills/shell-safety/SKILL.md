@@ -33,8 +33,8 @@ Everything else needs validation. In particular:
 - Any container mass-mutation (`docker system prune`, `docker rm $(docker ps -aq)`, `kubectl delete namespace`).
 - Any database mutation executed or proposed for execution through a terminal database CLI or REPL (`DROP`, `TRUNCATE`, `DELETE FROM ... ;` without `WHERE`, `FLUSHALL`, `dropDatabase()`). Ask for the terminal execution context when it is absent.
 - Any secret variable in echo, env dump, or a command-line flag carrying a secret, including:
-	- ``--password=<redacted>``
-	- ``--token=<redacted>``
+	- `--password` with a redacted value
+	- `--token` with a redacted value
 
 ## Procedure
 
