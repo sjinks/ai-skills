@@ -1,6 +1,6 @@
 ---
 description: "Use when creating, editing, validating, or reviewing skills and eval suites in this repository. Covers the skills/ symlink layout, standalone-skill rule, references/ split, eval task taxonomy, YAML regex quoting, waza validation, and README registration."
-applyTo: skills/**, evals/**
+applyTo: skills/**, .github/skills/**, evals/**, README.md, .github/instructions/skill-development.instructions.md
 ---
 
 # Skill Development Conventions
@@ -17,7 +17,7 @@ applyTo: skills/**, evals/**
   - Provenance and source confidence notes -> `references/source-map.md`, with a one-line pointer from a `## Provenance` section.
   - Detailed test matrices or long enumerations -> a `references/*.md` file, with a one-paragraph summary plus link in `SKILL.md`.
 - Each `references/*.md` file starts with one sentence saying when to read it.
-- Review-style skills define: severity rubric, verdict mapping (`BLOCK`/`CONCERNS`/`CLEAN`), a no-findings path, and a deterministic insufficient-context (BLOCK) template.
+- Review-style skills define a severity rubric, deterministic verdict mapping, no-findings path, and deterministic insufficient-context template. Use `BLOCK`/`CONCERNS`/`CLEAN` when that is the skill's canonical enum; preserve other established review vocabularies rather than normalizing them.
 - Keep output-format enums exact and consistent everywhere they appear (templates, checklists, references). If a reference uses a richer vocabulary, state explicitly how it collapses to the report enum.
 - The `## Output` section must define distinctive, labeled output markers (e.g. `Verdict:` / `Findings:`, `Reproduce:` / `Root cause:` / `Fix:`), not just describe the content in prose. Give a default label set and instruct the assistant to follow caller-requested labels exactly otherwise. These markers are the contract the eval negative graders key on, so they must exist before the evals are written.
 - An embedded code example presented as runnable (a complete snippet plus its build/run command) must compile/run clean as written: for C/C++, build the exact snippet with `gcc/g++ -Wall -Wextra -Werror` (adding the headers it needs) before committing; a runnable example that warns is a defect. A deliberately partial or illustrative snippet is allowed, but it must be labeled as such and must not be paired with a copy/paste build/run command that implies it is safe to execute.
@@ -37,12 +37,16 @@ applyTo: skills/**, evals/**
 - When a review comment flags terminology, label, enum-literal, singular/plural, or section-name drift in a skill, treat it as one instance of a defect class: before pushing, sweep the whole artifact (templates, procedure steps, checklist, references, examples) for the same class — for example by running the `equivalence-class-audit` skill with the comment as the triggering finding. Do not fix only the flagged line.
 - When editing one item in a uniform list or template, re-check the edited item against its siblings' shape (same fields, same `Fix:`/label structure, same placeholder style) before committing.
 - Never change an output label, enum value, or section name as a side effect of another fix; label changes are deliberate contract changes that require an eval-assertion check.
-- When several sibling skill PRs are open at once, apply each review finding to all sibling branches before their next review round, not only to the branch where it was reported.
+- For sibling propagation, inventory the current workspace plus open sibling PRs identified by supplied or available repository context. Record each package or branch, searched paths and patterns, inspected contract evidence, and the reason for applying the fix or marking `not applicable`. Do not claim sibling coverage when the required inventory is unavailable; report that scope blocked.
 
 ## Pre-PR Checklist
 
 Run through this list before opening or updating a skill PR; each item is a recurring reviewer-finding class:
 
+- For every changed decision or output contract, compare the source rule, branch condition, default and precedence, exact output spelling and cardinality, blocker behavior, and every positive or negative grader that projects it. Any mismatch blocks PR readiness.
+- Record each projection sweep with the exact tree or diff identity, packages/files and sibling inventory inspected, contract elements checked, mismatches found, and outcome `PASS` or `BLOCK`. `PASS` requires no unresolved mismatch; unavailable required scope or evidence yields `BLOCK`.
+- Before adding eval tasks, list and count the behaviorally distinct classes of changed decision branches, defaults, and precedence collisions. Give each class a discriminating `positive-edge-*` task; a fixture satisfies only the rule it tests unless it explicitly tests a collision. Consolidate classes only when independent assertions discriminate each one. If coverage requires more than five new tasks, pause for approval of the explicit coverage matrix from the user or a named accountable human owner; no agent may grant that approval.
+- Perform a direct projection sweep across the full skill package and sibling skills/evals using the same contract pattern for every changed term, label, enum, conditional field, and repeated grader pattern. If the sweep finds a mismatch, run `equivalence-class-audit` with that mismatch and the affected package or sibling set as its explicit scope.
 - Conditional template slots state the same condition as the prose rule that governs them, and the placeholder enum excludes values the condition rules out (e.g. a `Depth:` line emitted only for non-default depths must not list the default in its placeholder).
 - Rules that depend on who selected a value (user-requested vs risk-selected) apply to the selected value itself unless the skill explicitly says otherwise.
 - Code identifiers are fully qualified and code-formatted at every mention (`std::exception_ptr`, not bare `exception_ptr`), including checklists, examples, and references.

@@ -3,10 +3,14 @@
 - NEVER run `waza run` (or any command that issues live model/API calls) without explicit per-run approval from the user. A full eval suite costs roughly 200-270 premium Copilot requests; even a single `--task ... --trials 1` probe costs about 9-18. Before running, state the expected scope and cost, prefer the smallest scope that answers the question, and do not re-run to "confirm" a result that existing measurements already establish.
 - `waza check`, schema validation, `cmp`, `git`, `gh`, and file reads/searches are free and do not need approval.
 
-When creating or updating skills:
+When creating or materially updating skills:
 
 - When creating a new skill, use cross-model-instruction-authoring to keep the instruction portable across target models.
-- After creating a skill, run adversarial review, agent-skill-audit, and instruction-quality-audit before considering it complete.
+- A material update changes triggers, workflow, decision rules, output contracts, behavior-affecting references, or eval contracts.
+- Before considering a new skill or material update complete, perform a direct projection sweep across its rules, outputs, references, and evals. If that sweep finds a mismatch, run `equivalence-class-audit` with the mismatch as its triggering finding and an explicit scope. Then run `instruction-quality-audit`, `adversarial-review`, and `agent-skill-audit`.
+- Use each review's own materiality and verdict rules. A finding is resolved only after every applicable native remediation requirement (`Correction:`, `Suggested fix:`, blocking mitigation, or acceptance criterion) is satisfied and verified, or, when the review permits acceptance, the user or a named accountable human owner explicitly accepts the finding ID, rationale, and residual risk. No agent may grant that acceptance.
+- Bind each projection sweep and review result to the exact tree or diff it inspected. Any later change within that scope invalidates the result. Completion requires the same unchanged final tree to have: projection outcome `PASS`; `instruction-quality-audit` verdict `No material defects`; `adversarial-review` verdict `CLEAN`, or `CONCERNS` only when every remaining item is explicitly accepted by the user or a named accountable human owner under that review's rules; and `agent-skill-audit` verdict `Ready` or `Ready with limitations`. All other outcomes block completion. Repeat the full set after any in-scope fix; if a required review is unavailable, report the skill change blocked.
+- Do not put volatile numeric eval-task totals in PR descriptions; say `all task files`. If a required template demands a count, derive it from the final tree and verify the candidate body before opening the PR. If the final push occurs after publication, verify and update the published body after that push.
 - Use subagents for those reviews to keep the main context window clean.
 - Optimize for token efficiency: keep instructions concise, remove duplication, and prefer reusable shared rules over repeated local text.
 - Ignore Waza frontmatter complaints and hard limits on instruction size; prioritize concise, useful skill guidance over satisfying those checks.
