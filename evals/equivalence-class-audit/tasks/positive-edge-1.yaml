@@ -48,7 +48,7 @@ graders:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
         - '(?im)^Output depth:\s*standard\s*$'
-        - '(?i)\|\s*Axis\s*\|\s*Candidate\s*\|\s*Presence\s*\|\s*Disposition\s*\|\s*Evidence\s*\|'
+        - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
         - '(?i)Presence'
         - '(?i)Disposition'
         - '(?i)Evidence'

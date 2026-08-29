@@ -43,6 +43,7 @@ graders:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
         - '(?im)^Output depth:\s*standard\s*$'
+        - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
         - '(?i)\|\s*Opposite Bound\s*\|[^\n|]*maxRetries[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
         - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|[^\n|]*docs/api\.md[^\n|]*\|\s*present\s*\|\s*defer-with-owner\s*\|'
         - '(?i)Deferred follow-ups[\s\S]*docs/api\.md'

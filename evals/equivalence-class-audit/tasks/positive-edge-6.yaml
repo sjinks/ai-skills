@@ -44,9 +44,11 @@ graders:
         - '(?i)Blocking questions'
         - '(?i)Test/doc implications'
       not_contains:
+        - "|"
         - "Output depth: quick"
         - "Output depth: exhaustive"
         - "| Axis | Candidate | Presence | Disposition | Evidence |"
+        - "|------|-----------|----------|-------------|----------|"
         - "Opposite Bound"
         - "Sibling Parameter/Field"
         - "Mirror Call Site/Use Site"

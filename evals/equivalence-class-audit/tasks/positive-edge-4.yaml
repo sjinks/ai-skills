@@ -41,6 +41,7 @@ graders:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
         - '(?im)^Output depth:\s*quick\s*$'
+        - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
         - '(?i)Omitted axes'
         - '(?i)Omitted axes[^\n]*(scope|inapplicable|material)|Omitted axes[\s\S]{0,300}(scope|inapplicable|material)'
         - '(?i)Locked audit scope'

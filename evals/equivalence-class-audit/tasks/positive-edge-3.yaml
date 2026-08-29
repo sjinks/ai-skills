@@ -51,9 +51,11 @@ graders:
         - '(?i)Test/doc implications'
         - '(?i)(exact files|modules|API surfaces|specs|tests|artifacts|locked scope)'
       not_contains:
+        - "|"
         - "Output depth: quick"
         - "Output depth: exhaustive"
         - "| Axis | Candidate | Presence | Disposition | Evidence |"
+        - "|------|-----------|----------|-------------|----------|"
         - "Opposite Bound"
         - "Sibling Parameter/Field"
         - "Mirror Call Site/Use Site"

@@ -45,6 +45,7 @@ graders:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
         - '(?im)^Output depth:\s*exhaustive\s*$'
+        - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
         - '(?i)\|\s*Opposite Bound\s*\|'
         - '(?i)\|\s*Sibling Parameter/Field\s*\|[^\n|]*maxItems[^\n|]*\|'
         - '(?i)\|\s*Mirror Call Site/Use Site\s*\|'

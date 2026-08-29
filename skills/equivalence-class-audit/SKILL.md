@@ -49,8 +49,9 @@ Disposition: `fix-now`, `defer-with-owner`, `n/a`, `blocked`.
 ## Equivalence-Class Audit Report
 Triggering finding:
 Locked audit scope:
-Output depth: quick | standard | exhaustive
-Axis | Candidate | Presence | Disposition | Evidence
+Output depth: <quick | standard | exhaustive; select exactly one>
+| Axis | Candidate | Presence | Disposition | Evidence |
+|------|-----------|----------|-------------|----------|
 Defects to fix now
 Deferred follow-ups
 Out-of-scope candidates discovered

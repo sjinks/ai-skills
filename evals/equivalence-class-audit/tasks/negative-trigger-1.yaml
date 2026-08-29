@@ -23,6 +23,7 @@ graders:
         - "Triggering finding:"
         - "Locked audit scope:"
         - "| Axis | Candidate | Presence | Disposition | Evidence |"
+        - "|------|-----------|----------|-------------|----------|"
         - "Output depth:"
         - "Omitted axes"
         - "Defects to fix now"
