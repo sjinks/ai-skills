@@ -6,10 +6,10 @@ description: |
 tags: [positive-edge]
 inputs:
   prompt: |
-    Validate `pip install numpy`. No exact version, intended index, distribution
-    hash, provenance, build backend, or lifecycle behavior is reviewed. Return
-    every shell-safety field without changing the package to requests or a
-    requirements file.
+    Validate `pip install numpy`. No virtual environment is active, and no exact
+    version, intended index, distribution hash, provenance, build backend, or
+    lifecycle behavior is reviewed. Return every shell-safety field without
+    changing the package to requests or a requirements file.
 expected: {should_trigger: true}
 graders:
   - type: trigger

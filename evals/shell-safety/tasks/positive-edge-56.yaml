@@ -8,9 +8,10 @@ tags:
   - positive-edge
 inputs:
   prompt: |
-    Validate `pip install requests`. No version, index provenance, hash, or
-    wheel-versus-sdist decision is resolved. A `requirements.txt` exists but
-    contains many unrelated packages. Return every shell-safety output field.
+    Validate `pip install requests`. No virtual environment is active, and no
+    version, index provenance, hash, or wheel-versus-sdist decision is resolved.
+    A `requirements.txt` exists but contains many unrelated packages. Return
+    every shell-safety output field.
 expected:
   should_trigger: true
 graders:

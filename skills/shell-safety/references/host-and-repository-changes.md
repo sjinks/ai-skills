@@ -228,11 +228,11 @@ Safe replacement: Preserve the requested size-based policy. After privilege, jou
 Example: `tar -xf received.tar`
 Risk: Entries can overwrite or escape the destination.
 Decision gate: Block without an extractor-owned validation/write path.
-Safe replacement: Run `tar -tf received.tar` only as preliminary inspection. Extraction must operate on a secured immutable copy and use one parser and decoded-name model for validation and writes. The extractor must:
+Safe replacement: Do not run a standalone archive listing parser before controls apply. Place the archive in the secured immutable object first, then use one extractor-owned parser and decoded-name model for bounded listing/inspection, validation, and writes. Apply the same resource limits below while parsing metadata, before or during any listing. The extractor must:
 
 - create or receive a private, canonicalized, extractor-controlled fresh root that did not previously exist; shared roots require locking and explicit pre-existing-entry policy;
 - strictly decode names and normalize Unicode with one extractor-defined form (for example NFC) before containment and duplicate checks; allow ordinary normalized non-ASCII names, but reject empty names, NUL/control characters, `.`, `..`, absolute, drive-relative, drive/UNC/namespace/device, alternate-data-stream, reserved-device, trailing-dot/space, unsafe-separator, overlong, case-folding ambiguity/collision, Unicode-normalization ambiguity, canonically equivalent or otherwise colliding normalized identities, duplicate decoded names, and other normalized-name-collision paths;
-- reject symlinks, unsafe hardlinks, devices, FIFOs, sockets, and other special files by default;
+- reject symlinks, hardlinks, devices, FIFOs, sockets, and other special files by default;
 - enforce entry/directory count, path length/depth, per-file and total decompressed bytes, sparse apparent size, metadata/header size, compression ratio, CPU, time, memory, and nested-archive recursion limits before and during extraction;
 - perform root-confined no-follow writes with containment and file-type revalidation at write time, reject disallowed overwrites and pre-existing links, and prevent path swaps;
 - restore executable bits, permissions, timestamps, and ownership only under an explicit policy, never archive uid/gid by default; and
@@ -243,7 +243,7 @@ Bind the validated digest to the exact bytes opened by that extractor and fail c
 Example: members `/etc/passwd` or `../escape`.
 Risk: Writes outside the destination.
 Decision gate: Block untrusted extraction absent AR1 validation.
-Safe replacement: `tar -tf received.tar | awk '/^\//{abs=1} /(^|\/)\.\.($|\/)/{rel=1} END {exit (abs||rel)}'` catches only a narrow subset; use AR1's extractor-owned path on the exact immutable archive.
+Safe replacement: Implement this subset check only inside AR1's bounded extractor-owned parser on the exact immutable archive: after strict decoding and normalization, reject absolute paths and any `..` segment using the parser's structured path representation. Do not recommend a standalone `tar -tf` pipeline, which parses attacker-controlled metadata before AR1's resource limits and identity controls apply.
 ### AR3 - Unzip into existing directory
 Example: `unzip received.zip`
 Risk: Overwrites and path traversal.

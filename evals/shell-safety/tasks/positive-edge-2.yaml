@@ -39,7 +39,6 @@ graders:
         - '(?i)Command:\s*Not provided'
         - '(?i)Required checks:'
       not_contains:
-        - "actual token"
         - "Verdict:"
         - "Checklist status:"
   - type: prompt

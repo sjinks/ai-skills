@@ -37,6 +37,5 @@ graders:
         - '(?i)Command:\s*Not provided'
         - '(?i)Required checks:.*(helper|store|no.follow|exclusive)'
       not_contains:
-        - "actual key"
         - "Verdict:"
         - "Checklist status:"

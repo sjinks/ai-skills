@@ -17,6 +17,4 @@ graders:
   - type: text
     name: negative_task_completion
     config:
-      not_contains: ['Matched patterns:', 'Required checks:', 'Result: BLOCKED', 'Result: SAFE']
-      regex_not_match:
-        - '(?im)^[ \t]*(result|matched patterns|assessment|command|required checks):'
+      not_contains: ['Result:', 'Matched patterns:', 'Assessment:', 'Command:', 'Required checks:']

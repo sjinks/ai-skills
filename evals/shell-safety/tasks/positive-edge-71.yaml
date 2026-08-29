@@ -7,9 +7,11 @@ tags:
   - positive-edge
 inputs:
   prompt: |
-    Rewrite `echo 'a\nb'` portably. I intend the literal characters `a\nb`
-    followed by one newline, not two output lines. Return every shell-safety
-    output field.
+    Before I execute `echo 'a\nb'` in a POSIX deployment script, decide whether
+    that exact command is safe and provide the required rewrite. I intend the
+    literal characters `a\nb` followed by one newline, not two output lines.
+    This is an execution-safety decision, not a portability-only explanation.
+    Return every shell-safety output field.
 expected:
   should_trigger: true
 graders:

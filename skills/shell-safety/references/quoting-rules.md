@@ -16,7 +16,7 @@ Read this when a shell command's quoting, expansion, globbing, heredoc, or zsh/b
 - Preserve literal value of everything **except** `$`, `` ` ``, `\`, and (when history expansion is on) `!`.
 - Variable expansion, command substitution, and arithmetic expansion still happen.
 - A backslash inside double quotes only escapes `$`, `` ` ``, `"`, `\`, and newline.
-- In interactive Bash, `!` inside double quotes may still trigger history expansion. Prefer single quotes for literal `!`, or run `set +H` before using double quotes that contain literal `!`.
+- In non-POSIX Bash with `histexpand` enabled, `!` in a history-expandable position inside double quotes may trigger history expansion regardless of interactivity. Bash treats `!` immediately before a closing double quote as quoted. For an expandable position that must stay literal, single-quote that segment or disable history expansion before the command.
 
 ### Backslash `\`
 
@@ -53,7 +53,7 @@ Key point: **word splitting** and **pathname expansion** happen on **unquoted** 
 | `$*` | Each positional parameter expands separately, then the resulting unquoted words undergo word splitting and pathname expansion; parameter boundaries are not preserved. |
 | `$@` | All positional arguments as separate words. Word-splits and globbed. |
 | `"$*"` | All arguments as a single string, joined by `IFS[0]`. |
-| `"$@"` | Each argument as a separate quoted word. Preserves spaces in arguments. **Always prefer this.** |
+| `"$@"` | Each argument as a separate quoted word. Preserves original argument boundaries; prefer this when that is the caller's intent. Use `"$*"` for an explicitly intended single `IFS[0]`-joined argument. |
 
 ```sh
 fn() { for a in "$@"; do printf '[%s]\n' "$a"; done; }
@@ -199,8 +199,9 @@ Trace prints the post-expansion command. If a secret is in scope, the trace leak
   do_safe_thing
   set +x
 }
-# Then run the secret-bearing command outside the trace
-auth_call --token-file=/tmp/token
+# Then run the secret-bearing command outside the trace through a credential
+# helper or a pre-provisioned owner-only descriptor outside shared/synchronized paths
+auth_call --token-fd=3
 ```
 
 ### `$?` after a pipeline

@@ -10,8 +10,9 @@ inputs:
     `0123456789abcdef0123456789abcdef01234567`. Release references and that exact
     remote ref/object pair are reviewed. The Git executable, environment,
     system/global/local/worktree config, credential helper, authenticated
-    repository/account, and exactly one effective push destination are reviewed
-    and bound; that destination supports the explicit lease. Authorization is
+    repository/account, and exactly one effective push destination named by the
+    reviewed remote alias `origin` are reviewed and bound; that destination
+    supports the explicit lease. Authorization is
     for the current ref/object pair only, not ref-generation identity, and I
     understand the lease cannot detect same-object delete/recreate ABA. I have
     not confirmed deletion. Return every shell-safety field.

@@ -1,14 +1,17 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 id: positive-edge-088
-name: Balanced mixed quoting is not Q8
+name: Bash histexpand governs Q11 independently of interactivity
 description: |
-  A balanced apostrophe inside double quotes is valid shell syntax.
+  Enabled history expansion triggers Q11 even in non-interactive Bash.
 tags: [positive-edge]
 inputs:
   prompt: |
-    Validate `echo "it's $name"` in Bash. The quotes are balanced, `name` is a
-    present non-secret value, and I intentionally want this source expression.
-    Return every shell-safety field.
+    Compare `echo "it's $name !suffix"` in non-POSIX Bash when `histexpand` is
+    enabled versus disabled, and in POSIX-mode Bash. Also compare terminal
+    `echo "deploy!"` with enabled `histexpand`. Return every shell-safety field
+    for the enabled non-interactive `!suffix` context only. Preserve expansion
+    of the present, non-secret `name`; in Assessment, state why the disabled,
+    POSIX-mode, and terminal-`!` contexts differ.
 expected: {should_trigger: true}
 graders:
   - type: trigger
@@ -21,16 +24,22 @@ graders:
     name: positive_task_completion
     config:
       regex_match:
-        - '(?m)^Result:\s*SAFE\s*$'
-        - '(?m)^Matched patterns:\s*None\s*$'
-        - '(?mi)^Assessment:[^\n]*(balanced|valid)[^\n]*(quote|syntax)[^\n]*$'
-        - '(?m)^Command:\s*echo "it''s \$name"\s*$'
+        - '(?m)^Result:\s*REWRITE\s*$'
+        - '(?m)^Matched patterns:\s*Q11/SE8 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:[^\n]*(histexpand|history expansion)[^\n]*(enabled)[^\n]*(!suffix|event)[^\n]*(disabled|POSIX)[^\n]*(safe|literal|preserv)[^\n]*$'
+        - '(?mi)^Assessment:[^\n]*(deploy!|terminal|closing double quote)[^\n]*(safe|quoted|no Q11|does not)[^\n]*$'
+        - '(?m)^Command:\s*echo "it''s \$name "''!suffix''\s*$'
         - '(?m)^Required checks:\s*None\s*$'
-      not_contains: ['Q8 (Command construction)', 'Result: REWRITE', 'Verdict:', 'Checklist status:']
+      not_contains: ['Q8 (Command construction)', 'Result: SAFE', 'Verdict:', 'Checklist status:']
   - type: prompt
     name: task_completion_substance
     config:
       prompt: |
-        Grade whether balanced mixed quoting remains unchanged and does not
-        trigger Q8. Last line: 1.0, 0.5, or 0.0 only.
+        Grade whether enabled `histexpand` triggers Q11/SE8 even in non-interactive
+        non-POSIX Bash, the rewrite single-quotes only the literal `!suffix`
+        segment without suppressing `$name` expansion or changing shell state,
+        Q8 is not reported, and the Assessment says disabled or POSIX-mode Bash
+        preserves the literal exclamation mark while terminal `!` immediately
+        before the closing double quote is quoted and does not match Q11.
+        Last line: 1.0, 0.5, or 0.0 only.
       mode: independent

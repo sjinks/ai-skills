@@ -104,9 +104,11 @@ Example: `cd $dir`
 
 Risk: Word splitting and pathname expansion change the path.
 
-Decision gate: Rewrite.
+Decision gate: Block until the intended argv boundary is known, then rewrite.
 
-Safe replacement: `cd -- "$dir"`.
+Subsumes: `Q1` when the unquoted expansion supplies a filesystem path operand, because Q2 incorporates Q1's argv-boundary gate and adds path-specific handling.
+
+Safe replacement: When the value represents one path operand, quote it in place, as in `cd -- "$dir"`. When it intentionally represents multiple path operands, require a structured argv source and preserve its boundaries and original argument position as in Q1; do not collapse the paths into one quoted scalar.
 
 ### Q3 - `for` over `$(ls)`
 Example: `for f in $(ls); do ...; done`
@@ -188,21 +190,21 @@ Decision gate: Rewrite.
 Safe replacement: `rm -- -file`.
 
 ### Q11/SE8 - Bash history expansion in double quotes
-Example: `echo "deploy!"`
+Example: `echo "deploy!suffix"`
 
-Risk: Interactive history expansion can substitute history or fail.
+Risk: Non-POSIX Bash with history expansion (`histexpand`) enabled can substitute history or fail when `!` occurs in a history-expandable position; interactivity affects the default option state but is not required once the option is enabled. Bash treats `!` immediately before a closing double quote as quoted.
 
-Decision gate: Rewrite.
+Decision gate: Rewrite when the selected shell is non-POSIX Bash with `histexpand` enabled and `!` is in a history-expandable position; otherwise this pattern does not apply.
 
 Safe replacement: Use single quotes for a literal `!`:
 ```sh
-echo 'deploy!'
+echo 'deploy!suffix'
 ```
-Or disable history expansion before the double-quoted command in Bash:
+When other content must still expand, concatenate quoted segments so only `!` is single-quoted:
 ```bash
-set +H
-echo "deploy!"
+echo "deploy $version"'!'
 ```
+Any Bash invocation with `histexpand` disabled, POSIX-mode Bash for this double-quoted case, and a `!` immediately before the closing double quote preserves the literal `!` without a Q11/SE8 rewrite.
 
 ### Q12 - Backslash-escaped downstream literals inside shell single quotes
 Example: `aws ... --query 'Tags[?Key==\`Name\`]'`
