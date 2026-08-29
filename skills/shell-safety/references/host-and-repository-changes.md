@@ -132,12 +132,12 @@ Safe replacement: Restrict ownership changes to the project root.
 Example: `kill -9 1234`
 Risk: Skips cleanup and can hit a reused PID.
 Decision gate: Last-resort confirmation.
-Safe replacement: Resolve PID and full identity, send `kill <pid>`, wait through terminal or supervisor completion without `sleep`, re-resolve identity, then use `SIGKILL` only when still exact and justified.
+Safe replacement: Acquire and retain a process handle whose identity is established through, or atomically with, that handle rather than by checking a PID first, using a supervisor/runtime API or a platform facility such as a verified Linux pidfd. Keep the originally reviewed handle open without reacquisition through confirmation, send the initial graceful signal through it, wait through supervisor/handle completion without `sleep`, and send `SIGKILL` through that same continuously retained handle only when still justified and explicitly confirmed. A PID lookup or identity recheck followed by handle acquisition or `kill <pid>` is a check-then-act race; return `BLOCKED` when signaling cannot use the reviewed retained handle.
 ### PC2 - Broad `pkill`
 Example: `pkill node`
 Risk: Matches unrelated processes.
 Decision gate: Rewrite, then confirm the reviewed candidate set.
-Safe replacement: Capture the complete matcher result once with every PID and stable process identity, and review the full set. Preserve either all matching processes when the caller confirms the original broad intent or an explicitly selected subset; do not silently select one PID. Immediately before signaling, revalidate every retained identity, signal only those same PIDs without rerunning the broad matcher, and follow PC1 for escalation. Return `BLOCKED` when the complete set cannot be captured, retained, or revalidated.
+Safe replacement: Capture the complete matcher result once and acquire a retained process handle for every candidate, establishing each reviewed identity through or atomically with its handle rather than checking a PID before acquisition. Review the full handle/identity set and preserve either all matching processes when the caller confirms broad intent or an explicitly selected subset; do not silently select one process. Keep the originally reviewed handles open without reacquisition, signal only through them without rerunning the matcher or falling back to raw PIDs, wait for completion through the retained set, and follow PC1 for confirmed escalation of only the exact still-live retained subset. Return `BLOCKED` when the complete set or any reviewed handle cannot be captured, retained, or used throughout signaling and waiting.
 ### PC3 - Background agent-terminal job
 Example: `node server.js &`
 Risk: Completion and cleanup cannot be reliably observed.

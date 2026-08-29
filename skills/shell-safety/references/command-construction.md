@@ -317,15 +317,11 @@ Example: `cat <<EOF > /etc/foo.conf`
 
 Risk: The unprivileged shell performs the redirection.
 
-Decision gate: Confirm both privilege use and overwrite of the exact destination.
+Decision gate: Block until privilege, overwrite intent, and a path-swap-resistant destination open are resolved; then confirm the exact write.
 
-Safe replacement:
-```sh
-sudo tee /etc/foo.conf >/dev/null <<'EOF'
-content
-EOF
-```
-`tee` without `-a` truncates the destination. Use `tee -a` only when the caller explicitly requests append behavior; never change overwrite to append or append to overwrite implicitly.
+Subsumes: `OR1` for this exact privileged-overwrite operation because HD3 includes overwrite intent, destination identity, and write-path checks.
+
+Safe replacement: Use a privileged runtime/helper that performs root-confined, component-by-component no-follow resolution from retained directory handles, opens without truncation, validates the exact regular non-symlink destination through the retained descriptor, then truncates and writes through that same descriptor without reopening the pathname. A pathname-based `sudo tee /etc/foo.conf` is acceptable only when every parent and the exact destination are trusted and non-replaceable for the whole operation, no path component is a symlink, the destination is verified as a regular file, and that identity remains stable through both privileged open and write. Otherwise it follows links or can reach another object and remains `BLOCKED`. Preserve overwrite versus append intent exactly.
 
 ### HD4 - `echo -e`
 Example: `echo -e "a\nb"`
@@ -370,17 +366,11 @@ Example: `sudo echo 'content' > /etc/foo.conf`
 
 Risk: The current shell, not `sudo`, opens the file.
 
-Decision gate: Confirm both privilege use and overwrite of the exact destination.
+Decision gate: Block until privilege, overwrite intent, and a path-swap-resistant destination open are resolved; then confirm the exact write.
 
 Subsumes: `HD3`, `PE1`, and `OR1` for this exact privileged-overwrite replacement because OR4 includes their privilege, destination, and overwrite checks.
 
-Safe replacement: Use HD3's quoted-heredoc form so no pipeline-status ambiguity is introduced:
-```sh
-sudo tee /etc/foo.conf >/dev/null <<'EOF'
-content
-EOF
-```
-The replacement preserves the requested content and overwrite behavior while moving the privileged open into `tee`; use `tee -a` only for explicit append intent.
+Safe replacement: Use HD3's root-confined, component-no-follow, descriptor-validated writer with quoted-heredoc input, preserving the exact content and overwrite behavior without a pipeline or pathname reopen. A pathname-based `sudo tee` rewrite is permitted only when every parent and the exact destination are trusted and non-replaceable for the whole operation, no component is a symlink, the destination is a verified regular file, and that identity remains stable through both privileged open and write; otherwise return `BLOCKED`. Use append only for explicit append intent.
 
 ### SM1 - Script without strict mode
 Example: A multi-step script without `set -euo pipefail`.
