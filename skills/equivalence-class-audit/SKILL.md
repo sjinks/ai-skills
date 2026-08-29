@@ -59,8 +59,9 @@ Output depth: <quick | standard | exhaustive; select exactly one>
 ### Out-of-scope candidates discovered
 ### Blocking questions
 ### Test/doc implications
-### Omitted axes (quick mode only)
 ```
+
+When `Output depth: quick`, append `### Omitted axes (quick mode only)` and summarize why the remaining axes were not expanded. Omit this section for `standard` and `exhaustive`.
 
 If either required input is missing, omit the table and use this reduced form:
 

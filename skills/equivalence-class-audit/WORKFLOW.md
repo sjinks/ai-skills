@@ -230,7 +230,11 @@ Output depth: <quick | standard | exhaustive; select exactly one>
 
 ### Test/doc implications
 - <test, documentation, spec, migration, or contract implications, or `None`>
+```
 
+For `quick` mode only, append:
+
+```markdown
 ### Omitted axes (quick mode only)
 - <summary of omitted catalogue axes and why they were not expanded>
 ```
