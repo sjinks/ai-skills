@@ -81,7 +81,7 @@ def fail(message):
 def norm(value):
     value = html.unescape(value)
     value = unicodedata.normalize("NFC", value)
-    value = re.sub(r"[`*~]", "", value)
+    value = re.sub(r"(`{1,3}|\*{1,3}|~{2})(.+?)\1", r"\2", value)
     value = re.sub(r"\b0\b", "zero", value)
     return " ".join(value.lower().split())
 
@@ -132,9 +132,15 @@ def populated_metadata(value):
 def non_populated_metadata(value):
     normalized = unicodedata.normalize("NFKC", norm(visible_text(value)))
     bare = re.sub(r"^\W+|\W+$", "", normalized, flags=re.UNICODE)
+    if re.search(r"\b(?:pending|unresolved)\b", bare) and re.search(
+        r"\b(?:owner|team|source|provenance|reason|metadata|assignment|confirmation)\b", bare
+    ):
+        return True
     return bare in NON_POPULATED_METADATA or bool(re.fullmatch(
-        r"pending(?:\s+.*)?|(?:unknown|missing|unassigned|tbd)\s+"
+        r"(?:pending|unresolved)(?:\s+.*)?|.*\s+(?:pending|unresolved)|.*\s+\((?:pending|unresolved)\)?"
+        r"|to be (?:assigned|determined)|(?:unknown|missing|unassigned|tbd)\s+"
         r"(?:owner|team|source|provenance|reason|metadata|pending|assignment)(?:\s+.*)?"
+        r"|(?:owner|team|source|provenance|reason|metadata|assignment)\s+pending(?:\s+.*)?"
         r"|not supplied(?: by .+)?|no\s+(?:owner|team|source|provenance|reason|metadata)",
         bare,
     ))
@@ -148,7 +154,10 @@ def overlaps(left, right):
 def candidate_named(candidate, bullet):
     candidate = norm(candidate)
     bullet = norm(bullet)
-    return bool(re.search(rf"(?<![a-z0-9_]){re.escape(candidate)}(?![a-z0-9_])", bullet))
+    return bool(re.search(
+        rf"(?<![a-z0-9_./-]){re.escape(candidate)}(?![a-z0-9_/-]|\.[a-z0-9_])",
+        bullet,
+    ))
 
 
 def requests(value):
@@ -436,10 +445,12 @@ def reconcile_summaries(sections, rows):
         summary_assignments(candidates, sections[section], section)
     blocked = [item["candidate"] for item in rows if item["disposition"] == "blocked"]
     blocker_bullets = sections["Blocking questions"]
+    if blocked and len(blocker_bullets) != len(blocked):
+        fail("Blocking questions must contain one bullet per blocked row")
     assignments = summary_assignments(blocked, blocker_bullets, "Blocking questions")
     for candidate_index, bullet_index in assignments.items():
+        candidate = blocked[candidate_index]
         if not requests(blocker_bullets[bullet_index]):
-            candidate = blocked[candidate_index]
             fail(f"Blocking questions must name and request clarification for {candidate}")
     for bullet in blocker_bullets:
         if bullet == "None":
