@@ -203,7 +203,7 @@ If a defect involves stale data, invalidation, consistency, or duplicated repres
 ## Output Format
 
 Return one report with this header and these sections. Emit no preamble or trailing commentary; the report heading is the first content line. Name every present candidate in its corresponding fix-now, deferred, or blocking section. Also name every present `Test Mirror` and `Documentation/Spec Prose Twin` candidate under **Test/doc implications**.
-For machine-checked metadata, use `owner` or `team` plus `reason` or `because` in each deferred bullet, include `provenance` in each out-of-scope bullet, and write exactly one blocker bullet per blocked candidate. Phrase each blocker as an imperative (`provide`, `specify`, `clarify`, `confirm`, `need`) or a question beginning with `what`, `which`, `who`, `why`, `can`, `could`, `would`, `are`, `does`, `do`, `is`, or `should`.
+For machine-checked metadata, end each deferred bullet with `owner: NAME; reason: RATIONALE` and each out-of-scope bullet with `provenance: SOURCE`; values must be positive and populated. Write exactly one blocker bullet per blocked candidate. Phrase each blocker as an imperative (`provide`, `specify`, `clarify`, `confirm`, `need`) or a question beginning with `what`, `which`, `who`, `why`, `can`, `could`, `would`, `are`, `does`, `do`, `is`, or `should`; Markdown emphasis is allowed.
 Only include the table after both the triggering finding and locked audit scope are available. For insufficient input, keep the report header and section headings, omit table rows, and put the missing input under **Blocking questions**.
 
 ```markdown
@@ -297,8 +297,8 @@ Output depth: standard
 - Lower-bound test for `retryDelaySeconds`: add coverage in `tests/retry_policy_spec.rb`.
 
 ### Deferred follow-ups
-- Retry docs versus config behavior: owner Platform Docs must update `docs/retry-policy.md` because it documents the old `0` behavior.
-- Retry policy minimum value prose: owner Platform Docs must correct the documented minimum because docs are owned outside this change.
+- Retry docs versus config behavior: update `docs/retry-policy.md`; owner: Platform Docs; reason: it documents the old `0` behavior.
+- Retry policy minimum value prose: correct the documented minimum; owner: Platform Docs; reason: docs are owned outside this change.
 
 ### Out-of-scope candidates discovered
 - Generated deployment schema may mirror the retry constraints, but it is outside the locked scope; provenance: schema reference in deployment README.

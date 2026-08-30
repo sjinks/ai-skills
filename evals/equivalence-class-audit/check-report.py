@@ -35,6 +35,11 @@ PRESENCE_VALUES = {
     "n/a — no candidates in scope", "blocked — clarification needed",
 }
 DISPOSITIONS = {"fix-now", "defer-with-owner", "n/a", "blocked"}
+METADATA_PLACEHOLDERS = {"name", "owner", "provenance", "rationale", "reason", "source"}
+NON_POPULATED_METADATA = {
+    "missing", "unknown", "unavailable", "not supplied", "none", "n/a", "tbd",
+    "unassigned", "not the owner",
+}
 PROFILES = {
     "positive-edge-001", "positive-edge-002", "positive-edge-003",
     "positive-edge-004", "positive-edge-005", "positive-edge-006",
@@ -97,13 +102,64 @@ def contains(value, *terms):
     return all(term.lower() in value for term in terms)
 
 
+def missing_marker(value):
+    value = norm(value)
+    if value in MISSING:
+        return True
+    return bool(re.search(r"\b(?:missing|not provided|not supplied)\b", value)
+                or re.search(r"\b(?:is|are|remains?)\s+(?:required|needed)\b", value))
+
+
+def missing_header_marker(value):
+    value = norm(value)
+    if value in MISSING:
+        return True
+    return bool(re.match(
+        r"^(?:the\s+|this\s+)?(?:triggering finding|locked audit scope|scope|finding|input)\s+"
+        r"(?:is|are|remains?)\s+(?:missing|not provided|not supplied|required|needed)\b",
+        value,
+    ))
+
+
+def populated_metadata(value):
+    if not visible(value):
+        return False
+    normalized = unicodedata.normalize("NFKC", norm(visible_text(value)))
+    bare = re.sub(r"^\W+|\W+$", "", normalized, flags=re.UNICODE)
+    return bool(bare) and bare not in METADATA_PLACEHOLDERS
+
+
+def non_populated_metadata(value):
+    normalized = unicodedata.normalize("NFKC", norm(visible_text(value)))
+    bare = re.sub(r"^\W+|\W+$", "", normalized, flags=re.UNICODE)
+    return bare in NON_POPULATED_METADATA or bool(re.fullmatch(
+        r"(?:unknown|missing|unassigned|tbd)\s+(?:owner|team|source|provenance|reason|metadata|pending|assignment)(?:\s+.*)?"
+        r"|not supplied(?: by .+)?|no\s+(?:owner|team|source|provenance|reason|metadata)",
+        bare,
+    ))
+
+
 def overlaps(left, right):
     words = set(re.findall(r"[a-z0-9_./-]{4,}", norm(left)))
     return bool(words & set(re.findall(r"[a-z0-9_./-]{4,}", norm(right))))
 
 
 def requests(value):
-    value = value.strip().lower()
+    value = value.strip()
+    value = re.sub(
+        r"^([_*~]{1,3})(provide|specify|clarify|confirm|need)\1(?=\s|$)",
+        r"\2",
+        value,
+        flags=re.I,
+    )
+    while True:
+        for marker in ("___", "***", "~~~", "__", "**", "~~", "_", "*", "~"):
+            if value.startswith(marker) and value.endswith(marker) and len(value) > 2 * len(marker):
+                value = value[len(marker):-len(marker)].strip()
+                break
+        else:
+            break
+    value = norm(value)
     imperative = re.match(r"^(?:please\s+)?(?:provide|specify|clarify|confirm|need)\b", value)
     question = re.match(r"^(?:what|which|who|why|can|could|would|are|does|do|is|should)\b.*\?$", value)
     return bool(imperative or question)
@@ -200,10 +256,12 @@ def parse_report(output):
             fail(f"{heading} cannot mix None with other bullets")
         if any(bullet != "None" and not visible(bullet) for bullet in payload):
             fail(f"{heading} bullets must contain visible text")
-        if heading == "Out-of-scope candidates discovered" and payload != ["None"] and any(
-            "provenance" not in bullet.lower() for bullet in payload
-        ):
-            fail("out-of-scope bullets must include provenance")
+        if heading == "Out-of-scope candidates discovered" and payload != ["None"]:
+            for bullet in payload:
+                match = re.search(r"\bprovenance:\s*(.+)$", bullet, flags=re.I)
+                if (not match or not populated_metadata(match[1])
+                    or non_populated_metadata(match[1])):
+                    fail("out-of-scope bullets need populated provenance metadata")
         sections[heading] = payload
 
     first_section = heading_entries[0][0]
@@ -262,9 +320,9 @@ def parse_report(output):
                 item["candidate"].strip() == "-" and item["presence"].startswith("n/a")
             ):
                 fail("candidate must be named unless the row is n/a")
-            evidence = item["evidence"].lower()
+            evidence = norm(item["evidence"])
             citation = re.search(
-                r"(?:[a-z0-9_-]+/)+[a-z0-9_.-]+|\b[a-z0-9_-]+\."
+                r"(?:[\w.-]+/)+[\w.-]+|\b[\w.-]+\."
                 r"(?:md|py|ts|js|go|rb|yml|yaml|json|xml|proto|sql|log|txt)\b|"
                 r"\b[a-z][a-z0-9 _/-]{2,} section\b|\b(?:dockerfile|makefile|readme|license)\b|"
                 r"\b(?:test (?:file|case)|"
@@ -320,52 +378,79 @@ def standard_table(headers, rows, depth="standard"):
             fail(f"missing catalogue axes: {', '.join(missing)}")
 
 
+def summary_assignments(candidates, bullets, section):
+    if not candidates:
+        if bullets != ["None"]:
+            fail(f"{section} has a bullet without a compatible table row")
+        return {}
+    if bullets == ["None"]:
+        fail(f"{section} cannot be None when table rows require it")
+    assignments = {}
+    matched_candidates = {}
+    ordered = sorted(enumerate(candidates), key=lambda item: -len(norm(item[1])))
+    def assign(candidate_index, visited):
+        candidate = candidates[candidate_index]
+        matching = sorted(
+            (index for index, bullet in enumerate(bullets)
+             if norm(candidate) in norm(bullet)),
+            key=lambda index: (len(norm(bullets[index])), index),
+        )
+        for index in matching:
+            if index in visited:
+                continue
+            visited.add(index)
+            previous = matched_candidates.get(index)
+            if previous is None or assign(previous, visited):
+                matched_candidates[index] = candidate_index
+                return True
+        return False
+
+    for candidate_index, candidate in ordered:
+        if not assign(candidate_index, set()):
+            fail(f"{section} must name {candidate}")
+    for bullet_index, candidate_index in matched_candidates.items():
+        assignments[candidate_index] = bullet_index
+    if len(assignments) != len(bullets):
+        fail(f"{section} has a bullet without a compatible table row")
+    return assignments
+
+
+def summary_bullet(candidates, bullets, candidate_index, section):
+    assignments = summary_assignments(candidates, bullets, section)
+    return bullets[assignments[candidate_index]]
+
+
 def reconcile_summaries(sections, rows):
+    deferred_rows = []
+    deferred_assignments = {}
     for disposition, section in (("fix-now", "Defects to fix now"),
                                  ("defer-with-owner", "Deferred follow-ups")):
         candidates = [item["candidate"] for item in rows
                       if item["presence"] == "present" and item["disposition"] == disposition]
-        summary = " ".join(sections[section])
-        if candidates and sections[section] == ["None"]:
-            fail(f"{section} cannot be None when table rows require it")
-        for candidate in candidates:
-            if norm(candidate) not in norm(summary):
-                fail(f"{section} must name {candidate}")
-        for bullet in sections[section]:
-            if bullet == "None":
-                continue
-            if not any(norm(candidate) in norm(bullet) for candidate in candidates):
-                fail(f"{section} has a bullet without a compatible table row")
+        assignments = summary_assignments(candidates, sections[section], section)
+        if disposition == "defer-with-owner":
+            deferred_rows = [item for item in rows
+                             if item["presence"] == "present" and item["disposition"] == disposition]
+            deferred_assignments = assignments
     blocked = [item["candidate"] for item in rows if item["disposition"] == "blocked"]
     blocker_bullets = sections["Blocking questions"]
-    blockers = " ".join(blocker_bullets)
-    if not blocked and blocker_bullets != ["None"]:
-        fail("Blocking questions require a compatible blocked row")
-    for candidate in blocked:
-        matching = [bullet for bullet in blocker_bullets if norm(candidate) in norm(bullet)]
-        if len(matching) != 1 or not requests(matching[0]):
+    assignments = summary_assignments(blocked, blocker_bullets, "Blocking questions")
+    for candidate_index, bullet_index in assignments.items():
+        if not requests(blocker_bullets[bullet_index]):
+            candidate = blocked[candidate_index]
             fail(f"Blocking questions must name and request clarification for {candidate}")
     for bullet in blocker_bullets:
         if bullet == "None":
             continue
         if not requests(bullet):
             fail("each blocking question must request clarification")
-        compatible = [candidate for candidate in blocked if norm(candidate) in norm(bullet)]
-        if len(compatible) != 1:
-            fail("each blocking question must address exactly one blocked row")
-    for item in rows:
-        if item["disposition"] != "defer-with-owner":
-            continue
-        matching = [bullet.lower() for bullet in sections["Deferred follow-ups"]
-                if norm(item["candidate"]) in norm(bullet)]
-        if len(matching) != 1:
-            fail("each deferred candidate needs one matching summary bullet")
-        if not any(term in matching[0] for term in ("owner", "team")) or not any(
-            term in matching[0] for term in ("reason", "because")
-        ):
-            fail("each deferred candidate bullet must name an owner/team and reason")
-        if any(term in matching[0] for term in ("not supplied", "missing", "unknown", "tbd")):
-            fail("deferred candidate metadata must be populated")
+    for candidate_index, item in enumerate(deferred_rows):
+        bullet = sections["Deferred follow-ups"][deferred_assignments[candidate_index]]
+        metadata = re.search(r"\bowner:\s*([^;]+);\s*reason:\s*(.+)$", bullet, flags=re.I)
+        if not metadata or not all(populated_metadata(value) for value in metadata.groups()):
+            fail("each deferred candidate bullet needs owner and reason metadata")
+        if any(non_populated_metadata(value) for value in metadata.groups()):
+            fail("deferred candidate metadata must be positive and populated")
     implications = [item["candidate"] for item in rows if item["presence"] == "present"
                     and item["axis"] in ("Test Mirror", "Documentation/Spec Prose Twin")]
     implications_text = " ".join(sections["Test/doc implications"])
@@ -379,7 +464,7 @@ def reconcile_summaries(sections, rows):
 def reduced(headers, sections, rows, missing_header, quick=False):
     if headers["_has_table"] or rows:
         fail("reduced report must not include a table")
-    if not any(word in headers[missing_header].lower() for word in MISSING):
+    if not missing_header_marker(headers[missing_header]):
         fail(f"{missing_header} must state that it is missing")
     for section in ("Defects to fix now", "Deferred follow-ups",
                     "Out-of-scope candidates discovered", "Test/doc implications"):
@@ -389,7 +474,6 @@ def reduced(headers, sections, rows, missing_header, quick=False):
         fail("reduced report needs exactly one blocking question")
     blockers = sections["Blocking questions"][0]
     if (not contains(blockers, missing_header.lower())
-            or not any(word in blockers.lower() for word in MISSING)
             or not requests(blockers)):
         fail("blocking question must name the missing required input")
     if quick:
@@ -406,7 +490,7 @@ def validate(profile, headers, sections, rows):
     if profile in PROFILE_HEADERS:
         for name, terms in zip(("Triggering finding", "Locked audit scope"), PROFILE_HEADERS[profile]):
             value = norm(headers[name])
-            if any(word in value for word in MISSING) or not all(norm(term) in value for term in terms):
+            if missing_header_marker(value) or not all(norm(term) in value for term in terms):
                 fail(f"{name} must preserve the supplied task input")
     if profile == "positive-edge-003":
         if headers["Output depth"].lower() != "standard":
@@ -460,9 +544,14 @@ def validate(profile, headers, sections, rows):
                          "blocked — clarification needed", "blocked")
         row(rows, "Mirror Call Site/Use Site", ("get", "tenantguard"), "absent", "n/a")
         row(rows, "Test Mirror", ("tenant mismatch",), "present", "fix-now")
-        matching = [bullet for bullet in sections["Blocking questions"]
-                if norm(delete_row["candidate"]) in norm(bullet)]
-        blocker = matching[0] if len(matching) == 1 else ""
+        blocked_rows = [item for item in rows if item["disposition"] == "blocked"]
+        delete_index = next(index for index, item in enumerate(blocked_rows) if item is delete_row)
+        blocker = summary_bullet(
+            [item["candidate"] for item in blocked_rows],
+            sections["Blocking questions"],
+            delete_index,
+            "Blocking questions",
+        )
         if (not all(term in blocker.lower() for term in ("tenantguard", "tenant ownership", "policy"))
             or not requests(blocker)):
             fail("authorization blocker must name tenantGuard, ownership, and policy")
@@ -481,11 +570,17 @@ def validate(profile, headers, sections, rows):
         row(rows, "Opposite Bound", ("maxretries",), "present", "fix-now")
         if sections["Deferred follow-ups"] != ["None"]:
             fail("blocked deferral must not appear in deferred follow-ups")
-        if any("doc" in bullet.lower() for bullet in sections["Defects to fix now"]):
+        if any(norm(item["candidate"]) in norm(bullet)
+               for bullet in sections["Defects to fix now"]):
             fail("blocked documentation must not appear in fix-now summary")
-        matching = [bullet for bullet in sections["Blocking questions"]
-                if norm(item["candidate"]) in norm(bullet)]
-        blocker = matching[0].lower() if len(matching) == 1 else ""
+        blocked_rows = [candidate for candidate in rows if candidate["disposition"] == "blocked"]
+        item_index = next(index for index, candidate in enumerate(blocked_rows) if candidate is item)
+        blocker = summary_bullet(
+            [candidate["candidate"] for candidate in blocked_rows],
+            sections["Blocking questions"],
+            item_index,
+            "Blocking questions",
+        ).lower()
         if not all(term in blocker for term in ("doc", "owner", "reason")) or not requests(blocker):
             fail("documentation blocker must request owner and reason")
     elif profile == "positive-edge-007":
@@ -515,21 +610,37 @@ def validate(profile, headers, sections, rows):
             fail("expected separate API and operations documentation candidates")
         for document, need in (("docs/api.md", "reason"), ("docs/operations.md", "owner")):
             other = "docs/operations.md" if document == "docs/api.md" else "docs/api.md"
-            row(rows, "Documentation/Spec Prose Twin", (document,), "present", "blocked", (other,))
-            matching = [bullet.lower() for bullet in sections["Blocking questions"] if document in bullet.lower()]
-            if len(matching) != 1 or need not in matching[0] or not requests(matching[0]):
+            document_row = row(rows, "Documentation/Spec Prose Twin", (document,), "present", "blocked", (other,))
+            blocked_rows = [item for item in rows if item["disposition"] == "blocked"]
+            document_index = next(index for index, item in enumerate(blocked_rows)
+                                  if item is document_row)
+            blocker = summary_bullet(
+                [item["candidate"] for item in blocked_rows],
+                sections["Blocking questions"],
+                document_index,
+                "Blocking questions",
+            ).lower()
+            if need not in blocker or not requests(blocker):
                 fail(f"{document} needs a separate blocker requesting {need}")
         if sections["Deferred follow-ups"] != ["None"]:
             fail("blocked docs must not appear in deferred follow-ups")
-        if any("doc" in bullet.lower() for bullet in sections["Defects to fix now"]):
+        if any(norm(item["candidate"]) in norm(bullet)
+               for item in docs_rows
+               for bullet in sections["Defects to fix now"]):
             fail("blocked docs must not appear in fix-now summary")
     elif profile == "positive-edge-009":
         row(rows, "Opposite Bound", ("maxretries",), "present", "fix-now")
         docs_row = row(rows, "Documentation/Spec Prose Twin", ("docs/api.md",),
                        "present", "defer-with-owner")
-        matching = [bullet for bullet in sections["Deferred follow-ups"]
-                    if norm(docs_row["candidate"]) in norm(bullet)]
-        deferred = matching[0] if len(matching) == 1 else ""
+        deferred_rows = [item for item in rows
+                         if item["presence"] == "present" and item["disposition"] == "defer-with-owner"]
+        docs_index = next(index for index, item in enumerate(deferred_rows) if item is docs_row)
+        deferred = summary_bullet(
+            [item["candidate"] for item in deferred_rows],
+            sections["Deferred follow-ups"],
+            docs_index,
+            "Deferred follow-ups",
+        )
         if not all(term.lower() in deferred.lower() for term in ("docs/api.md", "Platform Docs", "public API reference")):
             fail("deferred follow-up must contain docs path, owner, and reason")
     elif profile == "positive-edge-010":
