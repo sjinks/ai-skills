@@ -240,7 +240,7 @@ For `quick` mode only, append:
 - <summary of omitted catalogue axes and why they were not expanded>
 ```
 
-Table cell spacing may vary. After trimming spaces or tabs, the header must contain the five canonical labels in order, and each separator cell must consist only of three or more hyphens; alignment colons are not allowed.
+Table cell spacing may vary. Escape a literal pipe inside a cell as `\|`. After trimming spaces or tabs, the header must contain the five canonical labels in order, and each separator cell must consist only of three or more hyphens; alignment colons are not allowed.
 
 When the table is included after both the triggering finding and locked audit scope are available, every catalogue axis must be represented in the table at least once for `standard` and `exhaustive` depth. If an axis has candidates, add one row per candidate. If an axis has no candidates or is structurally inapplicable, add one explicit `n/a` row with evidence explaining why. In explicit `quick` mode, include only target-specific applicable axes and add an omitted-axis summary instead of full-axis enumeration.
 
@@ -288,7 +288,7 @@ Output depth: standard
 | Empty/Sentinel Equivalence | Omitted `maxRetries` config key | absent | n/a | `tests/retry_policy_spec.rb` covers omitted key defaulting to 3 retries |
 | Async/Sync or Mode Twin | Dry-run retry mode | n/a — no candidates in scope | n/a | no mode variants are present in the locked scope |
 | Documentation/Spec Prose Twin | Retry policy minimum value prose | present | defer-with-owner | `docs/retry-policy.md` documents `0` as valid; owner: Platform Docs; reason: docs follow-up is owned outside code change |
-| Cache/Projection/Source-of-Truth Twin | Generated deployment schema projection | n/a — no candidates in scope | n/a | generated deployment schema is outside the locked scope and recorded below |
+| Cache/Projection/Source-of-Truth Twin | - | n/a — no candidates in scope | n/a | no candidates in locked scope |
 
 ### Defects to fix now
 - `maxRetries` upper bound: add an upper-bound constraint in `config/service.yml`.

@@ -113,7 +113,26 @@ def table_cells(line):
     line = line.strip(" \t")
     if not line.startswith("|") or not line.endswith("|"):
         return None
-    return [cell.strip() for cell in line[1:-1].split("|")]
+    cells = []
+    cell = []
+    escaped = False
+    for character in line[1:-1]:
+        if escaped:
+            if character != "|":
+                cell.append("\\")
+            cell.append(character)
+            escaped = False
+        elif character == "\\":
+            escaped = True
+        elif character == "|":
+            cells.append("".join(cell).strip())
+            cell = []
+        else:
+            cell.append(character)
+    if escaped:
+        cell.append("\\")
+    cells.append("".join(cell).strip())
+    return cells
 
 
 def table_separator(cells):
@@ -220,7 +239,7 @@ def parse_report(output):
         for index, line in enumerate(table_lines):
             if index in (header_indexes[0], separator_indexes[0]):
                 continue
-            cells = [visible_text(cell) for cell in line.strip().strip("|").split("|")]
+            cells = [visible_text(cell) for cell in table_cells(line)]
             if len(cells) != 5:
                 fail("table row must have five cells")
             if not visible(cells[4]):

@@ -92,4 +92,4 @@ Output depth: <quick | standard | exhaustive; select exactly one>
 
 For either form, when `Output depth: quick`, append `### Omitted axes (quick mode only)` and summarize why axes were not expanded. In a reduced report, state that required input is missing and no axes were enumerated. Omit this section for `standard` and `exhaustive`.
 
-Table cell spacing may vary. The header uses the five canonical labels above, and each separator cell consists only of three or more hyphens; alignment colons are not allowed.
+Table cell spacing may vary. Escape a literal pipe inside a cell as `\|`. The header uses the five canonical labels above, and each separator cell consists only of three or more hyphens; alignment colons are not allowed.
