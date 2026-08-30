@@ -38,7 +38,7 @@ DISPOSITIONS = {"fix-now", "defer-with-owner", "n/a", "blocked"}
 METADATA_PLACEHOLDERS = {"name", "owner", "provenance", "rationale", "reason", "source"}
 NON_POPULATED_METADATA = {
     "missing", "unknown", "unavailable", "not supplied", "none", "n/a", "tbd",
-    "unassigned", "not the owner",
+    "unassigned", "not the owner", "pending",
 }
 PROFILES = {
     "positive-edge-001", "positive-edge-002", "positive-edge-003",
@@ -133,7 +133,8 @@ def non_populated_metadata(value):
     normalized = unicodedata.normalize("NFKC", norm(visible_text(value)))
     bare = re.sub(r"^\W+|\W+$", "", normalized, flags=re.UNICODE)
     return bare in NON_POPULATED_METADATA or bool(re.fullmatch(
-        r"(?:unknown|missing|unassigned|tbd)\s+(?:owner|team|source|provenance|reason|metadata|pending|assignment)(?:\s+.*)?"
+        r"pending(?:\s+.*)?|(?:unknown|missing|unassigned|tbd)\s+"
+        r"(?:owner|team|source|provenance|reason|metadata|pending|assignment)(?:\s+.*)?"
         r"|not supplied(?: by .+)?|no\s+(?:owner|team|source|provenance|reason|metadata)",
         bare,
     ))
@@ -142,6 +143,12 @@ def non_populated_metadata(value):
 def overlaps(left, right):
     words = set(re.findall(r"[a-z0-9_./-]{4,}", norm(left)))
     return bool(words & set(re.findall(r"[a-z0-9_./-]{4,}", norm(right))))
+
+
+def candidate_named(candidate, bullet):
+    candidate = norm(candidate)
+    bullet = norm(bullet)
+    return bool(re.search(rf"(?<![a-z0-9_]){re.escape(candidate)}(?![a-z0-9_])", bullet))
 
 
 def requests(value):
@@ -392,7 +399,7 @@ def summary_assignments(candidates, bullets, section):
         candidate = candidates[candidate_index]
         matching = sorted(
             (index for index, bullet in enumerate(bullets)
-             if norm(candidate) in norm(bullet)),
+             if candidate_named(candidate, bullet)),
             key=lambda index: (len(norm(bullets[index])), index),
         )
         for index in matching:
@@ -410,8 +417,9 @@ def summary_assignments(candidates, bullets, section):
             fail(f"{section} must name {candidate}")
     for bullet_index, candidate_index in matched_candidates.items():
         assignments[candidate_index] = bullet_index
-    if len(assignments) != len(bullets):
-        fail(f"{section} has a bullet without a compatible table row")
+    for bullet in bullets:
+        if not any(candidate_named(candidate, bullet) for candidate in candidates):
+            fail(f"{section} has a bullet without a compatible table row")
     return assignments
 
 
@@ -421,17 +429,11 @@ def summary_bullet(candidates, bullets, candidate_index, section):
 
 
 def reconcile_summaries(sections, rows):
-    deferred_rows = []
-    deferred_assignments = {}
     for disposition, section in (("fix-now", "Defects to fix now"),
                                  ("defer-with-owner", "Deferred follow-ups")):
         candidates = [item["candidate"] for item in rows
                       if item["presence"] == "present" and item["disposition"] == disposition]
-        assignments = summary_assignments(candidates, sections[section], section)
-        if disposition == "defer-with-owner":
-            deferred_rows = [item for item in rows
-                             if item["presence"] == "present" and item["disposition"] == disposition]
-            deferred_assignments = assignments
+        summary_assignments(candidates, sections[section], section)
     blocked = [item["candidate"] for item in rows if item["disposition"] == "blocked"]
     blocker_bullets = sections["Blocking questions"]
     assignments = summary_assignments(blocked, blocker_bullets, "Blocking questions")
@@ -444,8 +446,9 @@ def reconcile_summaries(sections, rows):
             continue
         if not requests(bullet):
             fail("each blocking question must request clarification")
-    for candidate_index, item in enumerate(deferred_rows):
-        bullet = sections["Deferred follow-ups"][deferred_assignments[candidate_index]]
+    for bullet in sections["Deferred follow-ups"]:
+        if bullet == "None":
+            continue
         metadata = re.search(r"\bowner:\s*([^;]+);\s*reason:\s*(.+)$", bullet, flags=re.I)
         if not metadata or not all(populated_metadata(value) for value in metadata.groups()):
             fail("each deferred candidate bullet needs owner and reason metadata")
@@ -457,7 +460,7 @@ def reconcile_summaries(sections, rows):
     if implications and sections["Test/doc implications"] == ["None"]:
         fail("Test/doc implications cannot be None for present test/docs rows")
     for candidate in implications:
-        if norm(candidate) not in norm(implications_text):
+        if not candidate_named(candidate, implications_text):
             fail(f"Test/doc implications must name {candidate}")
 
 
@@ -570,7 +573,7 @@ def validate(profile, headers, sections, rows):
         row(rows, "Opposite Bound", ("maxretries",), "present", "fix-now")
         if sections["Deferred follow-ups"] != ["None"]:
             fail("blocked deferral must not appear in deferred follow-ups")
-        if any(norm(item["candidate"]) in norm(bullet)
+        if any(candidate_named(item["candidate"], bullet)
                for bullet in sections["Defects to fix now"]):
             fail("blocked documentation must not appear in fix-now summary")
         blocked_rows = [candidate for candidate in rows if candidate["disposition"] == "blocked"]
@@ -624,7 +627,7 @@ def validate(profile, headers, sections, rows):
                 fail(f"{document} needs a separate blocker requesting {need}")
         if sections["Deferred follow-ups"] != ["None"]:
             fail("blocked docs must not appear in deferred follow-ups")
-        if any(norm(item["candidate"]) in norm(bullet)
+        if any(candidate_named(item["candidate"], bullet)
                for item in docs_rows
                for bullet in sections["Defects to fix now"]):
             fail("blocked docs must not appear in fix-now summary")
