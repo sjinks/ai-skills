@@ -35,8 +35,9 @@ graders:
         - '(?mi)^Assessment:(?=[^\n]*[^\n]*(second|rerun|separate))(?=[^\n]*[^\n]*(traversal|discovery|git clean))(?=[^\n]*[^\n]*(new|changed|unreviewed|race))[^\n]*$'
         - '(?m)^Command:\s*Not provided\s*$'
         - '(?ims)^Required checks:(?=(?:(?!^[A-Z][A-Za-z ]*:).)*(retain|snapshot|capture)(?:(?!^[A-Z][A-Za-z ]*:).)*(candidate|path|set)(?:(?!^[A-Z][A-Za-z ]*:).)*(identity|revalid)(?:(?!^[A-Z][A-Za-z ]*:).)*(delete|deletion))(?:(?!^[A-Z][A-Za-z ]*:).)*(?=^[A-Z][A-Za-z ]*:|\Z)'
+      regex_not_match:
+        - '(?m)^Command:[^\n]*\bgit[ \t]+clean[ \t]+-fdx(?:[ \t]|$)[^\n]*$'
       not_contains:
-        - '(?ims)^Command:(?:(?!^[A-Z][A-Za-z ]*:).)* git clean -fdx(?=^[A-Z][A-Za-z ]*:|\\Z)'
         - 'Result: NEEDS-CONFIRMATION'
         - 'Verdict:'
         - 'Checklist status:'

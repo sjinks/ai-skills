@@ -39,9 +39,10 @@ graders:
         - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*(PCRE|lookbehind|Unicode|lazy))(?=[^\n]*[^\n]*[^\n]*(semantic|equivalent|support))[^\n]*$'
         - '(?m)^Command:\s*Not provided\s*$'
         - '(?ims)^Required checks:(?=(?:(?!^[A-Z][A-Za-z ]*:).)*(actual|each|target)(?:(?!^[A-Z][A-Za-z ]*:).)*(grep -E|implementation))(?=(?:(?!^[A-Z][A-Za-z ]*:).)*POSIX[ -]ERE(?:(?!^[A-Z][A-Za-z ]*:).)*(GNU.only|escape|construct))(?=(?:(?!^[A-Z][A-Za-z ]*:).)*(locale|encoding))(?=(?:(?!^[A-Z][A-Za-z ]*:).)*(positive|negative|representative)(?:(?!^[A-Z][A-Za-z ]*:).)*(test|input|corpus))(?:(?!^[A-Z][A-Za-z ]*:).)*(?=^[A-Z][A-Za-z ]*:|\Z)'
+      regex_not_match:
+        - '(?m)^Command:[^\n]*\bgrep[ \t]+-E(?:[ \t]|$)[^\n]*$'
+        - '(?m)^Command:[^\n]*\brg(?:[ \t]|$)[^\n]*$'
       not_contains:
-        - '(?ims)^Command:(?:(?!^[A-Z][A-Za-z ]*:).)* grep -E(?=^[A-Z][A-Za-z ]*:|\\Z)'
-        - '(?ims)^Command:(?:(?!^[A-Z][A-Za-z ]*:).)* rg (?=^[A-Z][A-Za-z ]*:|\\Z)'
         - 'Verdict:'
         - 'Checklist status:'
   - type: prompt

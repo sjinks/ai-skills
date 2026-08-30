@@ -34,9 +34,10 @@ graders:
         - '(?mi)^Assessment:(?=[^\n]*[^\n]*(raw|match|value))(?=[^\n]*[^\n]*(secret|password))(?=[^\n]*[^\n]*(persist|output|0600))(?=[^\n]*[^\n]*(overwrite|findings\.txt))[^\n]*$'
         - '(?m)^Command:\s*Not provided\s*$'
         - '(?ims)^Required checks:(?=(?:(?!^[A-Z][A-Za-z ]*:).)*findings\.txt(?:(?!^[A-Z][A-Za-z ]*:).)*(confirm|existing|overwrite|exclusive)(?:(?!^[A-Z][A-Za-z ]*:).)*(location|filename|grep -l))(?:(?!^[A-Z][A-Za-z ]*:).)*(?=^[A-Z][A-Za-z ]*:|\Z)'
+      regex_not_match:
+        - '(?m)^Command:[^\n]*find \. -type f -exec grep -lE[^\n]*$'
       not_contains:
         - 'Matched patterns: SE7 (Command construction)'
-        - '(?ims)^Command:(?:(?!^[A-Z][A-Za-z ]*:).)* find . -type f -exec grep -lE(?=^[A-Z][A-Za-z ]*:|\\Z)'
         - "Verdict:"
         - "Checklist status:"
   - type: prompt

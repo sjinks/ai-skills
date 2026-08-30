@@ -36,8 +36,9 @@ graders:
         - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*(two|separate))(?=[^\n]*[^\n]*[^\n]*(path|argument|file))(?=[^\n]*[^\n]*[^\n]*(intent|requested))[^\n]*$'
         - '(?m)^Command:\s*cat /tmp/my file\.txt\s*$'
         - '(?m)^Required checks:\s*None\s*$'
+      regex_not_match:
+        - '(?m)^Command:[^\n]*\bcat[ \t]+"/tmp/my file\.txt"[^\n]*$'
       not_contains:
-        - '(?ims)^Command:(?:(?!^[A-Z][A-Za-z ]*:).)* cat "/tmp/my file.txt"(?=^[A-Z][A-Za-z ]*:|\\Z)'
         - 'Result: REWRITE'
         - 'Verdict:'
         - 'Checklist status:'

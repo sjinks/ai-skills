@@ -9,8 +9,8 @@ Safe replacement: Obtain the expected SHA-256 through an authenticated publisher
 ### NS2 - Global npm install
 Example: `npm install -g some-tool`
 Risk: Pollutes and can privilege-escalate the host.
-Decision gate: Rewrite, then reclassify package installation or execution after provenance and lifecycle-script review.
-Safe replacement: Pin an exact reviewed version and prefer a project-local dependency, for example `npm install --save-dev --ignore-scripts some-tool@<reviewed-version>`. If lifecycle scripts are required, review them before a separately classified install. Do not use unpinned `npx` as a safety rewrite because it can fetch and execute code.
+Decision gate: Rewrite the global form; after exact package/version, registry provenance, destination project, and lifecycle behavior are reviewed, the script-disabled project-local package mutation is confirmable under NS2.
+Safe replacement: Pin an exact reviewed version and use the bound project-local dependency, for example `npm install --save-dev --ignore-scripts some-tool@<reviewed-version>`. Return `BLOCKED` while package identity, provenance, project destination, existing dependency/lockfile effects, or lifecycle behavior is unresolved; after those checks pass, return `NEEDS-CONFIRMATION` for that exact local install and `AUTHORIZED` only after its binding is confirmed and revalidated. If lifecycle scripts are required, review them before a separately classified install. Do not use unpinned `npx` as a safety rewrite because it can fetch and execute code.
 ### NS3 - npm publish
 Example: `npm publish`
 Risk: Registry publication is supply-chain affecting and may be irreversible.
