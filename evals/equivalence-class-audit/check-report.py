@@ -385,7 +385,9 @@ def reduced(headers, sections, rows, missing_header, quick=False):
                     "Out-of-scope candidates discovered", "Test/doc implications"):
         if sections[section] != ["None"]:
             fail(f"reduced {section} must contain only None")
-    blockers = " ".join(sections["Blocking questions"])
+    if len(sections["Blocking questions"]) != 1:
+        fail("reduced report needs exactly one blocking question")
+    blockers = sections["Blocking questions"][0]
     if (not contains(blockers, missing_header.lower())
             or not any(word in blockers.lower() for word in MISSING)
             or not requests(blockers)):
@@ -454,10 +456,13 @@ def validate(profile, headers, sections, rows):
                 fail(f"{axis} must be an explicit n/a row")
         row(rows, "Documentation/Spec Prose Twin", ("docs",), "present", "fix-now")
     elif profile == "positive-edge-002":
-        row(rows, "Permission/Authorization Class", ("delete",), "blocked — clarification needed", "blocked")
+        delete_row = row(rows, "Permission/Authorization Class", ("delete",),
+                         "blocked — clarification needed", "blocked")
         row(rows, "Mirror Call Site/Use Site", ("get", "tenantguard"), "absent", "n/a")
         row(rows, "Test Mirror", ("tenant mismatch",), "present", "fix-now")
-        blocker = " ".join(sections["Blocking questions"])
+        matching = [bullet for bullet in sections["Blocking questions"]
+                if norm(delete_row["candidate"]) in norm(bullet)]
+        blocker = matching[0] if len(matching) == 1 else ""
         if (not all(term in blocker.lower() for term in ("tenantguard", "tenant ownership", "policy"))
             or not requests(blocker)):
             fail("authorization blocker must name tenantGuard, ownership, and policy")
@@ -478,7 +483,9 @@ def validate(profile, headers, sections, rows):
             fail("blocked deferral must not appear in deferred follow-ups")
         if any("doc" in bullet.lower() for bullet in sections["Defects to fix now"]):
             fail("blocked documentation must not appear in fix-now summary")
-        blocker = " ".join(sections["Blocking questions"]).lower()
+        matching = [bullet for bullet in sections["Blocking questions"]
+                if norm(item["candidate"]) in norm(bullet)]
+        blocker = matching[0].lower() if len(matching) == 1 else ""
         if not all(term in blocker for term in ("doc", "owner", "reason")) or not requests(blocker):
             fail("documentation blocker must request owner and reason")
     elif profile == "positive-edge-007":
@@ -518,8 +525,11 @@ def validate(profile, headers, sections, rows):
             fail("blocked docs must not appear in fix-now summary")
     elif profile == "positive-edge-009":
         row(rows, "Opposite Bound", ("maxretries",), "present", "fix-now")
-        row(rows, "Documentation/Spec Prose Twin", ("docs/api.md",), "present", "defer-with-owner")
-        deferred = " ".join(sections["Deferred follow-ups"])
+        docs_row = row(rows, "Documentation/Spec Prose Twin", ("docs/api.md",),
+                       "present", "defer-with-owner")
+        matching = [bullet for bullet in sections["Deferred follow-ups"]
+                    if norm(docs_row["candidate"]) in norm(bullet)]
+        deferred = matching[0] if len(matching) == 1 else ""
         if not all(term.lower() in deferred.lower() for term in ("docs/api.md", "Platform Docs", "public API reference")):
             fail("deferred follow-up must contain docs path, owner, and reason")
     elif profile == "positive-edge-010":
