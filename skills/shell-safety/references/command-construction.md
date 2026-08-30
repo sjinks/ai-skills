@@ -258,7 +258,7 @@ Risk: Spaces, quotes, and newlines split filenames.
 
 Decision gate: Block until the exact deletion set is captured and bound.
 
-Safe replacement: Use a trusted runtime/helper to capture one NUL-delimited result from the exact `find` root and expression into a protected structured snapshot. Render every entry with reversible, unambiguous escaping and stable identity for review. After confirmation, delete only the entries from that same snapshot without rerunning `find` or reparsing newline-delimited names; revalidate identities immediately before deletion. If the snapshot cannot remain bound through execution, return `BLOCKED`.
+Safe replacement: Use a trusted runtime/helper to capture one NUL-delimited result from the exact `find` root and expression into a protected structured snapshot while opening root-confined no-follow handles for the selected entries. Render every entry with reversible, unambiguous escaping and stable identity for review. After confirmation, delete only through an atomic exact-object removal facility, or while holding the relevant directory namespace non-replaceable through unlink and proving the removed entry is the retained reviewed object. A retained entry handle followed by parent-handle-and-name unlink in a replaceable namespace is insufficient. Do not rerun `find`, reparse names, or reopen mutable pathnames. If the snapshot, namespace exclusion, exact-object condition, and operation handles cannot remain bound through unlink, return `BLOCKED`.
 
 ### CS6 - Pipeline without `pipefail`
 Example: `set -e; cmd1 | cmd2`
