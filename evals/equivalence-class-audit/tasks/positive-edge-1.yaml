@@ -47,18 +47,12 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
-        - '(?ims)\A(?!.*^[ \t]*Output depth:[^\r\n]*\r?\n[\s\S]*^[ \t]*Output depth:).*\Z'
         - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
         - '(?im)^Output depth:\s*standard\s*$'
         - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
         - '(?i)Presence'
         - '(?i)Disposition'
         - '(?i)Evidence'
-        - '(?im)^\|[ \t]*Inverse Operation[ \t]*\|(?![ \t]*(?:(?:&[^;\r\n|]+;|<!--[^>\r\n]*-->)[ \t]*)+\|)(?=[^\r\n|]*[^ \t\r\n|])[^\r\n|]+\|[ \t]*n/a[ \t]+—[ \t]+(?:structurally inapplicable|no candidates in scope)[ \t]*\|[ \t]*n/a[ \t]*\|(?![ \t]*(?:(?:&[^;\r\n|]+;|<!--[^>\r\n]*-->)[ \t]*)+\|)(?=[^\r\n|]*[^ \t\r\n|])[^\r\n|]+\|[ \t]*$'
-        - '(?im)^\|[ \t]*Permission/Authorization Class[ \t]*\|(?![ \t]*(?:(?:&[^;\r\n|]+;|<!--[^>\r\n]*-->)[ \t]*)+\|)(?=[^\r\n|]*[^ \t\r\n|])[^\r\n|]+\|[ \t]*n/a[ \t]+—[ \t]+(?:structurally inapplicable|no candidates in scope)[ \t]*\|[ \t]*n/a[ \t]*\|(?![ \t]*(?:(?:&[^;\r\n|]+;|<!--[^>\r\n]*-->)[ \t]*)+\|)(?=[^\r\n|]*[^ \t\r\n|])[^\r\n|]+\|[ \t]*$'
-        - '(?im)^\|[ \t]*Resource Cleanup[ \t]*\|(?![ \t]*(?:(?:&[^;\r\n|]+;|<!--[^>\r\n]*-->)[ \t]*)+\|)(?=[^\r\n|]*[^ \t\r\n|])[^\r\n|]+\|[ \t]*n/a[ \t]+—[ \t]+(?:structurally inapplicable|no candidates in scope)[ \t]*\|[ \t]*n/a[ \t]*\|(?![ \t]*(?:(?:&[^;\r\n|]+;|<!--[^>\r\n]*-->)[ \t]*)+\|)(?=[^\r\n|]*[^ \t\r\n|])[^\r\n|]+\|[ \t]*$'
-        - '(?im)^\|[ \t]*Async/Sync or Mode Twin[ \t]*\|(?![ \t]*(?:(?:&[^;\r\n|]+;|<!--[^>\r\n]*-->)[ \t]*)+\|)(?=[^\r\n|]*[^ \t\r\n|])[^\r\n|]+\|[ \t]*n/a[ \t]+—[ \t]+(?:structurally inapplicable|no candidates in scope)[ \t]*\|[ \t]*n/a[ \t]*\|(?![ \t]*(?:(?:&[^;\r\n|]+;|<!--[^>\r\n]*-->)[ \t]*)+\|)(?=[^\r\n|]*[^ \t\r\n|])[^\r\n|]+\|[ \t]*$'
-        - '(?im)^\|[ \t]*Cache/Projection/Source-of-Truth Twin[ \t]*\|(?![ \t]*(?:(?:&[^;\r\n|]+;|<!--[^>\r\n]*-->)[ \t]*)+\|)(?=[^\r\n|]*[^ \t\r\n|])[^\r\n|]+\|[ \t]*n/a[ \t]+—[ \t]+(?:structurally inapplicable|no candidates in scope)[ \t]*\|[ \t]*n/a[ \t]*\|(?![ \t]*(?:(?:&[^;\r\n|]+;|<!--[^>\r\n]*-->)[ \t]*)+\|)(?=[^\r\n|]*[^ \t\r\n|])[^\r\n|]+\|[ \t]*$'
         - '(?i)\|\s*Opposite Bound\s*\|'
         - '(?i)\|\s*Sibling Parameter/Field\s*\|'
         - '(?i)\|\s*Mirror Call Site/Use Site\s*\|'
@@ -86,3 +80,11 @@ graders:
         - "Egress policy:"
         - "Adversarial tests:"
         - "PLAN-READY"
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/equivalence-class-audit/check-report.py
+        - positive-edge-001
+      timeout: 60

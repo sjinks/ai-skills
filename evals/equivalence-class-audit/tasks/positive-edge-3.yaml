@@ -41,7 +41,6 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
-        - '(?ims)\A(?!.*^[ \t]*Output depth:[^\r\n]*\r?\n[\s\S]*^[ \t]*Output depth:).*\Z'
         - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
         - '(?im)^Triggering finding:[ \t]+\S[^\r\n]*$'
         - '(?im)^Locked audit scope:[ \t]+(missing|not provided|not supplied|required|needed)[^\r\n]*$'
@@ -56,7 +55,6 @@ graders:
         - '(?im)^### Defects to fix now[ \t]*\r?\n-[ \t]*None[ \t]*$'
         - '(?im)^### Deferred follow-ups[ \t]*\r?\n-[ \t]*None[ \t]*$'
         - '(?im)^### Out-of-scope candidates discovered[ \t]*\r?\n-[ \t]*None[ \t]*$'
-        - '(?im)^### Blocking questions[ \t]*\r?\n-[ \t]*(?=[^\r\n]*locked audit scope)(?=[^\r\n]*(missing|provide|required|needed|specify))[^\r\n]*$'
         - '(?im)^### Test/doc implications[ \t]*\r?\n-[ \t]*None[ \t]*$'
       not_contains:
         - "### Omitted axes (quick mode only)"
@@ -92,3 +90,11 @@ graders:
         - "Trusted root:"
         - "PLAN-READY"
         - "PLAN-PARTIAL"
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/equivalence-class-audit/check-report.py
+        - positive-edge-003
+      timeout: 60

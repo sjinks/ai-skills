@@ -45,6 +45,10 @@ Disposition: `fix-now`, `defer-with-owner`, `n/a`, `blocked`.
 
 ## Output
 
+Emit no preamble or trailing commentary. The report heading must be the first content line. Every present candidate must be named in its corresponding fix-now, deferred, or blocking section. Present `Test Mirror` and `Documentation/Spec Prose Twin` candidates must also be named under `### Test/doc implications`.
+
+For machine-checked metadata, use `owner` or `team` plus `reason` or `because` in each deferred bullet, include `provenance` in each out-of-scope bullet, and write exactly one blocker bullet per blocked candidate. Phrase each blocker as an imperative (`provide`, `specify`, `clarify`, `confirm`, `need`) or a question beginning with `what`, `which`, `who`, `why`, `can`, `could`, `would`, `are`, `does`, `do`, `is`, or `should`.
+
 Use this complete form only when both required inputs are available:
 
 ```text
@@ -87,3 +91,5 @@ Output depth: <quick | standard | exhaustive; select exactly one>
 ```
 
 For either form, when `Output depth: quick`, append `### Omitted axes (quick mode only)` and summarize why axes were not expanded. In a reduced report, state that required input is missing and no axes were enumerated. Omit this section for `standard` and `exhaustive`.
+
+Table cell spacing may vary. The header uses the five canonical labels above, and each separator cell consists only of three or more hyphens; alignment colons are not allowed.

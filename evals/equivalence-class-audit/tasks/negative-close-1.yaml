@@ -37,7 +37,3 @@ graders:
         - "Out-of-scope candidates"
         - "Blocking questions"
         - "Test/doc implications"
-        - "Gate decision:"
-        - "Lenses applied:"
-        - "PLAN-PARTIAL"
-        - "Adversarial tests:"

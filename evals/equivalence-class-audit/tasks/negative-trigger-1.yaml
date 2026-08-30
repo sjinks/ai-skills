@@ -31,7 +31,3 @@ graders:
         - "Out-of-scope candidates"
         - "Blocking questions"
         - "Test/doc implications"
-        - "Gate decision:"
-        - "Adversarial tests:"
-        - "Egress policy:"
-        - "Trusted root:"

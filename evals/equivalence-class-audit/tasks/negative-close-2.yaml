@@ -43,7 +43,3 @@ graders:
         - "Out-of-scope candidates"
         - "Blocking questions"
         - "Test/doc implications"
-        - "Gate decision:"
-        - "Findings matrix:"
-        - "Trusted root:"
-        - "Egress policy:"

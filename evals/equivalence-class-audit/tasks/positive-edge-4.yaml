@@ -42,7 +42,6 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
-        - '(?ims)\A(?!.*^[ \t]*Output depth:[^\r\n]*\r?\n[\s\S]*^[ \t]*Output depth:).*\Z'
         - '(?im)^### Defects to fix now[ \t]*\r?\n-[ \t]*\S[^\r\n]*$'
         - '(?im)^### Deferred follow-ups[ \t]*\r?\n-[ \t]*\S[^\r\n]*$'
         - '(?im)^### Out-of-scope candidates discovered[ \t]*\r?\n-[ \t]*\S[^\r\n]*$'
@@ -54,12 +53,17 @@ graders:
         - '(?i)Omitted axes[^\n]*(scope|inapplicable|material)|Omitted axes[\s\S]{0,300}(scope|inapplicable|material)'
         - '(?i)Locked audit scope'
         - '(?is)(zero.*pagination|pagination.*zero)'
-        - '(?im)^\|[ \t]*Opposite Bound[ \t]*\|[^\r\n|]*(zero|maxItems)[^\r\n|]*\|[ \t]*present[ \t]*\|[ \t]*fix-now[ \t]*\|(?![ \t]*<!--)(?![ \t]*(?:&nbsp;|&#160;|&#xA0;)[ \t]*\|)(?=[^\r\n|]*(?:src/pagination\.ts|tests/pagination\.test\.ts|triggering finding))[^\r\n|]+\|[ \t]*$'
-        - '(?im)^\|[ \t]*Test Mirror[ \t]*\|[^\r\n|]*zero[^\r\n|]*\|[ \t]*present[ \t]*\|[ \t]*fix-now[ \t]*\|(?![ \t]*<!--)(?![ \t]*(?:&nbsp;|&#160;|&#xA0;)[ \t]*\|)(?=[^\r\n|]*(?:tests/pagination\.test\.ts|triggering finding))[^\r\n|]+\|[ \t]*$'
-        - '(?ims)\A(?!.*^[ \t]*\|(?=[^\r\n|]*(?:Sibling[^\r\n|]*Parameter|Mirror[^\r\n|]*Call|Inverse|Type[^\r\n|]*Schema|Validation|Happy[^\r\n|]*Error|Race[^\r\n|]*Shared|Cache[^\r\n|]*Projection|Permission[^\r\n|]*Authorization|Resource[^\r\n|]*Cleanup|Observability|Contract[^\r\n|]*Symmetry|Equivalence[^\r\n|]*Naming|Empty[^\r\n|]*Sentinel|Async[^\r\n|]*Sync|Documentation[^\r\n|]*Spec))[^\r\n]*).*\Z'
       not_contains:
         - "Output depth: standard"
         - "Output depth: exhaustive"
         - "Egress policy:"
         - "Trusted root:"
         - "Adversarial tests:"
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/equivalence-class-audit/check-report.py
+        - positive-edge-004
+      timeout: 60

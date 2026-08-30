@@ -44,7 +44,6 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
-        - '(?ims)\A(?!.*^[ \t]*Output depth:[^\r\n]*\r?\n[\s\S]*^[ \t]*Output depth:).*\Z'
         - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
         - '(?im)^Output depth:\s*exhaustive\s*$'
         - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
@@ -62,8 +61,6 @@ graders:
         - '(?i)\|\s*Contract Symmetry\s*\|'
         - '(?i)\|\s*Equivalence by Naming\s*\|'
         - '(?i)\|\s*Async/Sync or Mode Twin\s*\|[^\n|]*(async|asynchronous)[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
-        - '(?i)\|\s*Test Mirror\s*\|(?=[^\n|]*zero)(?![^\n|]*(async|asynchronous))[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
-        - '(?i)\|\s*Test Mirror\s*\|(?=[^\n|]*(async|asynchronous))(?![^\n|]*zero)[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
         - '(?i)\|\s*Empty/Sentinel Equivalence\s*\|'
         - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|[^\n|]*zero[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
         - '(?i)\|\s*Cache/Projection/Source-of-Truth Twin\s*\|'
@@ -73,3 +70,11 @@ graders:
         - "Output depth: standard"
         - "Gate decision:"
         - "Adversarial tests:"
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/equivalence-class-audit/check-report.py
+        - positive-edge-007
+      timeout: 60

@@ -47,7 +47,6 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
-        - '(?ims)\A(?!.*^[ \t]*Output depth:[^\r\n]*\r?\n[\s\S]*^[ \t]*Output depth:).*\Z'
         - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
         - '(?im)^Output depth:\s*standard\s*$'
         - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
@@ -57,7 +56,6 @@ graders:
         - '(?i)(Opposite Bound|opposite bound).*(present|fix-now)'
         - '(?i)(Sibling Parameter/Field|sibling).*(retryDelaySeconds|present|fix-now)'
         - '(?i)(Empty/Sentinel Equivalence|sentinel).*(null|present|fix-now|blocked)'
-        - '(?im)^\|[ \t]*Documentation/Spec Prose Twin[ \t]*\|[^\r\n|]*(docs/operations\.md|docs|documentation)[^\r\n|]*\|[ \t]*present[ \t]*\|[ \t]*fix-now[ \t]*\|(?=[^\r\n|]*[^ \t\r\n|])[^\r\n|]+\|[ \t]*$'
         - '(?i)Defects to fix now'
         - '(?i)Deferred follow-ups'
       not_contains:
@@ -71,3 +69,11 @@ graders:
         - "Egress policy:"
         - "Trusted root:"
         - "PLAN-READY"
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/equivalence-class-audit/check-report.py
+        - positive-trigger-001
+      timeout: 60

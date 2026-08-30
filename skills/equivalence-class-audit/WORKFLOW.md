@@ -202,7 +202,8 @@ If a defect involves stale data, invalidation, consistency, or duplicated repres
 
 ## Output Format
 
-Return one report with this header and these sections.
+Return one report with this header and these sections. Emit no preamble or trailing commentary; the report heading is the first content line. Name every present candidate in its corresponding fix-now, deferred, or blocking section. Also name every present `Test Mirror` and `Documentation/Spec Prose Twin` candidate under **Test/doc implications**.
+For machine-checked metadata, use `owner` or `team` plus `reason` or `because` in each deferred bullet, include `provenance` in each out-of-scope bullet, and write exactly one blocker bullet per blocked candidate. Phrase each blocker as an imperative (`provide`, `specify`, `clarify`, `confirm`, `need`) or a question beginning with `what`, `which`, `who`, `why`, `can`, `could`, `would`, `are`, `does`, `do`, `is`, or `should`.
 Only include the table after both the triggering finding and locked audit scope are available. For insufficient input, keep the report header and section headings, omit table rows, and put the missing input under **Blocking questions**.
 
 ```markdown
@@ -239,6 +240,8 @@ For `quick` mode only, append:
 - <summary of omitted catalogue axes and why they were not expanded>
 ```
 
+Table cell spacing may vary. After trimming spaces or tabs, the header must contain the five canonical labels in order, and each separator cell must consist only of three or more hyphens; alignment colons are not allowed.
+
 When the table is included after both the triggering finding and locked audit scope are available, every catalogue axis must be represented in the table at least once for `standard` and `exhaustive` depth. If an axis has candidates, add one row per candidate. If an axis has no candidates or is structurally inapplicable, add one explicit `n/a` row with evidence explaining why. In explicit `quick` mode, include only target-specific applicable axes and add an omitted-axis summary instead of full-axis enumeration.
 
 ## Anti-Patterns
@@ -273,7 +276,7 @@ Output depth: standard
 | Mirror Call Site/Use Site | Batch worker retry config | absent | n/a | `config/service.yml` uses one shared retry block for API and batch workers |
 | Inverse Operation | Disable retry mode | n/a — structurally inapplicable | n/a | retry policy has no inverse operation in scope |
 | Type/Schema Narrowing | Retry configuration schema | n/a — no candidates in scope | n/a | no schema artifacts are included in the locked scope |
-| Validation vs Normalization/Sanitization | String value `"0"` from environment override | blocked — clarification needed | blocked | Need to know whether environment overrides are in scope for this audit |
+| Validation vs Normalization/Sanitization | - | n/a — no candidates in scope | n/a | no candidates in locked scope |
 | Happy/Error/Retry/Cancel Path Twin | Retry exhaustion error path | absent | n/a | `tests/retry_policy_spec.rb` covers exhaustion after allowed retries |
 | Race/Shared-State Twin | Shared retry counter state | n/a — structurally inapplicable | n/a | locked scope contains static config/docs/tests, not shared mutable state |
 | Permission/Authorization Class | Admin retry-policy edit surface | n/a — no candidates in scope | n/a | no authorization surface is included in the locked scope |
@@ -288,21 +291,26 @@ Output depth: standard
 | Cache/Projection/Source-of-Truth Twin | Generated deployment schema projection | n/a — no candidates in scope | n/a | generated deployment schema is outside the locked scope and recorded below |
 
 ### Defects to fix now
-- Add lower and upper bound validation for retry values in `config/service.yml`.
-- Add missing lower-bound tests in `tests/retry_policy_spec.rb`.
+- `maxRetries` upper bound: add an upper-bound constraint in `config/service.yml`.
+- `retryDelaySeconds` lower bound: reject `0` in `config/service.yml`.
+- `retryDelaySeconds` and `maxRetries` policy names: align their bound rules.
+- Lower-bound test for `retryDelaySeconds`: add coverage in `tests/retry_policy_spec.rb`.
 
 ### Deferred follow-ups
-- `docs/retry-policy.md` must be updated by owner Platform Docs because it still documents the old `0` behavior.
+- Retry docs versus config behavior: owner Platform Docs must update `docs/retry-policy.md` because it documents the old `0` behavior.
+- Retry policy minimum value prose: owner Platform Docs must correct the documented minimum because docs are owned outside this change.
 
 ### Out-of-scope candidates discovered
 - Generated deployment schema may mirror the retry constraints, but it is outside the locked scope; provenance: schema reference in deployment README.
+- String value `"0"` from environment override may need equivalent validation, but overrides are outside the locked scope; provenance: retry configuration input model.
 
 ### Blocking questions
-- Are environment overrides part of this audit scope, or should they be tracked separately?
+- None
 
 ### Test/doc implications
-- Add tests for `maxRetries=0`, excessive `maxRetries`, and `retryDelaySeconds=0`.
-- Update retry policy prose when the deferred docs follow-up lands.
+- Lower-bound test for `retryDelaySeconds`: add tests for `retryDelaySeconds=0`.
+- Retry docs versus config behavior: update `docs/retry-policy.md` with the config constraint.
+- Retry policy minimum value prose: correct the documented minimum when the deferred docs follow-up lands.
 ```
 
-The example intentionally includes present, absent, `n/a`, deferred, and blocked rows while representing every catalogue axis at least once.
+The example intentionally includes present, absent, `n/a`, and deferred rows while representing every catalogue axis at least once.

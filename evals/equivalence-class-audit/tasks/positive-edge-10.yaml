@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
-id: positive-edge-009
-name: Complete deferral metadata permits deferral
+id: positive-edge-010
+name: Complete audit can find no equivalent defects
 description: |
-  An explicit deferral with both a named owner and a reason must use the
-  defer-with-owner disposition and appear in deferred follow-ups.
+  A complete standard audit may conclude that every equivalent candidate is
+  absent or inapplicable and must keep all report summaries at None.
 tags:
   - positive-trigger
   - positive-edge
@@ -11,17 +11,21 @@ inputs:
   prompt: |
     Apply equivalence-class-audit.
 
-    Triggering finding: `maxRetries` accepts `0`, which disables retries.
+    Triggering finding: the fixed `minItems = 0` pagination defect previously
+    crashed requests.
 
-    Locked audit scope: `config/retry.yml` and the Retry Configuration section
-    of `docs/api.md`.
+    Locked audit scope: `src/pagination.ts`, `tests/pagination.test.ts`, and the
+    Pagination section of `docs/api.md`.
 
-    Required disposition boundary:
-    - Fix the configuration defect now.
-    - Defer the documentation defect to owner Platform Docs because that team
-      owns the public API reference outside this change.
+    Known facts:
+    - The triggering defect is fixed.
+    - Every equivalent candidate in scope has been checked and is either absent
+      or structurally inapplicable.
+    - No fix, deferral, blocker, test implication, documentation implication, or
+      out-of-scope candidate remains.
 
-    Return the standard audit with the complete documentation deferral.
+    Return the complete standard audit. Represent every catalogue axis and use
+    only absent or n/a rows with evidence. Every summary section must be None.
 expected:
   should_trigger: true
 graders:
@@ -42,22 +46,18 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
-        - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
         - '(?im)^Output depth:\s*standard\s*$'
         - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
-        - '(?i)\|\s*Opposite Bound\s*\|[^\n|]*maxRetries[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
-        - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|[^\n|]*docs/api\.md[^\n|]*\|\s*present\s*\|\s*defer-with-owner\s*\|'
       not_contains:
         - "### Omitted axes (quick mode only)"
         - "Output depth: quick"
         - "Output depth: exhaustive"
         - "Gate decision:"
-        - "Adversarial tests:"
   - type: program
     name: report_contract
     config:
       command: python3
       args:
         - evals/equivalence-class-audit/check-report.py
-        - positive-edge-009
+        - positive-edge-010
       timeout: 60

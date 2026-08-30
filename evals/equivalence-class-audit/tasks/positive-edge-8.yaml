@@ -44,20 +44,10 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
-        - '(?ims)\A(?!.*^[ \t]*Output depth:[^\r\n]*\r?\n[\s\S]*^[ \t]*Output depth:).*\Z'
         - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
         - '(?im)^Output depth:\s*standard\s*$'
         - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
-        - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|(?![^\n]*docs/operations\.md)(?=[^\n|]*docs/api\.md)[^\n|]*\|\s*present\s*\|\s*blocked\s*\|'
-        - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|(?![^\n]*docs/api\.md)(?=[^\n|]*docs/operations\.md)[^\n|]*\|\s*present\s*\|\s*blocked\s*\|'
-        - '(?im)^### Blocking questions[ \t]*\r?\n(?:-[^\r\n]*\r?\n)*-[ \t]*(?=[^\r\n]*docs/api\.md)(?![^\r\n]*docs/operations\.md)(?=[^\r\n]*reason)[^\r\n]*$'
-        - '(?im)^### Blocking questions[ \t]*\r?\n(?:-[^\r\n]*\r?\n)*-[ \t]*(?=[^\r\n]*docs/operations\.md)(?![^\r\n]*docs/api\.md)(?=[^\r\n]*(owner|owning team))[^\r\n]*$'
-        - '(?im)^### Defects to fix now[ \t]*\r?\n-[ \t]*(?![^\r\n]*(?:docs|documentation))[^\r\n]*maxRetries[^\r\n]*(?:\r?\n)+### Deferred follow-ups[ \t]*$'
-        - '(?im)^### Deferred follow-ups[ \t]*\r?\n-[ \t]*None[ \t]*(?:\r?\n)+### Out-of-scope candidates discovered[ \t]*$'
-        - '(?ims)\A(?![\s\S]*^\|[ \t]*Documentation/Spec Prose Twin[ \t]*\|[^\r\n|]*(?:docs/api\.md|docs/operations\.md)[^\r\n|]*\|[ \t]*present[ \t]*\|[ \t]*(?:fix-now|defer-with-owner)[ \t]*\|).*\Z'
-        - '(?ims)\A(?![\s\S]*^\|[ \t]*Documentation/Spec Prose Twin[ \t]*\|[^\r\n|]*(docs/api\.md|docs/operations\.md)[^\r\n]*$[\s\S]*^\|[ \t]*Documentation/Spec Prose Twin[ \t]*\|[^\r\n|]*\1[^\r\n]*$).*\Z'
-        - '(?ims)\A(?![\s\S]*^[ \t]*### (Defects to fix now|Deferred follow-ups|Out-of-scope candidates discovered|Blocking questions|Test/doc implications)[ \t]*\r?$[\s\S]*^[ \t]*### \1[ \t]*\r?$).*\Z'
-        - '(?ims)\A(?![\s\S]*^[ \t]*\|[ \t]*([^|\r\n]+?)[ \t]*\|[ \t]*([^|\r\n]+?)[ \t]*\|[^\r\n]*$[\s\S]*^[ \t]*\|[ \t]*\1[ \t]*\|[ \t]*\2[ \t]*\|).*\Z'
+        - '(?im)^### Deferred follow-ups[ \t]*\r?\n-[ \t]*None[ \t]*(\r?\n)+### Out-of-scope candidates discovered[ \t]*$'
       not_contains:
         - "### Omitted axes (quick mode only)"
         - "Output depth: quick"
@@ -65,3 +55,11 @@ graders:
         - "defer-with-owner"
         - "Gate decision:"
         - "Adversarial tests:"
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/equivalence-class-audit/check-report.py
+        - positive-edge-008
+      timeout: 60
