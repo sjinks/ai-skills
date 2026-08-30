@@ -29,11 +29,11 @@ graders:
     name: positive_task_completion
     config:
       regex_match:
-        - '(?i)Result:\s*BLOCKED'
-        - '(?i)Matched patterns:\s*None'
-        - '(?i)Assessment:.*(no command|not provided|provide|paste)'
-        - '(?i)Command:\s*Not provided'
-        - '(?i)Required checks:.*(provide|paste|exact command)'
+        - '(?mi)^Result:\s*BLOCKED\s*$'
+        - '(?m)^Matched patterns:\s*None\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*(no command|not provided|provide|paste))[^\n]*$'
+        - '(?m)^Command:\s*Not provided\s*$'
+        - '(?ims)^Required checks:(?=(?:(?!^[A-Z][A-Za-z ]*:).)*(provide|paste|exact command))(?:(?!^[A-Z][A-Za-z ]*:).)*(?=^[A-Z][A-Za-z ]*:|\Z)'
       not_contains:
         - "Verdict:"
         - "Checklist status:"

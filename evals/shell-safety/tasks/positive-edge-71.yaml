@@ -31,11 +31,11 @@ graders:
     name: positive_task_completion
     config:
       regex_match:
-        - '(?i)Result:\s*REWRITE'
-        - '(?mi)^Matched patterns:[^\n]*Q9 \(Command construction\)[^\n]*$'
-        - '(?is)Assessment:.*(literal|backslash).*(preserv|intent|output)'
+        - '(?mi)^Result:\s*REWRITE\s*$'
+        - '(?m)^Matched patterns:\s*Q9 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*(literal|backslash))(?=[^\n]*[^\n]*[^\n]*(preserv|intent|output))[^\n]*$'
         - '(?m)^Command:\s*printf ''%s\\n'' ''a\\nb''\s*$'
-        - '(?i)Required checks:\s*None'
+        - '(?m)^Required checks:\s*None\s*$'
       not_contains:
         - "Command: printf '%s\\n%s\\n' a b"
         - 'Verdict:'

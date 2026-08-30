@@ -36,12 +36,12 @@ graders:
     config:
       regex_match:
         - '(?mi)^Result:\s*REWRITE\s*$'
-        - '(?mi)^Matched patterns:\s*Q5 \(Command construction\)\s*$'
-        - '(?mi)^Assessment:[^\n]*each positional[^\n]*(separate|parameter)[^\n]*(word split|pathname|glob)[^\n]*(not|only)[^\n]*(join|IFS)[^\n]*$'
+        - '(?m)^Matched patterns:\s*Q5 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*[^\n]*each positional[^\n]*(separate|parameter)[^\n]*(word split|pathname|glob)[^\n]*(not|only)[^\n]*(join|IFS)[^\n]*)[^\n]*$'
         - '(?m)^Command:\s*set -- ''a b'' ''\*\.txt''; printf ''<%s>\\n'' "\$@"\s*$'
-        - '(?mi)^Required checks:\s*None\s*$'
+        - '(?m)^Required checks:\s*None\s*$'
       not_contains:
-        - 'Command: printf ''<%s>\n'' "$*"'
+        - '(?ims)^Command:(?:(?!^[A-Z][A-Za-z ]*:).)* printf ''<%s>\n'' "$*"(?=^[A-Z][A-Za-z ]*:|\\Z)'
         - 'Verdict:'
         - 'Checklist status:'
   - type: prompt

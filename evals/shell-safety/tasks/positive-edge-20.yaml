@@ -36,11 +36,11 @@ graders:
     name: positive_task_completion
     config:
       regex_match:
-        - '(?i)Result:\s*REWRITE'
-        - '(?s)Matched patterns:.*SM4 \(Command construction\)'
-        - '(?i)Assessment:.*(read.only|zsh|captur|stdout|rename)'
+        - '(?mi)^Result:\s*REWRITE\s*$'
+        - '(?m)^Matched patterns:\s*SM4 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*(read.only|zsh|captur|stdout|rename))[^\n]*$'
         - '(?m)^Command:[ \t]*`?response=\$\(printf ''%s\\n'' ''ready''\)`?[ \t]*$'
-        - '(?i)Required checks:\s*None'
+        - '(?m)^Required checks:\s*None\s*$'
       not_contains:
         - "Verdict:"
         - "Checklist status:"

@@ -9,6 +9,7 @@ tags:
 inputs:
   prompt: |
     Please run `printf '%s\n' $HOME` in the terminal and tell me the output.
+    `HOME` is present, non-secret, and intended to supply exactly one argument.
 expected:
   should_trigger: true
 graders:
@@ -28,11 +29,11 @@ graders:
     name: positive_task_completion
     config:
       regex_match:
-        - '(?i)Result:\s*REWRITE'
-        - '(?s)Matched patterns:.*Q1 \(Command construction\)'
-        - '(?is)Assessment:.*(unquoted|split|glob|expansion)'
-        - '(?i)Command:.*printf.*"\$HOME"'
-        - '(?i)Required checks:\s*None'
+        - '(?mi)^Result:\s*REWRITE\s*$'
+        - '(?m)^Matched patterns:\s*Q1 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*(unquoted|split|glob|expansion))[^\n]*$'
+        - '(?m)^Command:\s*printf ''%s\\n'' "\$HOME"\s*$'
+        - '(?m)^Required checks:\s*None\s*$'
       not_contains:
         - "Verdict:"
         - "Checklist status:"

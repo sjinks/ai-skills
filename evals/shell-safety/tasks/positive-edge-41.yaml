@@ -38,11 +38,11 @@ graders:
     name: positive_task_completion
     config:
       regex_match:
-        - '(?i)Result:\s*REWRITE'
-        - '(?s)Matched patterns:.*SM6 \(Command construction\)'
-        - '(?is)Assessment:.*IFS.*(set -e|fail|nonzero).*(persist|restore|scope)'
+        - '(?mi)^Result:\s*REWRITE\s*$'
+        - '(?m)^Matched patterns:\s*SM6 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*IFS)(?=[^\n]*[^\n]*[^\n]*(set -e|fail|nonzero))(?=[^\n]*[^\n]*[^\n]*(persist|restore|scope))[^\n]*$'
         - '(?m)^Command:[ \t]*`?IFS=, read -r a b c <<< "\$line"`?[ \t]*$'
-        - '(?i)Required checks:\s*None'
+        - '(?m)^Required checks:\s*None\s*$'
       not_contains:
         - "Verdict:"
         - "Checklist status:"

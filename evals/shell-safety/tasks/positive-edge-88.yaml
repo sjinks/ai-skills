@@ -26,11 +26,13 @@ graders:
       regex_match:
         - '(?m)^Result:\s*REWRITE\s*$'
         - '(?m)^Matched patterns:\s*Q11/SE8 \(Command construction\)\s*$'
-        - '(?mi)^Assessment:[^\n]*(histexpand|history expansion)[^\n]*(enabled)[^\n]*(!suffix|event)[^\n]*(disabled|POSIX)[^\n]*(safe|literal|preserv)[^\n]*$'
-        - '(?mi)^Assessment:[^\n]*(deploy!|terminal|closing double quote)[^\n]*(safe|quoted|no Q11|does not)[^\n]*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*(histexpand|history expansion)[^\n]*(enabled)[^\n]*(!suffix|event)[^\n]*(disabled|POSIX)[^\n]*(safe|literal|preserv)[^\n]*)[^\n]*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*(deploy!|terminal|closing double quote)[^\n]*(safe|quoted|no Q11|does not)[^\n]*)[^\n]*$'
         - '(?m)^Command:\s*echo "it''s \$name "''!suffix''\s*$'
         - '(?m)^Required checks:\s*None\s*$'
-      not_contains: ['Q8 (Command construction)', 'Result: SAFE', 'Verdict:', 'Checklist status:']
+      regex_not_match:
+        - '(?im)^(?:Assessment:|[ \t]*(?:[-*][ \t]+)?)[^\n]*(?:try|first|instead|enable|run|use|execute|recommend(?![ \t]+against)|should(?![ \t]+not)|must(?![ \t]+not))[^\n]*set \+H'
+      not_contains: ['Result: SAFE', 'Verdict:', 'Checklist status:']
   - type: prompt
     name: task_completion_substance
     config:

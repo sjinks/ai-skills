@@ -1,13 +1,16 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 id: positive-edge-085
-name: Uncovered forced copy fails closed
+name: Unquoted nested substitution needs argv intent
 description: |
-  A filesystem overwrite cannot use the unmatched SAFE fallback.
+  Quoting nested substitutions is unsafe until their splitting and globbing
+  intent is known.
 tags: [positive-edge]
 inputs:
   prompt: |
-    Review `cp -f source.txt destination.txt`; the destination exists and no
-    loaded record defines this overwrite. Return every shell-safety field.
+    Review `echo $(echo $(date))` for POSIX `sh`. I have not established whether
+    either unquoted substitution is intended to produce one scalar argument or
+    multiple arguments, nor whether pathname expansion is intended. Return every
+    shell-safety field without changing the output command.
 expected: {should_trigger: true}
 graders:
   - type: trigger
@@ -21,16 +24,18 @@ graders:
     config:
       regex_match:
         - '(?m)^Result:\s*BLOCKED\s*$'
-        - '(?m)^Matched patterns:\s*None\s*$'
-        - '(?mi)^Assessment:[^\n]*(copy|overwrite|destination)[^\n]*(uncovered|no rule|no record|missing)[^\n]*$'
+        - '(?m)^Matched patterns:\s*CS2 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*(substitution|split|glob))(?=[^\n]*[^\n]*[^\n]*(argument|argv|boundary|intent))(?=[^\n]*[^\n]*[^\n]*(unknown|unresolved|not established))[^\n]*$'
         - '(?m)^Command:\s*Not provided\s*$'
-        - '(?ims)^Required checks:.*(overwrite|destination|effect).*(rule|record|classification)'
+        - '(?ims)^Required checks:(?=(?:(?!^[A-Z][A-Za-z ]*:).)*(each|both))(?=(?:(?!^[A-Z][A-Za-z ]*:).)*(substitution|nested))(?=(?:(?!^[A-Z][A-Za-z ]*:).)*(one|scalar|multiple))(?=(?:(?!^[A-Z][A-Za-z ]*:).)*(argument|argv))(?=(?:(?!^[A-Z][A-Za-z ]*:).)*(array|positional|NUL.delimited|structured))(?=(?:(?!^[A-Z][A-Za-z ]*:).)*(glob|pathname))(?=(?:(?!^[A-Z][A-Za-z ]*:).)*(block|unavailable|cannot))(?:(?!^[A-Z][A-Za-z ]*:).)*(?=^[A-Z][A-Za-z ]*:|\Z)'
       not_contains: ['Result: SAFE', 'Verdict:', 'Checklist status:']
   - type: prompt
     name: task_completion_substance
     config:
       prompt: |
-        Grade whether the response blocks the uncovered forced overwrite rather
-        than treating no matched pattern as proof of safety. Last line: 1.0,
-        0.5, or 0.0 only.
+        Grade whether CS2 remains blocked until argv boundaries and pathname
+        expansion are resolved for both substitutions. It must require a direct
+        array, positional vector, or trusted NUL-delimited boundary source for
+        multiple arguments and remain blocked when no such representation exists,
+        with no flattening or guessed quoted rewrite. Last line: 1.0, 0.5, or 0.0 only.
       mode: independent

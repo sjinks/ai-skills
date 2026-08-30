@@ -36,11 +36,11 @@ graders:
     name: positive_task_completion
     config:
       regex_match:
-        - '(?i)Result:\s*REWRITE'
-        - '(?s)Matched patterns:.*SM6 \(Command construction\)'
-        - '(?is)Assessment:.*(POSIX|/bin/sh).*(here.string|<<<|unavailable).*(IFS|scope)'
-        - '(?is)Command:.*IFS=, read -r a b c <<EOF.*\$line.*EOF'
-        - '(?i)Required checks:\s*None'
+        - '(?mi)^Result:\s*REWRITE\s*$'
+        - '(?m)^Matched patterns:\s*SM6 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*(POSIX|/bin/sh))(?=[^\n]*[^\n]*[^\n]*(here.string|<<<|unavailable))(?=[^\n]*[^\n]*[^\n]*(IFS|scope))[^\n]*$'
+        - '(?ims)^Command:(?:(?!^[A-Z][A-Za-z ]*:).)*(?:(?!^[A-Z][A-Za-z ]*:).)*IFS=, read -r a b c <<EOF(?:(?!^[A-Z][A-Za-z ]*:).)*\$line(?:(?!^[A-Z][A-Za-z ]*:).)*EOF'
+        - '(?m)^Required checks:\s*None\s*$'
       not_contains:
         - "Verdict:"
         - "Checklist status:"

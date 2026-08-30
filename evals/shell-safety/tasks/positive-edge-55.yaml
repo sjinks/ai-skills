@@ -31,11 +31,11 @@ graders:
     name: positive_task_completion
     config:
       regex_match:
-        - '(?i)Result:\s*REWRITE'
-        - '(?s)Matched patterns:.*Q3 \(Command construction\)'
-        - '(?is)Assessment:.*(immediate|non.hidden).*(empty|no.match).*(directory|symlink|file type|scope)'
-        - '(?is)Command:.*for f in \./\*.*\[ -e "\$f" \].*\[ -L "\$f" \].*continue.*process "\$f"'
-        - '(?i)Required checks:\s*None'
+        - '(?mi)^Result:\s*REWRITE\s*$'
+        - '(?m)^Matched patterns:\s*Q3 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*(immediate|non.hidden))(?=[^\n]*[^\n]*[^\n]*(empty|no.match))(?=[^\n]*[^\n]*[^\n]*(directory|symlink|file type|scope))[^\n]*$'
+        - '(?ims)^Command:(?:(?!^[A-Z][A-Za-z ]*:).)*(?:(?!^[A-Z][A-Za-z ]*:).)*for f in \./\*(?:(?!^[A-Z][A-Za-z ]*:).)*\[ -e "\$f" \](?:(?!^[A-Z][A-Za-z ]*:).)*\[ -L "\$f" \](?:(?!^[A-Z][A-Za-z ]*:).)*continue(?:(?!^[A-Z][A-Za-z ]*:).)*process "\$f"'
+        - '(?m)^Required checks:\s*None\s*$'
       not_contains:
         - "Verdict:"
         - "Checklist status:"

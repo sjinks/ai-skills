@@ -34,11 +34,13 @@ graders:
     name: positive_task_completion
     config:
       regex_match:
-        - '(?i)Result:\s*SAFE'
-        - '(?i)Matched patterns:\s*None'
-        - '(?i)Assessment:'
+        - '(?mi)^Result:\s*SAFE\s*$'
+        - '(?m)^Matched patterns:\s*None\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*(quoted|double.quote))(?=[^\n]*(one|single).*(argument|value))(?=[^\n]*(?:no|without)[^,;]*word split)(?=[^\n]*(?:no|without)[^,;]*(?:pathname expansion|glob))[^\n]*$'
         - '(?mi)^Command:\s*printf ''%s\\n'' "\$HOME"\s*$'
-        - '(?i)Required checks:\s*None'
+        - '(?m)^Required checks:\s*None\s*$'
+      regex_not_match:
+        - '(?mi)^Assessment:[^\n]*(?:but|however|still)[^\n]*(?:word split|pathname expansion|glob)[^\n]*(?:occur|appl|happen)'
       not_contains:
         - "Verdict:"
         - "Checklist status:"

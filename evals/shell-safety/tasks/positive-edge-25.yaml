@@ -41,11 +41,11 @@ graders:
     name: positive_task_completion
     config:
       regex_match:
-        - '(?i)Result:\s*SAFE'
-        - '(?mi)^Matched patterns:\s*None\s*$'
-        - '(?is)Assessment:.*argv.*(assign|position).*(path|fpath).*(assign|tied|PATH|FPATH).*(trusted|root.owned|not writable|reviewed)'
-        - '(?is)Command:.*argv=\(one two\).*path=\(/custom/bin \$path\).*fpath=\(/custom/functions \$fpath\)'
-        - '(?i)Required checks:\s*None'
+        - '(?mi)^Result:\s*SAFE\s*$'
+        - '(?m)^Matched patterns:\s*None\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*argv)(?=[^\n]*[^\n]*(assign|position))(?=[^\n]*[^\n]*(path|fpath))(?=[^\n]*[^\n]*(assign|tied|PATH|FPATH))(?=[^\n]*[^\n]*(trusted|root.owned|not writable|reviewed))[^\n]*$'
+        - '(?ims)^Command:(?:(?!^[A-Z][A-Za-z ]*:).)*(?:(?!^[A-Z][A-Za-z ]*:).)*argv=\(one two\)(?:(?!^[A-Z][A-Za-z ]*:).)*path=\(/custom/bin \$path\)(?:(?!^[A-Z][A-Za-z ]*:).)*fpath=\(/custom/functions \$fpath\)'
+        - '(?m)^Required checks:\s*None\s*$'
       not_contains:
         - "Result: REWRITE"
         - "Verdict:"

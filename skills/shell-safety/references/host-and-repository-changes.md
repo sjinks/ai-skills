@@ -13,10 +13,10 @@ Risk: Overwrites shared remote history.
 Decision gate: Prohibited for any discovered protected, default, release, production, or shared branch. When metadata is unavailable, treat `main`, `master`, `release/*`, `production`, and `prod` as protected fallbacks and block if status remains unknown; otherwise confirm a reviewed explicit lease.
 Safe replacement:
 ```sh
-git fetch origin
-git rev-parse refs/remotes/origin/feature
+git ls-remote --heads origin refs/heads/feature
 ```
-Inspect repository hosting metadata or the authoritative branch policy, upstream/default-branch configuration, and collaborator use. After proving the branch is non-protected, non-default, and non-shared and reviewing the exact tip:
+Subsumes: `GD10` for this exact remote-tip inspection because GD2 incorporates its executable, repository, configuration, environment, and auxiliary-execution checks.
+Resolve the Git executable, repository, remote URL/refspec, configuration, environment, credentials/helper path, authenticated destination, and every applicable auxiliary execution path before this non-mutating read. Inspect repository hosting metadata or the authoritative branch policy, upstream/default-branch configuration, and collaborator use. After proving the branch is non-protected, non-default, and non-shared and reviewing the exact remote tip:
 ```sh
 git push --force-with-lease=refs/heads/feature:<expected-sha> origin feature
 ```
@@ -41,13 +41,13 @@ Safe replacement: Treat `git clean -ndx` as discovery only. Capture one complete
 ### GD5 - Detached checkout
 Example: `git checkout 4a8c2f1`
 Risk: New commits may be lost when switching away.
-Decision gate: Rewrite.
-Safe replacement: Use `git checkout -b new-branch 4a8c2f1` when a branch is intended, or `git switch --detach 4a8c2f1` for read-only inspection.
+Decision gate: Block until branch-preservation versus explicit read-only detached intent is known; each resolved branch is confirmable after its prerequisites pass.
+Safe replacement: Resolve and bind the repository, exact target commit, current branch/tip, index, tracked and untracked worktree state, submodule state, Git executable, configuration, environment, hooks, and auxiliary execution paths before either branch. For preservation intent, require a caller-selected non-colliding branch name, then confirm `git switch -c <branch> <commit>`; GD5 owns this exact protective branch-creation effect. For explicit read-only detached intent, require a clean or deliberately preserved index/worktree and confirm `git switch --detach <commit>`; GD5 owns this exact detached-switch effect once the intent and prerequisites are resolved. Return `BLOCKED` while any binding, branch name, preservation decision, or auxiliary path is unresolved, and refresh mutable repository state immediately before confirmation.
 ### GD6 - Rewrite pushed history
 Example: `git rebase -i origin/main` then `git push --force`
 Risk: Breaks collaborators' histories.
 Decision gate: Block without explicit approval and remote-tip review; confirm the exact explicit-lease push separately.
-Safe replacement: Run `git fetch origin` and `git log --oneline origin/main..HEAD`; after confirming no collaborator depends on the commits, record `refs/remotes/origin/feature`, run `git rebase -i origin/main`, review the result, then use GD2's exact explicit-lease push. Re-fetching requires a new review.
+Safe replacement: Require the exact reviewed base commit and rewritten commits to be present locally from a separately positively classified acquisition step; GD6 does not authorize `git fetch`. Verify the authoritative remote base and branch tips through GD2's bound non-mutating remote inspection, then run `git log --oneline <base-commit>..HEAD`. After confirming no collaborator depends on the commits, record the expected remote branch tip, run `git rebase -i <base-commit>`, review the result, then use GD2's exact explicit-lease push. If required objects are absent or the remote tips differ, return `BLOCKED` and restart after an approved acquisition path.
 ### GD7 - Forced submodule deinit
 Example: `git submodule deinit --force <module>`
 Risk: Discards local submodule work.
@@ -123,11 +123,11 @@ Example: `chmod -R 777 /var/www`
 Risk: Makes all content world-writable and executable.
 Decision gate: Prohibited.
 Safe replacement: There is no generic replacement mode. Inventory current ownership, modes, ACLs, file types, and application access requirements; have the caller choose an explicit least-privilege owner/group/other and ACL plan, preview every resulting change, and reclassify that exact plan. Never prescribe `o=rX` or rewrite owner/group permissions without an application-specific access model.
-### FS10 - `chown -R` outside project root
+### FS10 - Recursive `chown` outside a caller-supplied trusted root
 Example: `sudo chown -R user:user /var`
 Risk: Breaks system ownership.
-Decision gate: Prohibited; confirmation cannot authorize recursive ownership changes outside the project root.
-Safe replacement: Restrict ownership changes to the project root.
+Decision gate: Block until the caller supplies a canonical, identity-bound trusted root; recursive ownership changes outside that root are prohibited and confirmation cannot authorize them.
+Safe replacement: No generic replacement. Require the caller to select an explicit target contained within the bound trusted root and provide the intended owner/group and recursive scope. Inventory and preview every affected object, then reclassify that exact in-root ownership plan; never silently substitute the root or target.
 ### PC1 - Immediate `SIGKILL`
 Example: `kill -9 1234`
 Risk: Skips cleanup and can hit a reused PID.

@@ -218,22 +218,22 @@ Safe replacement: Verify the downstream grammar, remove only backslashes that we
 ## Command substitution and pipes
 
 ### CS1 - Backtick substitution
-Example: ``echo "today is `date"``
+Example: ``echo "today is `date`"``
 
 Risk: Backticks do not nest and are hard to escape.
 
 Decision gate: Rewrite.
 
-Safe replacement: `printf 'today is %s\n' "$(date)"`.
+Safe replacement: For a body with no backslash, embedded backtick, or escaped nesting whose parse is unchanged by `$()`, replace only the delimiters and preserve the surrounding quoting context; for the example, use `echo "today is $(date)"`. Backtick-specific escaping is not mechanically interchangeable with `$()` syntax: require a parser-backed equivalence check or a caller-supplied modern command, and return `BLOCKED` when exact conversion cannot be established. An unquoted replacement remains subject to CS2. Do not add quoting, flatten nested commands, or substitute another output command until argv and output semantics are resolved.
 
 ### CS2 - Unquoted nested substitution
 Example: `echo $(echo $(date))`
 
 Risk: Output word-splits at each level.
 
-Decision gate: Rewrite.
+Decision gate: Block until the intended argv boundaries and pathname-expansion behavior of every unquoted substitution are known, then rewrite.
 
-Safe replacement: `printf '%s\n' "$(date)"`.
+Safe replacement: Preserve the original executable, command nesting, fixed text, and substitution positions. When each substitution is confirmed to produce one scalar argument, quote it in place, for example `echo "$(echo "$(date)")"`. When multiple arguments are intended and the producer must still run, require a trusted structured transport such as a NUL-delimited producer/consumer whose endpoints preserve empty arguments and arbitrary bytes allowed by the target interface. A caller-supplied array in Bash/zsh or subshell-scoped positional vector such as `( set -- 'a b' c; command "$@" )` in POSIX `sh` may replace producer execution only when the caller explicitly confirms that the supplied values are the complete intended argv and that the producer has no required execution or side effects. Do not infer boundaries from command-substitution text; if intentional pathname expansion, producer behavior, or exact argument boundaries cannot be preserved through a reviewed structured source, return `BLOCKED`.
 
 ### CS4 - `eval` on text
 Example: `eval "$cmd"`
@@ -265,14 +265,14 @@ Example: `set -e; cmd1 | cmd2`
 
 Risk: Failure in an earlier pipeline command is lost.
 
-Decision gate: Inspect the selected interpreter, then rewrite.
+Decision gate: When the caller intends the pipeline status to reflect failure of any component, block until `pipefail` support or an explicitly designed non-pipeline status flow is resolved, then rewrite. When the caller intentionally wants last-command status semantics, this pattern does not apply and the original pipeline is preserved for reclassification.
 
 Safe replacement for Bash or another verified `pipefail`-capable shell:
 ```bash
 set -o pipefail
-cmd1 | cmd2 | cmd3
+cmd1 | cmd2
 ```
-`pipefail` is specified by POSIX.1-2024, but older POSIX targets and shells such as dash may not support it. For a POSIX.1-2024-conforming shell or another verified supporting interpreter, the replacement above is valid. For older or unknown targets, verify the capability first; otherwise capture component status through an explicitly designed non-pipeline flow or select a supporting interpreter.
+Preserve the supplied pipeline's exact stages, order, operands, redirections, and intended nonzero/SIGPIPE behavior. `pipefail` is specified by POSIX.1-2024, but older POSIX targets and shells such as dash may not support it. For a POSIX.1-2024-conforming shell or another verified supporting interpreter, the replacement above is valid only after resolving how its aggregate status interacts with `set -e` or surrounding control flow. For older or unknown targets, verify the capability first; otherwise capture component status through an explicitly designed non-pipeline flow or select a supporting interpreter.
 
 ### CS7 - Untrusted executable invocation
 Example: `./downloaded-tool --version`
@@ -341,9 +341,9 @@ Example: `cmd > important.log`
 
 Risk: Existing contents are replaced.
 
-Decision gate: Confirm overwrite unless the file is verified disposable.
+Decision gate: Confirm overwrite unless the destination is verified disposable and its path cannot be replaced or redirected.
 
-Safe replacement: Preserve the requested write semantics. Use `cmd >> log.txt` only when the caller explicitly intends append behavior. For overwrite behavior, inspect and confirm the exact existing destination before `cmd > log.txt`, or choose a new exclusively created destination; never silently replace overwrite with append.
+Safe replacement: Preserve the requested write semantics. Use `cmd >> log.txt` only when the caller explicitly intends append behavior. For an existing destination, use a trusted runtime/helper that resolves trusted non-replaceable parents, opens the path without following links and without truncation, validates and retains the exact regular-file descriptor, then truncates and writes through that same descriptor after applying the Decision Gate. For a new destination, exclusively create it without following links inside a trusted non-replaceable parent and write through the retained descriptor. Plain pathname `>` remains `BLOCKED` when that identity-bound open cannot be guaranteed; never silently replace overwrite with append.
 
 ### OR2 - Wrong stderr-redirection order
 Example: `cmd 2>&1 > log`

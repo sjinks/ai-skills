@@ -1,21 +1,16 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 id: positive-edge-004
-name: Rewrite unquoted variable
+name: Quoted backtick rewrite preserves command semantics
 description: |
-  A deterministic quoting correction should return a safe rewrite rather than
-  authorizing the original or blocking without a replacement.
+  Modernizing backtick syntax must not replace the output command or alter the
+  existing quoted argument boundary.
 tags:
   - positive-edge
 inputs:
   prompt: |
-    Validate and rewrite this Bash command. `HOME` is a normal non-secret
-    variable and I only want to print its value:
-
-    ```bash
-    printf '%s\n' $HOME
-    ```
-
-    Return every shell-safety output field.
+    Validate and rewrite ``echo "today is `date`"`` for POSIX `sh`. The
+    substitution is intentionally inside one double-quoted argument, and I want
+    to preserve `echo` and its output semantics. Return every safety field.
 expected:
   should_trigger: true
 graders:
@@ -35,11 +30,21 @@ graders:
     name: positive_task_completion
     config:
       regex_match:
-        - '(?i)Result:\s*REWRITE'
-        - '(?s)Matched patterns:.*Q1 \(Command construction\)'
-        - '(?i)Assessment:.*(quote|split|glob|expansion)'
-        - '(?mi)^Command:\s*printf ''%s\\n'' "\$HOME"\s*$'
-        - '(?i)Required checks:\s*None'
+        - '(?m)^Result:\s*REWRITE\s*$'
+        - '(?m)^Matched patterns:\s*CS1 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*(backtick|command substitution))(?=[^\n]*[^\n]*[^\n]*(quoted|one argument|boundary))(?=[^\n]*[^\n]*[^\n]*(preserv|same))[^\n]*$'
+        - '(?m)^Command:\s*echo "today is \$\(date\)"\s*$'
+        - '(?m)^Required checks:\s*None\s*$'
       not_contains:
+        - "Command: printf"
+        - "CS2 (Command construction)"
         - "Verdict:"
         - "Checklist status:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether only the backtick syntax changes to `$(date)` while the
+        original `echo`, fixed text, double-quoted single argument, and output
+        semantics remain unchanged. Last line: 1.0, 0.5, or 0.0 only.
+      mode: independent

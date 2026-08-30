@@ -33,8 +33,8 @@ Safe replacement: Run ``AWS_PROFILE=<profile> AWS_REGION=<region> aws ec2 descri
 ### CL5 - RDS deletion
 Example: `aws rds delete-db-instance --db-instance-identifier prod`
 Risk: A final-snapshot decision controls recoverability.
-Decision gate: Require final snapshot decision and confirmation.
-Safe replacement: After verifying the account and choosing a collision-free snapshot ID, confirm `AWS_PROFILE=<profile> AWS_REGION=<region> aws rds delete-db-instance --db-instance-identifier prod --final-db-snapshot-identifier <snapshot-id>`.
+Decision gate: Confirmable after the final-snapshot decision is resolved.
+Safe replacement: Preserve the caller's recovery choice and bind the same account, profile, region, and DB instance in either branch. For a final snapshot, require a collision-free snapshot ID and confirm `AWS_PROFILE=<profile> AWS_REGION=<region> aws rds delete-db-instance --db-instance-identifier prod --final-db-snapshot-identifier <snapshot-id>`. For an explicit skip choice, require acknowledgement that no final recovery snapshot will be created, then confirm the exact command with `--skip-final-snapshot`. Return `BLOCKED` while the recovery choice, snapshot identity, acknowledgement, or target binding is unresolved.
 
 ### CL6 - GCP project deletion
 Example: `gcloud projects delete my-project`

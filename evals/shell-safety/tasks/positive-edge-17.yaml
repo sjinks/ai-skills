@@ -38,11 +38,11 @@ graders:
     name: positive_task_completion
     config:
       regex_match:
-        - '(?i)Result:\s*REWRITE'
-        - '(?s)Matched patterns:.*SM1 \(Command construction\)'
-        - '(?i)Assessment:.*(POSIX|sh|unset|error)'
-        - '(?is)Command:.*#!/bin/sh.*set -eu.*render_report.*publish_report'
-        - '(?i)Required checks:\s*None'
+        - '(?mi)^Result:\s*REWRITE\s*$'
+        - '(?m)^Matched patterns:\s*SM1 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*(POSIX|sh|unset|error))[^\n]*$'
+        - '(?ms)^Command: \|\n  #!/bin/sh\n  set -eu\n  render_report\n  publish_report\n(?=^Required checks:)'
+        - '(?m)^Required checks:\s*None\s*$'
       not_contains:
         - "set -euo pipefail"
         - "#!/usr/bin/env bash"
