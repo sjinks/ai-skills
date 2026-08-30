@@ -60,7 +60,7 @@ PROFILE_HEADERS = {
     "positive-edge-008": (("maxretries", "zero"),
                           ("config/retry.yml", "docs/api.md", "docs/operations.md")),
     "positive-edge-009": (("maxretries", "zero"), ("config/retry.yml", "docs/api.md")),
-    "positive-edge-010": (("minitems", "zero", "fixed"),
+    "positive-edge-010": (("minitems", "zero"),
                           ("src/pagination.ts", "tests/pagination.test.ts", "docs/api.md")),
     "positive-trigger-001": (("maxretries", "zero", "inc-17"),
                              ("config/retry.yml", "src/retry_policy.py", "tests/test_retry_policy.py",
@@ -81,7 +81,10 @@ def fail(message):
 def norm(value):
     value = html.unescape(value)
     value = unicodedata.normalize("NFC", value)
-    value = re.sub(r"(`{1,3}|\*{1,3}|~{2})(.+?)\1", r"\2", value)
+    previous = None
+    while value != previous:
+        previous = value
+        value = re.sub(r"(`{1,3}|\*{1,3}|~{2})(.+?)\1", r"\2", value)
     value = re.sub(r"\b0\b", "zero", value)
     return " ".join(value.lower().split())
 
@@ -176,6 +179,8 @@ def requests(value):
         else:
             break
     value = norm(value)
+    if re.match(r"^(?:please\s+)?(?:do not|don't|need not|not)\b", value):
+        return False
     imperative = re.match(r"^(?:please\s+)?(?:provide|specify|clarify|confirm|need)\b", value)
     question = re.match(r"^(?:what|which|who|why|can|could|would|are|does|do|is|should)\b.*\?$", value)
     return bool(imperative or question)
@@ -401,6 +406,16 @@ def summary_assignments(candidates, bullets, section):
         return {}
     if bullets == ["None"]:
         fail(f"{section} cannot be None when table rows require it")
+    for bullet in bullets:
+        action = norm(bullet)
+        for candidate in candidates:
+            if candidate_named(candidate, bullet):
+                action = re.sub(
+                    rf"(?<![a-z0-9_./-]){re.escape(norm(candidate))}(?![a-z0-9_/-]|\.[a-z0-9_])",
+                    " ", action,
+                )
+        if re.search(r"\b(?:do not fix|don't fix|need not fix|not fix|no action|skip)\b", action):
+            fail(f"{section} cannot contain a negated action")
     assignments = {}
     matched_candidates = {}
     ordered = sorted(enumerate(candidates), key=lambda item: -len(norm(item[1])))
