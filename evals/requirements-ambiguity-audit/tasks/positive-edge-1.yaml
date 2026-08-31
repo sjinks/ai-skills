@@ -11,7 +11,8 @@ tags:
 inputs:
   prompt: |
     Audit this requirement set for ambiguity. Use the glossary; don't flag
-    things the glossary already defines.
+    things the glossary already defines. Route open questions to the product
+    owner.
 
     Requirements:
     - R1: Sessions expire after the idle timeout.
@@ -47,11 +48,18 @@ graders:
       regex_match:
         - '(?i)Requirements Ambiguity Report'
         - '(?i)Verdict:\s*(CONCERNS|BLOCK)'
-        - '(?is)(vague-quantifier.*Readings:|untestable-wording.*Untestable because:)'
-        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*(vague-quantifier|untestable-wording)[`*_]*\s*\|\s*[`*_]*(blocker|should-fix|suggestion)[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
-        - '(?i)promptly'
-        - '(?i)Quote:'
-        - '(?i)Proposed rewrite:'
+        - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Severity\s*\|\s*Location\s*\|'
+        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*vague-quantifier[`*_]*\s*\|\s*[`*_]*(blocker|should-fix|suggestion)[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
+        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions).)*?^[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*promptly after session expiry'
+        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions)[\s\S])*?^[ \t]*-[ \t]*[*_]*Readings:[*_]*[ \t]*[^/\r\n]*\S[ \t]*/[ \t]*\S[^\r\n]*'
+        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions)[\s\S])*?^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*OPEN QUESTION'
+        - '(?im)^### Findings[ \t]*$'
+        - '(?im)^### Open questions \(product decisions, not findings\)[ \t]*$'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*product owner'
+      regex_not_match:
+        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions).)*?^[ \t]*-[ \t]*[*_]*Quote:[*_]*(?:(?!^[ \t]*-[ \t]*[*_]*(?:Readings|Untestable because|Proposed rewrite):).)*may choose any cache eviction strategy'
+        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*\s*\|\s*[`*_]*(blocker|should-fix|suggestion)[`*_]*\s*\|[^\r\n]*\bR2\b[^\r\n]*\|\s*$'
       not_contains:
         - "| undefined-term |"
+        - "Untestable because:"
         - "Finding Quality Report"

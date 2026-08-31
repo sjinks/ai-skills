@@ -37,6 +37,7 @@ Sweep the whole text once per class:
 
 - Every finding quotes the exact text and names its location (section, requirement ID, or line).
 - Findings of classes 1, 2, 3, 6, and 7 state the two (or more) plausible readings; if only one reading is plausible, it is not a finding. Classes 4, 5, and 8 replace the `Readings:` line as defined under Output Format.
+- If classes 1 and 8 both appear applicable to the same text, use `vague-quantifier` when the text names an objectively observable dimension but omits a bound; use `untestable-wording` when it names no objective observable dimension. Do not report both classes for the same text.
 - A term defined in the supplied glossary or surrounding text is not `undefined-term`.
 - Every finding carries a proposed rewrite that survives the audit it failed; rewrites preserve intent and mark unknowns as explicit open questions rather than inventing values.
 - Do not flag intentional flexibility that is explicitly delegated ("implementation may choose the cache strategy").

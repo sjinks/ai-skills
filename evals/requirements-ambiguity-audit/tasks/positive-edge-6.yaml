@@ -1,25 +1,24 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
-id: positive-edge-005
-name: Unspecified rejection path is found
+id: positive-edge-006
+name: Objectively untestable wording is found
 description: |
-  A requirement set naming a validation behavior without stating its
-  rejection outcome must yield an unspecified-path finding as a table
-  row with readings and a rewrite.
+  A requirement expressing a subjective quality with no observable
+  pass/fail condition must yield an untestable-wording finding and its
+  class-specific replacement marker.
 tags:
   - positive-trigger
   - positive-edge
 inputs:
   prompt: |
-    Audit these requirements for ambiguity. Route open questions to the product
-    owner:
+    Audit this requirement for ambiguity before implementation. Route open
+    questions to the product owner:
 
-    Requirements:
-    - R1: The import service validates each uploaded CSV row against the
-      contact schema.
-    - R2: Valid rows are inserted into the contacts table within one
-      batch transaction per file.
-    - R3: The import service emails the uploader a summary report after
-      the batch transaction commits.
+    Requirement R1: The account settings page must feel intuitive to
+    account owners.
+
+    Glossary:
+    - account settings page: the web page at /settings/account.
+    - account owner: an authenticated user who owns the account.
 expected:
   should_trigger: true
 graders:
@@ -42,13 +41,16 @@ graders:
         - '(?i)Requirements Ambiguity Report'
         - '(?i)Verdict:\s*(BLOCK|CONCERNS)'
         - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Severity\s*\|\s*Location\s*\|'
-        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*unspecified-path[`*_]*\s*\|\s*[`*_]*(blocker|should-fix|suggestion)[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
-        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions).)*?^[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*validates each uploaded CSV row against the contact schema'
-        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions)[\s\S])*?^[ \t]*-[ \t]*[*_]*Readings:[*_]*[ \t]*[^/\r\n]*\S[ \t]*/[ \t]*\S[^\r\n]*'
+        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*untestable-wording[`*_]*\s*\|\s*[`*_]*(blocker|should-fix|suggestion)[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
+        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions).)*?^[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*must feel intuitive'
+        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions)[\s\S])*?^[ \t]*-[ \t]*[*_]*Untestable because:[*_]*[ \t]*\S[^\r\n]*'
         - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions)[\s\S])*?^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*OPEN QUESTION'
         - '(?im)^### Findings[ \t]*$'
         - '(?im)^### Open questions \(product decisions, not findings\)[ \t]*$'
         - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*product owner'
+      regex_not_match:
+        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*vague-quantifier[`*_]*\s*\|'
       not_contains:
         - "Finding Quality Report"
         - "Verdict: CLEAN"
+        - "Readings:"

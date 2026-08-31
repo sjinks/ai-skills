@@ -10,15 +10,13 @@ tags:
 inputs:
   prompt: |
     Check these requirements for ambiguity and conflicts before sprint
-    planning:
+    planning. Route any open questions to the product owner:
 
     As an admin, I can delete a workspace.
 
     Requirements:
     - R1: Deleting a workspace permanently removes all its data immediately.
     - R2: A deleted workspace can be restored by support within 30 days.
-    - R3: The deletion flow asks for confirmation.
-    - R4: Audit events for the deletion are retained per the audit policy.
 expected:
   should_trigger: true
 graders:
@@ -40,12 +38,16 @@ graders:
       regex_match:
         - '(?i)Requirements Ambiguity Report'
         - '(?i)Verdict:\s*BLOCK'
-        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*conflicting-requirements[`*_]*\s*\|\s*[`*_]*(blocker|should-fix|suggestion)[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
-        - '(?i)blocker'
-        - '(?i)Quote:'
-        - '(?i)Conflict:'
-        - '(?i)Proposed rewrite:'
-        - '(?is)(R1.{0,600}R2|R2.{0,600}R1)'
+        - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Severity\s*\|\s*Location\s*\|'
+        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*conflicting-requirements[`*_]*\s*\|\s*[`*_]*blocker[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Quote:'
+        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions)[\s\S])*?^[ \t]*-[ \t]*[*_]*Conflict:[*_]*[ \t]*\S[^\r\n]*'
+        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions)[\s\S])*?^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*OPEN QUESTION'
+        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions)[\s\S])*?^[ \t]*-[ \t]*[*_]*Quote:[*_]*(?=(?:(?!\r?\n[ \t]*-[ \t]*[*_]*(?:Conflict|Proposed rewrite):)[\s\S])*permanently\s+removes\s+all\s+its\s+data\s+immediately)(?=(?:(?!\r?\n[ \t]*-[ \t]*[*_]*(?:Conflict|Proposed rewrite):)[\s\S])*restored\s+by\s+support\s+within\s+30\s+days)(?:(?!\r?\n[ \t]*-[ \t]*[*_]*(?:Conflict|Proposed rewrite):)[\s\S])*(?=\r?\n[ \t]*-[ \t]*[*_]*(?:Conflict|Proposed rewrite):)'
+        - '(?im)^### Findings[ \t]*$'
+        - '(?im)^### Open questions \(product decisions, not findings\)[ \t]*$'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*product owner'
       not_contains:
         - "Finding Quality Report"
         - "Scope Slice Plan"
+        - "Readings:"

@@ -28,11 +28,14 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Missing input:"
         - "Smallest addition to proceed"
         - "Verdict: BLOCK"
         - "Verdict: CONCERNS"
         - "Verdict: CLEAN"
         - "Requirements Ambiguity Report"
+        - "### Findings"
+        - "### Open questions"
         - "| vague-quantifier |"
         - "| conflicting-requirements |"
         - "| unspecified-path |"

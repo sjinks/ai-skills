@@ -56,7 +56,7 @@ graders:
       regex_match:
         - '(?i)Requirements Ambiguity Report'
         - 'Verdict:[*_ \t]*CLEAN[*_ \t]*\n+[*_ \t]*All eight ambiguity classes were swept; no findings\.'
-        - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Severity\s*\|\s*Location\s*\|\s*\n\s*\|[\s\-:|]*\|\s*\n+\s*#+\s*Findings[*_ \t]*\n+\s*[*_]*None[*_.]*\s*\n+\s*#+\s*Open questions[^\n]*\n+\s*[*_]*None[*_.]*[ \t]*(\r?\n|$)'
+        - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Severity\s*\|\s*Location\s*\|[ \t]*\r?\n[ \t]*\|[ \t\-:|]*\|[ \t]*\r?\n(?:[ \t]*\r?\n)*[ \t]*### Findings[ \t]*\r?\n(?:[ \t]*\r?\n)*[ \t]*[*_]*None[*_.]*[ \t]*\r?\n(?:[ \t]*\r?\n)*[ \t]*### Open questions \(product decisions, not findings\)[ \t]*\r?\n(?:[ \t]*\r?\n)*[ \t]*[*_]*None[*_.]*[ \t]*(\r?\n|$)'
       not_contains:
         - "Verdict: BLOCK"
         - "Verdict: CONCERNS"
