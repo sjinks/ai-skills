@@ -7,7 +7,8 @@ inputs:
   prompt: |
     Review `script.sh`, verified as CRLF text with no intentional carriage returns. A runtime-created
     private temporary file is bound as `$temporary_file`; the later atomic replacement follows the
-    filesystem policy. Return every shell-safety field for `tr -d '\r' < script.sh > "$temporary_file"`.
+    filesystem policy. The proposed unsafe form is `tr -d '\r' < script.sh > script.tmp`,
+    where `script.tmp` is a predictable replaceable path. Return every shell-safety field.
 expected: {should_trigger: true}
 graders:
   - type: trigger

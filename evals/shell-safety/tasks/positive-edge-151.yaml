@@ -6,7 +6,8 @@ tags: [positive-edge]
 inputs:
   prompt: |
     Review `git commit -m "use \`foo()\` here"`. The intended literal subject is exactly
-    `use \`foo()\` here`. Return every shell-safety field.
+    `use \`foo()\` here`. GD9 repository, staged-index, branch/parent,
+    author/signing, cleanup, and hook checks are absent. Return every shell-safety field.
 expected: {should_trigger: true}
 graders:
   - type: trigger
@@ -18,8 +19,8 @@ graders:
   - type: text
     name: positive_task_completion
     config:
-      regex_match: ['(?m)^Result:\s*REWRITE\s*$', '(?m)^Matched patterns:\s*GC6 \(Command construction\)\s*$', '(?mi)^Assessment:(?=[^\n]*backtick)(?=[^\n]*(substitution|failing command))(?=[^\n]*rewrite)[^\n]*$', '(?ms)^Command: \|\n  git commit --cleanup=verbatim -F - <<''EOF''\n  use `foo\(\)` here\n  EOF\s*$', '(?mi)^Required checks:(?=[^\n]*(literal subject|exact literal))(?=[^\n]*review)[^\n]*$']
-      not_contains: ['Result: SAFE', 'Command: git commit -m', 'Verdict:', 'Checklist status:']
+      regex_match: ['(?m)^Result:\s*BLOCKED\s*$', '(?m)^Matched patterns:\s*GC6 \(Command construction\), GD9 \(Host/repository\)\s*$', '(?mi)^Assessment:(?=[^\n]*backtick)(?=[^\n]*(literal|substitution))(?=[^\n]*(GD9|hook|index|commit))(?=[^\n]*block)[^\n]*$', '(?m)^Command:\s*Not provided\s*$', '(?ims)^Required checks:(?=[\s\S]*(literal subject|exact literal).*(heredoc|stdin))(?=[\s\S]*(staged|index))(?=[\s\S]*(repository|branch|parent))(?=[\s\S]*(hook|cleanup))(?=[\s\S]*(author|signing|identity))[\s\S]*$']
+      not_contains: ['Result: SAFE', 'Result: REWRITE', 'Command: git commit', 'Verdict:', 'Checklist status:']
   - type: prompt
     name: task_completion_substance
-    config: {prompt: 'Grade whether GC6 treats the backticks as literal commit-message bytes and avoids command substitution with a quoted heredoc. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}
+    config: {prompt: 'Grade whether GC6 identifies the literal heredoc replacement but reports GC6 and GD9 and remains BLOCKED until ordinary-commit prerequisites are supplied. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}

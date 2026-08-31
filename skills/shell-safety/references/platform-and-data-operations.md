@@ -205,8 +205,8 @@ Safe replacement: Review the chart and rendered manifests, verify cluster contex
 ### OK12 - Write through kubectl exec
 Example: `kubectl exec -it pod-0 -- sh -c "echo data > /etc/config"`
 Risk: Bypasses audit and disappears on restart.
-Decision gate: Rewrite.
-Safe replacement: Edit the manifest in Git and reapply it.
+Decision gate: Rewrite then confirm the reviewed declarative replacement.
+Safe replacement: Edit the manifest in Git, bind and review its exact content/digest plus cluster context and namespace, then return `NEEDS-CONFIRMATION` for applying those same bytes. Unresolved manifest identity, provenance, target, or apply effects remain `BLOCKED`.
 
 ## Database CLIs
 
@@ -271,7 +271,7 @@ Safe replacement: Take a backup first.
 ### DB9 - Default production target
 Example: `psql $DATABASE_URL` where it points at production.
 Risk: Silent cross-environment mutation.
-Decision gate: Verify target.
+Decision gate: Rewrite to explicit read-only target inspection.
 Safe replacement: `psql -X -P pager=off 'host=host dbname=db user=user' -c 'SELECT current_database(), inet_server_addr();'`.
 
 ### DB10 - pg_restore clean on the wrong target

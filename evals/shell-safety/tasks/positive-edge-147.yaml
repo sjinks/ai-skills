@@ -6,7 +6,8 @@ tags: [positive-edge]
 inputs:
   prompt: |
     Review `git commit -m "Fix parser" -m "Explain why" -m "- preserve tabs"`.
-    The subject and two body paragraphs are the exact reviewed message bytes. Return every
+    The subject and two body paragraphs are the exact reviewed message bytes. Repository,
+    staged-index, branch/parent, author/signing, cleanup, and hook checks are not supplied. Return every
     shell-safety field.
 expected: {should_trigger: true}
 graders:
@@ -20,12 +21,12 @@ graders:
     name: positive_task_completion
     config:
       regex_match:
-        - '(?m)^Result:\s*REWRITE\s*$'
-        - '(?m)^Matched patterns:\s*GC2 \(Command construction\)\s*$'
-        - '(?mi)^Assessment:(?=[^\n]*(repeated|multiple).*(?:-m|message))(?=[^\n]*(paragraph|body))(?=[^\n]*rewrite)[^\n]*$'
-        - '(?ms)^Command: \|\n  git commit --cleanup=verbatim -F - <<''EOF''\n  Fix parser\n  \n  Explain why\n  \n  - preserve tabs\n  EOF\s*$'
-        - '(?mi)^Required checks:(?=[^\n]*(review|exact).*(literal|message bytes))(?=[^\n]*heredoc)[^\n]*$'
-      not_contains: ['Result: SAFE', 'Command: git commit -m', 'Verdict:', 'Checklist status:']
+        - '(?m)^Result:\s*BLOCKED\s*$'
+        - '(?m)^Matched patterns:\s*GC2 \(Command construction\), GD9 \(Host/repository\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*(repeated|multiple).*(?:-m|message))(?=[^\n]*(paragraph|body))(?=[^\n]*(GD9|commit|hook|index))(?=[^\n]*block)[^\n]*$'
+        - '(?m)^Command:\s*Not provided\s*$'
+        - '(?ims)^Required checks:(?=[\s\S]*(review|exact).*(literal|message bytes))(?=[\s\S]*heredoc)(?=[\s\S]*(staged|index))(?=[\s\S]*(repository|branch|parent))(?=[\s\S]*(hook|cleanup))(?=[\s\S]*(author|signing|identity))[\s\S]*$'
+      not_contains: ['Result: SAFE', 'Result: REWRITE', 'Command: git commit -m', 'Command: git commit --cleanup=verbatim', 'Verdict:', 'Checklist status:']
   - type: prompt
     name: task_completion_substance
-    config: {prompt: 'Grade whether GC2 replaces repeated -m flags with one reviewed quoted stdin heredoc that preserves the exact subject and paragraph boundaries. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}
+    config: {prompt: 'Grade whether GC2 identifies the reviewed stdin-heredoc replacement but reports GC2 and GD9 and remains BLOCKED until ordinary-commit state, hook, cleanup, and identity prerequisites are supplied. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}

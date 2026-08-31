@@ -6,7 +6,8 @@ tags: [positive-edge]
 inputs:
   prompt: |
     Review `git commit -m "🎉 ship"`. The terminal locale is verified UTF-8 and the exact
-    literal UTF-8 subject `🎉 ship` was reviewed. Return every shell-safety field.
+    literal UTF-8 subject `🎉 ship` was reviewed. GD9 repository, staged-index,
+    branch/parent, author/signing, cleanup, and hook checks are absent. Return every shell-safety field.
 expected: {should_trigger: true}
 graders:
   - type: trigger
@@ -18,8 +19,8 @@ graders:
   - type: text
     name: positive_task_completion
     config:
-      regex_match: ['(?m)^Result:\s*REWRITE\s*$', '(?m)^Matched patterns:\s*GC8 \(Command construction\)\s*$', '(?mi)^Assessment:(?=[^\n]*(Unicode|UTF-8|multi.byte))(?=[^\n]*(terminal|locale))(?=[^\n]*rewrite)[^\n]*$', '(?ms)^Command: \|\n  git commit --cleanup=verbatim -F - <<''EOF''\n  🎉 ship\n  EOF\s*$', '(?mi)^Required checks:(?=[^\n]*(UTF-8|locale))(?=[^\n]*(review|literal))[^^\n]*$']
-      not_contains: ['Result: SAFE', 'Command: git commit -m', 'Verdict:', 'Checklist status:']
+      regex_match: ['(?m)^Result:\s*BLOCKED\s*$', '(?m)^Matched patterns:\s*GC8 \(Command construction\), GD9 \(Host/repository\)\s*$', '(?mi)^Assessment:(?=[^\n]*(Unicode|UTF-8|multi.byte))(?=[^\n]*(terminal|locale))(?=[^\n]*(GD9|hook|index|commit))(?=[^\n]*block)[^\n]*$', '(?m)^Command:\s*Not provided\s*$', '(?ims)^Required checks:(?=[\s\S]*(UTF-8|locale).*(literal|heredoc|stdin))(?=[\s\S]*(staged|index))(?=[\s\S]*(repository|branch|parent))(?=[\s\S]*(hook|cleanup))(?=[\s\S]*(author|signing|identity))[\s\S]*$']
+      not_contains: ['Result: SAFE', 'Result: REWRITE', 'Command: git commit', 'Verdict:', 'Checklist status:']
   - type: prompt
     name: task_completion_substance
-    config: {prompt: 'Grade whether GC8 requires a verified UTF-8 terminal and puts reviewed literal Unicode text into the quoted heredoc. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}
+    config: {prompt: 'Grade whether GC8 requires verified UTF-8, reports GC8 and GD9, and remains BLOCKED until ordinary-commit prerequisites are supplied. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}
