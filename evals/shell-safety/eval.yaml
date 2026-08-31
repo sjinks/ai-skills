@@ -103,4 +103,5 @@ graders:
     config:
       max_tool_calls: 10
 tasks:
+  # Owner-approved behavior-class inventory: coverage-matrix.md
   - "tasks/*.yaml"
