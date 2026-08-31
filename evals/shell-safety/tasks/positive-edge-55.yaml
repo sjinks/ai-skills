@@ -1,0 +1,58 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-055
+name: Iteration rewrite preserves immediate entry scope
+description: |
+  Replacing for-over-ls must define no-match behavior and preserve the original
+  immediate non-hidden entry set.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    Rewrite `for f in $(ls); do process "$f"; done` for a POSIX-style shell.
+    The intended scope is immediate non-hidden entries of every file type, and
+    an empty directory must produce zero iterations. Do not recurse. Return every
+    shell-safety output field.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config:
+      skill_path: skills/shell-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-safety
+      mode: any_order
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match:
+        - '(?mi)^Result:\s*REWRITE\s*$'
+        - '(?m)^Matched patterns:\s*Q3 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*(immediate|non.hidden))(?=[^\n]*[^\n]*[^\n]*(empty|no.match))(?=[^\n]*[^\n]*[^\n]*(directory|symlink|file type|scope))[^\n]*$'
+        - '(?ims)^Command:(?:(?!^[A-Z][A-Za-z ]*:).)*(?:(?!^[A-Z][A-Za-z ]*:).)*for f in \./\*(?:(?!^[A-Z][A-Za-z ]*:).)*\[ -e "\$f" \](?:(?!^[A-Z][A-Za-z ]*:).)*\[ -L "\$f" \](?:(?!^[A-Z][A-Za-z ]*:).)*continue(?:(?!^[A-Z][A-Za-z ]*:).)*process "\$f"'
+        - '(?m)^Required checks:\s*None\s*$'
+      not_contains:
+        - "Verdict:"
+        - "Checklist status:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response preserves immediate non-hidden files,
+        directories, and symlinks; safely skips the literal `./*` no-match case;
+        and does not recurse or use find unless the caller requests that scope.
+        It must note zsh NOMATCH needs a zsh-specific null-glob form.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the last line, write only: 1.0, 0.5, or 0.0
+
+        1.0 = iteration set and shell no-match semantics are complete.
+        0.5 = whitespace is fixed but scope/no-match handling is incomplete.
+        0.0 = literal-star iteration, zsh abort, or recursive scope is introduced.
+      mode: independent

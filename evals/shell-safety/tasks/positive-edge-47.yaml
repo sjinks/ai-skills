@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-047
+name: POSIX 2024 pipefail changes pipeline status
+description: |
+  A verified POSIX.1-2024 shell may use pipefail, but pipefail alone does not
+  guarantee shell exit.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    This script runs under a verified POSIX.1-2024-conforming `/bin/sh` that
+    supports `set -o pipefail`:
+
+    ```sh
+    produce | consume
+    ```
+
+    Rewrite it so the pipeline status reflects failure of either command. Do
+    not claim pipefail exits the shell by itself. Return every shell-safety
+    output field.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config:
+      skill_path: skills/shell-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-safety
+      mode: any_order
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match:
+        - '(?mi)^Result:\s*REWRITE\s*$'
+        - '(?m)^Matched patterns:\s*CS6 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*POSIX.1-2024)(?=[^\n]*[^\n]*[^\n]*pipefail)(?=[^\n]*[^\n]*[^\n]*(status|not.*exit|errexit))[^\n]*$'
+        - '(?ms)^Command: \|\n  set -o pipefail\n  produce \| consume\n(?=^Required checks:)'
+        - '(?m)^Required checks:\s*None\s*$'
+      not_contains:
+        - "Verdict:"
+        - "Checklist status:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response accepts pipefail for the explicitly verified
+        POSIX.1-2024 shell, rewrites the pipeline with `set -o pipefail`, and
+        explains that pipefail changes pipeline status but does not itself exit
+        the shell; errexit behavior and exceptions are separate.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = capability, status semantics, and rewrite are all correct.
+        0.5 = rewrite works but version or exit semantics are incomplete.
+        0.0 = pipefail is called Bash-only or is said to exit by itself.
+      mode: independent

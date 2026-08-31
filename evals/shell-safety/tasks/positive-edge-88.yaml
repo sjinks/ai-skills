@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-088
+name: Bash histexpand governs Q11 independently of interactivity
+description: |
+  Enabled history expansion triggers Q11 even in non-interactive Bash.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Compare `echo "it's $name !suffix"` in non-POSIX Bash when `histexpand` is
+    enabled versus disabled, and in POSIX-mode Bash. Also compare terminal
+    `echo "deploy!"` with enabled `histexpand`. Return every shell-safety field
+    for the enabled non-interactive `!suffix` context only. Preserve expansion
+    of the present, non-secret `name`; in Assessment, state why the disabled,
+    POSIX-mode, and terminal-`!` contexts differ.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match:
+        - '(?m)^Result:\s*REWRITE\s*$'
+        - '(?m)^Matched patterns:\s*Q11/SE8 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*(histexpand|history expansion)[^\n]*(enabled)[^\n]*(!suffix|event)[^\n]*(disabled|POSIX)[^\n]*(safe|literal|preserv)[^\n]*)[^\n]*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*(deploy!|terminal|closing double quote)[^\n]*(safe|quoted|no Q11|does not)[^\n]*)[^\n]*$'
+        - '(?m)^Command:\s*echo "it''s \$name "''!suffix''\s*$'
+        - '(?m)^Required checks:\s*None\s*$'
+      regex_not_match:
+        - '(?im)^(?:Assessment:|[ \t]*(?:[-*][ \t]+)?)[^\n]*(?:try|first|instead|enable|run|use|execute|recommend(?![ \t]+against)|should(?![ \t]+not)|must(?![ \t]+not))[^\n]*set \+H'
+      not_contains: ['Result: SAFE', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether enabled `histexpand` triggers Q11/SE8 even in non-interactive
+        non-POSIX Bash, the rewrite single-quotes only the literal `!suffix`
+        segment without suppressing `$name` expansion or changing shell state,
+        Q8 is not reported, and the Assessment says disabled or POSIX-mode Bash
+        preserves the literal exclamation mark while terminal `!` immediately
+        before the closing double quote is quoted and does not match Q11.
+        Last line: 1.0, 0.5, or 0.0 only.
+      mode: independent

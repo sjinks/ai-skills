@@ -1,0 +1,68 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-020
+name: Zsh status rename preserves captured output
+description: |
+  Renaming zsh's read-only status variable must preserve command-substitution
+  stdout rather than replace it with an exit-code capture.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    Rewrite this zsh command without running it:
+
+    ```zsh
+    status=$(printf '%s\n' 'ready')
+    ```
+
+    The variable must still contain `ready`; only the read-only variable-name
+    conflict should change. Return every shell-safety output field, with the
+    exact rewrite on the `Command:` line.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config:
+      skill_path: skills/shell-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-safety
+      mode: any_order
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match:
+        - '(?mi)^Result:\s*REWRITE\s*$'
+        - '(?m)^Matched patterns:\s*SM4 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*(read.only|zsh|captur|stdout|rename))[^\n]*$'
+        - '(?m)^Command:[ \t]*`?response=\$\(printf ''%s\\n'' ''ready''\)`?[ \t]*$'
+        - '(?m)^Required checks:\s*None\s*$'
+      not_contains:
+        - "Verdict:"
+        - "Checklist status:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response preserves the original command-substitution
+        stdout while only renaming zsh's read-only `status` variable. A correct
+        response emits exactly one `Command:` field, and that field's sole
+        command is `response=$(printf '%s\n' 'ready')`. It must not append an
+        assignment from `$?`, replace the captured value with an exit status,
+        mix status text into stdout, or emit a second `Command:` field. Merely
+        discussing the defective form in explanatory prose is acceptable.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = exactly one correct value-preserving Command field is emitted.
+        0.5 = the response identifies SM4 but the command contract is unclear.
+        0.0 = stdout semantics change, Command is duplicated, or the skill is
+              not performed.
+      mode: independent

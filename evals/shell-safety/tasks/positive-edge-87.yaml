@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-087
+name: Scalar list intent becomes structured argv
+description: |
+  Quoting a scalar must not collapse intentionally separate arguments.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Rewrite this Bash command. `$items` was intended to supply two arguments,
+    `a b` and `c`, not one scalar: `printf '<%s>\n' $items`. Return every
+    shell-safety field using a structured argv representation.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match:
+        - '(?m)^Result:\s*REWRITE\s*$'
+        - '(?m)^Matched patterns:\s*Q1 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*[^\n]*(multiple|two|separate)[^\n]*(argument|argv|boundary)[^\n]*(scalar|quote|collapse)[^\n]*)[^\n]*$'
+        - '(?m)^Command:\s*items=\(''a b'' c\); printf ''<%s>\\n'' "\$\{items\[@\]\}"\s*$'
+        - '(?m)^Required checks:\s*None\s*$'
+      not_contains: ['Command: printf ''<%s>\n'' "$items"', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response preserves two argv entries through a Bash
+        array instead of quoting the scalar as one argument. Last line: 1.0,
+        0.5, or 0.0 only.
+      mode: independent

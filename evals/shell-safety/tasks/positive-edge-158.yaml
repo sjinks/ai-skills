@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-158
+name: Indented heredoc delimiter is made tab-strippable
+description: HD1 replaces a nonterminating indented delimiter.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Review this shell text, whose `EOF` closing delimiter is indented with one tab:
+    `cat <<EOF`, then a tab followed by `line`, then a tab followed by `EOF`.
+    Return every shell-safety field.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match: ['(?m)^Result:\s*REWRITE\s*$', '(?m)^Matched patterns:\s*HD1 \(Command construction\)\s*$', '(?mi)^Assessment:(?=[^\n]*(indent|column.zero|terminator))(?=[^\n]*(keep reading|heredoc))(?=[^\n]*rewrite)[^\n]*$', '(?ms)^Command: \|\n  cat <<-EOF\n  \tline\n  \tEOF\s*$', '(?mi)^Required checks:(?=[^\n]*(tab|space))(?=[^\n]*(delimiter|terminator))[^^\n]*$']
+      not_contains: ['Result: SAFE', 'cat <<EOF', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config: {prompt: 'Grade whether HD1 uses <<-EOF for tab indentation and states that spaces are not stripped. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}

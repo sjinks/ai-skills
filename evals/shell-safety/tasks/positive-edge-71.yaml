@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-071
+name: Literal backslash output is preserved
+description: |
+  Replacing non-portable echo must not invent escape interpretation.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    Before I execute `echo 'a\nb'` in a POSIX deployment script, decide whether
+    that exact command is safe and provide the required rewrite. I intend the
+    literal characters `a\nb` followed by one newline, not two output lines.
+    This is an execution-safety decision, not a portability-only explanation.
+    Return every shell-safety output field.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config:
+      skill_path: skills/shell-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-safety
+      mode: any_order
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match:
+        - '(?mi)^Result:\s*REWRITE\s*$'
+        - '(?m)^Matched patterns:\s*Q9 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*(literal|backslash))(?=[^\n]*[^\n]*[^\n]*(preserv|intent|output))[^\n]*$'
+        - '(?m)^Command:\s*printf ''%s\\n'' ''a\\nb''\s*$'
+        - '(?m)^Required checks:\s*None\s*$'
+      not_contains:
+        - "Command: printf '%s\\n%s\\n' a b"
+        - 'Verdict:'
+        - 'Checklist status:'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response replaces echo with fixed-format printf while
+        preserving the literal backslash-n data as one output line.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the last line, write only: 1.0, 0.5, or 0.0
+
+        1.0 = literal a\nb plus one trailing newline is preserved.
+        0.5 = echo is removed but exact output semantics are unclear.
+        0.0 = the replacement emits two lines or retains non-portable echo.
+      mode: independent

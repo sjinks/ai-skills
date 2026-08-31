@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Portability-only shell question
+description: |
+  A portability-only review is a close but different shell concern; this skill
+  must not activate when no command-execution safety decision is requested.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Does this script run on both GNU/Linux and macOS, or is the utility flag
+    platform-specific? This is a portability review only; do not assess whether
+    I should execute it.
+
+    ```sh
+    #!/bin/sh
+    target=$(readlink -f "$1")
+    printf '%s\n' "$target"
+    ```
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: negative_trigger_accuracy
+    config:
+      skill_path: skills/shell-safety/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: negative_task_completion
+    config:
+      not_contains:
+        - "Result:"
+        - "Matched patterns:"
+        - "Assessment:"
+        - "Command:"
+        - "Required checks:"

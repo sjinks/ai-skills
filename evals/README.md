@@ -102,6 +102,7 @@ grader weighting takes effect.
   - `spec-deviation-handling`: 0.45
   - `vip-dev-env`: 0.45
   - `gh-cli`: 0.45
+  - `shell-safety`: 0.45
   - `shell-portability`: 0.45
   - `flaky-test-diagnosis`: 0.45
   - `test-quality-review`: 0.45
@@ -129,6 +130,10 @@ grader weighting takes effect.
   words echoed from the prompt. Positive tasks also `not_contains`
   the structured-output markers of unrelated skills so cross-skill
   leakage fails the task.
+- `shell-safety` prevents positive-task volume from diluting close-domain
+  failures: positive and negative trigger/completion graders use separate
+  metric names, both negative metrics require 1.0, and a separate 1.0
+  `output_contract` metric enforces the ordered top-level field serialization.
 - `tone_quality` (`spock-voice` positives only, `prompt`) — LLM judge.
   The rubric asks for one sentence of reasoning followed by a final
   line containing only `1.0`, `0.5`, or `0.0`, so waza's prompt-grader
@@ -142,10 +147,13 @@ grader weighting takes effect.
   (`failure-mode-design`, `architecture-tradeoff-analysis`,
   `dependency-choice-review`, `implementation-task-decomposition`,
   `hypothesis-driven-debugging`, `refactoring-safety`,
-  `data-migration-safety`) use 10 000; the rest use 8 000;
+  `data-migration-safety`) use 10 000;
   `adversarial-review` uses 90 000 because paired-review tasks measure
   roughly 68 000 total tokens after fixed harness injection and cached
   multi-turn re-sends;
+  `shell-safety` omits the total-token cap because reference-first input
+  size can exceed it and retains `max_tool_calls: 10` as its runaway
+  guard; the rest use 8 000;
   `handoff-note` is explicitly budgeted at 8 000; `spock-voice` uses
   4 000.
 

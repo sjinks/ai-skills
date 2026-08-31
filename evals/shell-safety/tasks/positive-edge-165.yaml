@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-165
+name: Secret use disables tracing and avoids argv
+description: SM7/SE6 must address tracing and secret argv together.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Review `set -x; do_thing --token=$TOKEN`. A protected credential file has already been
+    provisioned at `/run/user/1000/tool-token`, and `do_thing --token-file PATH` reads it.
+    Tracing must be disabled before the credential enters scope. Return every shell-safety field.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match: ['(?m)^Result:\s*REWRITE\s*$', '(?m)^Matched patterns:\s*SM7/SE6 \(Command construction\)\s*$', '(?mi)^Assessment:(?=[^\n]*(trace|set -x))(?=[^\n]*(token|secret))(?=[^\n]*(argv|command line))(?=[^\n]*rewrite)[^\n]*$', '(?m)^Command:\s*set \+x; do_thing --token-file /run/user/1000/tool-token\s*$', '(?mi)^Required checks:(?=[^\n]*(disable|off).*(trace|tracing))(?=[^\n]*(credential file|protected file))(?=[^\n]*(owner|permission|lifecycle))[^^\n]*$']
+      not_contains: ['Result: SAFE', '--token=$TOKEN', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config: {prompt: 'Grade whether SM7/SE6 disables tracing before secret use and replaces token argv with a protected credential-file interface. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}

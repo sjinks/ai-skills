@@ -1,0 +1,69 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-016
+name: Legacy or unknown sh cannot assume pipefail
+description: |
+  A shell targeting older POSIX and dash must not assume POSIX.1-2024 pipefail.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    This script must remain portable to POSIX.1-2017 `/bin/sh` and dash; no
+    POSIX.1-2024 capability check has been performed:
+
+    ```sh
+    set -e
+    produce | consume
+    ```
+
+    Failure in either command must be detected, but no non-pipeline flow has
+    been designed yet. Return every shell-safety output field.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config:
+      skill_path: skills/shell-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-safety
+      mode: any_order
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match:
+        - '(?mi)^Result:\s*BLOCKED\s*$'
+        - '(?m)^Matched patterns:\s*CS6 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*(POSIX.1-2017|dash|older|unknown))(?=[^\n]*[^\n]*[^\n]*(pipefail|pipeline|capability))[^\n]*$'
+        - '(?m)^Command:\s*Not provided\s*$'
+        - '(?ims)^Required checks:(?=(?:(?!^[A-Z][A-Za-z ]*:).)*(non.pipeline|status|flow|shell|version|capability))(?:(?!^[A-Z][A-Za-z ]*:).)*(?=^[A-Z][A-Za-z ]*:|\Z)'
+      regex_not_match:
+        - '(?im)^(?:Assessment:|[ \t]*(?:[-*][ \t]+)?)[^\n]*(?:try|first|instead|enable|run|use|execute|recommend(?![ \t]+against)|should(?![ \t]+not)|must(?![ \t]+not))[^\n]*(?:set -o pipefail|set -euo pipefail)'
+      not_contains:
+        - "Command: set -o pipefail"
+        - "Command: set -euo pipefail"
+        - "Verdict:"
+        - "Checklist status:"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response blocks assuming pipefail for the stated
+        POSIX.1-2017/dash target and does not recommend `set -o pipefail` or
+        `set -euo pipefail` anywhere as a compatible solution. It must require
+        an explicitly designed non-pipeline status flow or a different verified
+        interpreter/capability.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = unsupported pipefail is never recommended and a valid path is given.
+        0.5 = command is blocked but the replacement path is incomplete.
+        0.0 = pipefail is recommended for dash/POSIX.1-2017 or review is omitted.
+      mode: independent

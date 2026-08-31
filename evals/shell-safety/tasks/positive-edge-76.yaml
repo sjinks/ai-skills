@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-076
+name: Backslash newline is removed before tokenization
+description: |
+  A continued shell word does not retain a literal newline.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    Validate this exact POSIX shell command before I run it:
+
+    ```sh
+    printf '%s\n' foo\
+    bar
+    ```
+
+    Return every shell-safety output field and state the resulting argument.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config:
+      skill_path: skills/shell-safety/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-safety
+      mode: any_order
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match:
+        - '(?mi)^Result:\s*SAFE\s*$'
+        - '(?m)^Matched patterns:\s*None\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*backslash.newline[^\n]*(removed|continuation)[^\n]*(before token|foobar)[^\n]*)[^\n]*$'
+        - '(?m)^Command:\s*printf ''%s\\n'' foobar\s*$'
+        - '(?m)^Required checks:\s*None\s*$'
+      regex_not_match:
+        - '(?m)^Command:[^\n]*printf ''%s\\n''[ \t]+foo[ \t]+bar[^\n]*$'
+      not_contains:
+        - 'Verdict:'
+        - 'Checklist status:'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response removes the backslash-newline pair before
+        tokenization and identifies one `foobar` argument rather than a newline
+        or two arguments.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the last line, write only: 1.0, 0.5, or 0.0
+
+        1.0 = continuation removal and the foobar argument are exact.
+        0.5 = continuation is recognized but normalized command is incomplete.
+        0.0 = a newline or argument boundary is preserved.
+      mode: independent

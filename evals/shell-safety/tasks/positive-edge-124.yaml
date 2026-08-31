@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-124
+name: Multi-argument substitution becomes positional argv
+description: |
+  Caller-supplied boundaries permit a POSIX structured-argv CS2 rewrite.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Rewrite `printf '<%s>\n' $(producer)` for POSIX `sh`. The caller supplies
+    the exact intended argv entries as `a b` and `c`; pathname expansion is not
+    intended. I explicitly confirm that these bound values replace producer
+    execution and that `producer` has no required execution or side effects.
+    Preserve the output command and use a subshell-scoped positional vector so
+    existing positional parameters survive. Return every shell-safety field.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match:
+        - '(?m)^Result:\s*REWRITE\s*$'
+        - '(?m)^Matched patterns:\s*CS2 \(Command construction\)\s*$'
+        - '(?mi)^Assessment:(?=[^\n]*[^\n]*[^\n]*[^\n]*(two|multiple)[^\n]*(argv|argument|boundar)[^\n]*(positional|structured)[^\n]*)[^\n]*$'
+        - '(?m)^Command:\s*\( set -- ''a b'' c; printf ''<%s>\\n'' "\$@" \)\s*$'
+        - '(?m)^Required checks:\s*None\s*$'
+      not_contains: ['Command: printf ''<%s>\n'' $(producer)', 'Result: BLOCKED', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the explicitly approved replacement of side-effect-free
+        producer execution preserves the exact two caller-supplied argv entries
+        through a subshell-scoped POSIX positional vector and `"$@"`. Last line:
+        1.0, 0.5, or 0.0 only.
+      mode: independent

@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-163
+name: POSIX sh script replaces Bash conditional
+description: SM3 removes a Bash-only construct without changing interpreter.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Review this `/bin/sh` script line: `if [[ -f "$file" ]]; then echo found; fi`.
+    Preserve the same regular-file test and output. Return every shell-safety field.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match: ['(?m)^Result:\s*REWRITE\s*$', '(?m)^Matched patterns:\s*SM3 \(Command construction\)\s*$', '(?mi)^Assessment:(?=[^\n]*(/bin/sh|POSIX))(?=[^\n]*(Bash|\[\[))(?=[^\n]*rewrite)[^\n]*$', '(?ms)^Command: \|\n  #!/bin/sh\n  if \[ -f "\$file" \]; then echo found; fi\s*$', '(?mi)^Required checks:(?=[^\n]*(interpreter|/bin/sh))(?=[^\n]*(regular.file|test))[^^\n]*$']
+      not_contains: ['Result: SAFE', '[[ -f', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config: {prompt: 'Grade whether SM3 retains /bin/sh and replaces Bash [[ ]] with the POSIX [ -f test while preserving behavior. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}
