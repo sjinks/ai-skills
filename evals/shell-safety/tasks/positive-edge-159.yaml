@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-159
+name: Literal heredoc data requires quoted delimiter
+description: HD2 prevents variable and substitution expansion.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Review `cat <<EOF` with body `literal $var and $(cmd)` and closing `EOF`. Both dollar
+    expressions must remain literal text. Return every shell-safety field.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match: ['(?m)^Result:\s*REWRITE\s*$', '(?m)^Matched patterns:\s*HD2 \(Command construction\)\s*$', '(?mi)^Assessment:(?=[^\n]*(unquoted|delimiter))(?=[^\n]*(variable|substitution|expand))(?=[^\n]*rewrite)[^\n]*$', '(?ms)^Command: \|\n  cat <<''EOF''\n  literal \$var and \$\(cmd\)\n  EOF\s*$', '(?mi)^Required checks:(?=[^\n]*(literal|no expansion))(?=[^\n]*(body|content))[^^\n]*$']
+      not_contains: ['Result: SAFE', 'Command: cat <<EOF', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config: {prompt: 'Grade whether HD2 quotes the heredoc delimiter so both variable and command-substitution syntax remain literal body text. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}

@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-161
+name: Confirmed combined log routing fixes redirection order
+description: OR2 changes routing only when both streams are intended for the log.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Review `build 2>&1 > build.log`. I confirm both stdout and stderr must go to
+    `build.log`. Return every shell-safety field.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match: ['(?m)^Result:\s*REWRITE\s*$', '(?m)^Matched patterns:\s*OR2 \(Command construction\)\s*$', '(?mi)^Assessment:(?=[^\n]*(stderr|both streams))(?=[^\n]*(original stdout|routing|order))(?=[^\n]*rewrite)[^\n]*$', '(?m)^Command:\s*build > build\.log 2>&1\s*$', '(?mi)^Required checks:(?=[^\n]*(confirm|confirmed))(?=[^\n]*(both|stdout.*stderr))[^^\n]*$']
+      not_contains: ['Result: SAFE', 'Command: build 2>&1 > build.log', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config: {prompt: 'Grade whether OR2 reverses the redirections only because both streams are confirmed to belong in build.log. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}

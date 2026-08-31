@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-148
+name: Commit substitution requires literal reviewed message
+description: GC3 must not let Git reopen substituted content.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Review `git commit -m "Fix: $(cat issue.txt)"`. The resolved and reviewed issue text is
+    exactly `Fix: reject empty trailers`; it has no trailing newline. Return every shell-safety field.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match: ['(?m)^Result:\s*REWRITE\s*$', '(?m)^Matched patterns:\s*GC3 \(Command construction\)\s*$', '(?mi)^Assessment:(?=[^\n]*(substitution|issue\.txt))(?=[^\n]*(newline|special|malformed))(?=[^\n]*rewrite)[^\n]*$', '(?ms)^Command: \|\n  git commit --cleanup=verbatim -F - <<''EOF''\n  Fix: reject empty trailers\n  EOF\s*$', '(?mi)^Required checks:(?=[^\n]*(resolve|review))(?=[^\n]*(literal|exact bytes))(?=[^\n]*(pathname|reopen))[^^\n]*$']
+      not_contains: ['$(cat issue.txt)', 'Result: SAFE', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config: {prompt: 'Grade whether GC3 resolves the substitution, reviews literal content, and uses a quoted stdin heredoc without reopening issue.txt. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}

@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-171
+name: Stable English local date pins C locale
+description: EN5 retains local time and format rather than changing to UTC.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Review `date +'%B %d'`. I require stable English month names while preserving the original
+    local-time format; UTC ISO output is not wanted. Return every shell-safety field.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match: ['(?m)^Result:\s*REWRITE\s*$', '(?m)^Matched patterns:\s*EN5 \(Command construction\)\s*$', '(?mi)^Assessment:(?=[^\n]*(locale|localized))(?=[^\n]*(English|month))(?=[^\n]*(local.time|local time))(?=[^\n]*rewrite)[^\n]*$', '(?m)^Command:\s*LC_ALL=C date ''\+%B %d''\s*$', '(?mi)^Required checks:(?=[^\n]*(English|language))(?=[^\n]*(local.time|local time))(?=[^\n]*(format|month))[^^\n]*$']
+      not_contains: ['Result: SAFE', 'date -u', 'Result: BLOCKED', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config: {prompt: 'Grade whether EN5 chooses LC_ALL=C for stable English local-time month output and does not substitute UTC ISO format. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}

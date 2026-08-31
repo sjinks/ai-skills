@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-168
+name: CRLF conversion requires a reviewed private transform
+description: EN1 converts only verified CRLF text before atomic replacement.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Review `script.sh`, verified as CRLF text with no intentional carriage returns. A runtime-created
+    private temporary file is bound as `$temporary_file`; the later atomic replacement follows the
+    filesystem policy. Return every shell-safety field for `tr -d '\r' < script.sh > "$temporary_file"`.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match: ['(?m)^Result:\s*REWRITE\s*$', '(?m)^Matched patterns:\s*EN1 \(Command construction\)\s*$', '(?mi)^Assessment:(?=[^\n]*(CRLF|carriage return))(?=[^\n]*(shebang|script|corrupt))(?=[^\n]*rewrite)[^\n]*$', '(?m)^Command:\s*tr -d ''\\r'' < script\.sh > "\$temporary_file"\s*$', '(?mi)^Required checks:(?=[^\n]*(verify|verified).*(CRLF|carriage return))(?=[^\n]*(private temporary|temporary file))(?=[^\n]*(review|atomic))[^^\n]*$']
+      not_contains: ['Result: SAFE', 'dos2unix', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config: {prompt: 'Grade whether EN1 verifies CRLF and no intentional carriage returns, transforms into the bound private temporary file, and requires review plus atomic policy replacement. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}

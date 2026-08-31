@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-160
+name: Echo escape interpretation is replaced by printf
+description: HD4 avoids nonportable echo -e.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Review `echo -e "a\nb"`. The intended output is two lines, `a` then `b`.
+    Return every shell-safety field.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match: ['(?m)^Result:\s*REWRITE\s*$', '(?m)^Matched patterns:\s*HD4 \(Command construction\)\s*$', '(?mi)^Assessment:(?=[^\n]*echo -e)(?=[^\n]*(non.portable|portability))(?=[^\n]*rewrite)[^\n]*$', '(?m)^Command:\s*printf ''a\\nb\\n''\s*$', '(?mi)^Required checks:(?=[^\n]*(two lines|intended output))(?=[^\n]*(confirm|review))[^^\n]*$']
+      not_contains: ['Result: SAFE', 'Command: echo -e', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config: {prompt: 'Grade whether HD4 replaces nonportable echo -e with printf that emits exactly a, newline, b, newline. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}

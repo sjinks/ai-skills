@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-167
+name: Interactive authorization avoids visible interpolation
+description: SE4 uses the protected credential-file pattern.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Review interactive `curl -H "Authorization: Bearer $TOKEN" https://api.example.test/v1`.
+    The protected owner-readable credential file `/run/user/1000/api-header` is lifecycle-managed,
+    and curl can use it through `-K`. Return every shell-safety field.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match: ['(?m)^Result:\s*REWRITE\s*$', '(?m)^Matched patterns:\s*SE4 \(Command construction\)\s*$', '(?mi)^Assessment:(?=[^\n]*(interactive|command context|trace))(?=[^\n]*(authorization|token|authentication))(?=[^\n]*rewrite)[^\n]*$', '(?m)^Command:\s*curl -K /run/user/1000/api-header https://api\.example\.test/v1\s*$', '(?mi)^Required checks:(?=[^\n]*(protected|owner.readable))(?=[^\n]*(lifecycle|manage))(?=[^\n]*(no.*interpolat|no secret.*display))[^^\n]*$']
+      not_contains: ['Result: SAFE', 'Bearer $TOKEN', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config: {prompt: 'Grade whether SE4 removes interactive authorization interpolation by using the supplied protected credential-file interface without displaying the secret. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}

@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-152
+name: Single quote commit subject needs heredoc
+description: GC7 handles apostrophes without invalid single-quote escaping.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Review `git commit -m 'it\'s broken'`. The intended literal subject is exactly `it's broken`.
+    Return every shell-safety field.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match: ['(?m)^Result:\s*REWRITE\s*$', '(?m)^Matched patterns:\s*GC7 \(Command construction\)\s*$', '(?mi)^Assessment:(?=[^\n]*(apostrophe|single quote))(?=[^\n]*(backslash|escape))(?=[^\n]*rewrite)[^\n]*$', '(?ms)^Command: \|\n  git commit --cleanup=verbatim -F - <<''EOF''\n  it''s broken\n  EOF\s*$', '(?mi)^Required checks:(?=[^\n]*(literal subject|exact literal))(?=[^\n]*review)[^\n]*$']
+      not_contains: ['Result: SAFE', 'Command: git commit -m', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config: {prompt: 'Grade whether GC7 explains that single quotes do not allow backslash escaping and uses a literal quoted heredoc. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}

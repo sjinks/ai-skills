@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-149
+name: Commit title variable needs line-boundary review
+description: GC4 rewrites a variable-backed commit title.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Review `git commit -m "Fix: $TITLE"`. `TITLE` has been resolved and reviewed as the
+    literal one-line text `Fix: avoid duplicate export`. Return every shell-safety field.
+expected: {should_trigger: true}
+graders:
+  - type: trigger
+    name: positive_trigger_accuracy
+    config: {skill_path: skills/shell-safety/SKILL.md, mode: positive, threshold: 0.45}
+  - type: skill_invocation
+    name: skill_invocation
+    config: {required_skills: [shell-safety], mode: any_order}
+  - type: text
+    name: positive_task_completion
+    config:
+      regex_match: ['(?m)^Result:\s*REWRITE\s*$', '(?m)^Matched patterns:\s*GC4 \(Command construction\)\s*$', '(?mi)^Assessment:(?=[^\n]*(variable|TITLE))(?=[^\n]*(newline|line boundar|ambiguous))(?=[^\n]*rewrite)[^\n]*$', '(?ms)^Command: \|\n  git commit --cleanup=verbatim -F - <<''EOF''\n  Fix: avoid duplicate export\n  EOF\s*$', '(?mi)^Required checks:(?=[^\n]*(resolve|restate))(?=[^\n]*(line boundar|literal))(?=[^\n]*review)[^\n]*$']
+      not_contains: ['$TITLE', 'Result: SAFE', 'Verdict:', 'Checklist status:']
+  - type: prompt
+    name: task_completion_substance
+    config: {prompt: 'Grade whether GC4 preserves the reviewed TITLE line boundaries by placing literal text in a quoted commit-message heredoc. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}
