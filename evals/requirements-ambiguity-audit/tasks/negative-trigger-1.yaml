@@ -24,6 +24,6 @@ graders:
         - "Verdict: CONCERNS"
         - "Verdict: CLEAN"
         - "Requirements Ambiguity Report"
-        - "vague-quantifier"
+        - "| vague-quantifier |"
         - "Proposed rewrite:"
-        - "conflicting-requirements"
+        - "| conflicting-requirements |"

@@ -16,10 +16,16 @@ inputs:
     Requirements:
     - R1: Sessions expire after the idle timeout.
     - R2: The implementation may choose any cache eviction strategy.
-    - R3: Notifications are sent promptly after the event.
+    - R3: The notification service emails the account owner promptly
+      after session expiry.
 
     Glossary:
+    - session: the server-side login state created when a user signs in.
     - idle timeout: 30 minutes without an authenticated request.
+    - session expiry: the instant a session's idle timeout elapses.
+    - account owner: the email address on the account profile.
+    - notification service: the internal notifications-api component
+      that sends account emails.
 expected:
   should_trigger: true
 graders:
@@ -42,6 +48,7 @@ graders:
         - '(?i)Requirements Ambiguity Report'
         - '(?i)Verdict:\s*(CONCERNS|BLOCK)'
         - '(?is)(vague-quantifier.*Readings:|untestable-wording.*Untestable because:)'
+        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*(vague-quantifier|untestable-wording)[`*_]*\s*\|\s*[`*_]*(blocker|should-fix|suggestion)[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
         - '(?i)promptly'
         - '(?i)Quote:'
         - '(?i)Proposed rewrite:'

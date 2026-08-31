@@ -40,7 +40,7 @@ graders:
       regex_match:
         - '(?i)Requirements Ambiguity Report'
         - '(?i)Verdict:\s*BLOCK'
-        - '(?i)conflicting-requirements'
+        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*conflicting-requirements[`*_]*\s*\|\s*[`*_]*(blocker|should-fix|suggestion)[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
         - '(?i)blocker'
         - '(?i)Quote:'
         - '(?i)Conflict:'

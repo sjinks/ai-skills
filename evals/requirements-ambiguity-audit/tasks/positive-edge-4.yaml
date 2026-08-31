@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-004
+name: Missing actor and ambiguous reference are found
+description: |
+  A requirement set containing an agentless passive requirement and a
+  pronoun with two plausible referents must yield missing-actor and
+  ambiguous-reference findings as table rows with readings and
+  rewrites.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Audit these requirements for ambiguity before we estimate the work:
+
+    Requirements:
+    - R1: Deactivated accounts are deleted 90 days after deactivation.
+    - R2: The gateway forwards each alert to the primary endpoint and
+      the fallback endpoint; if it is unavailable, the alert is queued
+      for retry.
+    - R3: The scheduler runs the cleanup job every day at 02:00 UTC.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/requirements-ambiguity-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - requirements-ambiguity-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Requirements Ambiguity Report'
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS)'
+        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*missing-actor[`*_]*\s*\|\s*[`*_]*(blocker|should-fix|suggestion)[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
+        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*ambiguous-reference[`*_]*\s*\|\s*[`*_]*(blocker|should-fix|suggestion)[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
+        - '(?i)Quote:'
+        - '(?i)Readings:'
+        - '(?i)Proposed rewrite:'
+      not_contains:
+        - "Finding Quality Report"
+        - "Verdict: CLEAN"
