@@ -42,7 +42,10 @@ graders:
         - '(?i)Verdict:\s*BLOCK'
         - '(?i)conflicting-requirements'
         - '(?i)blocker'
-        - '(?is)R1.{0,600}R2'
+        - '(?i)Quote:'
+        - '(?i)Conflict:'
+        - '(?i)Proposed rewrite:'
+        - '(?is)(R1.{0,600}R2|R2.{0,600}R1)'
       not_contains:
         - "Finding Quality Report"
         - "Scope Slice Plan"

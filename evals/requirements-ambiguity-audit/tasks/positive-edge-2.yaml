@@ -38,3 +38,8 @@ graders:
       not_contains:
         - "Readings:"
         - "Proposed rewrite:"
+        - "Quote:"
+        - "Conflict:"
+        - "Missing:"
+        - "Untestable because:"
+        - "| # | Class | Severity | Location |"

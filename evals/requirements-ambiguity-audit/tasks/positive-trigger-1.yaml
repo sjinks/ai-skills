@@ -43,10 +43,14 @@ graders:
     config:
       regex_match:
         - '(?i)Requirements Ambiguity Report'
-        - '(?i)Verdict:\s*(BLOCK|CONCERNS|CLEAN)'
+        - '(?i)Verdict:\s*(BLOCK|CONCERNS)'
         - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Severity\s*\|\s*Location\s*\|'
-        - '(?i)(vague-quantifier|placeholder|untestable-wording|unspecified-path)'
-        - '(?i)Proposed rewrite'
+        - '(?i)(vague-quantifier|untestable-wording|unspecified-path)'
+        - '(?i)placeholder'
+        - '(?i)Missing:'
+        - '(?i)Quote:'
+        - '(?i)Readings:'
+        - '(?i)Proposed rewrite:'
         - '(?i)(quickly|TBD|appropriately|common file formats)'
       not_contains:
         - "Finding Quality Report"

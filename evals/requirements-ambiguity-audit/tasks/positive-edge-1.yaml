@@ -41,7 +41,10 @@ graders:
       regex_match:
         - '(?i)Requirements Ambiguity Report'
         - '(?i)Verdict:\s*(CONCERNS|BLOCK)'
-        - '(?i)vague-quantifier'
+        - '(?is)(vague-quantifier.*Readings:|untestable-wording.*Untestable because:)'
         - '(?i)promptly'
+        - '(?i)Quote:'
+        - '(?i)Proposed rewrite:'
       not_contains:
+        - "| undefined-term |"
         - "Finding Quality Report"

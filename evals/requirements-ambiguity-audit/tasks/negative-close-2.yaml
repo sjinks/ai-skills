@@ -33,5 +33,6 @@ graders:
         - "Verdict: CONCERNS"
         - "Verdict: CLEAN"
         - "Requirements Ambiguity Report"
+        - "vague-quantifier"
         - "conflicting-requirements"
         - "unspecified-path"
