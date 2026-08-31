@@ -213,7 +213,7 @@ Safe replacement: Apply SS1 checks before the exact operation.
 Example: Edit a unit then `systemctl restart foo`.
 Risk: systemd uses its cached unit.
 Decision gate: Rewrite.
-Safe replacement: `sudo systemctl daemon-reload` then `sudo systemctl restart foo`.
+Safe replacement: Run `systemctl daemon-reload` and then `systemctl restart foo` in the current authorized privilege context. Add `sudo --` only when escalation is actually required, after separately classifying and confirming PE1; do not introduce escalation for an already-authorized root context.
 ### SS4 - Host shutdown or reboot
 Example: `shutdown now`
 Risk: Host downtime and remote disconnection.

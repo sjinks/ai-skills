@@ -210,6 +210,8 @@ Safe replacement: Edit the manifest in Git and reapply it.
 
 ## Database CLIs
 
+For every emitted `psql` command, use `-X` to suppress startup files and `-P pager=off` to prevent pager execution. Preserve those controls for DB1, DB4, DB9, and any other PostgreSQL command unless an equivalently reviewed and isolated client startup path is explicitly bound.
+
 ### DB1 - DROP database or table
 Example: `psql -c "DROP TABLE users;"`
 Risk: Schema and data loss.
@@ -233,7 +235,7 @@ Example: `psql postgres://user:secret@host/db`
 Risk: Password leaks through history and process listings.
 Decision gate: Rewrite.
 Subsumes: `SE3` for the password-in-argv hazard because DB4 preserves the one-time database connection while applying the same no-secret-argv requirement.
-Safe replacement: For the original one-time connection, remove the password from the URI and force an interactive prompt without persisting it, for example `psql -W 'host=host dbname=db user=user'`; preserve the caller's host, port, database, user, TLS, and other options. Use an existing approved `.pgpass` or credential helper only after verifying it without reading the secret. Create or modify persistent credential state only when the caller explicitly requests storage, after separately classifying its destination, replacement behavior, ownership, permissions, and lifecycle.
+Safe replacement: For the original one-time connection, remove the password from the URI and force an interactive prompt without persisting it, for example `psql -X -P pager=off -W 'host=host dbname=db user=user'`; preserve the caller's host, port, database, user, TLS, and other options. Use an existing approved `.pgpass` or credential helper only after verifying it without reading the secret. Create or modify persistent credential state only when the caller explicitly requests storage, after separately classifying its destination, replacement behavior, ownership, permissions, and lifecycle.
 
 ### DB5 - MySQL argv password
 Example: `mysql -uuser -psecret`
@@ -270,7 +272,7 @@ Safe replacement: Take a backup first.
 Example: `psql $DATABASE_URL` where it points at production.
 Risk: Silent cross-environment mutation.
 Decision gate: Verify target.
-Safe replacement: `psql 'host=host dbname=db user=user' -c 'SELECT current_database(), inet_server_addr();'`.
+Safe replacement: `psql -X -P pager=off 'host=host dbname=db user=user' -c 'SELECT current_database(), inet_server_addr();'`.
 
 ### DB10 - pg_restore clean on the wrong target
 Example: `pg_restore --clean -d prod backup.dump`
