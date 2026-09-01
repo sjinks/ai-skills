@@ -97,11 +97,15 @@ def complete_report(profile, overrides=None, sections=None, depth="standard"):
 def reduced_report(profile, quick=False):
     if profile == "positive-edge-003":
         finding = (
-            "Security review found DELETE /teams/{teamId} checks organization membership "
-            "but not tenant ownership."
+            "Security review found a missing tenant ownership check: DELETE /teams/{teamId} "
+            "checks organization membership only."
         )
         scope = "missing"
         blocker = "Provide the Locked audit scope."
+    elif profile == "positive-edge-011":
+        finding = "missing"
+        scope = "missing"
+        blocker = "Provide the Triggering finding."
     else:
         finding = "missing"
         scope = "src/pagination.ts and tests/pagination.test.ts"
@@ -130,6 +134,8 @@ def profile_report(profile):
         return reduced_report(profile)
     if profile == "positive-edge-006":
         return reduced_report(profile, quick=True)
+    if profile == "positive-edge-011":
+        return reduced_report(profile)
     if profile == "positive-edge-001":
         overrides = {
             "Opposite Bound": ("timeoutSeconds bound", "present", "fix-now", "config/healthcheck.yml"),
@@ -186,8 +192,8 @@ def profile_report(profile):
             "Opposite Bound": ("minItems zero bound", "present", "fix-now", "src/pagination.ts"),
             "Sibling Parameter/Field": ("maxItems sibling", "absent", "n/a", "src/pagination.ts"),
             "Mirror Call Site/Use Site": [
-                ("synchronous validator", "present", "fix-now", "src/pagination.ts"),
-                ("asynchronous validator", "present", "fix-now", "src/batch-pagination.ts"),
+                ("sync validator", "present", "fix-now", "src/pagination.ts"),
+                ("async validator", "present", "fix-now", "src/batch-pagination.ts"),
             ],
             "Async/Sync or Mode Twin": ("async validator mode", "present", "fix-now", "src/batch-pagination.ts"),
             "Test Mirror": [
@@ -222,7 +228,10 @@ def profile_report(profile):
             "Documentation/Spec Prose Twin": (docs, "present", "defer-with-owner", "docs/api.md"),
         }, report_sections(
             fix=["Fix maxRetries zero bound."],
-            deferred=[f"Defer {docs}; owner: Platform Docs; reason: public API reference"],
+            deferred=[
+                f"Do not fix this now; defer {docs}; owner: Platform Docs; "
+                "reason: documentation is owned outside this change"
+            ],
             implications=[f"Track {docs}."],
         ))
     if profile == "positive-edge-010":
@@ -266,20 +275,56 @@ def profile_report(profile):
     ))
 
 
-INVALID_REPLACEMENTS = {
-    "positive-edge-001": ("timeoutSeconds", "intervalSeconds"),
-    "positive-edge-002": ("organization membership", "account membership"),
-    "positive-edge-003": ("tenant ownership", "tenant metadata"),
-    "positive-edge-004": ("maxItems", "pageSize"),
-    "positive-edge-005": ("maxRetries", "attempts"),
-    "positive-edge-006": ("src/pagination.ts", "src/other.ts"),
-    "positive-edge-007": ("minItems", "lowerBound"),
-    "positive-edge-008": ("maxRetries", "attempts"),
-    "positive-edge-009": ("maxRetries", "attempts"),
-    "positive-edge-010": ("minItems", "lowerBound"),
-    "positive-trigger-001": ("INC-17", "INC-99"),
-    "positive-trigger-002": ("can_export", "can_read"),
+BEHAVIOR_MUTATIONS = {
+    "positive-edge-001": (
+        "timeoutSeconds bound | present | fix-now",
+        "timeoutSeconds bound | absent | n/a",
+    ),
+    "positive-edge-002": (
+        "blocked — clarification needed | blocked",
+        "absent | n/a",
+    ),
+    "positive-edge-003": ("Provide the Locked audit scope.", "Provide the Triggering finding."),
+    "positive-edge-004": (
+        "maxItems zero sentinel | present | fix-now",
+        "maxItems zero sentinel | absent | n/a",
+    ),
+    "positive-edge-005": (
+        "docs/operations.md documentation defect | present | blocked",
+        "docs/operations.md documentation defect | absent | n/a",
+    ),
+    "positive-edge-006": (
+        "Required input is missing, so no axes were enumerated.",
+        "Audit postponed.",
+    ),
+    "positive-edge-007": (
+        "| Mirror Call Site/Use Site | async validator |",
+        "| Mirror Call Site/Use Site | worker validator |",
+    ),
+    "positive-edge-008": (
+        "docs/operations.md documentation defect | present | blocked",
+        "docs/other.md documentation defect | present | blocked",
+    ),
+    "positive-edge-009": ("owner: Platform Docs", "owner: Platform Writers"),
+    "positive-edge-010": (
+        "Opposite Bound candidate | absent | n/a",
+        "Opposite Bound candidate | present | fix-now",
+    ),
+    "positive-edge-011": ("Provide the Triggering finding.", "Provide the Locked audit scope."),
+    "positive-trigger-001": ("null retry test | present | fix-now", "sentinel test | present | fix-now"),
+    "positive-trigger-002": (
+        "policies/project_permissions.rego can_export",
+        "policies/project_permissions.rego permission",
+    ),
 }
+
+
+def behavior_invalid_report(profile):
+    report = profile_report(profile)
+    old, new = BEHAVIOR_MUTATIONS[profile]
+    if old not in report:
+        raise AssertionError(f"missing behavior mutation anchor for {profile}: {old}")
+    return report.replace(old, new, 1)
 
 
 def run_main(report, profile):
@@ -428,6 +473,19 @@ class MetadataTests(unittest.TestCase):
                 self.assertTrue(CHECK_REPORT.non_populated_metadata(value, field))
 
 
+class HeaderMarkerTests(unittest.TestCase):
+    def test_missing_header_marker_accepts_only_complete_declarations(self):
+        for value in ("missing", "Triggering finding is required.", "scope is not provided"):
+            with self.subTest(value=value):
+                self.assertTrue(CHECK_REPORT.missing_header_marker(value))
+
+        for value in (
+            "Triggering finding is required input: INC-17 maxRetries accepts zero",
+            "security review found a missing tenant ownership check",
+        ):
+            with self.subTest(value=value):
+                self.assertFalse(CHECK_REPORT.missing_header_marker(value))
+
 class CheckerIntegrationTests(unittest.TestCase):
     def test_every_profile_accepts_a_valid_json_envelope(self):
         for profile in sorted(CHECK_REPORT.PROFILES):
@@ -436,8 +494,7 @@ class CheckerIntegrationTests(unittest.TestCase):
 
     def test_every_profile_rejects_a_profile_specific_invalid_envelope(self):
         for profile in sorted(CHECK_REPORT.PROFILES):
-            old, new = INVALID_REPLACEMENTS[profile]
-            invalid = profile_report(profile).replace(old, new, 1)
+            invalid = behavior_invalid_report(profile)
             with self.subTest(profile=profile):
                 with contextlib.redirect_stderr(io.StringIO()):
                     with self.assertRaises(SystemExit):
@@ -452,8 +509,8 @@ class CheckerIntegrationTests(unittest.TestCase):
             ),
             (
                 "positive-edge-009",
-                "reason: public API reference",
-                "reason: public API reference (TBD)",
+                "reason: documentation is owned outside this change",
+                "reason: documentation is owned outside this change (TBD)",
             ),
             (
                 "positive-edge-002",
@@ -467,6 +524,39 @@ class CheckerIntegrationTests(unittest.TestCase):
                 with contextlib.redirect_stderr(io.StringIO()):
                     with self.assertRaises(SystemExit):
                         run_main(invalid, profile)
+
+    def test_generic_filename_extensions_are_valid_evidence(self):
+        for filename in (
+            "`project_permissions.rego`", "`main.cpp`", "`lib.rs`",
+            "`.env`", "`BUILD`", "`WORKSPACE`",
+        ):
+            report = profile_report("positive-edge-010").replace(
+                "tests/example.md", filename, 1
+            )
+            with self.subTest(filename=filename):
+                run_main(report, "positive-edge-010")
+
+    def test_dotted_status_prose_is_not_an_artifact_citation(self):
+        invalid = profile_report("positive-edge-010").replace(
+            "tests/example.md", "candidate.present", 1
+        )
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-010")
+
+    def test_full_sync_and_async_words_pass_every_mode_branch(self):
+        report = profile_report("positive-edge-007")
+        report = report.replace("async validator", "asynchronous validator")
+        report = report.replace("sync validator", "synchronous validator")
+        run_main(report, "positive-edge-007")
+
+    def test_negated_deferral_is_rejected(self):
+        invalid = profile_report("positive-edge-009").replace(
+            "Do not fix this now; defer", "Do not defer", 1
+        )
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-009")
 
     def test_authorization_profile_requires_policy_spec_in_blocker(self):
         invalid = profile_report("positive-edge-002").replace("policy spec", "policy", 1)

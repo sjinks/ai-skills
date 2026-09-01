@@ -22,7 +22,7 @@ Do not use for greenfield work, broad initial review, formatting-only changes, i
 ## Procedure
 
 1. Select `quick`, `standard` (default), or `exhaustive`; always emit one `Output depth:` value.
-2. Require a triggering finding and locked audit scope. If either is missing, do not enumerate or invent candidates; return the reduced report without a table and put the smallest missing input under `### Blocking questions`. Missing required input suppresses the table, not depth-specific sections: preserve an explicitly requested depth and append `Omitted axes` for `quick`.
+2. Require a triggering finding and locked audit scope. If either is missing, do not enumerate or invent candidates; return the reduced report without a table and request exactly one missing input under `### Blocking questions`. Request the triggering finding first when both are missing; otherwise request the missing scope. Missing required input suppresses the table, not depth-specific sections: preserve an explicitly requested depth and append `Omitted axes` for `quick`.
 3. Enumerate candidates in scope using the catalogue below. Record other critical unknowns as Presence `blocked — clarification needed` and Disposition `blocked`.
 4. Mark present defects `fix-now` by default. Use `defer-with-owner` only for an explicit deferral with a named owner/team and reason. If a required deferral lacks either, use `blocked`.
 
@@ -85,11 +85,11 @@ Output depth: <quick | standard | exhaustive; select exactly one>
 ### Out-of-scope candidates discovered
 - None
 ### Blocking questions
-- <smallest missing required input>
+- <triggering finding when both inputs are missing; otherwise the one missing input>
 ### Test/doc implications
 - None
 ```
 
 For either form, when `Output depth: quick`, append `### Omitted axes (quick mode only)` and summarize why axes were not expanded. In a reduced report, state that required input is missing and no axes were enumerated. Omit this section for `standard` and `exhaustive`.
 
-Table cell spacing may vary. Escape a literal pipe inside a cell as `\|`. The header uses the five canonical labels above, and each separator cell consists only of three or more hyphens; alignment colons are not allowed.
+Table cell spacing may vary. Escape a literal pipe inside a cell as `\|`. In Evidence, paths containing `/` may be plain text; wrap standalone basenames, dotfiles, and extensionless filenames in backticks so they are unambiguous artifact citations. The header uses the five canonical labels above, and each separator cell consists only of three or more hyphens; alignment colons are not allowed.

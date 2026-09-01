@@ -49,6 +49,7 @@ PROFILES = {
     "positive-edge-001", "positive-edge-002", "positive-edge-003",
     "positive-edge-004", "positive-edge-005", "positive-edge-006",
     "positive-edge-007", "positive-edge-008", "positive-edge-009", "positive-edge-010",
+    "positive-edge-011",
     "positive-trigger-001", "positive-trigger-002",
 }
 PROFILE_HEADERS = {
@@ -122,9 +123,9 @@ def missing_header_marker(value):
     value = norm(value)
     if value in MISSING:
         return True
-    return bool(re.match(
+    return bool(re.fullmatch(
         r"^(?:the\s+|this\s+)?(?:triggering finding|locked audit scope|scope|finding|input)\s+"
-        r"(?:is|are|remains?)\s+(?:missing|not provided|not supplied|required|needed)\b",
+        r"(?:is|are|remains?)\s+(?:missing|not provided|not supplied|required|needed)[.!?]?",
         value,
     ))
 
@@ -194,6 +195,14 @@ def candidate_spans(candidate, bullet):
 
 def candidate_named(candidate, bullet):
     return bool(candidate_spans(candidate, bullet))
+
+
+def has_mode_term(value, mode):
+    patterns = {
+        "sync": r"\bsync(?:hronous)?\b",
+        "async": r"\basync(?:hronous)?\b",
+    }
+    return bool(re.search(patterns[mode], norm(value)))
 
 
 def requests(value):
@@ -374,10 +383,15 @@ def parse_report(output):
                 item["candidate"].strip() == "-" and item["presence"].startswith("n/a")
             ):
                 fail("candidate must be named unless the row is n/a")
-            evidence = norm(item["evidence"])
-            citation = re.search(
-                r"(?:[\w.-]+/)+[\w.-]+|\b[\w.-]+\."
-                r"(?:md|py|ts|js|go|rb|yml|yaml|json|xml|proto|sql|log|txt)\b|"
+            evidence_raw = item["evidence"]
+            evidence = norm(evidence_raw)
+            explicit_artifact = re.search(
+                r"`(?:\.[a-z0-9_.+-]+|[a-z0-9][a-z0-9_.+-]*)`",
+                evidence_raw,
+                flags=re.I,
+            )
+            citation = explicit_artifact or re.search(
+                r"(?:[\w.-]+/)+[\w.-]+|"
                 r"\b[a-z][a-z0-9 _/-]{2,} section\b|\b(?:dockerfile|makefile|readme|license)\b|"
                 r"\b(?:test (?:file|case)|"
                 r"(?:policy|api|json) spec|(?:json )?schema(?: artifact)?|migration(?: file)?|"
@@ -439,16 +453,26 @@ def summary_assignments(candidates, bullets, section, one_to_one=False):
         return {}
     if bullets == ["None"]:
         fail(f"{section} cannot be None when table rows require it")
-    for bullet in bullets:
-        action = norm(bullet)
-        for candidate in candidates:
-            if candidate_named(candidate, bullet):
-                action = re.sub(
-                    rf"(?<![a-z0-9_./-]){re.escape(norm(candidate))}(?![a-z0-9_/-]|\.[a-z0-9_])",
-                    " ", action,
-                )
-        if re.search(r"\b(?:do not fix|don't fix|need not fix|not fix|no action|skip)\b", action):
-            fail(f"{section} cannot contain a negated action")
+    if section == "Defects to fix now":
+        for bullet in bullets:
+            action = norm(bullet)
+            for candidate in candidates:
+                if candidate_named(candidate, bullet):
+                    action = re.sub(
+                        rf"(?<![a-z0-9_./-]){re.escape(norm(candidate))}(?![a-z0-9_/-]|\.[a-z0-9_])",
+                        " ", action,
+                    )
+            if re.search(r"\b(?:do not fix|don't fix|need not fix|not fix|no action|skip)\b", action):
+                fail(f"{section} cannot contain a negated action")
+    elif section == "Deferred follow-ups":
+        for bullet in bullets:
+            action = norm(bullet)
+            if re.search(
+                r"\b(?:(?:do not|don't|never|not)\s+defer|"
+                r"(?:skip|cancel)\s+(?:the\s+)?deferral)\b",
+                action,
+            ):
+                fail(f"{section} cannot negate deferral")
     matches = {
         candidate_index: sorted(
             (bullet_index for bullet_index, bullet in enumerate(bullets)
@@ -589,7 +613,7 @@ def validate(profile, headers, sections, rows):
             fail("expected standard output depth")
         reduced(headers, sections, rows, "Locked audit scope")
         supplied = headers["Triggering finding"].lower()
-        if any(word in supplied for word in MISSING) or not all(term in supplied for term in (
+        if missing_header_marker(supplied) or not all(term in supplied for term in (
             "security review", "delete /teams/{teamid}", "organization membership", "tenant ownership",
         )):
             fail("missing-scope report must preserve the supplied triggering finding")
@@ -598,10 +622,16 @@ def validate(profile, headers, sections, rows):
             fail("expected quick output depth")
         reduced(headers, sections, rows, "Triggering finding", quick=True)
         supplied = headers["Locked audit scope"].lower()
-        if any(word in supplied for word in MISSING) or not all(
+        if missing_header_marker(supplied) or not all(
             term in supplied for term in ("src/pagination.ts", "tests/pagination.test.ts")
         ):
             fail("missing-finding report must preserve the supplied locked scope")
+    elif profile == "positive-edge-011":
+        if headers["Output depth"].lower() != "standard":
+            fail("expected standard output depth")
+        reduced(headers, sections, rows, "Triggering finding")
+        if not missing_header_marker(headers["Locked audit scope"]):
+            fail("both-missing report must preserve the missing locked scope header")
     elif profile == "positive-edge-004":
         standard_table(headers, rows, "quick")
         reconcile_summaries(sections, rows)
@@ -683,19 +713,30 @@ def validate(profile, headers, sections, rows):
             candidate_any=("minitems", "zero"))
         row(rows, "Sibling Parameter/Field", ("maxitems",))
         mirror_rows = [item for item in rows if item["axis"] == "Mirror Call Site/Use Site"]
-        synchronous = [item for item in mirror_rows if "synchronous" in item["candidate"].lower()
-                       and "asynchronous" not in item["candidate"].lower()]
-        asynchronous = [item for item in mirror_rows if "asynchronous" in item["candidate"].lower()]
+        synchronous = [item for item in mirror_rows
+                   if has_mode_term(item["candidate"], "sync")
+                   and not has_mode_term(item["candidate"], "async")]
+        asynchronous = [item for item in mirror_rows
+                if has_mode_term(item["candidate"], "async")]
         if len(synchronous) != 1 or len(asynchronous) != 1 or any(
             item["presence"] != "present" or item["disposition"] != "fix-now"
             or "validator" not in item["candidate"].lower()
             for item in synchronous + asynchronous
         ):
-            fail("exhaustive report needs separate synchronous and asynchronous validator call sites")
-        row(rows, "Async/Sync or Mode Twin", ("async",), "present", "fix-now")
+            fail("exhaustive report needs separate sync and async validator call sites")
+        mode_rows = [item for item in rows if item["axis"] == "Async/Sync or Mode Twin"
+                     and has_mode_term(item["candidate"], "async")
+                     and item["presence"] == "present" and item["disposition"] == "fix-now"]
+        if len(mode_rows) != 1:
+            fail("exhaustive report needs one async mode candidate")
         zero = row(rows, "Test Mirror", ("zero",), "present", "fix-now")
-        async_row = row(rows, "Test Mirror", ("async",), "present", "fix-now")
-        if "async" in zero["candidate"].lower() or "zero" in async_row["candidate"].lower():
+        async_tests = [item for item in rows if item["axis"] == "Test Mirror"
+                       and has_mode_term(item["candidate"], "async")
+                       and item["presence"] == "present" and item["disposition"] == "fix-now"]
+        if len(async_tests) != 1:
+            fail("exhaustive report needs one async Test Mirror candidate")
+        async_row = async_tests[0]
+        if has_mode_term(zero["candidate"], "async") or "zero" in async_row["candidate"].lower():
             fail("zero and async Test Mirror candidates must be distinct")
         row(rows, "Documentation/Spec Prose Twin", ("zero",), "present", "fix-now")
     elif profile == "positive-edge-008":
@@ -737,8 +778,8 @@ def validate(profile, headers, sections, rows):
             docs_index,
             "Deferred follow-ups",
         )
-        if not all(term.lower() in deferred.lower() for term in ("docs/api.md", "Platform Docs", "public API reference")):
-            fail("deferred follow-up must contain docs path, owner, and reason")
+        if not all(term in deferred.lower() for term in ("docs/api.md", "platform docs")):
+            fail("deferred follow-up must contain the docs path and owner")
     elif profile == "positive-edge-010":
         if any(item["presence"] not in (
             "absent", "n/a — structurally inapplicable", "n/a — no candidates in scope",

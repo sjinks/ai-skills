@@ -36,7 +36,7 @@ Do not use this workflow for:
 
 ## Required Inputs
 
-Before auditing, state the required inputs. The triggering finding and locked audit scope are the minimum inputs needed before candidate enumeration. If either is missing, do not enumerate candidates, do not invent scope, and do not add table rows. Return the reduced report, and use **Blocking questions** to name the smallest missing input needed to proceed. Preserve an explicitly requested output depth. For `quick`, append **Omitted axes** and state that required input is missing and no axes were enumerated; omit that section for other depths. Include table rows only after both required inputs are available. This rule applies across languages, frameworks, configuration, schemas, documentation, tests, and other artifacts.
+Before auditing, state the required inputs. The triggering finding and locked audit scope are the minimum inputs needed before candidate enumeration. If either is missing, do not enumerate candidates, do not invent scope, and do not add table rows. Return the reduced report with exactly one blocking question. If both are missing, request the triggering finding first; otherwise request the one missing input. Preserve an explicitly requested output depth. For `quick`, append **Omitted axes** and state that required input is missing and no axes were enumerated; omit that section for other depths. Include table rows only after both required inputs are available. This rule applies across languages, frameworks, configuration, schemas, documentation, tests, and other artifacts.
 
 If another critical fact is missing after the triggering finding and locked audit scope are known, record the affected row as `blocked — clarification needed` with `blocked` disposition instead of guessing.
 
@@ -59,7 +59,7 @@ Always emit the selected depth as `Output depth: quick`, `Output depth: standard
 
 1. Restate the triggering finding and locked audit scope.
 2. Select output depth. In `quick` mode, identify target-specific blockers, high-risk concerns, and applicable axes, then summarize omitted axes instead of walking the full catalogue in the table. In `standard` and `exhaustive`, walk every axis in the catalogue below.
-3. If the triggering finding or locked audit scope is missing, stop before candidate enumeration and ask the smallest blocking question in the report sections while preserving the selected depth.
+3. If the triggering finding or locked audit scope is missing, stop before candidate enumeration and ask exactly one blocking question while preserving the selected depth. Ask for the triggering finding first when both are missing; otherwise ask for the one missing input.
 4. For each axis, enumerate candidates inside the locked scope.
 5. When the table is included after the triggering finding and locked audit scope are available, represent every catalogue axis at least once unless the selected depth is `quick`.
 6. If an axis has candidates, add one row per candidate.
@@ -90,7 +90,7 @@ The report table must use only these values.
 - `n/a` - used for `absent` and `n/a` presence rows.
 - `blocked` - used when clarification is required before deciding or fixing, including when the caller explicitly requires deferral but no named owner or owning team and reason are available. Missing deferral metadata alone does not override the `fix-now` default.
 
-**Evidence** must cite a file, section, test, spec, schema, migration, configuration artifact, log, incident note, or state the reason for an `n/a` row. A row without evidence is incomplete.
+**Evidence** must cite a file, section, test, spec, schema, migration, configuration artifact, log, incident note, or state the reason for an `n/a` row. Paths containing `/` may be plain text; wrap standalone basenames, dotfiles, and extensionless filenames in backticks so they are unambiguous artifact citations. A row without evidence is incomplete.
 
 ## Catalogue
 
@@ -240,7 +240,7 @@ For `quick` mode only, append:
 - <summary of omitted catalogue axes and why they were not expanded>
 ```
 
-Table cell spacing may vary. Escape a literal pipe inside a cell as `\|`. After trimming spaces or tabs, the header must contain the five canonical labels in order, and each separator cell must consist only of three or more hyphens; alignment colons are not allowed.
+Table cell spacing may vary. Escape a literal pipe inside a cell as `\|`. In Evidence, paths containing `/` may be plain text; wrap standalone basenames, dotfiles, and extensionless filenames in backticks. After trimming spaces or tabs, the header must contain the five canonical labels in order, and each separator cell must consist only of three or more hyphens; alignment colons are not allowed.
 
 When the table is included after both the triggering finding and locked audit scope are available, every catalogue axis must be represented in the table at least once for `standard` and `exhaustive` depth. If an axis has candidates, add one row per candidate. If an axis has no candidates or is structurally inapplicable, add one explicit `n/a` row with evidence explaining why. In explicit `quick` mode, include only target-specific applicable axes and add an omitted-axis summary instead of full-axis enumeration.
 

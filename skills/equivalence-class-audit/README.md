@@ -13,7 +13,7 @@ It helps an assistant:
 - record evidence-based `present`, `absent`, `n/a`, and `blocked` presence verdicts without guessing
 - assign explicit dispositions for present defects: `fix-now` by default, `defer-with-owner` for explicit deferrals with ownership and reason, or `blocked` when a required deferral lacks that metadata
 - support local output depth (`quick`, `standard`, or `exhaustive`), while `quick` still reports missing context, blockers, high-risk concerns, and target-specific findings
-- return one structured audit report with an explicit `Output depth:` marker, every catalogue axis represented in `standard` and `exhaustive` modes, target-specific axes in `quick` mode, plus fix-now defects, deferred follow-ups, out-of-scope candidates, blocking questions, and test/doc implications
+- return one structured audit report with an explicit `Output depth:` marker; when both required inputs are available, every catalogue axis is represented in `standard` and `exhaustive` modes and target-specific axes in `quick` mode, plus fix-now defects, deferred follow-ups, out-of-scope candidates, blocking questions, and test/doc implications
 
 ## Files
 
