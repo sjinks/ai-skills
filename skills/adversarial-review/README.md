@@ -1,8 +1,10 @@
 # adversarial-review
 
-> Use when: performing adversarial review, red-team analysis, edge-case discovery, failure-mode analysis, misuse review, regression hunting, and risk-focused test planning.
+> Use when: performing adversarial review, red-team analysis, edge-case discovery, failure-mode analysis, misuse review, regression hunting, or risk-focused test planning. Do not use for ordinary readability, linting, idiomatic-style, or general best-practices review without an explicit failure, misuse, edge-case, or risk objective.
 
 This skill is aimed at specs, designs, implementations, workflows, migrations, operational procedures, and test plans that need deliberate failure-mode review before they are trusted.
+
+Ordinary readability, linting, idiomatic-style, and general best-practices reviews are outside its scope unless the request explicitly asks to challenge failures, misuse, material edge cases, or risks.
 
 It helps an assistant:
 

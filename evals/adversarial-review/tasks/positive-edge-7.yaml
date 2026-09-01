@@ -44,19 +44,24 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?i)Verdict:\s*(CONCERNS|BLOCK)'
-        - '(?i)Target:'
-        - '(?i)Intended behavior:'
-        - '(?i)Evidence basis:'
-        - '(?i)What works:'
-        - '(?i)Assumptions:'
-        - '(?i)Findings:'
-        - '(?im)^[ \t]*Artifact:[^\n]+\n[ \t]*Category:[^\n]+\n[ \t]*Severity:[ \t]*(CRITICAL|HIGH|MEDIUM|LOW)[ \t]*\n[ \t]*Confidence:[ \t]*(high|medium|low)[ \t]*\n[ \t]*Classification:[ \t]*(Confirmed issue|Likely risk|Open question|Accepted tradeoff|Test gap)[ \t]*\n[ \t]*Trigger:[^\n]+\n[ \t]*Risk:[^\n]+\n[ \t]*Evidence:[^\n]+\n[ \t]*Suggested fix:[^\n]+'
-        - '(?i)Adversarial tests:'
-        - '(?i)Mitigations / acceptance criteria:'
-        - '(?i)Residual risk:'
+        - '(?im)^Verdict:[ \t]*(CONCERNS|BLOCK)[ \t]*\r?$'
+        - '(?im)^Target:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^Intended behavior:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^Evidence basis:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^What works:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^Assumptions:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^Findings:[ \t]*\r?\n(?:[ \t]*\r?\n)*[ \t]*1\.[^\r\n]+\r?\n[ \t]+Artifact:[^\r\n]+\r?\n[ \t]+Category:[ \t]*(requirements-clarity|contract-logic|input-handling|error-rollback|state-concurrency|auth-tenancy|data-integrity|resource-lifecycle|user-workflow|verification-gap)[ \t]*\r?\n[ \t]+Severity:[ \t]*(CRITICAL|HIGH|MEDIUM|LOW)[ \t]*\r?\n[ \t]+Confidence:[ \t]*(high|medium|low)[ \t]*\r?\n[ \t]+Classification:[ \t]*(Confirmed issue|Likely risk|Open question|Accepted tradeoff|Test gap)[ \t]*\r?\n[ \t]+Trigger:[^\r\n]+\r?\n[ \t]+Risk:[^\r\n]+\r?\n[ \t]+Evidence:[^\r\n]+\r?\n[ \t]+Suggested fix:[^\r\n]+'
+        - '(?im)^Adversarial tests:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^Mitigations / acceptance criteria:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^Residual risk:[ \t]*[^\r\n]+\r?$'
         - '(?i)(context|gateway|ownership|revised)'
         - '(?i)(jitter|backoff)'
+      not_contains:
+        - "Gate decision:"
+        - "Lenses applied:"
+        - "Egress policy:"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"
   - type: prompt
     name: task_completion_substance
     config:
@@ -77,3 +82,10 @@ graders:
         0.5 = response reviews current context but leaves precedence unclear.
         0.0 = response lets the matching identifier retain the prior BLOCK verdict.
       mode: independent
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/_helpers/check-adversarial-review-report.py
+      timeout: 30

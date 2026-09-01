@@ -31,8 +31,9 @@ Each task has a baseline set of task-level graders plus one eval-level
 representative positives add `task_completion_substance`;
 `spock-voice` positives add `tone_quality`; and
 `nestjs-development/positive-trigger-1.yaml` adds the `ts_parse`
-`program` grader. Grader names match metric names so `waza`'s metric →
-grader weighting takes effect.
+`program` grader. The `adversarial-review` suite adds the deterministic
+`report_contract` program grader. Grader names match metric names so `waza`'s
+metric → grader weighting takes effect.
 
 - `trigger_accuracy` (task-level, `trigger`) — heuristic
   prompt-vs-SKILL.md keyword overlap. `mode: positive` on positive
@@ -129,6 +130,12 @@ grader weighting takes effect.
   words echoed from the prompt. Positive tasks also `not_contains`
   the structured-output markers of unrelated skills so cross-skill
   leakage fails the task.
+- `report_contract` (`adversarial-review` tasks only, `program`) — reads the raw
+  agent output that Waza passes on stdin and validates complete top-level order,
+  marker uniqueness, verdict branches, every numbered finding, and report
+  termination. Positive tasks run normal validation; negative tasks pass
+  `--reject`, which succeeds only when the output is not a complete canonical
+  adversarial-review report. Exit code 0 passes and any non-zero exit fails.
 - `tone_quality` (`spock-voice` positives only, `prompt`) — LLM judge.
   The rubric asks for one sentence of reasoning followed by a final
   line containing only `1.0`, `0.5`, or `0.0`, so waza's prompt-grader
