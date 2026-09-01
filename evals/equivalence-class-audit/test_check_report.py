@@ -16,7 +16,10 @@ SPEC.loader.exec_module(CHECK_REPORT)
 
 
 HEADERS = {
-    "positive-edge-001": ("timeoutSeconds breaks health checks", "config/healthcheck.yml and docs"),
+    "positive-edge-001": (
+        "timeoutSeconds breaks health checks",
+        "config/healthcheck.yml and the Health check timeout section",
+    ),
     "positive-edge-002": (
         "DELETE /teams/{teamId} checks organization membership",
         "src/routes/team.routes.ts, src/controllers/team.controller.ts, and tests/team.controller.spec.ts",
@@ -429,6 +432,27 @@ def matrix_reduced_report(missing_finding, missing_scope, depth):
 
 
 class SummaryAssignmentsTests(unittest.TestCase):
+    def test_candidate_boundaries_are_unicode_category_aware(self):
+        self.assertTrue(CHECK_REPORT.candidate_named("док", "Fix док."))
+        self.assertFalse(CHECK_REPORT.candidate_named("док", "Fix предок."))
+        self.assertFalse(CHECK_REPORT.candidate_named("a", "Fix a\u0301."))
+
+    def test_anonymous_na_sentinel_is_not_matched_as_punctuation(self):
+        rows = [
+            {"axis": "Opposite Bound", "candidate": "config defect",
+             "presence": "present", "disposition": "fix-now"},
+            {"axis": "Inverse Operation", "candidate": "-",
+             "presence": "n/a — no candidates in scope", "disposition": "n/a"},
+        ]
+        sections = {
+            "Defects to fix now": ["Fix config defect - add validation."],
+            "Deferred follow-ups": ["None"],
+            "Out-of-scope candidates discovered": ["None"],
+            "Blocking questions": ["None"],
+            "Test/doc implications": ["None"],
+        }
+        CHECK_REPORT.reconcile_summaries(sections, rows)
+
     def test_fix_now_candidates_may_share_one_bullet(self):
         assignments = CHECK_REPORT.summary_assignments(
             ["docs/api.md", "docs/operations.md"],
@@ -923,6 +947,16 @@ class CheckerContractTests(unittest.TestCase):
                 self.assertTrue(CHECK_REPORT.non_populated_metadata(value, field))
         self.assertFalse(CHECK_REPORT.non_populated_metadata("Platform Docs [API team]", "owner"))
 
+    def test_missing_metadata_combination_uses_canonical_order(self):
+        self.assertEqual(
+            {"owner", "reason"},
+            CHECK_REPORT.missing_metadata_fields("Provide metadata; missing: owner, reason"),
+        )
+        self.assertEqual(
+            set(),
+            CHECK_REPORT.missing_metadata_fields("Provide metadata; missing: reason, owner"),
+        )
+
     def test_duplicate_row_identity_uses_label_normalization(self):
         base = profile_report("positive-edge-010")
         marker = "|---|---|---|---|---|\n"
@@ -1135,6 +1169,45 @@ class CheckerIntegrationTests(unittest.TestCase):
                         run_main(invalid, profile)
                 self.assertIn(PROFILE_FAILURES[profile], error.getvalue())
 
+    def test_edge_001_rejects_documentation_scope_drift(self):
+        for replacement in (
+            "unrelated deployment documentation",
+            "the Health check timeout section and docs/other.md",
+        ):
+            invalid = profile_report("positive-edge-001").replace(
+                "the Health check timeout section",
+                replacement,
+                1,
+            )
+            error = io.StringIO()
+            with self.subTest(replacement=replacement):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-001")
+                self.assertIn("Locked audit scope must preserve the supplied task input", error.getvalue())
+
+    def test_quick_omitted_axes_requires_an_actual_missing_declaration(self):
+        for explanation in (
+            "Triggering finding was supplied; no axes were enumerated.",
+            "No required input is missing; no axes were enumerated.",
+            "Neither required input is missing; no axes were enumerated.",
+            "No required input is needed; no axes were enumerated.",
+            "Neither input is required; no axes were enumerated.",
+            "Input is not required; no axes were enumerated.",
+            "Input is not needed; no axes were enumerated.",
+        ):
+            invalid = profile_report("positive-edge-006").replace(
+                "Required input is missing, so no axes were enumerated.",
+                explanation,
+                1,
+            )
+            error = io.StringIO()
+            with self.subTest(explanation=explanation):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-006")
+                self.assertIn("quick reduced report needs a local omitted-axes explanation", error.getvalue())
+
     def test_reduced_profiles_reject_noncanonical_blocker_aliases(self):
         cases = (
             (
@@ -1226,6 +1299,28 @@ class CheckerIntegrationTests(unittest.TestCase):
             )
             with self.subTest(filename=filename):
                 run_main(report, "positive-edge-010")
+
+    def test_unquoted_standalone_special_basenames_are_not_evidence(self):
+        for filename in ("README", "Dockerfile", "Makefile", "LICENSE"):
+            invalid = profile_report("positive-edge-010").replace(
+                "tests/example.md", filename, 1
+            )
+            with self.subTest(filename=filename):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-010")
+
+    def test_edge_005_rejects_reversed_missing_metadata_order(self):
+        invalid = profile_report("positive-edge-005").replace(
+            "missing: owner, reason",
+            "missing: reason, owner",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-005")
+        self.assertIn("documentation blocker must request owner and reason", error.getvalue())
 
     def test_dotted_status_prose_is_not_an_artifact_citation(self):
         invalid = profile_report("positive-edge-010").replace(

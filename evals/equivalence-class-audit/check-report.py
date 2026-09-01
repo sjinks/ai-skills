@@ -55,7 +55,10 @@ PROFILES = {
     "positive-trigger-001", "positive-trigger-002",
 }
 PROFILE_HEADERS = {
-    "positive-edge-001": (("timeoutseconds", "health"), ("config/healthcheck.yml", "docs")),
+    "positive-edge-001": (
+        ("timeoutseconds", "health"),
+        ("config/healthcheck.yml", "health check timeout section"),
+    ),
     "positive-edge-002": (("delete /teams/{teamid}", "organization membership"),
                           ("src/routes/team.routes.ts", "src/controllers/team.controller.ts",
                            "tests/team.controller.spec.ts")),
@@ -168,6 +171,12 @@ def contains(value, *terms):
 
 def missing_marker(value):
     value = norm(value)
+    if (re.search(r"\b(?:no|neither)\b[^.]{0,80}\b(?:missing|required|needed)\b", value)
+            or re.search(
+                r"\b(?:is|are|was|were)\s+not\s+(?:missing|required|needed)\b",
+                value,
+            )):
+        return False
     if value in MISSING:
         return True
     return bool(re.search(r"\b(?:missing|not provided|not supplied)\b", value)
@@ -247,10 +256,22 @@ def overlaps(left, right):
 def candidate_spans(candidate, bullet):
     candidate = label_norm(candidate)
     bullet = label_norm(bullet)
-    return [match.span() for match in re.finditer(
-        rf"(?<![a-z0-9_./-]){re.escape(candidate)}(?![a-z0-9_/-]|\.[a-z0-9_])",
-        bullet,
-    )]
+    spans = []
+
+    def label_character(character):
+        return character == "_" or unicodedata.category(character)[:1] in ("L", "N", "M")
+
+    for match in re.finditer(re.escape(candidate), bullet):
+        start, end = match.span()
+        if start and (label_character(bullet[start - 1]) or bullet[start - 1] in "./-"):
+            continue
+        if end < len(bullet) and (label_character(bullet[end]) or bullet[end] in "/-"):
+            continue
+        if (end + 1 < len(bullet) and bullet[end] == "."
+                and label_character(bullet[end + 1])):
+            continue
+        spans.append((start, end))
+    return spans
 
 
 def candidate_named(candidate, bullet):
@@ -329,13 +350,12 @@ def requests_missing_input(value, missing_header):
 
 def missing_metadata_fields(value):
     match = re.search(
-        r";\s*missing:\s*(owner|reason)(?:\s*,\s*(owner|reason))?\s*$",
+        r";\s*missing:\s*(owner(?:\s*,\s*reason)?|reason)\s*$",
         norm(value),
     )
     if not match:
         return set()
-    fields = {field for field in match.groups() if field}
-    return fields if len(fields) == len([field for field in match.groups() if field]) else set()
+    return {field.strip() for field in match.group(1).split(",")}
 
 
 def table_cells(line):
@@ -509,7 +529,7 @@ def parse_report(output):
             )
             citation = explicit_artifact or re.search(
                 r"(?:[\w.-]+/)+[\w.-]+|"
-                r"\b[a-z][a-z0-9 _/-]{2,} section\b|\b(?:dockerfile|makefile|readme|license)\b|"
+                r"\b[a-z][a-z0-9 _/-]{2,} section\b|"
                 r"\b(?:test (?:file|case)|"
                 r"(?:policy|api|json) spec|(?:json )?schema(?: artifact)?|migration(?: file)?|"
                 r"config(?:uration)? (?:block|artifact)|(?:audit )?log(?: entry)?|incident(?: note)?|"
@@ -677,13 +697,14 @@ def reconcile_summaries(sections, rows):
         "defer-with-owner": "Deferred follow-ups",
         "blocked": "Blocking questions",
     }
-    all_candidates = [item["candidate"] for item in rows]
+    matchable_rows = [item for item in rows if item["candidate"].strip() != "-"]
+    all_candidates = [item["candidate"] for item in matchable_rows]
     for disposition, section in disposition_sections.items():
         for bullet in sections[section]:
             if bullet == "None":
                 continue
             for candidate_index in mentioned_candidate_indexes(all_candidates, bullet):
-                item = rows[candidate_index]
+                item = matchable_rows[candidate_index]
                 if item["disposition"] != disposition:
                     fail(f"{section} must not name {item['candidate']} from another disposition")
     for bullet in sections["Deferred follow-ups"]:
@@ -751,7 +772,7 @@ def reduced(headers, sections, rows, missing_header, quick=False, expected_missi
         fail("blocking question must name the missing required input")
     if quick:
         omitted = " ".join(sections["Omitted axes (quick mode only)"])
-        if not any(term in omitted.lower() for term in ("missing", "required input", "triggering finding")) or not any(
+        if not missing_marker(omitted) or not any(
             term in omitted.lower() for term in ("no axes", "not enumerated", "not expanded", "omitted")
         ):
             fail("quick reduced report needs a local omitted-axes explanation")
@@ -763,6 +784,14 @@ def validate(profile, headers, sections, rows):
     if profile in PROFILE_HEADERS:
         for name, terms in zip(("Triggering finding", "Locked audit scope"), PROFILE_HEADERS[profile]):
             value = norm(headers[name])
+            if profile == "positive-edge-001" and name == "Locked audit scope":
+                allowed = {
+                    norm('only `config/healthcheck.yml` and its "Health check timeout" docs section.'),
+                    norm("config/healthcheck.yml and the Health check timeout section"),
+                }
+                if value not in allowed:
+                    fail("Locked audit scope must preserve the supplied task input")
+                continue
             if missing_header_marker(value) or not all(norm(term) in value for term in terms):
                 fail(f"{name} must preserve the supplied task input")
     if profile == "positive-edge-003":
