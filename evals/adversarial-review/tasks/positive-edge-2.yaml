@@ -8,9 +8,18 @@ tags:
   - positive-edge
 inputs:
   prompt: |
-    Adversarial-review this small change before merge. We want a real verdict.
+    Adversarial-review this small, bounded change before merge. Review only
+    whether introducing this flag can alter default behavior, prevent immediate
+    rollback, or leave the changed configuration and request-boundary behavior
+    unverified. The ranking algorithm itself is unchanged and out of scope.
 
     Change: add a feature flag `enable_new_ranking` defaulting to `false`. The flag is read once at request boundary via `ConfigService`. A regression test confirms default-off behaviour matches the previous output for 500 fixture inputs. Toggle is reversible without a deploy. Telemetry counts toggled requests.
+
+    Absence of configuration selects the `false` default, and startup validation
+    rejects non-boolean configured values. Tests cover default-off, explicit-off, explicit-on, and runtime
+    rollback from on to off. The request-boundary test verifies one stable flag
+    value is used for the whole request. No actionable issue is known in this
+    bounded scope; do not invent a finding merely to avoid CLEAN.
 expected:
   should_trigger: true
 graders:
@@ -30,34 +39,48 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?i)Verdict:\s*(CLEAN|CONCERNS)'
-        - '(?i)Target:'
-        - '(?i)Intended behavior:'
-        - '(?i)Evidence basis:'
-        - '(?i)What works:'
-        - '(?i)Assumptions:'
-        - '(?i)Findings:'
-        - '(?i)Adversarial tests:'
-        - '(?i)Mitigations / acceptance criteria:'
-        - '(?i)Residual risk:'
+        - '(?im)^Verdict:[ \t]*CLEAN[ \t]*\r?$'
+        - '(?im)^Target:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^Intended behavior:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^Evidence basis:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^What works:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^Assumptions:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^Findings:[ \t]*(?:None[ \t]*\r?\n|\r?\n[ \t]*None[ \t]*\r?\n)(?:[ \t]*\r?\n)*[ \t]*Adversarial tests:'
+        - '(?im)^Adversarial tests:[ \t]*None[ \t]*\r?$'
+        - '(?im)^Mitigations / acceptance criteria:[ \t]*None[ \t]*\r?$'
+        - '(?im)^Residual risk:[ \t]*[^\r\n]+\r?$'
         - '(?i)(rollback|reversible|feature flag|default)'
+      not_contains:
+        - "Gate decision:"
+        - "Lenses applied:"
+        - "Egress policy:"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"
   - type: prompt
     name: task_completion_substance
     config:
       prompt: |
-        Grade whether the response follows the finding contract for its verdict.
-        A CLEAN response must put None in the Findings section, either inline as
-        Findings: None or on the next line after Findings:. A CONCERNS response
-        must include at least one current actionable finding with Artifact,
-        Category, Severity, Confidence, Classification, Trigger, Risk, Evidence,
-        and Suggested fix.
+        Grade whether the response correctly exercises the clean path for this
+        deliberately bounded target. It must emit CLEAN, put None in the Findings
+        section (inline or on the next line), identify the strongest supplied
+        evidence under What works, and avoid inventing an actionable defect,
+        mitigation, or adversarial test after the prompt supplies coverage for
+        default behavior, configuration validation, request consistency, and
+        immediate rollback.
 
         Output format (strict):
         - Write one sentence of reasoning on its own line.
         - On the very last line, write only one of: 1.0, 0.5, 0.0
           (no other text on that line).
 
-        1.0 = the verdict and finding representation are fully consistent.
-        0.5 = the substantive verdict is plausible but finding structure is incomplete.
-        0.0 = CLEAN invents findings or CONCERNS provides no actionable finding.
+        1.0 = CLEAN is emitted with the canonical no-finding representation and grounded What works evidence.
+        0.5 = CLEAN is emitted but the no-finding shape or evidence summary is incomplete.
+        0.0 = CONCERNS or BLOCK is emitted, or the response invents an actionable finding.
       mode: independent
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/_helpers/check-adversarial-review-report.py
+      timeout: 30

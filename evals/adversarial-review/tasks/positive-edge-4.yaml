@@ -41,16 +41,22 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?i)Verdict:\s*(CLEAN|CONCERNS|BLOCK)'
-        - '(?i)Target:'
-        - '(?i)Intended behavior:'
-        - '(?i)Evidence basis:'
-        - '(?i)What works:'
-        - '(?i)Assumptions:'
-        - '(?i)Findings:'
-        - '(?i)Adversarial tests:'
-        - '(?i)Mitigations / acceptance criteria:'
-        - '(?i)Residual risk:'
+        - '(?im)^Verdict:[ \t]*(CLEAN|CONCERNS|BLOCK)[ \t]*\r?$'
+        - '(?im)^Target:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^Intended behavior:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^Evidence basis:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^What works:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^Assumptions:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^Findings:[ \t]*(?:(?:None[ \t]*\r?\n|\r?\n[ \t]*None[ \t]*\r?\n)(?:[ \t]*\r?\n)*[ \t]*Adversarial tests:|\r?\n(?:[ \t]*\r?\n)*[ \t]*1\.[^\r\n]+\r?\n[ \t]+Artifact:[^\r\n]+\r?\n[ \t]+Category:[ \t]*(requirements-clarity|contract-logic|input-handling|error-rollback|state-concurrency|auth-tenancy|data-integrity|resource-lifecycle|user-workflow|verification-gap)[ \t]*\r?\n[ \t]+Severity:[ \t]*(CRITICAL|HIGH|MEDIUM|LOW)[ \t]*\r?\n[ \t]+Confidence:[ \t]*(high|medium|low)[ \t]*\r?\n[ \t]+Classification:[ \t]*(Confirmed issue|Likely risk|Open question|Accepted tradeoff|Test gap)[ \t]*\r?\n[ \t]+Trigger:[^\r\n]+\r?\n[ \t]+Risk:[^\r\n]+\r?\n[ \t]+Evidence:[^\r\n]+\r?\n[ \t]+Suggested fix:[^\r\n]+)'
+        - '(?im)^Adversarial tests:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^Mitigations / acceptance criteria:[ \t]*[^\r\n]+\r?$'
+        - '(?im)^Residual risk:[ \t]*[^\r\n]+\r?$'
+      not_contains:
+        - "Gate decision:"
+        - "Lenses applied:"
+        - "Egress policy:"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"
   - type: prompt
     name: task_completion_substance
     config:
@@ -65,7 +71,9 @@ graders:
         the Findings section, either inline as Findings: None or on the next line
         after Findings:. A non-CLEAN response must include at least one complete
         current finding with Artifact, Category, Severity, Confidence,
-        Classification, Trigger, Risk, Evidence, and Suggested fix.
+          Classification, Trigger, Risk, Evidence, and Suggested fix. For CLEAN,
+          `None` must be the entire Findings section: any additional finding text
+          before `Adversarial tests:` fails this requirement.
 
         Output format (strict):
         - Write one sentence of reasoning on its own line.
@@ -76,3 +84,10 @@ graders:
         0.5 = response reaches CLEAN or CONCERNS but incompletely explains remediation.
         0.0 = response inherits BLOCK or treats resolved prior findings as current defects.
       mode: independent
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/_helpers/check-adversarial-review-report.py
+      timeout: 30

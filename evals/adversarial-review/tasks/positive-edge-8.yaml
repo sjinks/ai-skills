@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-008
+name: Retained verdict with no net-new findings
+description: |
+  A same-revision pass with an unresolved prior finding retains the prior verdict
+  while representing the absence of net-new findings as Findings: None.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Do another adversarial-review pass on notification spec revision
+    `sha256:6be3`. The prior adversarial-review pass reviewed that exact
+    immutable revision and produced:
+
+      Verdict: BLOCK
+      Target: notification-retry spec revision sha256:6be3
+      Findings:
+      1. Retry has no idempotency key
+        Artifact: spec section "Retry"
+        Category: error-rollback
+        Trigger: a timeout after acceptance re-sends the same notification
+        Severity: HIGH
+
+    The target and its defining context are unchanged. The prior finding remains
+    unresolved and has no documented compensating control or owner acceptance.
+    This pass found no net-new or materially changed finding. Produce the normal
+    review report without repeating the prior finding as a fresh finding.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/adversarial-review/SKILL.md
+      mode: positive
+      threshold: 0.3
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - adversarial-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?im)^Verdict:[ \t]*BLOCK[ \t]*\r?$'
+        - '(?im)^Evidence basis:[ \t]*[^\r\n]*(idempotency|prior)[^\r\n]*\r?$'
+        - '(?im)^Findings:[ \t]*(?:None[ \t]*\r?\n|\r?\n[ \t]*None[ \t]*\r?\n)(?:[ \t]*\r?\n)*[ \t]*Adversarial tests:'
+      not_contains:
+        - "Gate decision:"
+        - "Lenses applied:"
+        - "Egress policy:"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response applies the same-revision, zero-net-new rule.
+        It must retain BLOCK because the prior HIGH finding remains unresolved,
+        cite the prior idempotency finding in Evidence basis, emit Findings: None
+        as the entire Findings section, and not repeat that prior finding as a
+        fresh numbered finding.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = BLOCK is retained, prior evidence is cited, and Findings contains only None.
+        0.5 = the verdict is retained but evidence or no-findings representation is incomplete.
+        0.0 = the verdict weakens or the prior finding is repeated as fresh.
+      mode: independent
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/_helpers/check-adversarial-review-report.py
+      timeout: 30

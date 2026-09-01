@@ -24,4 +24,6 @@ Do not emit a verdict weaker than the strongest prior verdict whose supporting f
 
 When retaining a prior verdict, reference the prior finding titles or identifiers in `Evidence basis`; do not add unchanged prior findings as fresh entries under `Findings`. List only net-new findings or prior findings whose category, trigger, evidence, severity, or mitigation status materially changed.
 
+When retaining a non-`CLEAN` verdict with no net-new or materially changed findings, emit `Findings: None`. Name the unresolved prior finding titles or identifiers in `Evidence basis`; do not repeat them as fresh findings.
+
 When multiple prior passes exist, apply both rules against *every* prior pass on the same target revision, not only the most recent one.
