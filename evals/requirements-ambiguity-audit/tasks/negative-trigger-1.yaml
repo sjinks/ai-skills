@@ -24,7 +24,6 @@ graders:
         - "Verdict: CONCERNS"
         - "Verdict: CLEAN"
         - "| # | Class | Severity | Location |"
-        - "### Findings"
         - "### Open questions (product decisions, not findings)"
         - "Missing input:"
         - "Smallest addition to proceed"

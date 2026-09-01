@@ -47,7 +47,7 @@ Sweep the whole text once per class:
 
 - `blocker`: the plausible readings lead to materially different builds, or requirements conflict.
 - `should-fix`: one reading dominates in context but is not stated; a wrong guess is plausible.
-- `suggestion`: clarity polish; all readers would likely converge anyway.
+- `suggestion`: neither `blocker` nor `should-fix` applies; no reading dominates and the alternatives do not produce materially different builds, including clarity polish where readers would likely converge.
 
 ## Output Format
 
@@ -73,7 +73,7 @@ The table and `### Findings` must have exactly the same cardinality. For each ta
 
 Class-specific `Readings:` replacements: `conflicting-requirements` → `Conflict: <why both cannot hold>`; `placeholder` → `Missing: <what content must be supplied>`; `untestable-wording` → `Untestable because: <why no objective check exists>`.
 
-In each proposed rewrite, format every unresolved value as `[OPEN QUESTION: <decision> — <owner> to decide]`; do not invent it.
+In each proposed rewrite, format every unresolved value as `[OPEN QUESTION: <decision> — <owner> to decide]`; do not invent it. Square brackets in proposed rewrites are reserved for these tokens; write resolved text without brackets.
 
 Verdict mapping: `BLOCK` — at least one `blocker` finding, or insufficient input. `CONCERNS` — findings exist, none `blocker`. `CLEAN` — no findings; immediately after the verdict line write exactly `All eight ambiguity classes were swept; no findings.` and keep the report with an empty table. Empty sections are written with `None`.
 
@@ -111,5 +111,5 @@ Finding 1:
 
 ## Definition of Done
 
-All eight classes were swept over the whole text, the table and `Finding N:` bodies correspond bidirectionally with equal cardinality and matching numbers, every body has a quote, a `Readings:` line or its class-specific replacement, a severity, and a proposed rewrite that marks unresolved values with `[OPEN QUESTION: ...]`, and the verdict follows the mapping.
+All eight classes were swept over the whole text, the table and `Finding N:` bodies correspond bidirectionally with equal cardinality and matching numbers, every body has a quote, a `Readings:` line or its class-specific replacement, and a proposed rewrite that marks unresolved values with `[OPEN QUESTION: ...]`, every corresponding table row carries the severity, and the verdict follows the mapping.
 
