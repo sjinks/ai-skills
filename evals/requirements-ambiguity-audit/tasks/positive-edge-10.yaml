@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-010
+name: Dominant reading yields should-fix
+description: |
+  An ambiguous reference with one contextually dominant reading and a
+  plausible wrong guess must yield exact should-fix severity.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Audit this requirement for ambiguity.
+
+    Requirement R1: The export service sends the generated report and request
+    metadata to the archive worker, which stores it for 30 days.
+
+    Context:
+    - generated report: the JSON export result produced by the export service.
+    - request metadata: the JSON object containing request ID and creation time.
+    - archive worker: the service that retains export artifacts.
+    - In eight other supplied requirements, the archive worker stores generated
+      reports; in one, it stores request metadata.
+    - Both objects are serializable, and choosing either changes no architecture,
+      API, authorization, workflow, or safety control.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/requirements-ambiguity-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - requirements-ambiguity-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?im)^[ \t]*##[ \t]+Requirements Ambiguity Report[ \t]*\r?$'
+        - '(?im)^[ \t]*[*_]*Verdict:[*_ \t]*CONCERNS[*_]*\.?[*_]*[ \t]*\r?$'
+        - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Severity\s*\|\s*Location\s*\|'
+        - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|\s*[`*_]*ambiguous-reference[`*_]*\s*\|\s*[`*_]*should-fix[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
+        - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|[^\r\n]*\|[^\r\n]*\bR1\b[^\r\n]*\|\s*$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*stores it for 30 days["`*_.;:!? \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*report[^\r\n]*/[^\r\n]*metadata[^\r\n]*$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\[\]\r\n]*(report|metadata|archive|store)[^\[\]\r\n]*\[OPEN QUESTION:[ \t]+'
+        - '(?im)^### Findings[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+1[*_]*:[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*stores it for 30 days[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Readings:[*_]*[ \t]*[^\r\n]*\S[ \t]+/[ \t]+\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\[\]\r\n]*(\[OPEN QUESTION:[ \t]+[^\[\]\r\n]*\S[ \t]+—[ \t]+requirements owner[ \t]+to decide\][^\[\]\r\n]*)+\r?$\r?\n([ \t]*\r?\n)*### Open questions \(product decisions, not findings\)[ \t]*\r?$'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*requirements owner'
+      regex_not_match:
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[ \t]*OPEN QUESTION:'
+        - '(?ims)^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*[^\[]OPEN QUESTION:'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$[\s\S]*?^[ \t]*-[ \t]*[*_]*(Quote|Readings|Conflict|Missing|Untestable because|Proposed rewrite):'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Verdict:'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[ \t]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[ \t]*\r?$'
+        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*\s*\|\s*[`*_]*(blocker|suggestion)[`*_]*\s*\|'
+      not_contains:
+        - "Verdict: BLOCK"
+        - "Verdict: CLEAN"
+        - "Finding Quality Report"

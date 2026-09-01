@@ -41,9 +41,11 @@ Sweep the whole text once per class:
 - A term defined in the supplied glossary or surrounding text is not `undefined-term`.
 - Every finding carries a proposed rewrite that survives the audit it failed; rewrites preserve intent and mark unknowns as explicit open questions rather than inventing values.
 - Do not flag intentional flexibility that is explicitly delegated ("implementation may choose the cache strategy").
-- Product-decision questions raised by the text are listed as open questions, not findings.
+- Route an explicitly acknowledged unresolved product choice directly to open questions, without a finding, only when its alternatives and decision owner are already stated. Independently ambiguous wording remains a finding under its matching class, and its unresolved decision is also routed to open questions.
 
 ## Severity
+
+Evaluate `blocker` first; it takes precedence whenever another severity condition also applies.
 
 - `blocker`: the plausible readings lead to materially different builds, or requirements conflict.
 - `should-fix`: one reading dominates in context but is not stated; a wrong guess is plausible.
@@ -73,7 +75,7 @@ The table and `### Findings` must have exactly the same cardinality. For each ta
 
 Class-specific `Readings:` replacements: `conflicting-requirements` → `Conflict: <why both cannot hold>`; `placeholder` → `Missing: <what content must be supplied>`; `untestable-wording` → `Untestable because: <why no objective check exists>`.
 
-In each proposed rewrite, format every unresolved value as `[OPEN QUESTION: <decision> — <owner> to decide]`; do not invent it. Square brackets in proposed rewrites are reserved for these tokens; write resolved text without brackets.
+In each proposed rewrite, retain concrete requirement text before the first token and format every unresolved value as `[OPEN QUESTION: <decision> — <owner> to decide]`; a token-only line is not a rewrite. Do not invent values. Use `requirements owner` when the input names no accountable owner, both in rewrite tokens and the Open Questions section. Square brackets in proposed rewrites are reserved for these tokens; write resolved text without brackets.
 
 Verdict mapping: `BLOCK` — at least one `blocker` finding, or insufficient input. `CONCERNS` — findings exist, none `blocker`. `CLEAN` — no findings; immediately after the verdict line write exactly `All eight ambiguity classes were swept; no findings.` and keep the report with an empty table. Empty sections are written with `None`.
 
@@ -90,11 +92,13 @@ Verdict: BLOCK
 - Smallest addition to proceed: <concrete ask>
 ```
 
+Emit exactly these two fields in this order. Both values are required, complete, nonempty single lines; do not add other fields or narration.
+
 ## Example
 
 Input requirement (R1): "The export should complete quickly for large accounts."
 
-Table row: `| 1 | vague-quantifier | should-fix | R1 |`
+Table row: `| 1 | vague-quantifier | blocker | R1 |`
 
 Finding 1:
 - Quote: "complete quickly for large accounts"

@@ -36,19 +36,24 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?i)Requirements Ambiguity Report'
+        - '(?im)^[ \t]*##[ \t]+Requirements Ambiguity Report[ \t]*\r?$'
         - '(?im)^[ \t]*[*_]*Verdict:[*_ \t]*BLOCK[*_]*\.?[*_]*[ \t]*\r?$'
         - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Severity\s*\|\s*Location\s*\|'
         - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|\s*[`*_]*conflicting-requirements[`*_]*\s*\|\s*[`*_]*blocker[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
-        - '(?im)^### Findings[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+1[*_]*:?[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*(permanently\s+removes\s+all\s+its\s+data\s+immediately[^\r\n]*restored\s+by\s+support\s+within\s+30\s+days|restored\s+by\s+support\s+within\s+30\s+days[^\r\n]*permanently\s+removes\s+all\s+its\s+data\s+immediately)[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Conflict:[*_]*[ \t]*\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\[\]\r\n]*(\[OPEN QUESTION:[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\][^\[\]\r\n]*)+\r?$\r?\n([ \t]*\r?\n)*### Open questions \(product decisions, not findings\)[ \t]*\r?$'
+        - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|[^\r\n]*\|[^\r\n]*(R1[^\r\n]*R2|R2[^\r\n]*R1)[^\r\n]*\|\s*$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*(Deleting\s+a\s+workspace\s+permanently\s+removes\s+all\s+its\s+data\s+immediately[^\r\n]*A\s+deleted\s+workspace\s+can\s+be\s+restored\s+by\s+support\s+within\s+30\s+days|A\s+deleted\s+workspace\s+can\s+be\s+restored\s+by\s+support\s+within\s+30\s+days[^\r\n]*Deleting\s+a\s+workspace\s+permanently\s+removes\s+all\s+its\s+data\s+immediately)["`*_.;:!? \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Conflict:[*_]*[^\r\n]*(permanent|restore|cannot|conflict)[^\r\n]*$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\[\]\r\n]*(workspace|delet|restore)[^\[\]\r\n]*\[OPEN QUESTION:[ \t]+'
+        - '(?im)^### Findings[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+1[*_]*:[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*(Deleting\s+a\s+workspace\s+permanently\s+removes\s+all\s+its\s+data\s+immediately[^\r\n]*A\s+deleted\s+workspace\s+can\s+be\s+restored\s+by\s+support\s+within\s+30\s+days|A\s+deleted\s+workspace\s+can\s+be\s+restored\s+by\s+support\s+within\s+30\s+days[^\r\n]*Deleting\s+a\s+workspace\s+permanently\s+removes\s+all\s+its\s+data\s+immediately)["`*_.;:!? \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Conflict:[*_]*[ \t]*\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\[\]\r\n]*(\[OPEN QUESTION:[ \t]+[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\][^\[\]\r\n]*)+\r?$\r?\n([ \t]*\r?\n)*### Open questions \(product decisions, not findings\)[ \t]*\r?$'
         - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*product owner'
       regex_not_match:
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[ \t]*OPEN QUESTION:'
         - '(?ims)^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|'
         - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*[^\[]OPEN QUESTION:'
         - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$[\s\S]*?^[ \t]*-[ \t]*[*_]*(Quote|Readings|Conflict|Missing|Untestable because|Proposed rewrite):'
-        - '(?ims)^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Verdict:'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Verdict:'
         - '(?ims)^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|'
-        - '(?ims)^[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+\d+[*_]*:?[*_]*[ \t]*\r?$[\s\S]*?^[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+\d+[*_]*:?[*_]*[ \t]*\r?$'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[ \t]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[ \t]*\r?$'
       not_contains:
         - "Finding Quality Report"
         - "Scope Slice Plan"

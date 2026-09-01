@@ -15,13 +15,13 @@ inputs:
 
     ## Bulk Export
 
-    1. The export should complete quickly even for large accounts.
-    2. Exports are processed by the worker tier and stored in the archive
-       bucket. (Retention period: TBD.)
-     3. For exports requested with the Atlas-7 export profile, the system
-       returns a file encoded according to that profile.
-     4. The export stores every generated object only in the storage region
-       selected in the account's data-residency-region field.
+    R1. The export should complete quickly even for large accounts.
+    R2. Exports are processed by the worker tier and stored in the archive
+      bucket. (Retention period: TBD.)
+    R3. For exports requested with the Atlas-7 export profile, the system
+      returns a file encoded according to that profile.
+    R4. The export stores every generated object only in the storage region
+      selected in the account's data-residency-region field.
 
     Glossary:
     - worker tier: the asynchronous job-processing service.
@@ -33,7 +33,10 @@ inputs:
 
     "Atlas-7 export profile" is not defined anywhere. The retention period must
     be decided before implementation because it controls storage lifecycle
-    configuration and deletion behavior.
+    configuration and deletion behavior. Whether "quickly" means an interactive
+    response or a background job changes the request and worker architecture.
+    Existing product context favors an interactive response, but R1 does not
+    state that choice.
 expected:
   should_trigger: true
 graders:
@@ -53,21 +56,37 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?i)Requirements Ambiguity Report'
+        - '(?im)^[ \t]*##[ \t]+Requirements Ambiguity Report[ \t]*\r?$'
         - '(?im)^[ \t]*[*_]*Verdict:[*_ \t]*BLOCK[*_]*\.?[*_]*[ \t]*\r?$'
         - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Severity\s*\|\s*Location\s*\|'
-        - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|\s*[`*_]*vague-quantifier[`*_]*\s*\|\s*[`*_]*(blocker|should-fix|suggestion)[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
+        - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|\s*[`*_]*vague-quantifier[`*_]*\s*\|\s*[`*_]*blocker[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
         - '(?im)^\s*\|\s*[`*_]*2[`*_]*\s*\|\s*[`*_]*placeholder[`*_]*\s*\|\s*[`*_]*blocker[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
-        - '(?im)^\s*\|\s*[`*_]*3[`*_]*\s*\|\s*[`*_]*undefined-term[`*_]*\s*\|\s*[`*_]*(blocker|should-fix|suggestion)[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
-        - '(?im)^### Findings[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+1[*_]*:?[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*complete quickly even for large accounts[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Readings:[*_]*[ \t]*[^/\r\n]*\S[ \t]*/[ \t]*\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\[\]\r\n]*(\[OPEN QUESTION:[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\][^\[\]\r\n]*)+\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+2[*_]*:?[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*Retention period:\s*TBD[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Missing:[*_]*[ \t]*\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\[\]\r\n]*(\[OPEN QUESTION:[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\][^\[\]\r\n]*)+\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+3[*_]*:?[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*Atlas-7 export profile[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Readings:[*_]*[ \t]*[^/\r\n]*\S[ \t]*/[ \t]*\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\[\]\r\n]*(\[OPEN QUESTION:[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\][^\[\]\r\n]*)+\r?$\r?\n([ \t]*\r?\n)*### Open questions \(product decisions, not findings\)[ \t]*\r?$'
+        - '(?im)^\s*\|\s*[`*_]*3[`*_]*\s*\|\s*[`*_]*undefined-term[`*_]*\s*\|\s*[`*_]*blocker[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
+        - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|[^\r\n]*\|[^\r\n]*\bR1\b[^\r\n]*\|\s*$'
+        - '(?im)^\s*\|\s*[`*_]*2[`*_]*\s*\|[^\r\n]*\|[^\r\n]*\bR2\b[^\r\n]*\|\s*$'
+        - '(?im)^\s*\|\s*[`*_]*3[`*_]*\s*\|[^\r\n]*\|[^\r\n]*\bR3\b[^\r\n]*\|\s*$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*complete quickly even for large accounts["`*_.;:!? \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*Retention period:\s*TBD["`*_.;:!? \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*Atlas-7 export profile["`*_.;:!? \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(second|minute|hour|interactive|background)[^\r\n]*$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(profile|encoding|format)[^\r\n]*$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Missing:[*_]*[^\r\n]*retention[^\r\n]*$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\[\]\r\n]*complete[^\[\]\r\n]*\[OPEN QUESTION:[ \t]+'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\[\]\r\n]*(retain|retention)[^\[\]\r\n]*\[OPEN QUESTION:[ \t]+'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\[\]\r\n]*(Atlas|profile|encode)[^\[\]\r\n]*\[OPEN QUESTION:[ \t]+'
+        - '(?im)^### Findings[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+1[*_]*:[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*complete quickly even for large accounts[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Readings:[*_]*[ \t]*[^\r\n]*\S[ \t]+/[ \t]+\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\[\]\r\n]*(\[OPEN QUESTION:[ \t]+[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\][^\[\]\r\n]*)+\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+2[*_]*:[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*Retention period:\s*TBD[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Missing:[*_]*[ \t]*\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\[\]\r\n]*(\[OPEN QUESTION:[ \t]+[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\][^\[\]\r\n]*)+\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+3[*_]*:[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*Atlas-7 export profile[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Readings:[*_]*[ \t]*[^\r\n]*\S[ \t]+/[ \t]+\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\[\]\r\n]*(\[OPEN QUESTION:[ \t]+[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\][^\[\]\r\n]*)+\r?$\r?\n([ \t]*\r?\n)*### Open questions \(product decisions, not findings\)[ \t]*\r?$'
         - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*product owner'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$[\s\S]*?^[ \t]*-[^\r\n]*(duration|quickly)[^\r\n]*product owner'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$[\s\S]*?^[ \t]*-[^\r\n]*retention[^\r\n]*product owner'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$[\s\S]*?^[ \t]*-[^\r\n]*(Atlas-7|profile)[^\r\n]*product owner'
       regex_not_match:
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[ \t]*OPEN QUESTION:'
         - '(?ims)^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|'
         - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*[^\[]OPEN QUESTION:'
         - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$[\s\S]*?^[ \t]*-[ \t]*[*_]*(Quote|Readings|Conflict|Missing|Untestable because|Proposed rewrite):'
-        - '(?ims)^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Verdict:'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Verdict:'
         - '(?ims)^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|'
-        - '(?ims)^[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+\d+[*_]*:?[*_]*[ \t]*\r?$[\s\S]*?^[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+\d+[*_]*:?[*_]*[ \t]*\r?$[\s\S]*?^[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+\d+[*_]*:?[*_]*[ \t]*\r?$[\s\S]*?^[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+\d+[*_]*:?[*_]*[ \t]*\r?$'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[ \t]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[ \t]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[ \t]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[ \t]*\r?$'
       not_contains:
         - "Finding Quality Report"
         - "Scope Slice Plan"

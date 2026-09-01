@@ -27,6 +27,7 @@ inputs:
     - R4: The implementation may choose any session storage mechanism.
 
     Glossary:
+    - session: the server-side login state identified by the session cookie.
     - session-refresh request: an HTTP POST to /v1/session/refresh.
     - session cookie: the request cookie named "sid".
     - expired: evaluated at the instant the server received the
@@ -54,13 +55,13 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?i)Requirements Ambiguity Report'
+        - '(?im)^[ \t]*##[ \t]+Requirements Ambiguity Report[ \t]*\r?$'
         - '(?im)^[ \t]*[*_]*Verdict:[*_ \t]*CLEAN[*_]*\.?[*_]*[ \t]*\r?\n[ \t]*[*_]*All eight ambiguity classes were swept; no findings\.[*_]*[ \t]*\r?$'
-        - '(?im)^[ \t]*\|[ \t]*#[ \t]*\|[ \t]*Class[ \t]*\|[ \t]*Severity[ \t]*\|[ \t]*Location[ \t]*\|[ \t]*\r?$\r?\n^[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*### Findings[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*[*_]*None[*_.]*[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*[*_]*None[*_.]*[ \t]*(?:\r?$|\r?\n)'
+        - '(?im)^[ \t]*\|[ \t]*#[ \t]*\|[ \t]*Class[ \t]*\|[ \t]*Severity[ \t]*\|[ \t]*Location[ \t]*\|[ \t]*\r?$\r?\n^[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*### Findings[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*[*_]*None[*_.]*[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*[*_]*None[*_.]*[ \t]*(\r?\n)?\z'
       regex_not_match:
-        - '(?ims)^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Verdict:'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Verdict:'
         - '(?im)^[ \t]*\|[^\r\n]*\|[^\r\n]*(?:vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[^\r\n]*\|[ \t]*\r?$'
-        - '(?im)^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Finding[ \t]+\d+[*_]*:?[*_]*([^\r\n]*)\r?$'
+        - '(?im)^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*([^\r\n]*)\r?$'
       not_contains:
         - "Verdict: BLOCK"
         - "Verdict: CONCERNS"

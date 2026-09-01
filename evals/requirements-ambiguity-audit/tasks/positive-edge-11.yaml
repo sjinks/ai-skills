@@ -1,17 +1,17 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
-id: positive-edge-002
-name: BLOCK when no spec text is provided
+id: positive-edge-011
+name: BLOCK when spec text is unreadable
 description: |
-  A request to audit a spec without providing any spec text must produce
-  the BLOCK template, not fabricated findings.
+  A request whose only specification source is unreadable must produce the
+  exact reduced BLOCK template without fabricated findings.
 tags:
   - positive-trigger
   - positive-edge
 inputs:
   prompt: |
-    Run a requirements ambiguity audit on our checkout-redesign spec. I
-    haven't pasted it here and you don't have access to it — tell me what
-    you need.
+    Run a requirements ambiguity audit on the attached legacy specification.
+    The only available attachment is corrupted and renders as unreadable bytes;
+    no specification text can be recovered.
 expected:
   should_trigger: true
 graders:
