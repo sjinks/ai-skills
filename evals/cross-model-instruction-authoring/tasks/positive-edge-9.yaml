@@ -23,7 +23,7 @@ inputs:
 
     Under Compatibility note:, include one bullet for every default target in
     the exact form "- <canonical model name>: <check>". For GPT-5.6 Luna,
-    GPT-5.6 Terra, GPT-5.6 Sol, Claude Haiku 4.6, and Claude Opus 5, explain how
+    GPT-5.6 Terra, GPT-5.6 Sol, Claude Haiku 4.5, and Claude Opus 5, explain how
     the artifact addresses that model's distinct profile. For every other
     target, state the compatibility check performed. Compatibility note must
     contain only these eleven bullets in default-set order, with each model
@@ -87,7 +87,7 @@ graders:
         changed profile to its distinct guidance: Luna gets outcome/evidence
         guidance with adaptable tool use; Terra gets broad synthesis with optional
         delegation for independent workstreams; Sol gets a concise mission, hard
-        boundaries, strategic freedom, and pause conditions; Claude Haiku 4.6
+        boundaries, strategic freedom, and pause conditions; Claude Haiku 4.5
         gets explicit defaults, material parameters, bounded steps, or fallback
         behavior; Claude Opus 5 gets current-state tool triggers and preservation
         of uncertainty or disagreement. The finished artifact itself must encode

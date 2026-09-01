@@ -101,7 +101,7 @@ graders:
         and adaptable tool use; Terra checks broad synthesis and optional
         delegation only for independent workstreams; Sol checks a concise
         mission, hard boundaries, strategic freedom, and pause conditions;
-        Claude Haiku 4.6 checks explicit defaults, material parameters, bounded
+        Claude Haiku 4.5 checks explicit defaults, material parameters, bounded
         steps, or missing-input/tool fallbacks; Claude Opus 5 checks current-state
         tool triggers and preservation of uncertainty or disagreement.
         Generic boilerplate, swapped profile reasoning, or prompt echo without

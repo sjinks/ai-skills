@@ -84,7 +84,7 @@ Check for:
 - progress and completion claims grounded in tool results;
 - protection against unrequested scope expansion without micromanaging normal work.
 
-## Claude Haiku 4.6
+## Claude Haiku 4.5
 
 Check for:
 
