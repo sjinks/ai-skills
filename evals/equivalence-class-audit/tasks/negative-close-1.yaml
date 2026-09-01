@@ -25,6 +25,8 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Verdict:"
+        - "Severity:"
         - "Equivalence-Class Audit Report"
         - "Triggering finding:"
         - "Locked audit scope:"

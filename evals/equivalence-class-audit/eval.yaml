@@ -4,7 +4,8 @@ description: |
   Evaluates the equivalence-class-audit skill: it activates when a concrete
   finding implies a bounded class audit, stays silent on unrelated or
   pre-finding prompts, and produces the required single report with strict
-  Presence, Disposition, and Evidence columns.
+  report-level Verdict and Severity plus strict Presence, Disposition, and
+  Evidence columns.
 skill: equivalence-class-audit
 version: "1.1"
 config:
@@ -27,11 +28,11 @@ metrics:
   - name: task_completion
     weight: 0.30
     threshold: 0.8
-    description: Output carries the skill's required audit report, Presence/Disposition vocabulary, and candidate dispositions.
+    description: Output carries the required Verdict/Severity, Presence/Disposition vocabulary, and candidate dispositions.
   - name: report_contract
     weight: 0.20
     threshold: 0.9
-    description: Program validation enforces report structure, metadata, summary, and task-specific row contracts.
+    description: Program validation enforces outcome mapping, report structure, metadata, summaries, and task-specific row contracts.
   - name: efficiency
     weight: 0.10
     threshold: 0.7

@@ -37,9 +37,11 @@ graders:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
         - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
-        - '(?im)^Triggering finding:[ \t]+(missing|not provided|not supplied|required|needed)[^\r\n]*$'
+        - '(?im)^Triggering finding:[ \t]+(missing|not provided|not supplied|required|needed)[ \t]*$'
         - '(?im)^Locked audit scope:[ \t]+\S[^\r\n]*$'
         - '(?im)^Output depth:\s*quick\s*$'
+        - '(?im)^Verdict:\s*BLOCK\s*$'
+        - '(?im)^Severity:\s*UNASSESSED\s*$'
         - '(?im)^### Defects to fix now[ \t]*\r?\n-[ \t]*None[ \t]*$'
         - '(?im)^### Deferred follow-ups[ \t]*\r?\n-[ \t]*None[ \t]*$'
         - '(?im)^### Out-of-scope candidates discovered[ \t]*\r?\n-[ \t]*None[ \t]*$'

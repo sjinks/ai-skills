@@ -47,6 +47,18 @@ HEADERS = {
         "tests/project_permissions_test.go, and project exports",
     ),
 }
+PROFILE_OUTCOMES = {
+    "positive-edge-001": ("CONCERNS", "MEDIUM"),
+    "positive-edge-002": ("BLOCK", "HIGH"),
+    "positive-edge-004": ("CONCERNS", "MEDIUM"),
+    "positive-edge-005": ("BLOCK", "MEDIUM"),
+    "positive-edge-007": ("CONCERNS", "MEDIUM"),
+    "positive-edge-008": ("BLOCK", "MEDIUM"),
+    "positive-edge-009": ("CONCERNS", "MEDIUM"),
+    "positive-edge-010": ("CLEAN", "NONE"),
+    "positive-trigger-001": ("CONCERNS", "MEDIUM"),
+    "positive-trigger-002": ("BLOCK", "HIGH"),
+}
 
 
 def report_sections(fix=None, deferred=None, out_of_scope=None, blockers=None, implications=None,
@@ -65,6 +77,7 @@ def report_sections(fix=None, deferred=None, out_of_scope=None, blockers=None, i
 
 def complete_report(profile, overrides=None, sections=None, depth="standard"):
     finding, scope = HEADERS[profile]
+    verdict, severity = PROFILE_OUTCOMES[profile]
     overrides = overrides or {}
     rows = []
     axes = overrides if depth == "quick" else CHECK_REPORT.AXES
@@ -86,6 +99,8 @@ def complete_report(profile, overrides=None, sections=None, depth="standard"):
         f"Triggering finding: {finding}\n"
         f"Locked audit scope: {scope}\n"
         f"Output depth: {depth}\n"
+        f"Verdict: {verdict}\n"
+        f"Severity: {severity}\n"
         "| Axis | Candidate | Presence | Disposition | Evidence |\n"
         "|---|---|---|---|---|\n"
         + "\n".join(rows)
@@ -122,6 +137,8 @@ def reduced_report(profile, quick=False):
         f"Triggering finding: {finding}\n"
         f"Locked audit scope: {scope}\n"
         f"Output depth: {'quick' if quick else 'standard'}\n"
+        "Verdict: BLOCK\n"
+        "Severity: UNASSESSED\n"
         + "\n".join(
             f"### {name}\n" + "\n".join(f"- {bullet}" for bullet in sections[name])
             for name in headings
@@ -184,7 +201,7 @@ def profile_report(profile):
             "Documentation/Spec Prose Twin": (docs, "present", "blocked", "docs/operations.md"),
         }, report_sections(
             fix=["Fix maxRetries zero bound."],
-            blockers=[f"Provide owner and reason for {docs}."],
+            blockers=[f"Provide owner and reason for {docs}; missing: owner, reason"],
             implications=[f"Update {docs} after clarification."],
         ))
     if profile == "positive-edge-007":
@@ -218,7 +235,10 @@ def profile_report(profile):
             ],
         }, report_sections(
             fix=["Fix maxRetries zero bound."],
-            blockers=[f"Provide reason for {api}.", f"Provide owner for {operations}."],
+            blockers=[
+                f"Provide reason for {api}; missing: reason",
+                f"Provide owner for {operations}; missing: owner",
+            ],
             implications=[f"Track {api} and {operations}."],
         ))
     if profile == "positive-edge-009":
@@ -317,6 +337,37 @@ BEHAVIOR_MUTATIONS = {
         "policies/project_permissions.rego permission",
     ),
 }
+BEHAVIOR_REPAIRS = {
+    "positive-edge-001": (("Fix timeoutSeconds bound and docs health guidance.", "Fix docs health guidance."),),
+    "positive-edge-002": (("### Blocking questions\n- Clarify DELETE", "### Blocking questions\n- None\n<!-- removed blocker -->\n- Clarify DELETE"),),
+    "positive-edge-004": (("Fix maxItems zero bound, maxItems zero test, and maxItems zero sentinel.", "Fix maxItems zero bound and maxItems zero test."),),
+    "positive-edge-005": (
+        ("### Blocking questions\n- Provide owner and reason for docs/operations.md documentation defect; missing: owner, reason", "### Blocking questions\n- None"),
+        ("### Test/doc implications\n- Update docs/operations.md documentation defect after clarification.", "### Test/doc implications\n- None"),
+    ),
+    "positive-edge-007": (("sync validator, async validator, async validator mode", "sync validator, worker validator, async validator mode"),),
+    "positive-edge-008": (
+        ("Provide owner for docs/operations.md documentation defect; missing: owner", "Provide owner for docs/other.md documentation defect; missing: owner"),
+        ("Track docs/api.md documentation defect and docs/operations.md documentation defect.", "Track docs/api.md documentation defect and docs/other.md documentation defect."),
+    ),
+    "positive-edge-010": (("### Defects to fix now\n- None", "### Defects to fix now\n- Fix Opposite Bound candidate."),),
+    "positive-trigger-001": (("null retry test", "sentinel test"),),
+}
+PROFILE_FAILURES = {
+    "positive-edge-001": "missing required Opposite Bound row",
+    "positive-edge-002": "missing required Permission/Authorization Class row",
+    "positive-edge-003": "blocking question must name the missing required input",
+    "positive-edge-004": "missing required Empty/Sentinel Equivalence row",
+    "positive-edge-005": "documentation candidate must remain present and blocked",
+    "positive-edge-006": "quick reduced report needs a local omitted-axes explanation",
+    "positive-edge-007": "exhaustive report needs separate sync and async validator call sites",
+    "positive-edge-008": "missing required Documentation/Spec Prose Twin row",
+    "positive-edge-009": "deferred follow-up must contain the docs path and owner",
+    "positive-edge-010": "clean audit may contain only absent or n/a rows",
+    "positive-edge-011": "blocking question must name the missing required input",
+    "positive-trigger-001": "trigger-001 requires distinct Test Mirror candidates",
+    "positive-trigger-002": "export candidate needs can_export evidence",
+}
 
 
 def behavior_invalid_report(profile):
@@ -324,7 +375,20 @@ def behavior_invalid_report(profile):
     old, new = BEHAVIOR_MUTATIONS[profile]
     if old not in report:
         raise AssertionError(f"missing behavior mutation anchor for {profile}: {old}")
-    return report.replace(old, new, 1)
+    report = report.replace(old, new, 1)
+    for repair_old, repair_new in BEHAVIOR_REPAIRS.get(profile, ()):
+        if repair_old not in report:
+            raise AssertionError(f"missing behavior repair anchor for {profile}: {repair_old}")
+        report = report.replace(repair_old, repair_new, 1)
+    if profile == "positive-edge-002":
+        report = report.replace(
+            "\n<!-- removed blocker -->\n- Clarify DELETE /teams/{teamId} tenant ownership check: tenantGuard tenant ownership policy spec?",
+            "",
+            1,
+        )
+    if profile == "positive-trigger-001":
+        report = report.replace("null retry test", "sentinel test")
+    return report
 
 
 def run_main(report, profile):
@@ -355,6 +419,8 @@ def matrix_reduced_report(missing_finding, missing_scope, depth):
         f"Triggering finding: {finding}\n"
         f"Locked audit scope: {scope}\n"
         f"Output depth: {depth}\n"
+        "Verdict: BLOCK\n"
+        "Severity: UNASSESSED\n"
         + "\n".join(
             f"### {name}\n" + "\n".join(f"- {bullet}" for bullet in sections[name])
             for name in headings
@@ -777,16 +843,206 @@ class MetadataTests(unittest.TestCase):
 
 class HeaderMarkerTests(unittest.TestCase):
     def test_missing_header_marker_accepts_only_complete_declarations(self):
-        for value in ("missing", "Triggering finding is required.", "scope is not provided"):
+        for value in ("missing", "not provided", "not supplied", "required", "needed"):
             with self.subTest(value=value):
                 self.assertTrue(CHECK_REPORT.missing_header_marker(value))
 
         for value in (
+            "Triggering finding is required.",
+            "scope is not provided",
+            "missing (no defect supplied)",
+            "**missing**",
+            "`missing`",
+            "ｍｉｓｓｉｎｇ",
+            "&#109;issing",
+            "<strong>missing</strong>",
             "Triggering finding is required input: INC-17 maxRetries accepts zero",
             "security review found a missing tenant ownership check",
         ):
             with self.subTest(value=value):
                 self.assertFalse(CHECK_REPORT.missing_header_marker(value))
+
+
+class CheckerContractTests(unittest.TestCase):
+    def test_visible_text_preserves_code_span_angle_brackets(self):
+        for value in ("`handler<Foo>`", "`handler<Bar>`", "`std::map<Key, Value>`"):
+            with self.subTest(value=value):
+                self.assertEqual(value, CHECK_REPORT.visible_text(value))
+
+        self.assertEqual(
+            "visible content",
+            CHECK_REPORT.visible_text("visible <!-- hidden --> <span>content</span>"),
+        )
+        self.assertEqual("<Foo>", CHECK_REPORT.visible_text("&lt;Foo&gt;"))
+        for element in ("script", "style", "template"):
+            with self.subTest(element=element):
+                self.assertFalse(CHECK_REPORT.visible(f"<{element}>hidden</{element}>"))
+                self.assertFalse(CHECK_REPORT.visible(
+                    f"<{element}>outer <{element}>inner</{element}> remainder</{element}>"
+                ))
+                self.assertFalse(CHECK_REPORT.visible(f"<{element}>unclosed"))
+                code = f"`<{element}>visible</{element}>`"
+                self.assertEqual(code, CHECK_REPORT.visible_text(code))
+                escaped = f"&lt;{element}&gt;visible&lt;/{element}&gt;"
+                self.assertEqual(f"<{element}>visible</{element}>", CHECK_REPORT.visible_text(escaped))
+        for element in ("details", "dialog"):
+            with self.subTest(element=element):
+                self.assertFalse(CHECK_REPORT.visible(f"<{element}>hidden</{element}>"))
+                self.assertFalse(CHECK_REPORT.visible(
+                    f"<{element}>outer <{element}>inner</{element}> remainder</{element}>"
+                ))
+                self.assertFalse(CHECK_REPORT.visible(f"<{element}>unclosed"))
+                code = f"`<{element}>visible</{element}>`"
+                self.assertEqual(code, CHECK_REPORT.visible_text(code))
+                escaped = f"&lt;{element}&gt;visible&lt;/{element}&gt;"
+                self.assertEqual(f"<{element}>visible</{element}>", CHECK_REPORT.visible_text(escaped))
+            self.assertFalse(CHECK_REPORT.visible("visible <!-- unclosed"))
+            self.assertFalse(CHECK_REPORT.visible("<span hidden>hidden</span>"))
+            self.assertFalse(CHECK_REPORT.visible("owner: <span hidden"))
+            self.assertFalse(CHECK_REPORT.visible('<span aria-hidden="true">hidden</span>'))
+            self.assertFalse(CHECK_REPORT.visible('<span style="display:none">hidden</span>'))
+            self.assertFalse(CHECK_REPORT.visible('<div style="visibility:hidden">hidden</div>'))
+            self.assertFalse(CHECK_REPORT.visible('<span style=display:none>hidden</span>'))
+            self.assertFalse(CHECK_REPORT.visible('<div style=visibility:hidden>hidden</div>'))
+            self.assertFalse(CHECK_REPORT.visible('<span style="display:/**/none">hidden</span>'))
+            self.assertFalse(CHECK_REPORT.visible('owner: <span style="display:none"'))
+            code = "````handler<`Foo`> and ```nested``` code````"
+            self.assertEqual(code, CHECK_REPORT.visible_text(code))
+        self.assertFalse(CHECK_REPORT.visible("<!-- hidden --><span></span>"))
+
+    def test_bracketed_metadata_placeholders_are_rejected(self):
+        cases = (
+            ("owner", "Platform Docs [TBD]"),
+            ("reason", "documentation ownership [unknown]"),
+            ("provenance", "docs/api.md {unavailable}"),
+            ("owner", "Platform Docs ［owner］"),
+            ("reason", "documentation ownership ｛reason｝"),
+        )
+        for field, value in cases:
+            with self.subTest(field=field, value=value):
+                self.assertTrue(CHECK_REPORT.non_populated_metadata(value, field))
+        self.assertFalse(CHECK_REPORT.non_populated_metadata("Platform Docs [API team]", "owner"))
+
+    def test_duplicate_row_identity_uses_label_normalization(self):
+        base = profile_report("positive-edge-010")
+        marker = "|---|---|---|---|---|\n"
+        duplicate_rows = (
+            "| Opposite Bound | Straße | absent | n/a | tests/example.md |\n"
+            "| Opposite Bound | STRASSE | absent | n/a | tests/example.md |\n"
+        )
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                CHECK_REPORT.parse_report(base.replace(marker, marker + duplicate_rows, 1))
+
+        distinct_rows = (
+            "| Opposite Bound | candidate 0 | absent | n/a | tests/example.md |\n"
+            "| Opposite Bound | candidate zero | absent | n/a | tests/example.md |\n"
+        )
+        CHECK_REPORT.parse_report(base.replace(marker, marker + distinct_rows, 1))
+
+    def test_mixed_latin_cyrillic_candidate_is_rejected(self):
+        invalid = profile_report("positive-edge-010").replace(
+            "Opposite Bound candidate",
+            "shаred candidate",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                CHECK_REPORT.parse_report(invalid)
+        self.assertIn("candidate label must not mix Latin and Cyrillic letters", error.getvalue())
+
+    def test_missing_input_blockers_require_one_verbatim_header_label(self):
+        self.assertTrue(CHECK_REPORT.requests_missing_input(
+            "Provide the Triggering finding.", "Triggering finding"
+        ))
+        self.assertTrue(CHECK_REPORT.requests_missing_input(
+            "Provide the Locked audit scope.", "Locked audit scope"
+        ))
+        for value in (
+            "What defect should be used as the trigger?",
+            "Provide the triggering defect.",
+            "Which finding should the audit use?",
+            "Which files and modules should the audit inspect?",
+            "Provide the audit scope.",
+            "Which artifacts should the audit include?",
+            "Which defect files should the audit inspect?",
+            "Provide the triggering defect and audit scope.",
+            "Provide the triggering finding; then specify the audit scope.",
+            "Provide the triggering finding. Specify the audit scope.",
+            "Provide the triggering finding; subsequently provide the audit scope.",
+            "Provide the triggering finding, then the locked audit scope.",
+            "Provide the triggering finding, followed by the locked audit scope.",
+            "Provide the triggering finding, the locked audit scope.",
+            "Provide the locked audit scope, then the triggering finding.",
+            "Provide the triggering finding before providing the locked audit scope.",
+            "Provide the locked audit scope after supplying the triggering finding.",
+            "Provide the triggering finding before you specify the audit scope.",
+            "Provide the audit scope after you provide the triggering finding.",
+            "Provide the Triggering finding and list the files.",
+            "Provide the Triggering finding after selecting modules and artifacts.",
+            "Provide the Locked audit scope after the incident.",
+            "Provide the Locked audit scope for the bug report.",
+            "Provide the Locked audit scope after the test failure.",
+            "Provide the Unlocked audit scope.",
+            "Provide the Locked audit scopeish.",
+            "Provide the NotTriggering finding.",
+            "Provide the Triggering findingish.",
+        ):
+            with self.subTest(value=value):
+                self.assertFalse(CHECK_REPORT.requests_missing_input(value, "Triggering finding"))
+                self.assertFalse(CHECK_REPORT.requests_missing_input(value, "Locked audit scope"))
+
+    def test_verdict_severity_state_matrix(self):
+        section_none = {name: ["None"] for name in CHECK_REPORT.SECTIONS}
+        states = (
+            (
+                "reduced",
+                {"_has_table": False},
+                section_none,
+                [],
+                {("BLOCK", "UNASSESSED")},
+            ),
+            (
+                "clean",
+                {"_has_table": True},
+                section_none,
+                [{"presence": "absent", "disposition": "n/a"}],
+                {("CLEAN", "NONE")},
+            ),
+            (
+                "actionable",
+                {"_has_table": True},
+                section_none,
+                [{"presence": "present", "disposition": "fix-now"}],
+                {
+                    ("BLOCK", "CRITICAL"), ("BLOCK", "HIGH"),
+                    ("CONCERNS", "MEDIUM"), ("CONCERNS", "LOW"),
+                },
+            ),
+            (
+                "blocked",
+                {"_has_table": True},
+                {**section_none, "Blocking questions": ["Clarify candidate?"]},
+                [{"presence": "blocked — clarification needed", "disposition": "blocked"}],
+                {
+                    ("BLOCK", "CRITICAL"), ("BLOCK", "HIGH"),
+                    ("BLOCK", "MEDIUM"), ("BLOCK", "LOW"),
+                    ("BLOCK", "UNASSESSED"),
+                },
+            ),
+        )
+        for state, base_headers, sections, rows, allowed in states:
+            for verdict in CHECK_REPORT.VERDICTS:
+                for severity in CHECK_REPORT.SEVERITIES:
+                    headers = {**base_headers, "Verdict": verdict, "Severity": severity}
+                    with self.subTest(state=state, verdict=verdict, severity=severity):
+                        if (verdict, severity) in allowed:
+                            CHECK_REPORT.validate_report_outcome(headers, sections, rows)
+                        else:
+                            with contextlib.redirect_stderr(io.StringIO()):
+                                with self.assertRaises(SystemExit):
+                                    CHECK_REPORT.validate_report_outcome(headers, sections, rows)
 
 class CheckerIntegrationTests(unittest.TestCase):
     def test_missing_input_and_depth_matrix(self):
@@ -873,9 +1129,67 @@ class CheckerIntegrationTests(unittest.TestCase):
         for profile in sorted(CHECK_REPORT.PROFILES):
             invalid = behavior_invalid_report(profile)
             with self.subTest(profile=profile):
-                with contextlib.redirect_stderr(io.StringIO()):
+                error = io.StringIO()
+                with contextlib.redirect_stderr(error):
                     with self.assertRaises(SystemExit):
                         run_main(invalid, profile)
+                self.assertIn(PROFILE_FAILURES[profile], error.getvalue())
+
+    def test_reduced_profiles_reject_noncanonical_blocker_aliases(self):
+        cases = (
+            (
+                "positive-edge-003",
+                "Provide the Locked audit scope.",
+                "Which files and modules should the audit inspect?",
+            ),
+            (
+                "positive-edge-006",
+                "Provide the Triggering finding.",
+                "What defect should be used as the trigger?",
+            ),
+            (
+                "positive-edge-011",
+                "Provide the Triggering finding.",
+                "Which finding should the audit use?",
+            ),
+        )
+        for profile, original, alias in cases:
+            with self.subTest(profile=profile, alias=alias):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(profile_report(profile).replace(original, alias, 1), profile)
+
+    def test_metadata_profiles_bind_missing_fields_and_owner_assignment(self):
+        cases = (
+            (
+                "positive-edge-005",
+                "missing: owner, reason",
+                "missing: owner",
+                "documentation blocker must request owner and reason",
+            ),
+            (
+                "positive-edge-008",
+                "missing: reason",
+                "missing: owner",
+                "docs/api.md needs a separate blocker requesting reason",
+            ),
+            (
+                "positive-edge-009",
+                "owner: Platform Docs; reason: documentation is owned outside this change",
+                "owner: API Team; reason: Platform Docs requested transfer",
+                "documentation deferral owner must be Platform Docs",
+            ),
+        )
+        for profile, original, invalid_value, expected_error in cases:
+            error = io.StringIO()
+            with self.subTest(profile=profile):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        run_main(
+                            profile_report(profile).replace(original, invalid_value, 1),
+                            profile,
+                        )
+                self.assertIn(expected_error, error.getvalue())
 
     def test_complete_reports_reject_embedded_invalid_metadata_suffixes(self):
         cases = (
@@ -1045,6 +1359,31 @@ class CheckerIntegrationTests(unittest.TestCase):
 
 
 class ConfigurationTests(unittest.TestCase):
+    def test_reduced_task_missing_markers_match_checker_vocabulary(self):
+        root = pathlib.Path(__file__).parent / "tasks"
+        cases = {
+            "positive-edge-3.yaml": ("Locked audit scope",),
+            "positive-edge-6.yaml": ("Triggering finding",),
+            "positive-edge-11.yaml": ("Triggering finding", "Locked audit scope"),
+        }
+        for name, headers in cases.items():
+            text = (root / name).read_text(encoding="utf-8")
+            for header in headers:
+                match = re.search(
+                    rf"'(?P<pattern>\(\?im\)\^{re.escape(header)}:[^']+)'",
+                    text,
+                )
+                self.assertIsNotNone(match, f"{name}: {header}")
+                pattern = match.group("pattern")
+                for marker in CHECK_REPORT.MISSING:
+                    self.assertRegex(f"{header}: {marker}", pattern)
+                    self.assertTrue(CHECK_REPORT.missing_header_marker(marker))
+                for invalid in (
+                    f"{header}: missing (clarifier)",
+                    f"{header}: The {header.lower()} is missing.",
+                ):
+                    self.assertIsNone(re.search(pattern, invalid), (name, invalid))
+
     def test_report_contract_metric_and_all_positive_profiles_are_registered(self):
         root = pathlib.Path(__file__).parent
         eval_text = (root / "eval.yaml").read_text(encoding="utf-8")
@@ -1059,6 +1398,12 @@ class ConfigurationTests(unittest.TestCase):
         self.assertRegex(metric.group(0), r"(?m)^    threshold: 0\.9$")
 
         task_files = sorted((root / "tasks").glob("positive-*.yaml"))
+        expected_outcomes = {
+            **PROFILE_OUTCOMES,
+            "positive-edge-003": ("BLOCK", "UNASSESSED"),
+            "positive-edge-006": ("BLOCK", "UNASSESSED"),
+            "positive-edge-011": ("BLOCK", "UNASSESSED"),
+        }
         profile_ids = set()
         for task_file in task_files:
             text = task_file.read_text(encoding="utf-8")
@@ -1072,8 +1417,16 @@ class ConfigurationTests(unittest.TestCase):
             self.assertIn("- evals/equivalence-class-audit/check-report.py", block)
             args = re.findall(r"(?m)^        - (positive-(?:edge|trigger)-\d{3})\s*$", block)
             self.assertEqual([task_id.group(1)], args, task_file.name)
+            verdict, severity = expected_outcomes[task_id.group(1)]
+            self.assertIn(f"^Verdict:\\s*{verdict}\\s*$", text, task_file.name)
+            self.assertIn(f"^Severity:\\s*{severity}\\s*$", text, task_file.name)
             profile_ids.add(task_id.group(1))
         self.assertEqual(CHECK_REPORT.PROFILES, profile_ids)
+
+        for name in ("negative-close-1.yaml", "negative-close-2.yaml", "negative-trigger-1.yaml"):
+            text = (root / "tasks" / name).read_text(encoding="utf-8")
+            self.assertIn('- "Verdict:"', text, name)
+            self.assertIn('- "Severity:"', text, name)
 
 
 if __name__ == "__main__":

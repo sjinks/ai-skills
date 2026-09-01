@@ -47,6 +47,8 @@ graders:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
         - '(?im)^Output depth:\s*standard\s*$'
+        - '(?im)^Verdict:\s*CLEAN\s*$'
+        - '(?im)^Severity:\s*NONE\s*$'
         - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
       not_contains:
         - "### Omitted axes (quick mode only)"

@@ -48,6 +48,8 @@ graders:
         - '(?im)^### Blocking questions[ \t]*\r?\n-[ \t]*\S[^\r\n]*$'
         - '(?im)^### Test/doc implications[ \t]*\r?\n-[ \t]*\S[^\r\n]*$'
         - '(?im)^Output depth:\s*quick\s*$'
+        - '(?im)^Verdict:\s*CONCERNS\s*$'
+        - '(?im)^Severity:\s*MEDIUM\s*$'
         - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
         - '(?im)^### Omitted axes \(quick mode only\)[ \t]*$'
         - '(?i)Omitted axes[^\n]*(scope|inapplicable|material)|Omitted axes[\s\S]{0,300}(scope|inapplicable|material)'

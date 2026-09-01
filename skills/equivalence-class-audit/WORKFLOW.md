@@ -36,7 +36,7 @@ Do not use this workflow for:
 
 ## Required Inputs
 
-Before auditing, state the required inputs. The triggering finding and locked audit scope are the minimum inputs needed before candidate enumeration. If either is missing, do not enumerate candidates, do not invent scope, and do not add table rows. Return the reduced report with exactly one blocking question. If both are missing, request the triggering finding first; otherwise request the one missing input. Preserve an explicitly requested output depth. For `quick`, append **Omitted axes** and state that required input is missing and no axes were enumerated; omit that section for other depths. Include table rows only after both required inputs are available. This rule applies across languages, frameworks, configuration, schemas, documentation, tests, and other artifacts.
+Before auditing, state the required inputs. The triggering finding and locked audit scope are the minimum inputs needed before candidate enumeration. If either is missing, do not enumerate candidates, do not invent scope, and do not add table rows. Return the reduced report with exactly one blocking question. If both are missing, request the triggering finding first; otherwise request the one missing input. Name exactly one verbatim header label in that blocker: `Triggering finding` or `Locked audit scope`; do not mention the other label. A missing header value is exactly one bare marker: `missing`, `not provided`, `not supplied`, `required`, or `needed`, with no clarifier. Preserve an explicitly requested output depth. For `quick`, append **Omitted axes** and state that required input is missing and no axes were enumerated; omit that section for other depths. Include table rows only after both required inputs are available. This rule applies across languages, frameworks, configuration, schemas, documentation, tests, and other artifacts.
 
 If another critical fact is missing after the triggering finding and locked audit scope are known, record the affected row as `blocked — clarification needed` with `blocked` disposition instead of guessing.
 
@@ -89,6 +89,17 @@ The report table must use only these values.
 - `defer-with-owner` - the present defect is intentionally deferred with a named owner or owning team and a reason. A ticket, issue, or reference alone is not enough.
 - `n/a` - used for `absent` and `n/a` presence rows.
 - `blocked` - used when clarification is required before deciding or fixing, including when the caller explicitly requires deferral but no named owner or owning team and reason are available. Missing deferral metadata alone does not override the `fix-now` default.
+
+**Severity:**
+
+- `CRITICAL` - immediate severe security, privacy, data-loss, safety, legal, or irreversible production harm.
+- `HIGH` - normally triggerable major security, authorization, reliability, contract, or data-integrity harm.
+- `MEDIUM` - credible bounded regression or meaningful user/operational harm.
+- `LOW` - localized low-impact correctness or maintainability concern.
+- `NONE` - only for a clean report.
+- `UNASSESSED` - only when missing information prevents impact assessment.
+
+Use the highest applicable severity. A reduced missing-input report is `Verdict: BLOCK` with `Severity: UNASSESSED`. A complete report with a blocked row or blocking question is `BLOCK` with any non-`NONE` severity. Without blockers, `CRITICAL` or `HIGH` maps to `BLOCK`, actionable `MEDIUM` or `LOW` maps to `CONCERNS`, and only an all-absent/`n/a` report with no actionable summaries maps to `CLEAN` / `NONE`.
 
 **Evidence** must cite a file, section, test, spec, schema, migration, configuration artifact, log, incident note, or state the reason for an `n/a` row. Paths containing `/` may be plain text; wrap standalone basenames, dotfiles, and extensionless filenames in backticks so they are unambiguous artifact citations. A row without evidence is incomplete.
 
@@ -203,7 +214,7 @@ If a defect involves stale data, invalidation, consistency, or duplicated repres
 ## Output Format
 
 Return one report with this header and these sections. Emit no preamble or trailing commentary; the report heading is the first content line. Name every present candidate in its corresponding fix-now, deferred, or blocking section. In those three disposition sections, name only candidates whose table disposition matches the section; do not repeat a candidate under another disposition, including candidates with `n/a`. If the same normalized candidate label appears in multiple rows, all such rows must use one disposition; otherwise use distinct labels. Label matching decodes HTML entities, removes Unicode format/bidi controls, applies NFKC, removes format/bidi controls again, removes Markdown code/emphasis markers, and compares case-insensitively; never use those forms to distinguish labels. Also name every present `Test Mirror` and `Documentation/Spec Prose Twin` candidate under **Test/doc implications**.
-For machine-checked metadata, end each deferred bullet with `owner: NAME; reason: RATIONALE` and each out-of-scope bullet with `provenance: SOURCE`; values must be positive and populated. Write exactly one blocker bullet per blocked candidate. Phrase each blocker as an imperative (`provide`, `specify`, `clarify`, `confirm`, `need`) or a question beginning with `what`, `which`, `who`, `why`, `can`, `could`, `would`, `are`, `does`, `do`, `is`, or `should`; Markdown emphasis is allowed.
+For machine-checked metadata, end each deferred bullet with `owner: NAME; reason: RATIONALE` and each out-of-scope bullet with `provenance: SOURCE`; values must be positive and populated. A blocker for required report input must name exactly one verbatim header label: `Triggering finding` or `Locked audit scope`. A blocker for missing deferral metadata must end with `; missing: owner`, `; missing: reason`, or `; missing: owner, reason`. Write exactly one blocker bullet per blocked candidate. Phrase each blocker as an imperative (`provide`, `specify`, `clarify`, `confirm`, `need`) or a question beginning with `what`, `which`, `who`, `why`, `can`, `could`, `would`, `are`, `does`, `do`, `is`, or `should`; Markdown emphasis is allowed.
 Only include the table after both the triggering finding and locked audit scope are available. For insufficient input, keep the report header and section headings, omit table rows, and put the missing input under **Blocking questions**.
 
 ```markdown
@@ -212,6 +223,8 @@ Only include the table after both the triggering finding and locked audit scope 
 Triggering finding: <one concrete defect or finding>
 Locked audit scope: <files/modules/API surfaces/specs/tests/artifacts>
 Output depth: <quick | standard | exhaustive; select exactly one>
+Verdict: <BLOCK | CONCERNS | CLEAN; select exactly one>
+Severity: <CRITICAL | HIGH | MEDIUM | LOW | NONE | UNASSESSED; select exactly one>
 
 | Axis | Candidate | Presence | Disposition | Evidence |
 |------|-----------|----------|-------------|----------|
@@ -240,7 +253,7 @@ For `quick` mode only, append:
 - <summary of omitted catalogue axes and why they were not expanded>
 ```
 
-Table cell spacing may vary. Escape a literal pipe inside a cell as `\|`. In Evidence, paths containing `/` may be plain text; wrap standalone basenames, dotfiles, and extensionless filenames in backticks. After trimming spaces or tabs, the header must contain the five canonical labels in order, and each separator cell must consist only of three or more hyphens; alignment colons are not allowed.
+Table cell spacing may vary. Escape a literal pipe inside a cell as `\|`. In Evidence, paths containing `/` may be plain text; wrap standalone basenames, dotfiles, and extensionless filenames in backticks. Candidate labels must not mix Latin and Cyrillic letters. After trimming spaces or tabs, the header must contain the five canonical labels in order, and each separator cell must consist only of three or more hyphens; alignment colons are not allowed.
 
 When the table is included after both the triggering finding and locked audit scope are available, every catalogue axis must be represented in the table at least once for `standard` and `exhaustive` depth. If an axis has candidates, add one row per candidate. If an axis has no candidates or is structurally inapplicable, add one explicit `n/a` row with evidence explaining why. In explicit `quick` mode, include only target-specific applicable axes and add an omitted-axis summary instead of full-axis enumeration.
 
@@ -268,6 +281,8 @@ Allowed disposition boundary: defer documentation corrections to owner Platform 
 Triggering finding: `maxRetries` accepts `0`, disabling retry behavior unexpectedly.
 Locked audit scope: config/service.yml, docs/retry-policy.md, tests/retry_policy_spec.rb
 Output depth: standard
+Verdict: CONCERNS
+Severity: MEDIUM
 
 | Axis | Candidate | Presence | Disposition | Evidence |
 |------|-----------|----------|-------------|----------|

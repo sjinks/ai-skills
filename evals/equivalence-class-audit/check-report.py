@@ -35,6 +35,8 @@ PRESENCE_VALUES = {
     "n/a — no candidates in scope", "blocked — clarification needed",
 }
 DISPOSITIONS = {"fix-now", "defer-with-owner", "n/a", "blocked"}
+VERDICTS = {"BLOCK", "CONCERNS", "CLEAN"}
+SEVERITIES = {"CRITICAL", "HIGH", "MEDIUM", "LOW", "NONE", "UNASSESSED"}
 METADATA_PLACEHOLDERS = {"name", "owner", "provenance", "rationale", "reason", "source"}
 NON_POPULATED_METADATA = {
     "missing", "unknown", "unavailable", "not supplied", "none", "n/a", "tbd",
@@ -120,10 +122,43 @@ def visible(value):
 
 
 def visible_text(value):
-    value = html.unescape(value)
+    code_spans = []
+
+    def protect_code_span(match):
+        code_spans.append(match.group(0))
+        return f"\ufff0{len(code_spans) - 1}\ufff1"
+
+    value = re.sub(
+        r"(?<!`)(`+)(?!`)(.*?)(?<!`)\1(?!`)",
+        protect_code_span,
+        value,
+        flags=re.DOTALL,
+    )
+    if re.search(r"</?(?:script|style|template|details|dialog)\b", value, flags=re.I):
+        return ""
+    if re.search(
+        r"<[a-z][^>]*(?:\shidden(?:\s|=|>)|\saria-hidden\s*=\s*['\"]?true\b)",
+        value,
+        flags=re.I,
+    ):
+        return ""
+    if re.search(
+        r"<[a-z][^>]*\sstyle\s*=",
+        value,
+        flags=re.I,
+    ):
+        return ""
     value = re.sub(r"<!--.*?-->", "", value, flags=re.DOTALL)
+    if "<!--" in value:
+        return ""
+    if re.search(r"<[a-z!/][^>]*$", value, flags=re.I):
+        return ""
     value = re.sub(r"<[^>]+>", "", value)
-    return re.sub(r"&(?:#\d+|#x[0-9a-f]+|[a-z]+);", "", value, flags=re.I).strip()
+    value = html.unescape(value)
+    value = re.sub(r"&(?:#\d+|#x[0-9a-f]+|[a-z]+);", "", value, flags=re.I)
+    for index, code_span in enumerate(code_spans):
+        value = value.replace(f"\ufff0{index}\ufff1", html.unescape(code_span))
+    return " ".join(value.split())
 
 
 def contains(value, *terms):
@@ -140,14 +175,18 @@ def missing_marker(value):
 
 
 def missing_header_marker(value):
-    value = norm(value)
-    if value in MISSING:
-        return True
-    return bool(re.fullmatch(
-        r"^(?:the\s+|this\s+)?(?:triggering finding|locked audit scope|scope|finding|input)\s+"
-        r"(?:is|are|remains?)\s+(?:missing|not provided|not supplied|required|needed)[.!?]?",
-        value,
-    ))
+    return value.strip().lower() in MISSING
+
+
+def mixes_latin_and_cyrillic(value):
+    names = (unicodedata.name(character, "") for character in canonical_unicode(value))
+    scripts = {
+        script
+        for name in names
+        for script in ("LATIN", "CYRILLIC")
+        if script in name
+    }
+    return len(scripts) > 1
 
 
 def populated_metadata(value):
@@ -183,8 +222,9 @@ def non_populated_metadata(value, field=None):
         bare,
     )
     invalid_suffix = re.search(
-        r"(?:\(|[;,:]|\s[—–-])\s*"
-        r"(?:missing|unknown|unavailable|not supplied|none|n/a|tbd|unassigned)\s*$",
+        r"(?:[([{]|[;,:]|\s[—–-])\s*"
+        r"(?:missing|unknown|unavailable|not supplied|none|n/a|tbd|unassigned|"
+        r"name|owner|provenance|rationale|reason|source)\s*$",
         bare,
     )
     if negative_phrase or no_value_phrase or invalid_suffix:
@@ -265,6 +305,39 @@ def requests(value):
     return bool(imperative or question)
 
 
+def requests_missing_input(value, missing_header):
+    if not requests(value):
+        return False
+    value = label_norm(value)
+    expected = label_norm(missing_header)
+    if expected == "triggering finding":
+        names_other = bool(re.search(
+            r"\b(?:scope|files?|modules?|artifacts?|specs?|tests?)\b",
+            value,
+        ))
+    else:
+        names_other = bool(re.search(
+            r"\b(?:finding|defect|trigger|incident|bug(?: report)?|test failure|review finding)\b",
+            value,
+        ))
+    names_expected = bool(re.search(
+        rf"(?<![\w]){re.escape(expected)}(?![\w])",
+        value,
+    ))
+    return names_expected and not names_other
+
+
+def missing_metadata_fields(value):
+    match = re.search(
+        r";\s*missing:\s*(owner|reason)(?:\s*,\s*(owner|reason))?\s*$",
+        norm(value),
+    )
+    if not match:
+        return set()
+    fields = {field for field in match.groups() if field}
+    return fields if len(fields) == len([field for field in match.groups() if field]) else set()
+
+
 def table_cells(line):
     line = line.strip(" \t")
     if not line.startswith("|") or not line.endswith("|"):
@@ -320,19 +393,24 @@ def parse_report(output):
 
     headers = {}
     header_indexes = {}
-    for name in ("Triggering finding", "Locked audit scope", "Output depth"):
+    report_headers = ("Triggering finding", "Locked audit scope", "Output depth", "Verdict", "Severity")
+    for name in report_headers:
         matches = [(index, line.strip().split(":", 1)[1].strip())
                    for index, line in enumerate(lines)
                    if line.strip().startswith(f"{name}:")]
         if len(matches) != 1 or not visible(matches[0][1]):
             fail(f"expected exactly one populated {name} header")
         header_indexes[name], headers[name] = matches[0]
-    ordered_headers = [header_indexes[name] for name in ("Triggering finding", "Locked audit scope", "Output depth")]
+    ordered_headers = [header_indexes[name] for name in report_headers]
     if ordered_headers != sorted(ordered_headers) or ordered_headers[0] <= report_index:
         fail("report headers must follow the report heading in canonical order")
     for left, right in zip([report_index] + ordered_headers, ordered_headers):
         if any(line.strip() for line in lines[left + 1:right]):
             fail("report heading and headers may be separated only by blank lines")
+    if headers["Verdict"] not in VERDICTS:
+        fail("report Verdict has an invalid value")
+    if headers["Severity"] not in SEVERITIES:
+        fail("report Severity has an invalid value")
 
     heading_entries = [(index, line[4:].strip()) for index, line in enumerate(lines)
                        if line.startswith("### ")]
@@ -405,6 +483,8 @@ def parse_report(output):
             item = dict(zip(("axis", "candidate", "presence", "disposition", "evidence"), cells))
             if item["axis"] not in AXES:
                 fail("table axis must be a canonical catalogue axis")
+            if mixes_latin_and_cyrillic(item["candidate"]):
+                fail("candidate label must not mix Latin and Cyrillic letters")
             if item["presence"] not in PRESENCE_VALUES or item["disposition"] not in DISPOSITIONS:
                 fail("table row has an invalid Presence or Disposition value")
             expected = {
@@ -444,7 +524,7 @@ def parse_report(output):
             if not citation and not (reason_allowed and n_a_reason):
                 fail("evidence must cite an artifact or an applicable n/a reason")
             rows.append(item)
-        pairs = [(norm(row["axis"]), norm(row["candidate"])) for row in rows]
+        pairs = [(label_norm(row["axis"]), label_norm(row["candidate"])) for row in rows]
         if any(count > 1 for count in Counter(pairs).values()):
             fail("duplicate normalized axis/candidate pair")
     elif any(line.strip() for line in lines[ordered_headers[-1] + 1:first_section]):
@@ -627,6 +707,30 @@ def reconcile_summaries(sections, rows):
             fail(f"Test/doc implications must name {candidate}")
 
 
+def validate_report_outcome(headers, sections, rows):
+    verdict = headers["Verdict"]
+    severity = headers["Severity"]
+    if not headers["_has_table"]:
+        if verdict != "BLOCK" or severity != "UNASSESSED":
+            fail("reduced report must use Verdict BLOCK and Severity UNASSESSED")
+        return
+
+    blocked = any(item["disposition"] == "blocked" for item in rows)
+    blocked = blocked or sections["Blocking questions"] != ["None"]
+    actionable = any(item["presence"] == "present" for item in rows)
+    actionable = actionable or sections["Out-of-scope candidates discovered"] != ["None"]
+
+    if blocked:
+        if verdict != "BLOCK" or severity == "NONE":
+            fail("blocked report must use Verdict BLOCK and a non-NONE Severity")
+    elif actionable:
+        expected = "BLOCK" if severity in ("CRITICAL", "HIGH") else "CONCERNS"
+        if severity not in ("CRITICAL", "HIGH", "MEDIUM", "LOW") or verdict != expected:
+            fail("actionable report has an invalid Verdict/Severity combination")
+    elif verdict != "CLEAN" or severity != "NONE":
+        fail("clean report must use Verdict CLEAN and Severity NONE")
+
+
 def reduced(headers, sections, rows, missing_header, quick=False, expected_missing=None):
     if headers["_has_table"] or rows:
         fail("reduced report must not include a table")
@@ -643,8 +747,7 @@ def reduced(headers, sections, rows, missing_header, quick=False, expected_missi
     if len(sections["Blocking questions"]) != 1:
         fail("reduced report needs exactly one blocking question")
     blockers = sections["Blocking questions"][0]
-    if (not contains(blockers, missing_header.lower())
-            or not requests(blockers)):
+    if not requests_missing_input(blockers, missing_header):
         fail("blocking question must name the missing required input")
     if quick:
         omitted = " ".join(sections["Omitted axes (quick mode only)"])
@@ -769,7 +872,8 @@ def validate(profile, headers, sections, rows):
             "Blocking questions",
             one_to_one=True,
         ).lower()
-        if not all(term in blocker for term in ("doc", "owner", "reason")) or not requests(blocker):
+        if ("doc" not in blocker or missing_metadata_fields(blocker) != {"owner", "reason"}
+            or not requests(blocker)):
             fail("documentation blocker must request owner and reason")
     elif profile == "positive-edge-007":
         row(rows, "Opposite Bound", presence="present", disposition="fix-now",
@@ -820,7 +924,7 @@ def validate(profile, headers, sections, rows):
                 "Blocking questions",
                 one_to_one=True,
             ).lower()
-            if need not in blocker or not requests(blocker):
+            if missing_metadata_fields(blocker) != {need} or not requests(blocker):
                 fail(f"{document} needs a separate blocker requesting {need}")
         if sections["Deferred follow-ups"] != ["None"]:
             fail("blocked docs must not appear in deferred follow-ups")
@@ -844,6 +948,9 @@ def validate(profile, headers, sections, rows):
         )
         if not all(term in deferred.lower() for term in ("docs/api.md", "platform docs")):
             fail("deferred follow-up must contain the docs path and owner")
+        metadata = re.search(r"\bowner:\s*([^;]+);\s*reason:\s*(.+)$", deferred, flags=re.I)
+        if not metadata or label_norm(metadata.group(1)) != "platform docs":
+            fail("documentation deferral owner must be Platform Docs")
     elif profile == "positive-edge-010":
         if any(item["presence"] not in (
             "absent", "n/a — structurally inapplicable", "n/a — no candidates in scope",
@@ -881,6 +988,7 @@ def validate(profile, headers, sections, rows):
         row(rows, "Test Mirror", ("export", "denied"), "present", "fix-now", ("archive",))
         row(rows, "Test Mirror", ("archive", "denied"), "present", "fix-now", ("export",))
         row(rows, "Documentation/Spec Prose Twin", ("archive",), "present", "fix-now")
+    validate_report_outcome(headers, sections, rows)
 
 
 def main():

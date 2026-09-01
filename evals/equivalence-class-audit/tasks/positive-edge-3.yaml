@@ -43,8 +43,10 @@ graders:
         - '(?i)Equivalence-Class Audit Report'
         - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
         - '(?im)^Triggering finding:[ \t]+\S[^\r\n]*$'
-        - '(?im)^Locked audit scope:[ \t]+(missing|not provided|not supplied|required|needed)[^\r\n]*$'
+        - '(?im)^Locked audit scope:[ \t]+(missing|not provided|not supplied|required|needed)[ \t]*$'
         - '(?im)^Output depth:\s*standard\s*$'
+        - '(?im)^Verdict:\s*BLOCK\s*$'
+        - '(?im)^Severity:\s*UNASSESSED\s*$'
         - '(?i)Triggering finding'
         - '(?i)(missing|not provided).*locked audit scope|locked audit scope.*(missing|not provided)'
         - '(?i)Defects to fix now'
@@ -84,7 +86,6 @@ graders:
         - "Gate decision:"
         - "Lenses applied:"
         - "Checklist evidence"
-        - "Verdict: BLOCK"
         - "Adversarial tests:"
         - "Egress policy:"
         - "Trusted root:"

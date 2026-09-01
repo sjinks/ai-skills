@@ -33,9 +33,11 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
-        - '(?im)^Triggering finding:\s*(missing|not provided|not supplied|required|needed)\s*$'
-        - '(?im)^Locked audit scope:\s*(missing|not provided|not supplied|required|needed)\s*$'
+        - '(?im)^Triggering finding:[ \t]+(missing|not provided|not supplied|required|needed)[ \t]*$'
+        - '(?im)^Locked audit scope:[ \t]+(missing|not provided|not supplied|required|needed)[ \t]*$'
         - '(?im)^Output depth:\s*standard\s*$'
+        - '(?im)^Verdict:\s*BLOCK\s*$'
+        - '(?im)^Severity:\s*UNASSESSED\s*$'
         - '(?is)### Defects to fix now\s*\n- None\s*### Deferred follow-ups\s*\n- None\s*### Out-of-scope candidates discovered\s*\n- None\s*### Blocking questions\s*\n- [^\n]*(triggering finding|finding)[^\n]*\s*### Test/doc implications\s*\n- None'
       not_contains:
         - '| Axis |'
