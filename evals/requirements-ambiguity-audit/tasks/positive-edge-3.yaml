@@ -61,7 +61,7 @@ graders:
       regex_not_match:
         - '(?ims)^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Verdict:'
         - '(?im)^[ \t]*\|[^\r\n]*\|[^\r\n]*(?:vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[^\r\n]*\|[ \t]*\r?$'
-        - '(?im)^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*([^\r\n]*)\r?$'
+        - '(?im)^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*([^\r\n]*)\r?$'
       not_contains:
         - "Verdict: BLOCK"
         - "Verdict: CONCERNS"

@@ -49,7 +49,7 @@ Evaluate `blocker` first; it takes precedence whenever another severity conditio
 
 - `blocker`: the plausible readings lead to materially different builds, or requirements conflict.
 - `should-fix`: one reading dominates in context but is not stated; a wrong guess is plausible.
-- `suggestion`: neither `blocker` nor `should-fix` applies; no reading dominates and the alternatives do not produce materially different builds, including clarity polish where readers would likely converge.
+- `suggestion`: neither `blocker` nor `should-fix` applies; no reading dominates and the alternatives do not produce materially different builds.
 
 ## Output Format
 
@@ -103,7 +103,7 @@ Table row: `| 1 | vague-quantifier | blocker | R1 |`
 Finding 1:
 - Quote: "complete quickly for large accounts"
 - Readings: under a few seconds, interactively / minutes, as a background job
-- Proposed rewrite: "The export completes within [OPEN QUESTION: target duration — product owner to decide] for accounts up to [OPEN QUESTION: size bound — product owner to decide]."
+- Proposed rewrite: "The export completes within [OPEN QUESTION: target duration — requirements owner to decide] for accounts up to [OPEN QUESTION: size bound — requirements owner to decide]."
 
 ## Anti-Patterns
 
@@ -115,5 +115,5 @@ Finding 1:
 
 ## Definition of Done
 
-All eight classes were swept over the whole text, the table and `Finding N:` bodies correspond bidirectionally with equal cardinality and matching numbers, every body has a quote, a `Readings:` line or its class-specific replacement, and a proposed rewrite that marks unresolved values with `[OPEN QUESTION: ...]`, every corresponding table row carries the severity, and the verdict follows the mapping.
+All eight classes were swept over the whole text, the table and `Finding N:` bodies correspond bidirectionally with equal cardinality and matching numbers, every body has a quote, a `Readings:` line or its class-specific replacement, and a proposed rewrite that marks unresolved values with `[OPEN QUESTION: <decision> — <owner> to decide]`, every corresponding table row carries the severity, and the verdict follows the mapping.
 
