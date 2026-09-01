@@ -17,7 +17,7 @@ config:
   max_attempts: 2
 metrics:
   - name: trigger_accuracy
-    weight: 0.30
+    weight: 0.25
     threshold: 0.8
     description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected mode.
   - name: skill_invocation
@@ -25,11 +25,15 @@ metrics:
     threshold: 0.9
     description: Skill is invoked on positive tasks that should activate it.
   - name: task_completion
-    weight: 0.40
+    weight: 0.30
     threshold: 0.8
     description: Output carries the skill's required audit report, Presence/Disposition vocabulary, and candidate dispositions.
+  - name: report_contract
+    weight: 0.20
+    threshold: 0.9
+    description: Program validation enforces report structure, metadata, summary, and task-specific row contracts.
   - name: efficiency
-    weight: 0.15
+    weight: 0.10
     threshold: 0.7
     description: Stays within tool-call and total-token budgets.
 graders:

@@ -38,7 +38,12 @@ DISPOSITIONS = {"fix-now", "defer-with-owner", "n/a", "blocked"}
 METADATA_PLACEHOLDERS = {"name", "owner", "provenance", "rationale", "reason", "source"}
 NON_POPULATED_METADATA = {
     "missing", "unknown", "unavailable", "not supplied", "none", "n/a", "tbd",
-    "unassigned", "not the owner", "pending",
+    "unassigned", "not the owner",
+}
+FIELD_NON_POPULATED_METADATA = {
+    "owner": {"nobody", "no one", "someone", "somebody", "unowned", "pending"},
+    "reason": {"pending", "unresolved"},
+    "provenance": {"somewhere", "pending", "unresolved"},
 }
 PROFILES = {
     "positive-edge-001", "positive-edge-002", "positive-edge-003",
@@ -132,21 +137,45 @@ def populated_metadata(value):
     return bool(bare) and bare not in METADATA_PLACEHOLDERS
 
 
-def non_populated_metadata(value):
+def non_populated_metadata(value, field=None):
     normalized = unicodedata.normalize("NFKC", norm(visible_text(value)))
     bare = re.sub(r"^\W+|\W+$", "", normalized, flags=re.UNICODE)
-    if re.search(r"\b(?:pending|unresolved)\b", bare) and re.search(
-        r"\b(?:owner|team|source|provenance|reason|metadata|assignment|confirmation)\b", bare
-    ):
+    field_terms = {
+        "owner": r"owner|ownership|owning team|assignee",
+        "reason": r"reason|rationale|justification",
+        "provenance": r"provenance|source",
+    }
+    terms = field_terms.get(field, "|".join(field_terms.values()))
+    negative_phrase = re.search(
+        rf"\b(?:not\s+(?:the\s+|an?\s+)?(?:{terms})|"
+        rf"without\s+(?:the\s+|an?\s+)?(?:{terms})|"
+        rf"(?:{terms})\s+(?:(?:is|are|was|were|remains?)\s+)?"
+        rf"(?:unknown|missing|unavailable|unsupplied|unassigned|pending|tbd|"
+        rf"unspecified|not\s+(?:known|provided|supplied|available|assigned)|"
+        rf"cannot\s+be\s+(?:determined|identified|confirmed)))\b",
+        bare,
+    )
+    no_value_phrase = re.search(
+        rf"\bno\s+(?:{terms})(?:\s+(?:is|was|has been))?\s*"
+        rf"(?:provided|supplied|given|available|known|assigned)\b|"
+        rf"\bno\s+(?:{terms})\s*(?:$|[,;.)\]])",
+        bare,
+    )
+    invalid_suffix = re.search(
+        r"(?:\(|[;,:]|\s[—–-])\s*"
+        r"(?:missing|unknown|unavailable|not supplied|none|n/a|tbd|unassigned)\s*$",
+        bare,
+    )
+    if negative_phrase or no_value_phrase or invalid_suffix:
         return True
-    return bare in NON_POPULATED_METADATA or bool(re.fullmatch(
-        r"(?:pending|unresolved)(?:\s+.*)?|.*\s+(?:pending|unresolved)|.*\s+\((?:pending|unresolved)\)?"
-        r"|to be (?:assigned|determined)|(?:unknown|missing|unassigned|tbd)\s+"
-        r"(?:owner|team|source|provenance|reason|metadata|pending|assignment)(?:\s+.*)?"
-        r"|(?:owner|team|source|provenance|reason|metadata|assignment)\s+pending(?:\s+.*)?"
+    return (bare in NON_POPULATED_METADATA
+        or bare in FIELD_NON_POPULATED_METADATA.get(field, set())
+        or bool(re.fullmatch(
+        r"to be (?:assigned|determined)|(?:unknown|missing|unassigned|tbd)\s+"
+        r"(?:owner|ownership|team|source|provenance|reason|metadata|assignment)(?:\s+.*)?"
         r"|not supplied(?: by .+)?|no\s+(?:owner|team|source|provenance|reason|metadata)",
         bare,
-    ))
+    )))
 
 
 def overlaps(left, right):
@@ -154,13 +183,17 @@ def overlaps(left, right):
     return bool(words & set(re.findall(r"[a-z0-9_./-]{4,}", norm(right))))
 
 
-def candidate_named(candidate, bullet):
+def candidate_spans(candidate, bullet):
     candidate = norm(candidate)
     bullet = norm(bullet)
-    return bool(re.search(
+    return [match.span() for match in re.finditer(
         rf"(?<![a-z0-9_./-]){re.escape(candidate)}(?![a-z0-9_/-]|\.[a-z0-9_])",
         bullet,
-    ))
+    )]
+
+
+def candidate_named(candidate, bullet):
+    return bool(candidate_spans(candidate, bullet))
 
 
 def requests(value):
@@ -281,7 +314,7 @@ def parse_report(output):
             for bullet in payload:
                 match = re.search(r"\bprovenance:\s*(.+)$", bullet, flags=re.I)
                 if (not match or not populated_metadata(match[1])
-                    or non_populated_metadata(match[1])):
+                    or non_populated_metadata(match[1], "provenance")):
                     fail("out-of-scope bullets need populated provenance metadata")
         sections[heading] = payload
 
@@ -399,7 +432,7 @@ def standard_table(headers, rows, depth="standard"):
             fail(f"missing catalogue axes: {', '.join(missing)}")
 
 
-def summary_assignments(candidates, bullets, section):
+def summary_assignments(candidates, bullets, section, one_to_one=False):
     if not candidates:
         if bullets != ["None"]:
             fail(f"{section} has a bullet without a compatible table row")
@@ -416,39 +449,66 @@ def summary_assignments(candidates, bullets, section):
                 )
         if re.search(r"\b(?:do not fix|don't fix|need not fix|not fix|no action|skip)\b", action):
             fail(f"{section} cannot contain a negated action")
-    assignments = {}
-    matched_candidates = {}
-    ordered = sorted(enumerate(candidates), key=lambda item: -len(norm(item[1])))
-    def assign(candidate_index, visited):
-        candidate = candidates[candidate_index]
-        matching = sorted(
-            (index for index, bullet in enumerate(bullets)
+    matches = {
+        candidate_index: sorted(
+            (bullet_index for bullet_index, bullet in enumerate(bullets)
              if candidate_named(candidate, bullet)),
             key=lambda index: (len(norm(bullets[index])), index),
         )
-        for index in matching:
-            if index in visited:
-                continue
-            visited.add(index)
-            previous = matched_candidates.get(index)
-            if previous is None or assign(previous, visited):
-                matched_candidates[index] = candidate_index
-                return True
-        return False
+        for candidate_index, candidate in enumerate(candidates)
+    }
+    for candidate_index, matching in matches.items():
+        if not matching:
+            fail(f"{section} must name {candidates[candidate_index]}")
 
-    for candidate_index, candidate in ordered:
-        if not assign(candidate_index, set()):
-            fail(f"{section} must name {candidate}")
-    for bullet_index, candidate_index in matched_candidates.items():
-        assignments[candidate_index] = bullet_index
+    if one_to_one:
+        assignments = {}
+        assigned_by_label = {}
+        for bullet_index, bullet in enumerate(bullets):
+            raw_candidates = [
+                candidate_index for candidate_index, candidate in enumerate(candidates)
+                if candidate_named(candidate, bullet)
+            ]
+            bullet_candidates = []
+            for candidate_index in raw_candidates:
+                spans = candidate_spans(candidates[candidate_index], bullet)
+                contained = all(any(
+                    other_start <= start and end <= other_end
+                    and norm(candidates[candidate_index]) != norm(candidates[other_index])
+                    for other_index in raw_candidates
+                    for other_start, other_end in candidate_spans(candidates[other_index], bullet)
+                ) for start, end in spans)
+                if not contained:
+                    bullet_candidates.append(candidate_index)
+            labels = {norm(candidates[index]) for index in bullet_candidates}
+            if len(labels) != 1:
+                fail(f"{section} bullets must each name exactly one candidate")
+            label = labels.pop()
+            label_candidates = [
+                index for index, candidate in enumerate(candidates)
+                if norm(candidate) == label
+            ]
+            used = assigned_by_label.get(label, 0)
+            if used >= len(label_candidates):
+                fail(f"{section} must use one bullet per candidate")
+            candidate_index = label_candidates[used]
+            assignments[candidate_index] = bullet_index
+            assigned_by_label[label] = used + 1
+        if len(assignments) != len(candidates):
+            fail(f"{section} must use one bullet per candidate")
+    else:
+        assignments = {
+            candidate_index: matching[0]
+            for candidate_index, matching in matches.items()
+        }
     for bullet in bullets:
         if not any(candidate_named(candidate, bullet) for candidate in candidates):
             fail(f"{section} has a bullet without a compatible table row")
     return assignments
 
 
-def summary_bullet(candidates, bullets, candidate_index, section):
-    assignments = summary_assignments(candidates, bullets, section)
+def summary_bullet(candidates, bullets, candidate_index, section, one_to_one=False):
+    assignments = summary_assignments(candidates, bullets, section, one_to_one)
     return bullets[assignments[candidate_index]]
 
 
@@ -462,7 +522,9 @@ def reconcile_summaries(sections, rows):
     blocker_bullets = sections["Blocking questions"]
     if blocked and len(blocker_bullets) != len(blocked):
         fail("Blocking questions must contain one bullet per blocked row")
-    assignments = summary_assignments(blocked, blocker_bullets, "Blocking questions")
+    assignments = summary_assignments(
+        blocked, blocker_bullets, "Blocking questions", one_to_one=True
+    )
     for candidate_index, bullet_index in assignments.items():
         candidate = blocked[candidate_index]
         if not requests(blocker_bullets[bullet_index]):
@@ -478,7 +540,8 @@ def reconcile_summaries(sections, rows):
         metadata = re.search(r"\bowner:\s*([^;]+);\s*reason:\s*(.+)$", bullet, flags=re.I)
         if not metadata or not all(populated_metadata(value) for value in metadata.groups()):
             fail("each deferred candidate bullet needs owner and reason metadata")
-        if any(non_populated_metadata(value) for value in metadata.groups()):
+        if any(non_populated_metadata(value, field)
+               for field, value in zip(("owner", "reason"), metadata.groups())):
             fail("deferred candidate metadata must be positive and populated")
     implications = [item["candidate"] for item in rows if item["presence"] == "present"
                     and item["axis"] in ("Test Mirror", "Documentation/Spec Prose Twin")]
@@ -580,10 +643,12 @@ def validate(profile, headers, sections, rows):
             sections["Blocking questions"],
             delete_index,
             "Blocking questions",
+            one_to_one=True,
         )
-        if (not all(term in blocker.lower() for term in ("tenantguard", "tenant ownership", "policy"))
+        if (not all(term in blocker.lower() for term in (
+                "tenantguard", "tenant ownership", "policy spec"))
             or not requests(blocker)):
-            fail("authorization blocker must name tenantGuard, ownership, and policy")
+            fail("authorization blocker must name tenantGuard, ownership, and policy spec")
         out_of_scope = sections["Out-of-scope candidates discovered"]
         for term in ("tenantguard", "policy"):
             matching = [bullet for bullet in out_of_scope if term in bullet.lower()]
@@ -609,6 +674,7 @@ def validate(profile, headers, sections, rows):
             sections["Blocking questions"],
             item_index,
             "Blocking questions",
+            one_to_one=True,
         ).lower()
         if not all(term in blocker for term in ("doc", "owner", "reason")) or not requests(blocker):
             fail("documentation blocker must request owner and reason")
@@ -648,6 +714,7 @@ def validate(profile, headers, sections, rows):
                 sections["Blocking questions"],
                 document_index,
                 "Blocking questions",
+                one_to_one=True,
             ).lower()
             if need not in blocker or not requests(blocker):
                 fail(f"{document} needs a separate blocker requesting {need}")
