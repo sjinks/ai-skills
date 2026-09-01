@@ -32,9 +32,12 @@ graders:
     config:
       regex_match:
         - '(?i)Requirements Ambiguity Report'
-        - '(?i)Verdict:\s*BLOCK'
+        - '(?im)^[ \t]*[*_]*Verdict:[*_ \t]*BLOCK[*_]*\.?[*_]*[ \t]*\r?$'
         - '(?i)Missing input'
         - '(?i)Smallest addition to proceed'
+      regex_not_match:
+        - '(?ims)^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Verdict:'
+        - '(?im)^[ \t]*\|[^\r\n]*\|[^\r\n]*(?:vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[^\r\n]*\|[ \t]*\r?$'
       not_contains:
         - "Readings:"
         - "Proposed rewrite:"

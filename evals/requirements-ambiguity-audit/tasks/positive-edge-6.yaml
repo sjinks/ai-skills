@@ -39,18 +39,24 @@ graders:
     config:
       regex_match:
         - '(?i)Requirements Ambiguity Report'
-        - '(?i)Verdict:\s*(BLOCK|CONCERNS)'
+        - '(?im)^[ \t]*[*_]*Verdict:[*_ \t]*CONCERNS[*_]*\.?[*_]*[ \t]*\r?$'
         - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Severity\s*\|\s*Location\s*\|'
-        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*untestable-wording[`*_]*\s*\|\s*[`*_]*(blocker|should-fix|suggestion)[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
-        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions).)*?^[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*must feel intuitive'
-        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions)[\s\S])*?^[ \t]*-[ \t]*[*_]*Untestable because:[*_]*[ \t]*\S[^\r\n]*'
-        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions)[\s\S])*?^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*OPEN QUESTION'
-        - '(?im)^### Findings[ \t]*$'
-        - '(?im)^### Open questions \(product decisions, not findings\)[ \t]*$'
-        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*product owner'
+        - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|\s*[`*_]*untestable-wording[`*_]*\s*\|\s*[`*_]*(should-fix|suggestion)[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
+        - '(?im)^[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+1[*_]*:?[*_]*[ \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*must feel intuitive'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Untestable because:[*_]*[ \t]*\S[^\r\n]*'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*\[OPEN QUESTION:[^\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\]'
+        - '(?im)^### Findings[ \t]*\r?$'
+        - '(?im)^### Open questions \(product decisions, not findings\)[ \t]*\r?$'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*product owner'
       regex_not_match:
+        - '(?ims)^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Verdict:'
+        - '(?ims)^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|'
+        - '(?ims)^[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+\d+[*_]*:?[*_]*[ \t]*\r?$[\s\S]*?^[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+\d+[*_]*:?[*_]*[ \t]*\r?$'
+        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*\s*\|\s*[`*_]*blocker[`*_]*\s*\|'
         - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*vague-quantifier[`*_]*\s*\|'
       not_contains:
         - "Finding Quality Report"
+        - "Verdict: BLOCK"
         - "Verdict: CLEAN"
         - "Readings:"

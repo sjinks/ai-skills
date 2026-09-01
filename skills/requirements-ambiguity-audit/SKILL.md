@@ -61,7 +61,7 @@ Verdict: BLOCK | CONCERNS | CLEAN
 
 ### Findings
 
-For each finding numbered as in the table:
+The table and `### Findings` must have exactly the same cardinality. For each table row, emit exactly one `Finding N:` body where `N` matches the row number; emit no other finding bodies. Each body contains:
 - Quote: <exact text; for `conflicting-requirements`, both statements>
 - Readings: <reading A> / <reading B>
 - Proposed rewrite: <unambiguous replacement, unknowns as open questions>
@@ -72,6 +72,8 @@ For each finding numbered as in the table:
 ```
 
 Class-specific `Readings:` replacements: `conflicting-requirements` → `Conflict: <why both cannot hold>`; `placeholder` → `Missing: <what content must be supplied>`; `untestable-wording` → `Untestable because: <why no objective check exists>`.
+
+In each proposed rewrite, format every unresolved value as `[OPEN QUESTION: <decision> — <owner> to decide]`; do not invent it.
 
 Verdict mapping: `BLOCK` — at least one `blocker` finding, or insufficient input. `CONCERNS` — findings exist, none `blocker`. `CLEAN` — no findings; immediately after the verdict line write exactly `All eight ambiguity classes were swept; no findings.` and keep the report with an empty table. Empty sections are written with `None`.
 
@@ -97,7 +99,7 @@ Table row: `| 1 | vague-quantifier | should-fix | R1 |`
 Finding 1:
 - Quote: "complete quickly for large accounts"
 - Readings: under a few seconds, interactively / minutes, as a background job
-- Proposed rewrite: "The export completes within [OPEN QUESTION: target duration — owner to decide] for accounts up to [OPEN QUESTION: size bound]."
+- Proposed rewrite: "The export completes within [OPEN QUESTION: target duration — product owner to decide] for accounts up to [OPEN QUESTION: size bound — product owner to decide]."
 
 ## Anti-Patterns
 
@@ -109,5 +111,5 @@ Finding 1:
 
 ## Definition of Done
 
-All eight classes were swept over the whole text, every finding has a quote, a `Readings:` line or its class-specific replacement, a severity, and a proposed rewrite, and the verdict follows the mapping.
+All eight classes were swept over the whole text, the table and `Finding N:` bodies correspond bidirectionally with equal cardinality and matching numbers, every body has a quote, a `Readings:` line or its class-specific replacement, a severity, and a proposed rewrite that marks unresolved values with `[OPEN QUESTION: ...]`, and the verdict follows the mapping.
 

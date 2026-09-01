@@ -37,16 +37,22 @@ graders:
     config:
       regex_match:
         - '(?i)Requirements Ambiguity Report'
-        - '(?i)Verdict:\s*BLOCK'
+        - '(?im)^[ \t]*[*_]*Verdict:[*_ \t]*BLOCK[*_]*\.?[*_]*[ \t]*\r?$'
         - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Severity\s*\|\s*Location\s*\|'
-        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*conflicting-requirements[`*_]*\s*\|\s*[`*_]*blocker[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
+        - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|\s*[`*_]*conflicting-requirements[`*_]*\s*\|\s*[`*_]*blocker[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
+        - '(?im)^[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+1[*_]*:?[*_]*[ \t]*\r?$'
         - '(?im)^[ \t]*-[ \t]*[*_]*Quote:'
-        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions)[\s\S])*?^[ \t]*-[ \t]*[*_]*Conflict:[*_]*[ \t]*\S[^\r\n]*'
-        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions)[\s\S])*?^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*OPEN QUESTION'
-        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions)[\s\S])*?^[ \t]*-[ \t]*[*_]*Quote:[*_]*(?=(?:(?!\r?\n[ \t]*-[ \t]*[*_]*(?:Conflict|Proposed rewrite):)[\s\S])*permanently\s+removes\s+all\s+its\s+data\s+immediately)(?=(?:(?!\r?\n[ \t]*-[ \t]*[*_]*(?:Conflict|Proposed rewrite):)[\s\S])*restored\s+by\s+support\s+within\s+30\s+days)(?:(?!\r?\n[ \t]*-[ \t]*[*_]*(?:Conflict|Proposed rewrite):)[\s\S])*(?=\r?\n[ \t]*-[ \t]*[*_]*(?:Conflict|Proposed rewrite):)'
-        - '(?im)^### Findings[ \t]*$'
-        - '(?im)^### Open questions \(product decisions, not findings\)[ \t]*$'
-        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*product owner'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Conflict:[*_]*[ \t]*\S[^\r\n]*'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*\[OPEN QUESTION:[^\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\]'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*permanently\s+removes\s+all\s+its\s+data\s+immediately'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*restored\s+by\s+support\s+within\s+30\s+days'
+        - '(?im)^### Findings[ \t]*\r?$'
+        - '(?im)^### Open questions \(product decisions, not findings\)[ \t]*\r?$'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*product owner'
+      regex_not_match:
+        - '(?ims)^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Verdict:'
+        - '(?ims)^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|'
+        - '(?ims)^[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+\d+[*_]*:?[*_]*[ \t]*\r?$[\s\S]*?^[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+\d+[*_]*:?[*_]*[ \t]*\r?$'
       not_contains:
         - "Finding Quality Report"
         - "Scope Slice Plan"

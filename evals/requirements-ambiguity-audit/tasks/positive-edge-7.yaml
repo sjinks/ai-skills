@@ -3,8 +3,8 @@ id: positive-edge-007
 name: Non-blocking ambiguity yields CONCERNS
 description: |
   A display-only timing ambiguity whose plausible readings do not
-  materially change the build must yield should-fix severity and the
-  exact CONCERNS verdict.
+  materially change the build must yield a non-blocking severity and
+  the exact CONCERNS verdict.
 tags:
   - positive-trigger
   - positive-edge
@@ -40,16 +40,21 @@ graders:
     config:
       regex_match:
         - '(?i)Requirements Ambiguity Report'
-        - '(?i)Verdict:\s*CONCERNS'
+        - '(?im)^[ \t]*[*_]*Verdict:[*_ \t]*CONCERNS[*_]*\.?[*_]*[ \t]*\r?$'
         - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Severity\s*\|\s*Location\s*\|'
-        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*vague-quantifier[`*_]*\s*\|\s*[`*_]*should-fix[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
-        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions)[\s\S])*?^[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*short duration'
-        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions)[\s\S])*?^[ \t]*-[ \t]*[*_]*Readings:[*_]*[ \t]*[^/\r\n]*\S[ \t]*/[ \t]*\S[^\r\n]*'
-        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions)[\s\S])*?^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*OPEN QUESTION'
-        - '(?im)^### Findings[ \t]*$'
-        - '(?im)^### Open questions \(product decisions, not findings\)[ \t]*$'
-        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*product owner'
+        - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|\s*[`*_]*vague-quantifier[`*_]*\s*\|\s*[`*_]*(should-fix|suggestion)[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
+        - '(?im)^[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+1[*_]*:?[*_]*[ \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*short duration'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[ \t]*[^/\r\n]*\S[ \t]*/[ \t]*\S[^\r\n]*'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*\[OPEN QUESTION:[^\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\]'
+        - '(?im)^### Findings[ \t]*\r?$'
+        - '(?im)^### Open questions \(product decisions, not findings\)[ \t]*\r?$'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*product owner'
       regex_not_match:
+        - '(?ims)^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Verdict:'
+        - '(?ims)^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|'
+        - '(?ims)^[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+\d+[*_]*:?[*_]*[ \t]*\r?$[\s\S]*?^[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+\d+[*_]*:?[*_]*[ \t]*\r?$'
+        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*\s*\|\s*[`*_]*blocker[`*_]*\s*\|'
         - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*untestable-wording[`*_]*\s*\|\s*[`*_]*(blocker|should-fix|suggestion)[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
       not_contains:
         - "Verdict: BLOCK"

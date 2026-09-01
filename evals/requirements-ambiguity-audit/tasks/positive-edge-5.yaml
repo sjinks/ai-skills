@@ -14,12 +14,13 @@ inputs:
     owner:
 
     Requirements:
-    - R1: The import service validates each uploaded CSV row against the
-      contact schema.
+    - R1: The import service validates that each uploaded CSV row has exactly
+      two non-empty fields named email and name, and that email contains one
+      "@" character.
     - R2: Valid rows are inserted into the contacts table within one
       batch transaction per file.
-    - R3: The import service emails the uploader a summary report after
-      the batch transaction commits.
+    - R3: After the batch transaction commits, the import service emails the
+      uploader the counts of rows that passed and failed validation.
 expected:
   should_trigger: true
 graders:
@@ -40,15 +41,21 @@ graders:
     config:
       regex_match:
         - '(?i)Requirements Ambiguity Report'
-        - '(?i)Verdict:\s*(BLOCK|CONCERNS)'
+        - '(?im)^[ \t]*[*_]*Verdict:[*_ \t]*BLOCK[*_]*\.?[*_]*[ \t]*\r?$'
         - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Severity\s*\|\s*Location\s*\|'
-        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*unspecified-path[`*_]*\s*\|\s*[`*_]*(blocker|should-fix|suggestion)[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
-        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions).)*?^[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*validates each uploaded CSV row against the contact schema'
-        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions)[\s\S])*?^[ \t]*-[ \t]*[*_]*Readings:[*_]*[ \t]*[^/\r\n]*\S[ \t]*/[ \t]*\S[^\r\n]*'
-        - '(?ims)^### Findings[ \t]*$\r?\n(?:(?!^### Open questions)[\s\S])*?^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*OPEN QUESTION'
-        - '(?im)^### Findings[ \t]*$'
-        - '(?im)^### Open questions \(product decisions, not findings\)[ \t]*$'
-        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*product owner'
+        - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|\s*[`*_]*unspecified-path[`*_]*\s*\|\s*[`*_]*blocker[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
+        - '(?im)^[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+1[*_]*:?[*_]*[ \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*validates that each uploaded CSV row has exactly'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[ \t]*[^/\r\n]*\S[ \t]*/[ \t]*\S[^\r\n]*'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*\[OPEN QUESTION:[^\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\]'
+        - '(?im)^### Findings[ \t]*\r?$'
+        - '(?im)^### Open questions \(product decisions, not findings\)[ \t]*\r?$'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*product owner'
+      regex_not_match:
+        - '(?ims)^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>])[ \t]+)*[*_]*Verdict:'
+        - '(?ims)^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|'
+        - '(?ims)^[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+\d+[*_]*:?[*_]*[ \t]*\r?$[\s\S]*?^[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+\d+[*_]*:?[*_]*[ \t]*\r?$'
       not_contains:
         - "Finding Quality Report"
+        - "Verdict: CONCERNS"
         - "Verdict: CLEAN"
