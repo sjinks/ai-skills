@@ -34,7 +34,7 @@ graders:
         - '(?is)\A[ \t]*##[ \t]+Requirements Ambiguity Report[ \t]*\r?\n([ \t]*\r?\n)*[ \t]*[*_]*Verdict:[*_ \t]*BLOCK[*_]*\.?[*_]*[ \t]*\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Missing input:[*_]*[ \t]*\S[^\r\n]*\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Smallest addition to proceed:[*_]*[ \t]*\S[^\r\n]*[ \t]*(\r?\n)?\z'
       regex_not_match:
         - '(?im)^[ \t]*-[ \t]*[*_]*(Missing input|Smallest addition to proceed):[*_]*[^\r\n]*(Missing input|Smallest addition to proceed):'
-        - '(?ims)^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*>]|[0-9]+[.)])[ \t]+)*[*_]*Verdict:'
+        - '(?ims)^[ \t]*((#{1,6}|>+|[-+*]|[0-9]+[.)])[ \t]+)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|>+|[-+*]|[0-9]+[.)])[ \t]+)*[*_]*Verdict:'
         - '(?im)^[ \t]*\|[^\r\n]*\|[^\r\n]*(?:vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[^\r\n]*\|[ \t]*\r?$'
       not_contains:
         - "Readings:"
