@@ -13,7 +13,7 @@ tags:
 
 inputs:
   prompt: |
-    Audit this skill for GPT-5.4 mini, GPT-5.5, Haiku 4.6, and Fable 5.
+    Audit this skill for GPT-5.4 mini, GPT-5.5, Haiku 4.5, and Fable 5.
     
     ```markdown
     ---

@@ -37,7 +37,7 @@ The default target set is:
 - GPT-5.6 Luna
 - GPT-5.6 Terra
 - GPT-5.6 Sol
-- Claude Haiku 4.6
+- Claude Haiku 4.5
 - Claude Sonnet 5
 - Claude Opus 4.8
 - Claude Opus 5
@@ -165,7 +165,7 @@ Keep model choice, effort, fallback, and escalation in the harness. Do not rely 
 
 1. **Write a behavioral contract.** State the observable outcome, mandatory constraints, evidence requirements, completion state, and final return shape.
 2. **Separate requirements from strategy.** Use `Required outcomes`, `Invariants`, `Default workflow`, and `Completion criteria`. A workflow step is mandatory only when omitting it would make the result incorrect, unsafe, or unusable.
-3. **Optimize for the compatibility floor.** Make essential behavior explicit enough for GPT-5.4 mini and Claude Haiku 4.6. Keep the normal path shallow, define defaults, and avoid combining unrelated workstreams.
+3. **Optimize for the compatibility floor.** Make essential behavior explicit enough for GPT-5.4 mini and Claude Haiku 4.5. Keep the normal path shallow, define defaults, and avoid combining unrelated workstreams.
 4. **Preserve frontier-model freedom.** Do not force plans, tool sequences, fixed progress cadence, routine permission checkpoints, speculative abstractions, or exhaustive procedures unless they protect a real requirement.
 5. **State scope literally.** Use explicit quantifiers such as `every`, `all`, `only`, `first`, and `at most` when scope matters.
 6. **Close decision trees.** Each reachable branch needs an action, safe default, escalation condition, or user-input rule. Declare precedence when overlapping rules can demand different actions.
@@ -230,7 +230,7 @@ Before finalizing, confirm:
 - GPT-5.6 Luna receives outcomes, evidence requirements, and boundaries without a fixed execution strategy.
 - GPT-5.6 Terra retains freedom for broad cross-workstream synthesis and optional delegation.
 - GPT-5.6 Sol receives a concise mission, hard boundaries, and grounded completion criteria without micromanagement.
-- Claude Haiku 4.6 receives explicit defaults and material parameters.
+- Claude Haiku 4.5 receives explicit defaults and material parameters.
 - Claude Sonnet 5 receives explicit scope for broadly applied rules.
 - Claude Opus 4.8 receives tool and evidence triggers where verification is required.
 - Claude Opus 5 receives outcome-first complex-work guidance with explicit evidence and stopping boundaries.
