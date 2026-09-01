@@ -99,7 +99,7 @@ def parse_findings(lines: list[str], positions: dict[str, int]) -> bool:
         if inline != "None" or body:
             fail("inline Findings content must be exactly None with no additional entries")
         return True
-    if body == ["None"]:
+    if len(body) == 1 and body[0].strip() == "None":
         return True
     if not body:
         fail("Findings must contain None or one or more complete finding records")
