@@ -22,7 +22,7 @@ Do not use for greenfield work, broad initial review, formatting-only changes, i
 ## Procedure
 
 1. Select `quick`, `standard` (default), or `exhaustive`; always emit one `Output depth:` value.
-2. Require a triggering finding and locked audit scope. If either is missing, do not enumerate or invent candidates; return the reduced report without a table and request exactly one missing input under `### Blocking questions`. Request the triggering finding first when both are missing; otherwise request the missing scope. Missing required input suppresses the table, not depth-specific sections: preserve an explicitly requested depth and append `Omitted axes` for `quick`.
+2. Require a triggering finding and locked audit scope. If either is missing, do not enumerate or invent candidates; return the reduced report without a table and request exactly one missing input under `### Blocking questions`. Request the triggering finding first when both are missing; otherwise request whichever single input is missing. Missing required input suppresses the table, not depth-specific sections: preserve an explicitly requested depth and append `Omitted axes` for `quick`.
 3. Enumerate candidates in scope using the catalogue below. Record other critical unknowns as Presence `blocked — clarification needed` and Disposition `blocked`.
 4. Mark present defects `fix-now` by default. Use `defer-with-owner` only for an explicit deferral with a named owner/team and reason. If a required deferral lacks either, use `blocked`.
 
@@ -32,7 +32,7 @@ Never guess missing evidence. Use the reduced report shell for missing required 
 
 ## Example
 
-For a quick audit, emit `Output depth: quick`, only target-specific rows, and `Omitted axes`. For standard depth, emit all 18 axes.
+When both required inputs are available, a quick audit emits `Output depth: quick`, only target-specific rows, and `Omitted axes`; a standard audit emits all 18 axes. Missing-input audits use the reduced form at any depth.
 
 ## Catalogue
 
@@ -45,7 +45,7 @@ Disposition: `fix-now`, `defer-with-owner`, `n/a`, `blocked`.
 
 ## Output
 
-Emit no preamble or trailing commentary. The report heading must be the first content line. Every present candidate must be named in its corresponding fix-now, deferred, or blocking section. Present `Test Mirror` and `Documentation/Spec Prose Twin` candidates must also be named under `### Test/doc implications`.
+Emit no preamble or trailing commentary. The report heading must be the first content line. Every present candidate must be named in its corresponding fix-now, deferred, or blocking section. In those three disposition sections, name only candidates whose table disposition matches the section; do not repeat a candidate under another disposition, including candidates with `n/a`. If the same normalized candidate label appears in multiple rows, all such rows must use one disposition; otherwise use distinct labels. Label matching decodes HTML entities, removes Unicode format/bidi controls, applies NFKC, removes format/bidi controls again, removes Markdown code/emphasis markers, and compares case-insensitively; never use those forms to distinguish labels. Present `Test Mirror` and `Documentation/Spec Prose Twin` candidates must also be named under `### Test/doc implications`.
 
 For machine-checked metadata, end each deferred bullet with `owner: NAME; reason: RATIONALE` and each out-of-scope bullet with `provenance: SOURCE`; values must be positive and populated. Write exactly one blocker bullet per blocked candidate. Phrase each blocker as an imperative (`provide`, `specify`, `clarify`, `confirm`, `need`) or a question beginning with `what`, `which`, `who`, `why`, `can`, `could`, `would`, `are`, `does`, `do`, `is`, or `should`; Markdown emphasis is allowed.
 

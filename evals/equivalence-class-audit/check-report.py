@@ -84,13 +84,33 @@ def fail(message):
     raise SystemExit(1)
 
 
-def norm(value):
+def canonical_unicode(value):
+    """Decode entities, remove format controls, and normalize compatibility forms."""
     value = html.unescape(value)
-    value = unicodedata.normalize("NFC", value)
+    value = "".join(character for character in value
+                    if unicodedata.category(character) != "Cf")
+    value = unicodedata.normalize("NFKC", value)
+    value = "".join(character for character in value
+                    if unicodedata.category(character) != "Cf")
+    return unicodedata.normalize("NFKC", value)
+
+
+def strip_markdown_markers(value):
     previous = None
     while value != previous:
         previous = value
         value = re.sub(r"(`{1,3}|\*{1,3}|~{2})(.+?)\1", r"\2", value)
+        value = re.sub(r"(?<!\w)(_{1,2})([^_\n]+?)\1(?!\w)", r"\2", value)
+    return value
+
+
+def label_norm(value):
+    value = strip_markdown_markers(canonical_unicode(value))
+    return " ".join(value.casefold().split())
+
+
+def norm(value):
+    value = strip_markdown_markers(canonical_unicode(value))
     value = re.sub(r"\b0\b", "zero", value)
     return " ".join(value.lower().split())
 
@@ -185,8 +205,8 @@ def overlaps(left, right):
 
 
 def candidate_spans(candidate, bullet):
-    candidate = norm(candidate)
-    bullet = norm(bullet)
+    candidate = label_norm(candidate)
+    bullet = label_norm(bullet)
     return [match.span() for match in re.finditer(
         rf"(?<![a-z0-9_./-]){re.escape(candidate)}(?![a-z0-9_/-]|\.[a-z0-9_])",
         bullet,
@@ -195,6 +215,23 @@ def candidate_spans(candidate, bullet):
 
 def candidate_named(candidate, bullet):
     return bool(candidate_spans(candidate, bullet))
+
+
+def mentioned_candidate_indexes(candidates, bullet):
+    raw = [index for index, candidate in enumerate(candidates)
+           if candidate_named(candidate, bullet)]
+    mentions = []
+    for candidate_index in raw:
+        spans = candidate_spans(candidates[candidate_index], bullet)
+        contained = all(any(
+            other_start <= start and end <= other_end
+            and label_norm(candidates[candidate_index]) != label_norm(candidates[other_index])
+            for other_index in raw
+            for other_start, other_end in candidate_spans(candidates[other_index], bullet)
+        ) for start, end in spans)
+        if not contained:
+            mentions.append(candidate_index)
+    return mentions
 
 
 def has_mode_term(value, mode):
@@ -473,13 +510,17 @@ def summary_assignments(candidates, bullets, section, one_to_one=False):
                 action,
             ):
                 fail(f"{section} cannot negate deferral")
+    mentions_by_bullet = {
+        bullet_index: mentioned_candidate_indexes(candidates, bullet)
+        for bullet_index, bullet in enumerate(bullets)
+    }
     matches = {
         candidate_index: sorted(
-            (bullet_index for bullet_index, bullet in enumerate(bullets)
-             if candidate_named(candidate, bullet)),
+            (bullet_index for bullet_index, mentions in mentions_by_bullet.items()
+             if candidate_index in mentions),
             key=lambda index: (len(norm(bullets[index])), index),
         )
-        for candidate_index, candidate in enumerate(candidates)
+        for candidate_index in range(len(candidates))
     }
     for candidate_index, matching in matches.items():
         if not matching:
@@ -489,28 +530,14 @@ def summary_assignments(candidates, bullets, section, one_to_one=False):
         assignments = {}
         assigned_by_label = {}
         for bullet_index, bullet in enumerate(bullets):
-            raw_candidates = [
-                candidate_index for candidate_index, candidate in enumerate(candidates)
-                if candidate_named(candidate, bullet)
-            ]
-            bullet_candidates = []
-            for candidate_index in raw_candidates:
-                spans = candidate_spans(candidates[candidate_index], bullet)
-                contained = all(any(
-                    other_start <= start and end <= other_end
-                    and norm(candidates[candidate_index]) != norm(candidates[other_index])
-                    for other_index in raw_candidates
-                    for other_start, other_end in candidate_spans(candidates[other_index], bullet)
-                ) for start, end in spans)
-                if not contained:
-                    bullet_candidates.append(candidate_index)
-            labels = {norm(candidates[index]) for index in bullet_candidates}
+            bullet_candidates = mentions_by_bullet[bullet_index]
+            labels = {label_norm(candidates[index]) for index in bullet_candidates}
             if len(labels) != 1:
                 fail(f"{section} bullets must each name exactly one candidate")
             label = labels.pop()
             label_candidates = [
                 index for index, candidate in enumerate(candidates)
-                if norm(candidate) == label
+                if label_norm(candidate) == label
             ]
             used = assigned_by_label.get(label, 0)
             if used >= len(label_candidates):
@@ -537,6 +564,13 @@ def summary_bullet(candidates, bullets, candidate_index, section, one_to_one=Fal
 
 
 def reconcile_summaries(sections, rows):
+    dispositions_by_label = {}
+    for item in rows:
+        label = label_norm(item["candidate"])
+        dispositions_by_label.setdefault(label, set()).add(item["disposition"])
+    for label, dispositions in dispositions_by_label.items():
+        if len(dispositions) > 1:
+            fail(f"candidate label {label} has multiple dispositions")
     for disposition, section in (("fix-now", "Defects to fix now"),
                                  ("defer-with-owner", "Deferred follow-ups")):
         candidates = [item["candidate"] for item in rows
@@ -558,6 +592,20 @@ def reconcile_summaries(sections, rows):
             continue
         if not requests(bullet):
             fail("each blocking question must request clarification")
+    disposition_sections = {
+        "fix-now": "Defects to fix now",
+        "defer-with-owner": "Deferred follow-ups",
+        "blocked": "Blocking questions",
+    }
+    all_candidates = [item["candidate"] for item in rows]
+    for disposition, section in disposition_sections.items():
+        for bullet in sections[section]:
+            if bullet == "None":
+                continue
+            for candidate_index in mentioned_candidate_indexes(all_candidates, bullet):
+                item = rows[candidate_index]
+                if item["disposition"] != disposition:
+                    fail(f"{section} must not name {item['candidate']} from another disposition")
     for bullet in sections["Deferred follow-ups"]:
         if bullet == "None":
             continue
@@ -569,19 +617,25 @@ def reconcile_summaries(sections, rows):
             fail("deferred candidate metadata must be positive and populated")
     implications = [item["candidate"] for item in rows if item["presence"] == "present"
                     and item["axis"] in ("Test Mirror", "Documentation/Spec Prose Twin")]
-    implications_text = " ".join(sections["Test/doc implications"])
     if implications and sections["Test/doc implications"] == ["None"]:
         fail("Test/doc implications cannot be None for present test/docs rows")
-    for candidate in implications:
-        if not candidate_named(candidate, implications_text):
+    mentioned_implications = set()
+    for bullet in sections["Test/doc implications"]:
+        mentioned_implications.update(mentioned_candidate_indexes(implications, bullet))
+    for candidate_index, candidate in enumerate(implications):
+        if candidate_index not in mentioned_implications:
             fail(f"Test/doc implications must name {candidate}")
 
 
-def reduced(headers, sections, rows, missing_header, quick=False):
+def reduced(headers, sections, rows, missing_header, quick=False, expected_missing=None):
     if headers["_has_table"] or rows:
         fail("reduced report must not include a table")
-    if not missing_header_marker(headers[missing_header]):
-        fail(f"{missing_header} must state that it is missing")
+    expected_missing = set(expected_missing or (missing_header,))
+    for header in ("Triggering finding", "Locked audit scope"):
+        is_missing = missing_header_marker(headers[header])
+        if is_missing != (header in expected_missing):
+            state = "missing" if header in expected_missing else "supplied"
+            fail(f"{header} must remain {state}")
     for section in ("Defects to fix now", "Deferred follow-ups",
                     "Out-of-scope candidates discovered", "Test/doc implications"):
         if sections[section] != ["None"]:
@@ -611,7 +665,10 @@ def validate(profile, headers, sections, rows):
     if profile == "positive-edge-003":
         if headers["Output depth"].lower() != "standard":
             fail("expected standard output depth")
-        reduced(headers, sections, rows, "Locked audit scope")
+        reduced(
+            headers, sections, rows, "Locked audit scope",
+            expected_missing={"Locked audit scope"},
+        )
         supplied = headers["Triggering finding"].lower()
         if missing_header_marker(supplied) or not all(term in supplied for term in (
             "security review", "delete /teams/{teamid}", "organization membership", "tenant ownership",
@@ -620,7 +677,10 @@ def validate(profile, headers, sections, rows):
     elif profile == "positive-edge-006":
         if headers["Output depth"].lower() != "quick":
             fail("expected quick output depth")
-        reduced(headers, sections, rows, "Triggering finding", quick=True)
+        reduced(
+            headers, sections, rows, "Triggering finding", quick=True,
+            expected_missing={"Triggering finding"},
+        )
         supplied = headers["Locked audit scope"].lower()
         if missing_header_marker(supplied) or not all(
             term in supplied for term in ("src/pagination.ts", "tests/pagination.test.ts")
@@ -629,7 +689,10 @@ def validate(profile, headers, sections, rows):
     elif profile == "positive-edge-011":
         if headers["Output depth"].lower() != "standard":
             fail("expected standard output depth")
-        reduced(headers, sections, rows, "Triggering finding")
+        reduced(
+            headers, sections, rows, "Triggering finding",
+            expected_missing={"Triggering finding", "Locked audit scope"},
+        )
         if not missing_header_marker(headers["Locked audit scope"]):
             fail("both-missing report must preserve the missing locked scope header")
     elif profile == "positive-edge-004":
@@ -771,11 +834,12 @@ def validate(profile, headers, sections, rows):
                        "present", "defer-with-owner")
         deferred_rows = [item for item in rows
                          if item["presence"] == "present" and item["disposition"] == "defer-with-owner"]
-        docs_index = next(index for index, item in enumerate(deferred_rows) if item is docs_row)
+        if len(deferred_rows) != 1 or deferred_rows[0] is not docs_row:
+            fail("documentation must be the only deferred candidate")
         deferred = summary_bullet(
             [item["candidate"] for item in deferred_rows],
             sections["Deferred follow-ups"],
-            docs_index,
+            0,
             "Deferred follow-ups",
         )
         if not all(term in deferred.lower() for term in ("docs/api.md", "platform docs")):

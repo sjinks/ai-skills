@@ -334,6 +334,34 @@ def run_main(report, profile):
             CHECK_REPORT.main()
 
 
+def matrix_reduced_report(missing_finding, missing_scope, depth):
+    finding = "missing" if missing_finding else "maxRetries accepts zero"
+    scope = "missing" if missing_scope else "config/retry.yml"
+    blocker = (
+        "Provide the Triggering finding."
+        if missing_finding
+        else "Provide the Locked audit scope."
+    )
+    sections = report_sections(
+        blockers=[blocker],
+        omitted=["Required input is missing, so no axes were enumerated."]
+        if depth == "quick" else None,
+    )
+    headings = list(CHECK_REPORT.SECTIONS)
+    if depth == "quick":
+        headings.append("Omitted axes (quick mode only)")
+    return (
+        "## Equivalence-Class Audit Report\n"
+        f"Triggering finding: {finding}\n"
+        f"Locked audit scope: {scope}\n"
+        f"Output depth: {depth}\n"
+        + "\n".join(
+            f"### {name}\n" + "\n".join(f"- {bullet}" for bullet in sections[name])
+            for name in headings
+        )
+    )
+
+
 class SummaryAssignmentsTests(unittest.TestCase):
     def test_fix_now_candidates_may_share_one_bullet(self):
         assignments = CHECK_REPORT.summary_assignments(
@@ -400,6 +428,280 @@ class SummaryAssignmentsTests(unittest.TestCase):
                     "Blocking questions",
                     one_to_one=True,
                 )
+
+    def test_summary_sections_reject_other_disposition_candidates(self):
+        rows = [
+            {"axis": "Opposite Bound", "candidate": "config defect",
+             "presence": "present", "disposition": "fix-now"},
+            {"axis": "Sibling Parameter/Field", "candidate": "docs defect",
+             "presence": "present", "disposition": "defer-with-owner"},
+            {"axis": "Contract Symmetry", "candidate": "policy defect",
+             "presence": "blocked — clarification needed", "disposition": "blocked"},
+            {"axis": "Inverse Operation", "candidate": "inactive candidate",
+             "presence": "absent", "disposition": "n/a"},
+        ]
+        base = {
+            "Defects to fix now": ["Fix config defect."],
+            "Deferred follow-ups": [
+                "Defer docs defect; owner: Platform Docs; reason: documentation ownership"
+            ],
+            "Out-of-scope candidates discovered": ["None"],
+            "Blocking questions": ["Clarify policy defect?"],
+            "Test/doc implications": ["None"],
+        }
+        mutations = (
+            ("Defects to fix now", "Fix config defect and docs defect."),
+            ("Defects to fix now", "Fix config defect and policy defect."),
+            ("Deferred follow-ups", "Defer docs defect and config defect; owner: Platform Docs; reason: documentation ownership"),
+            ("Deferred follow-ups", "Defer docs defect and policy defect; owner: Platform Docs; reason: documentation ownership"),
+            ("Blocking questions", "Clarify policy defect and config defect?"),
+            ("Blocking questions", "Clarify policy defect and docs defect?"),
+            ("Defects to fix now", "Fix config defect and inactive candidate."),
+            ("Deferred follow-ups", "Defer docs defect and inactive candidate; owner: Platform Docs; reason: documentation ownership"),
+            ("Blocking questions", "Clarify policy defect and inactive candidate?"),
+        )
+        for section, bullet in mutations:
+            sections = {name: list(values) for name, values in base.items()}
+            sections[section] = [bullet]
+            error = io.StringIO()
+            with self.subTest(section=section, bullet=bullet):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        CHECK_REPORT.reconcile_summaries(sections, rows)
+                self.assertIn(f"{section} must not name", error.getvalue())
+
+    def test_identical_candidate_label_cannot_use_multiple_dispositions(self):
+        rows = [
+            {"axis": "Opposite Bound", "candidate": "shared candidate",
+             "presence": "present", "disposition": "fix-now"},
+            {"axis": "Contract Symmetry", "candidate": "shared candidate",
+             "presence": "blocked — clarification needed", "disposition": "blocked"},
+        ]
+        sections = {
+            "Defects to fix now": ["Fix shared candidate."],
+            "Deferred follow-ups": ["None"],
+            "Out-of-scope candidates discovered": ["None"],
+            "Blocking questions": ["Clarify shared candidate?"],
+            "Test/doc implications": ["None"],
+        }
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                CHECK_REPORT.reconcile_summaries(sections, rows)
+        self.assertIn("candidate label shared candidate has multiple dispositions", error.getvalue())
+
+    def test_format_controls_cannot_hide_cross_disposition_candidates(self):
+        rows = [
+            {"axis": "Opposite Bound", "candidate": "config defect",
+             "presence": "present", "disposition": "fix-now"},
+            {"axis": "Sibling Parameter/Field", "candidate": "docs defect",
+             "presence": "present", "disposition": "defer-with-owner"},
+            {"axis": "Contract Symmetry", "candidate": "policy defect",
+             "presence": "blocked — clarification needed", "disposition": "blocked"},
+        ]
+        base = {
+            "Defects to fix now": ["Fix config defect."],
+            "Deferred follow-ups": [
+                "Defer docs defect; owner: Platform Docs; reason: documentation ownership"
+            ],
+            "Out-of-scope candidates discovered": ["None"],
+            "Blocking questions": ["Clarify policy defect?"],
+            "Test/doc implications": ["None"],
+        }
+        hidden = {
+            "config": "config\u200b defect",
+            "docs": "docs\u2066 defect",
+            "policy": "policy\u202e defect",
+        }
+        mutations = (
+            ("Defects to fix now", f"Fix config defect and {hidden['docs']}."),
+            ("Defects to fix now", f"Fix config defect and {hidden['policy']}."),
+            ("Deferred follow-ups", f"Defer docs defect and {hidden['config']}; owner: Platform Docs; reason: documentation ownership"),
+            ("Deferred follow-ups", f"Defer docs defect and {hidden['policy']}; owner: Platform Docs; reason: documentation ownership"),
+            ("Blocking questions", f"Clarify policy defect and {hidden['config']}?"),
+            ("Blocking questions", f"Clarify policy defect and {hidden['docs']}?"),
+        )
+        for section, bullet in mutations:
+            sections = {name: list(values) for name, values in base.items()}
+            sections[section] = [bullet]
+            with self.subTest(section=section, bullet=bullet):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        CHECK_REPORT.reconcile_summaries(sections, rows)
+
+    def test_format_controls_cannot_distinguish_duplicate_labels(self):
+        rows = [
+            {"axis": "Opposite Bound", "candidate": "shared candidate",
+             "presence": "present", "disposition": "fix-now"},
+            {"axis": "Contract Symmetry", "candidate": "shared\u200b candidate",
+             "presence": "blocked — clarification needed", "disposition": "blocked"},
+        ]
+        sections = {
+            "Defects to fix now": ["Fix shared candidate."],
+            "Deferred follow-ups": ["None"],
+            "Out-of-scope candidates discovered": ["None"],
+            "Blocking questions": ["Clarify shared candidate?"],
+            "Test/doc implications": ["None"],
+        }
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                CHECK_REPORT.reconcile_summaries(sections, rows)
+        self.assertIn("candidate label shared candidate has multiple dispositions", error.getvalue())
+
+    def test_nfkc_equivalent_labels_cannot_use_multiple_dispositions(self):
+        rows = [
+            {"axis": "Opposite Bound", "candidate": "shared candidate",
+             "presence": "present", "disposition": "fix-now"},
+            {"axis": "Contract Symmetry", "candidate": "ｓｈａｒｅｄ candidate",
+             "presence": "blocked — clarification needed", "disposition": "blocked"},
+        ]
+        sections = {
+            "Defects to fix now": ["Fix shared candidate."],
+            "Deferred follow-ups": ["None"],
+            "Out-of-scope candidates discovered": ["None"],
+            "Blocking questions": ["Clarify shared candidate?"],
+            "Test/doc implications": ["None"],
+        }
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                CHECK_REPORT.reconcile_summaries(sections, rows)
+
+    def test_format_control_removal_precedes_nfkc_composition(self):
+        self.assertEqual(
+            CHECK_REPORT.label_norm("café"),
+            CHECK_REPORT.label_norm("cafe\u200b\u0301"),
+        )
+
+    def test_nfkc_precedes_markdown_marker_removal(self):
+        self.assertEqual("candidate", CHECK_REPORT.label_norm("｀candidate｀"))
+        self.assertEqual("candidate", CHECK_REPORT.label_norm("＊candidate＊"))
+        self.assertEqual("candidate", CHECK_REPORT.label_norm("_candidate_"))
+        self.assertEqual("candidate", CHECK_REPORT.label_norm("__candidate__"))
+        self.assertEqual("candidate", CHECK_REPORT.label_norm("＿candidate＿"))
+        self.assertEqual("candidate", CHECK_REPORT.label_norm("&#95;candidate&#95;"))
+
+    def test_same_disposition_nested_labels_need_distinct_mentions(self):
+        cases = (
+            ("Defects to fix now", ["Fix docs/api.md migration note."], False),
+            ("Deferred follow-ups", [
+                "Defer docs/api.md migration note; owner: Platform Docs; reason: migration ownership"
+            ], False),
+            ("Blocking questions", ["Clarify docs/api.md migration note?"], True),
+        )
+        candidates = ["docs/api.md", "docs/api.md migration note"]
+        for section, bullets, one_to_one in cases:
+            with self.subTest(section=section):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        CHECK_REPORT.summary_assignments(
+                            candidates, bullets, section, one_to_one=one_to_one
+                        )
+
+    def test_nested_test_implications_need_distinct_mentions(self):
+        rows = [
+            {"axis": "Test Mirror", "candidate": "docs/api.md",
+             "presence": "present", "disposition": "fix-now"},
+            {"axis": "Test Mirror", "candidate": "docs/api.md migration note",
+             "presence": "present", "disposition": "fix-now"},
+        ]
+        sections = {
+            "Defects to fix now": [
+                "Fix docs/api.md.",
+                "Fix docs/api.md migration note.",
+            ],
+            "Deferred follow-ups": ["None"],
+            "Out-of-scope candidates discovered": ["None"],
+            "Blocking questions": ["None"],
+            "Test/doc implications": ["Update docs/api.md migration note."],
+        }
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                CHECK_REPORT.reconcile_summaries(sections, rows)
+        self.assertIn("Test/doc implications must name docs/api.md", error.getvalue())
+
+    def test_test_implications_cannot_synthesize_labels_across_bullets(self):
+        cases = (
+            (["alpha beta"], ["alpha", "beta"]),
+            (
+                ["docs/api.md", "docs/api.md migration note"],
+                ["docs/api.md", "docs/api.md migration", "note"],
+            ),
+            (["cafe\u200b\u0301"], ["cafe", "accent follow-up"]),
+            (["ａｌｐｈａ beta"], ["alpha", "beta"]),
+        )
+        for candidates, implications in cases:
+            rows = [
+                {"axis": "Test Mirror", "candidate": candidate,
+                 "presence": "present", "disposition": "fix-now"}
+                for candidate in candidates
+            ]
+            sections = {
+                "Defects to fix now": [f"Fix {candidate}." for candidate in candidates],
+                "Deferred follow-ups": ["None"],
+                "Out-of-scope candidates discovered": ["None"],
+                "Blocking questions": ["None"],
+                "Test/doc implications": implications,
+            }
+            with self.subTest(candidates=candidates, implications=implications):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        CHECK_REPORT.reconcile_summaries(sections, rows)
+
+    def test_nested_labels_with_distinct_dispositions_remain_valid(self):
+        section_for = {
+            "fix-now": "Defects to fix now",
+            "defer-with-owner": "Deferred follow-ups",
+            "blocked": "Blocking questions",
+        }
+
+        def bullet(disposition, candidate):
+            if disposition == "fix-now":
+                return f"Fix {candidate}."
+            if disposition == "defer-with-owner":
+                return f"Defer {candidate}; owner: Platform Docs; reason: migration ownership"
+            return f"Clarify {candidate}?"
+
+        dispositions = tuple(section_for)
+        for short_disposition in dispositions:
+            for long_disposition in dispositions:
+                if short_disposition == long_disposition:
+                    continue
+                rows = [
+                    {
+                        "axis": "Opposite Bound",
+                        "candidate": "docs/api.md",
+                        "presence": "blocked — clarification needed"
+                        if short_disposition == "blocked" else "present",
+                        "disposition": short_disposition,
+                    },
+                    {
+                        "axis": "Contract Symmetry",
+                        "candidate": "docs/api.md migration note",
+                        "presence": "blocked — clarification needed"
+                        if long_disposition == "blocked" else "present",
+                        "disposition": long_disposition,
+                    },
+                ]
+                sections = {
+                    "Defects to fix now": ["None"],
+                    "Deferred follow-ups": ["None"],
+                    "Out-of-scope candidates discovered": ["None"],
+                    "Blocking questions": ["None"],
+                    "Test/doc implications": ["None"],
+                }
+                sections[section_for[short_disposition]] = [
+                    bullet(short_disposition, "docs/api.md")
+                ]
+                sections[section_for[long_disposition]] = [
+                    bullet(long_disposition, "docs/api.md migration note")
+                ]
+                with self.subTest(
+                    short_disposition=short_disposition,
+                    long_disposition=long_disposition,
+                ):
+                    CHECK_REPORT.reconcile_summaries(sections, rows)
 
 
 class MetadataTests(unittest.TestCase):
@@ -487,6 +789,81 @@ class HeaderMarkerTests(unittest.TestCase):
                 self.assertFalse(CHECK_REPORT.missing_header_marker(value))
 
 class CheckerIntegrationTests(unittest.TestCase):
+    def test_missing_input_and_depth_matrix(self):
+        missing_cases = (
+            (True, False, "Triggering finding"),
+            (False, True, "Locked audit scope"),
+            (True, True, "Triggering finding"),
+        )
+        for missing_finding, missing_scope, expected_blocker in missing_cases:
+            for depth in ("quick", "standard", "exhaustive"):
+                with self.subTest(
+                    missing_finding=missing_finding,
+                    missing_scope=missing_scope,
+                    depth=depth,
+                ):
+                    report = matrix_reduced_report(missing_finding, missing_scope, depth)
+                    headers, sections, rows = CHECK_REPORT.parse_report(report)
+                    self.assertEqual(depth, headers["Output depth"])
+                    expected_missing = {
+                        header for header, missing in (
+                            ("Triggering finding", missing_finding),
+                            ("Locked audit scope", missing_scope),
+                        ) if missing
+                    }
+                    CHECK_REPORT.reduced(
+                        headers,
+                        sections,
+                        rows,
+                        expected_blocker,
+                        quick=depth == "quick",
+                        expected_missing=expected_missing,
+                    )
+
+                    for header in expected_missing:
+                        invalid = report.replace(f"{header}: missing", f"{header}: fabricated value", 1)
+                        invalid_headers, invalid_sections, invalid_rows = CHECK_REPORT.parse_report(invalid)
+                        with contextlib.redirect_stderr(io.StringIO()):
+                            with self.assertRaises(SystemExit):
+                                CHECK_REPORT.reduced(
+                                    invalid_headers, invalid_sections, invalid_rows,
+                                    expected_blocker, quick=depth == "quick",
+                                    expected_missing=expected_missing,
+                                )
+
+                    for header in ({"Triggering finding", "Locked audit scope"} - expected_missing):
+                        prefix = f"{header}: "
+                        invalid_lines = report.splitlines()
+                        invalid_lines = [
+                            f"{header}: missing" if line.startswith(prefix) else line
+                            for line in invalid_lines
+                        ]
+                        invalid_headers, invalid_sections, invalid_rows = CHECK_REPORT.parse_report(
+                            "\n".join(invalid_lines)
+                        )
+                        with contextlib.redirect_stderr(io.StringIO()):
+                            with self.assertRaises(SystemExit):
+                                CHECK_REPORT.reduced(
+                                    invalid_headers, invalid_sections, invalid_rows,
+                                    expected_blocker, quick=depth == "quick",
+                                    expected_missing=expected_missing,
+                                )
+
+                    if depth == "quick":
+                        invalid = report.replace(
+                            "Required input is missing, so no axes were enumerated.",
+                            "Audit postponed.",
+                            1,
+                        )
+                        invalid_headers, invalid_sections, invalid_rows = CHECK_REPORT.parse_report(invalid)
+                        with contextlib.redirect_stderr(io.StringIO()):
+                            with self.assertRaises(SystemExit):
+                                CHECK_REPORT.reduced(
+                                    invalid_headers, invalid_sections, invalid_rows,
+                                    expected_blocker, quick=True,
+                                    expected_missing=expected_missing,
+                                )
+
     def test_every_profile_accepts_a_valid_json_envelope(self):
         for profile in sorted(CHECK_REPORT.PROFILES):
             with self.subTest(profile=profile):
@@ -557,6 +934,108 @@ class CheckerIntegrationTests(unittest.TestCase):
         with contextlib.redirect_stderr(io.StringIO()):
             with self.assertRaises(SystemExit):
                 run_main(invalid, "positive-edge-009")
+
+    def test_edge_009_rejects_an_unrelated_deferred_candidate(self):
+        invalid = profile_report("positive-edge-009")
+        invalid = invalid.replace(
+            "| Sibling Parameter/Field | Sibling Parameter/Field candidate | absent | n/a | tests/example.md |",
+            "| Sibling Parameter/Field | Sibling Parameter/Field candidate | present | defer-with-owner | tests/example.md |",
+            1,
+        )
+        invalid = invalid.replace(
+            "defer docs/api.md documentation defect; owner:",
+            "defer docs/api.md documentation defect and Sibling Parameter/Field candidate; owner:",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-009")
+        self.assertIn("documentation must be the only deferred candidate", error.getvalue())
+
+    def test_edge_009_rejects_fix_now_candidate_in_deferred_bullet(self):
+        invalid = profile_report("positive-edge-009").replace(
+            "defer docs/api.md documentation defect; owner:",
+            "defer docs/api.md documentation defect and maxRetries zero bound; owner:",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-009")
+        self.assertIn(
+            "Deferred follow-ups must not name maxRetries zero bound from another disposition",
+            error.getvalue(),
+        )
+
+    def test_edge_009_rejects_format_control_smuggling(self):
+        invalid = profile_report("positive-edge-009").replace(
+            "defer docs/api.md documentation defect; owner:",
+            "defer docs/api.md documentation defect and max\u200bRetries zero bound; owner:",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-009")
+        self.assertIn(
+            "Deferred follow-ups must not name maxRetries zero bound from another disposition",
+            error.getvalue(),
+        )
+
+    def test_edge_009_rejects_na_candidate_smuggling(self):
+        for candidate in (
+            "Contract Symmetry candidate",
+            "Contract\u200b Symmetry candidate",
+        ):
+            invalid = profile_report("positive-edge-009").replace(
+                "defer docs/api.md documentation defect; owner:",
+                f"defer docs/api.md documentation defect and {candidate}; owner:",
+                1,
+            )
+            error = io.StringIO()
+            with self.subTest(candidate=candidate):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-009")
+                self.assertIn(
+                    "Deferred follow-ups must not name Contract Symmetry candidate from another disposition",
+                    error.getvalue(),
+                )
+
+    def test_edge_009_rejects_deferred_candidate_in_fix_now_bullet(self):
+        invalid = profile_report("positive-edge-009").replace(
+            "Fix maxRetries zero bound.",
+            "Fix maxRetries zero bound and docs/api.md documentation defect.",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-009")
+        self.assertIn(
+            "Defects to fix now must not name docs/api.md documentation defect from another disposition",
+            error.getvalue(),
+        )
+
+    def test_edge_009_rejects_identical_label_with_blocked_disposition(self):
+        invalid = profile_report("positive-edge-009").replace(
+            "| Contract Symmetry | Contract Symmetry candidate | absent | n/a | tests/example.md |",
+            "| Contract Symmetry | docs/api.md documentation defect | blocked — clarification needed | blocked | tests/example.md |",
+            1,
+        ).replace(
+            "### Blocking questions\n- None",
+            "### Blocking questions\n- Clarify docs/api.md documentation defect?",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-009")
+        self.assertIn(
+            "candidate label docs/api.md documentation defect has multiple dispositions",
+            error.getvalue(),
+        )
 
     def test_authorization_profile_requires_policy_spec_in_blocker(self):
         invalid = profile_report("positive-edge-002").replace("policy spec", "policy", 1)
