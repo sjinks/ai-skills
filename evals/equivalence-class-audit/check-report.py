@@ -106,6 +106,32 @@ PROFILE_SCOPE_ARTIFACTS = {
         "policies/project_permissions.rego", "tests/project_permissions_test.go",
     },
 }
+PROFILE_EXTRA_EVIDENCE = {
+    "positive-trigger-001": {"named:incident note"},
+}
+PROFILE_ACTIVE_AXIS_COUNTS = {
+    "positive-edge-001": {"Opposite Bound": 1, "Documentation/Spec Prose Twin": 1},
+    "positive-edge-002": {"Permission/Authorization Class": 1, "Test Mirror": 1},
+    "positive-edge-004": {"Opposite Bound": 1, "Test Mirror": 1, "Empty/Sentinel Equivalence": 1},
+    "positive-edge-005": {"Opposite Bound": 1, "Documentation/Spec Prose Twin": 1},
+    "positive-edge-007": {
+        "Opposite Bound": 1, "Mirror Call Site/Use Site": 2,
+        "Async/Sync or Mode Twin": 1, "Test Mirror": 2,
+        "Documentation/Spec Prose Twin": 1,
+    },
+    "positive-edge-008": {"Opposite Bound": 1, "Documentation/Spec Prose Twin": 2},
+    "positive-edge-009": {"Opposite Bound": 1, "Documentation/Spec Prose Twin": 1},
+    "positive-edge-010": {},
+    "positive-trigger-001": {
+        "Opposite Bound": 1, "Sibling Parameter/Field": 1,
+        "Test Mirror": 3, "Empty/Sentinel Equivalence": 1,
+        "Documentation/Spec Prose Twin": 1,
+    },
+    "positive-trigger-002": {
+        "Permission/Authorization Class": 2, "Observability Twin": 1,
+        "Test Mirror": 2, "Documentation/Spec Prose Twin": 1,
+    },
+}
 
 
 def fail(message):
@@ -878,9 +904,10 @@ def validate(profile, headers, sections, rows):
         if scope_artifacts(headers["Locked audit scope"]) != PROFILE_SCOPE_ARTIFACTS[profile]:
             fail("Locked audit scope must preserve the exact artifact set")
         scope_citations = artifact_citations(headers["Locked audit scope"])
+        allowed_evidence = scope_citations | PROFILE_EXTRA_EVIDENCE.get(profile, set())
         for item in rows:
             row_citations = artifact_citations(item["evidence"])
-            if row_citations and not row_citations <= scope_citations:
+            if row_citations and not row_citations <= allowed_evidence:
                 fail("table evidence citation must stay within the locked scope")
     if profile == "positive-edge-003":
         if headers["Output depth"].lower() != "standard":
@@ -1109,6 +1136,13 @@ def validate(profile, headers, sections, rows):
         row(rows, "Test Mirror", ("export", "denied"), "present", "fix-now", ("archive",))
         row(rows, "Test Mirror", ("archive", "denied"), "present", "fix-now", ("export",))
         row(rows, "Documentation/Spec Prose Twin", ("archive",), "present", "fix-now")
+    if profile in PROFILE_ACTIVE_AXIS_COUNTS:
+        active_counts = Counter(
+            item["axis"] for item in rows
+            if item["presence"] == "present" or item["disposition"] == "blocked"
+        )
+        if active_counts != Counter(PROFILE_ACTIVE_AXIS_COUNTS[profile]):
+            fail("report contains an unsupported active candidate set")
     validate_report_outcome(headers, sections, rows)
 
 

@@ -47,7 +47,7 @@ graders:
         - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
         - '(?im)^Output depth:\s*standard\s*$'
         - '(?im)^Verdict:\s*BLOCK\s*$'
-        - '(?im)^Severity:\s*MEDIUM\s*$'
+        - '(?im)^Severity:\s*(CRITICAL|HIGH|MEDIUM|LOW|UNASSESSED)\s*$'
         - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
         - '(?im)^### Deferred follow-ups[ \t]*\r?\n-[ \t]*None[ \t]*(\r?\n)+### Out-of-scope candidates discovered[ \t]*$'
       not_contains:

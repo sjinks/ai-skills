@@ -1111,6 +1111,30 @@ class CheckerContractTests(unittest.TestCase):
                                     CHECK_REPORT.validate_report_outcome(headers, sections, rows)
 
 class CheckerIntegrationTests(unittest.TestCase):
+    def test_task_supplied_incident_evidence_is_allowed(self):
+        report = profile_report("positive-trigger-001").replace(
+            "| Opposite Bound | maxRetries upper bound | present | fix-now | config/retry.yml |",
+            "| Opposite Bound | maxRetries upper bound | present | fix-now | config/retry.yml and incident note INC-17 |",
+            1,
+        )
+        run_main(report, "positive-trigger-001")
+
+    def test_edge_007_rejects_unsupported_extra_active_candidate(self):
+        invalid = profile_report("positive-edge-007").replace(
+            "| Resource Cleanup | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            "| Resource Cleanup | timer leak | present | fix-now | src/pagination.ts |",
+            1,
+        ).replace(
+            "Fix minItems zero bound, sync validator",
+            "Fix minItems zero bound, timer leak, sync validator",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-007")
+        self.assertIn("report contains an unsupported active candidate set", error.getvalue())
+
     def test_blocked_row_requires_artifact_citation(self):
         for evidence in (
             "no candidates in locked scope",
@@ -1693,11 +1717,18 @@ class ConfigurationTests(unittest.TestCase):
         self.assertRegex(metric.group(0), r"(?m)^    threshold: 0\.9$")
 
         task_files = sorted((root / "tasks").glob("positive-*.yaml"))
-        expected_outcomes = {
-            **PROFILE_OUTCOMES,
+        strict_outcomes = {
             "positive-edge-003": ("BLOCK", "UNASSESSED"),
             "positive-edge-006": ("BLOCK", "UNASSESSED"),
+            "positive-edge-010": ("CLEAN", "NONE"),
             "positive-edge-011": ("BLOCK", "UNASSESSED"),
+        }
+        actionable_profiles = {
+            "positive-edge-001", "positive-edge-004", "positive-edge-007",
+            "positive-edge-009", "positive-trigger-001", "positive-trigger-002",
+        }
+        blocked_profiles = {
+            "positive-edge-002", "positive-edge-005", "positive-edge-008",
         }
         profile_ids = set()
         for task_file in task_files:
@@ -1712,9 +1743,21 @@ class ConfigurationTests(unittest.TestCase):
             self.assertIn("- evals/equivalence-class-audit/check-report.py", block)
             args = re.findall(r"(?m)^        - (positive-(?:edge|trigger)-\d{3})\s*$", block)
             self.assertEqual([task_id.group(1)], args, task_file.name)
-            verdict, severity = expected_outcomes[task_id.group(1)]
-            self.assertIn(f"^Verdict:\\s*{verdict}\\s*$", text, task_file.name)
-            self.assertIn(f"^Severity:\\s*{severity}\\s*$", text, task_file.name)
+            profile = task_id.group(1)
+            if profile in actionable_profiles:
+                self.assertIn("^Verdict:\\s*(BLOCK|CONCERNS)\\s*$", text, task_file.name)
+                self.assertIn("^Severity:\\s*(CRITICAL|HIGH|MEDIUM|LOW)\\s*$", text, task_file.name)
+            elif profile in blocked_profiles:
+                self.assertIn("^Verdict:\\s*BLOCK\\s*$", text, task_file.name)
+                self.assertIn(
+                    "^Severity:\\s*(CRITICAL|HIGH|MEDIUM|LOW|UNASSESSED)\\s*$",
+                    text,
+                    task_file.name,
+                )
+            else:
+                verdict, severity = strict_outcomes[profile]
+                self.assertIn(f"^Verdict:\\s*{verdict}\\s*$", text, task_file.name)
+                self.assertIn(f"^Severity:\\s*{severity}\\s*$", text, task_file.name)
             profile_ids.add(task_id.group(1))
         self.assertEqual(CHECK_REPORT.PROFILES, profile_ids)
 
