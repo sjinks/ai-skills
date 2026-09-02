@@ -2,7 +2,7 @@
 
 This matrix maps each synthetic fixture to its discriminating construction behavior. Original planning traces that required execution-safety handling are superseded by the user override: SCC assesses no execution concerns and always uses `Execution authority: NOT ASSESSED BY THIS SKILL`.
 
-The SCC suite contains 26 fixtures; the separate shell-portability suite remains at 14 fixtures.
+The SCC suite contains 27 fixtures; the separate shell-portability suite contains 17 fixtures.
 
 | Fixture | SCC-TC | Source trace | Behavioral discriminator | Trigger | Result/exclusion | Authority or handoff | Deterministic focus | Substance |
 |---|---|---|---|---|---|---|---|---|
@@ -19,13 +19,14 @@ The SCC suite contains 26 fixtures; the separate shell-portability suite remains
 | positive-edge-011 | 7 | AC-3 | Byte-exact alpha + U+0000 NUL + beta payload where only argv or heredoc are available | yes | BLOCKED | not assessed | one representability defect covers argv and heredoc; exact non-argv NUL-capable transport/interface request | no |
 | positive-edge-012 | 7 | AC-3, EDGE-9 | Empty versus unset behavior only | yes | BLOCKED | not assessed | assessment and next step require the unset/empty decision: reject or pass one empty argument | no |
 | positive-edge-013 | 8 | AC-4, EDGE-10 | Supplied non-secret transport | yes | VALID | not assessed | supplied non-secret transport abstraction retained; no stale sentinel assertion | no |
-| positive-edge-014 | 8 | AC-4, EDGE-10 | Synthetic secret supplied as an agent-readable evaluator resource; no confirmed target-tool source/transport | yes | BLOCKED | not assessed | raw, fragment, Base64, URL-encoded, and hex sentinel forms absent from the response; generic non-secret source/transport request | no |
+| positive-edge-014 | 8 | AC-4, EDGE-10 | Synthetic secret supplied as an agent-readable evaluator resource; no confirmed target-tool source/transport | yes | BLOCKED | not assessed | raw, boundary-terminated `SCC_TEST_SE`/`ENDER_7c4f` fragments and distinctive normalized secret windows, Base64, URL-encoded, and hex sentinel forms absent from the response; generic non-secret source/transport request | no |
 | positive-edge-015 | 9 | AC-5, EDGE-11 | Remote transport facts absent | yes | BLOCKED | not assessed | asks first for remote parser; transport contract remains a later required fact | no |
 | positive-edge-016 | 10 | AC-3, EDGE-9 | Unbound external glob result set | yes | BLOCKED | not assessed | exact ordered operands required; no wildcard retention, rediscovery, or invented matches | no |
 | positive-edge-017 | 11 | AC-7 | Mixed construction/portability with neutral domain wording | yes | REWRITE | separate portability review required | assessment identifies the `tool run` label boundary; next step hands only the exact candidate to a separate portability review; neutral `run`, deployment, and release words accepted; representative active, passive, and bare standalone authority/safety claims rejected | no |
 | positive-edge-018 | 6 | AC-2, EDGE-4 | Fixed heredoc delimiter collides with literal payload line | yes | BLOCKED | not assessed | exact `EOF` body line collides with the caller-required delimiter; no alternate delimiter or transport is invented | no |
 | positive-edge-019 | 9 | AC-3, EDGE-3 | Confirmed remote JSON argv transport constructed from intent | yes | REWRITE | not assessed | exact stdin JSON-array candidate; remote JSON parser, one-to-one argv mapping, and no shell reparsing preserve two remote argv entries | no |
 | positive-edge-020 | 9 | AC-3, EDGE-3 | Confirmed local Bash and remote POSIX sh parsers plus two remote argv entries, but no boundary-preserving transport/serialization contract | yes | BLOCKED | not assessed | assessment identifies the remote parser, argv boundaries, and missing transport/serialization contract; next step requests only that contract, not a parser | no |
+| positive-edge-021 | 4 | AC-1, EDGE-1 | Already-correct direct literal scalar representation | yes | VALID | not assessed | preserve exact supplied `tool "hello world"` representation as one argv entry; SCC-Q1 does not rewrite an already-correct representation to single quotes | no |
 | positive-substance-001 | 9 | AC-2, EDGE-6 | Multiline commit message | yes | REWRITE | not assessed | `-F` file transport | yes |
 | negative-trigger-001 | 12 | AC-7 | Generic tutoring | no | exclusion | n/a | all markers absent | no |
 | negative-trigger-002 | 12 | AC-7 | Non-shell task | no | exclusion | n/a | all markers absent | no |
