@@ -57,7 +57,7 @@ PROFILE_HEADERS = {
         ("timeoutseconds", "health"),
         ("config/healthcheck.yml", "health check timeout"),
     ),
-    "positive-edge-002": (("delete /teams/{teamid}", "organization membership"),
+    "positive-edge-002": (("delete /teams/{teamid}", "organization membership", "tenant ownership"),
                           ("src/routes/team.routes.ts", "src/controllers/team.controller.ts",
                            "tests/team.controller.spec.ts")),
     "positive-edge-004": (("maxitems", "zero", "pagination"),
@@ -137,7 +137,7 @@ PROFILE_ACTIVE_AXIS_COUNTS = {
     "positive-trigger-001": {
         "Opposite Bound": 1, "Sibling Parameter/Field": 1,
         "Test Mirror": 3, "Empty/Sentinel Equivalence": 1,
-        "Documentation/Spec Prose Twin": 1,
+        "Contract Symmetry": 1, "Documentation/Spec Prose Twin": 1,
     },
     "positive-trigger-002": {
         "Permission/Authorization Class": 2, "Observability Twin": 1,
@@ -305,6 +305,12 @@ def non_populated_metadata(value, field=None):
         bare,
     )
     if negative_phrase or no_value_phrase or invalid_suffix:
+        return True
+    if re.search(
+        r"\b(?:or|/)\s*(?:someone|somebody|nobody|somewhere|unknown|unavailable|"
+        r"unassigned|tbd|pending|unresolved)\b",
+        bare,
+    ):
         return True
     return (bare in NON_POPULATED_METADATA
         or bare in FIELD_NON_POPULATED_METADATA.get(field, set())
@@ -789,7 +795,11 @@ def reconcile_summaries(sections, rows):
         candidates = [item["candidate"] for item in rows
                       if item["presence"] == "present" and item["disposition"] == disposition]
         summary_assignments(candidates, sections[section], section)
-    blocked = [item["candidate"] for item in rows if item["disposition"] == "blocked"]
+    blocked_by_label = {}
+    for item in rows:
+        if item["disposition"] == "blocked":
+            blocked_by_label.setdefault(label_norm(item["candidate"]), item["candidate"])
+    blocked = list(blocked_by_label.values())
     blocker_bullets = sections["Blocking questions"]
     if blocked and len(blocker_bullets) != len(blocked):
         fail("Blocking questions must contain one bullet per blocked row")
@@ -1124,6 +1134,7 @@ def validate(profile, headers, sections, rows):
         row(rows, "Opposite Bound", ("maxretries", "upper"), "present", "fix-now")
         row(rows, "Sibling Parameter/Field", ("retrydelayseconds",), "present", "fix-now")
         row(rows, "Empty/Sentinel Equivalence", ("null",), "present", "fix-now")
+        row(rows, "Contract Symmetry", ("retry", "docs", "config"), "present", "fix-now")
         test_rows = [item for item in rows if item["axis"] == "Test Mirror"
                      and item["presence"] == "present" and item["disposition"] == "fix-now"]
         used = set()

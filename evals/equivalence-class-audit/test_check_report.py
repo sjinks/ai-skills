@@ -20,7 +20,7 @@ HEADERS = {
         "config/healthcheck.yml and the Health check timeout section",
     ),
     "positive-edge-002": (
-        "DELETE /teams/{teamId} checks organization membership",
+        "DELETE /teams/{teamId} checks organization membership but lacks tenant ownership",
         "src/routes/team.routes.ts, src/controllers/team.controller.ts, and tests/team.controller.spec.ts",
     ),
     "positive-edge-004": (
@@ -275,6 +275,9 @@ def profile_report(profile):
             "Opposite Bound": ("maxRetries upper bound", "present", "fix-now", "config/retry.yml"),
             "Sibling Parameter/Field": ("retryDelaySeconds bound", "present", "fix-now", "config/retry.yml"),
             "Empty/Sentinel Equivalence": ("null retry value", "present", "fix-now", "src/retry_policy.py"),
+            "Contract Symmetry": (
+                "retry docs/config mismatch", "present", "fix-now", "Retry Configuration section"
+            ),
             "Test Mirror": [
                 ("upper bound test", "present", "fix-now", "tests/test_retry_policy.py"),
                 ("retryDelaySeconds test", "present", "fix-now", "tests/test_retry_policy.py"),
@@ -513,25 +516,28 @@ class SummaryAssignmentsTests(unittest.TestCase):
 
         self.assertEqual({0: 0, 1: 1}, assignments)
 
-    def test_identical_candidate_names_allow_counted_separate_blockers(self):
-        assignments = CHECK_REPORT.summary_assignments(
-            ["shared config", "shared config"],
-            ["Who owns shared config?", "Clarify the policy for shared config."],
-            "Blocking questions",
-            one_to_one=True,
-        )
+    def test_identical_blocked_rows_share_one_candidate_blocker(self):
+        rows = [
+            {"axis": "Opposite Bound", "candidate": "shared config",
+             "presence": "blocked — clarification needed", "disposition": "blocked"},
+            {"axis": "Contract Symmetry", "candidate": "shared config",
+             "presence": "blocked — clarification needed", "disposition": "blocked"},
+        ]
+        sections = {
+            "Defects to fix now": ["None"],
+            "Deferred follow-ups": ["None"],
+            "Out-of-scope candidates discovered": ["None"],
+            "Blocking questions": ["Clarify shared config?"],
+            "Test/doc implications": ["None"],
+        }
+        CHECK_REPORT.reconcile_summaries(sections, rows)
 
-        self.assertEqual({0: 0, 1: 1}, assignments)
-
-    def test_identical_candidate_names_still_require_matching_bullet_count(self):
+        sections["Blocking questions"] = [
+            "Clarify shared config?", "Who owns shared config?",
+        ]
         with contextlib.redirect_stderr(io.StringIO()):
             with self.assertRaises(SystemExit):
-                CHECK_REPORT.summary_assignments(
-                    ["shared config", "shared config"],
-                    ["Who owns shared config?"],
-                    "Blocking questions",
-                    one_to_one=True,
-                )
+                CHECK_REPORT.reconcile_summaries(sections, rows)
 
     def test_summary_sections_reject_other_disposition_candidates(self):
         rows = [
@@ -1122,6 +1128,53 @@ class CheckerContractTests(unittest.TestCase):
                                     CHECK_REPORT.validate_report_outcome(headers, sections, rows)
 
 class CheckerIntegrationTests(unittest.TestCase):
+    def test_edge_002_header_preserves_tenant_ownership_omission(self):
+        invalid = profile_report("positive-edge-002").replace(
+            " but lacks tenant ownership",
+            "",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-002")
+        self.assertIn("Triggering finding must preserve the supplied task input", error.getvalue())
+
+    def test_trigger_001_requires_contract_symmetry_candidate(self):
+        invalid = profile_report("positive-trigger-001").replace(
+            "| Contract Symmetry | retry docs/config mismatch | present | fix-now | Retry Configuration section |",
+            "| Contract Symmetry | retry docs/config mismatch | absent | n/a | Retry Configuration section |",
+            1,
+        ).replace(
+            "retry docs/config mismatch, ",
+            "",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-trigger-001")
+        self.assertIn("missing required Contract Symmetry row", error.getvalue())
+
+    def test_complete_reports_reject_ambiguous_metadata_alternatives(self):
+        cases = (
+            (
+                "positive-edge-009",
+                "owner: Platform Docs;",
+                "owner: Platform Docs or someone;",
+            ),
+            (
+                "positive-edge-002",
+                "provenance: supplied Known facts",
+                "provenance: supplied Known facts or somewhere",
+            ),
+        )
+        for profile, original, ambiguous in cases:
+            with self.subTest(profile=profile):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(profile_report(profile).replace(original, ambiguous, 1), profile)
+
     def test_clean_profile_rejects_current_defect_finding(self):
         for finding in (
             "minItems zero still crashes pagination",
