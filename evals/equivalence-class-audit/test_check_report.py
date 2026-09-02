@@ -1029,6 +1029,8 @@ class CheckerContractTests(unittest.TestCase):
         ))
         for value in (
             "Provide the Triggering finding and list the files.",
+            "Provide the Triggering finding and list the endpoints.",
+            "Provide the Triggering finding and identify the API surfaces.",
             "Provide no Triggering finding.",
             "Need no Locked audit scope.",
             "What defect should be used as the trigger?",
@@ -1907,6 +1909,16 @@ class ConfigurationTests(unittest.TestCase):
             self.assertIsNone(re.search(pattern, report), pattern)
         for token in config.get("not_contains", []):
             self.assertNotIn(token.lower(), report.lower(), token)
+        permission_pattern = next(
+            pattern for pattern in config["regex_match"]
+            if "Permission/Authorization Class" in pattern and "blocked" in pattern
+        )
+        generic_tenant = report.replace(
+            "DELETE /teams/{teamId} tenant ownership check",
+            "tenant authorization candidate",
+            1,
+        )
+        self.assertIsNone(re.search(permission_pattern, generic_tenant))
 
     def test_suppressed_yaml_fixes_remain_projected(self):
         root = pathlib.Path(__file__).parent / "tasks"

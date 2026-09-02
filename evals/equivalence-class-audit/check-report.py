@@ -426,7 +426,8 @@ def requests_missing_input(value, missing_header):
     if missing_header == "Triggering finding":
         requests_other = bool(re.search(
             r"\b(?:and|then|also)\s+(?:list|provide|specify|identify|include)\s+"
-            r"(?:the\s+)?(?:scope|files|modules|artifacts|specs|tests)\b",
+            r"(?:the\s+)?(?:scope|files|modules|artifacts|specs|tests|endpoints|routes|"
+            r"api surfaces|resources)\b",
             value,
             flags=re.I,
         ))

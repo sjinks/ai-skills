@@ -59,7 +59,7 @@ graders:
         - '(?i)Permission/Authorization Class'
         - '(?i)Test Mirror'
         - '(?i)blocked\s+—\s+clarification needed'
-        - '(?i)\|\s*Permission/Authorization Class\s*\|[^\n|]*(DELETE|tenant)[^\n|]*\|\s*blocked\s+—\s+clarification needed\s*\|\s*blocked\s*\|'
+        - '(?i)\|\s*Permission/Authorization Class\s*\|[^\n|]*DELETE[^\n|]*\|\s*blocked\s+—\s+clarification needed\s*\|\s*blocked\s*\|'
         - '(?i)\|\s*Test Mirror\s*\|[^\n|]*tenant mismatch[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
         - '(?i)Blocking questions'
         - '(?i)tenantGuard'
