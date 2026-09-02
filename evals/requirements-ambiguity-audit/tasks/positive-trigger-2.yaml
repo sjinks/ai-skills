@@ -45,7 +45,7 @@ graders:
         - '(?im)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*(Deleting\s+a\s+workspace\s+permanently\s+removes\s+all\s+its\s+data\s+immediately["`*_ \t]*[.;:/!?]["`*_.;:/!? \t]*A\s+deleted\s+workspace\s+can\s+be\s+restored\s+by\s+support\s+within\s+30\s+days|A\s+deleted\s+workspace\s+can\s+be\s+restored\s+by\s+support\s+within\s+30\s+days["`*_ \t]*[.;:/!?]["`*_.;:/!? \t]*Deleting\s+a\s+workspace\s+permanently\s+removes\s+all\s+its\s+data\s+immediately)["`*_.;:!? \t]*\r?$'
         - '(?m)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*(Deleting a workspace permanently removes all its data immediately\.["`*_ /;:\t]*A deleted workspace can be restored by support within 30 days\.|A deleted workspace can be restored by support within 30 days\.["`*_ /;:\t]*Deleting a workspace permanently removes all its data immediately\.)["`*_]*[ \t]*\r?$'
         - '(?im)^[ \t]*-[ \t]*[*_]*Conflict:[*_]*[^\r\n]*(permanent|restore|cannot|conflict)[^\r\n]*\r?$'
-        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[ \t]*["`*_]*Deleting a workspace[ \t]+\[OPEN QUESTION:[ \t]+choose immediate permanent deletion or restoration within 30 days[ \t]+—[ \t]+product owner[ \t]+to decide\]["`*_.;:!? \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*workspace[^\r\n]*(delet|restore)[^\r\n]*\[OPEN QUESTION:[ \t]+[^\r\n\]]*(immediate permanent deletion|restoration within 30 days)[^\r\n\]]*—[ \t]+product owner[ \t]+to decide\][^\r\n]*\r?$'
         - '(?im)^### Findings[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+1[*_]*:[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*(Deleting\s+a\s+workspace\s+permanently\s+removes\s+all\s+its\s+data\s+immediately[^\r\n]*A\s+deleted\s+workspace\s+can\s+be\s+restored\s+by\s+support\s+within\s+30\s+days|A\s+deleted\s+workspace\s+can\s+be\s+restored\s+by\s+support\s+within\s+30\s+days[^\r\n]*Deleting\s+a\s+workspace\s+permanently\s+removes\s+all\s+its\s+data\s+immediately)["`*_.;:!? \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Conflict:[*_]*[ \t]*\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*(?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*(\[OPEN QUESTION:[ \t]+[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\](?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*)+\r?$\r?\n([ \t]*\r?\n)*### Open questions \(product decisions, not findings\)[ \t]*\r?$'
         - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*product owner'
       regex_not_match:
@@ -54,6 +54,7 @@ graders:
         - '(?ims)^[ \t]*((#{1,6}|>+|[-+*]|[0-9]+[.)])[ \t]+)*-[ \t]*[*_]*Quote:[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
         - '(?ims)^[ \t]*((#{1,6}|>+|[-+*]|[0-9]+[.)])[ \t]+)*-[ \t]*[*_]*Proposed rewrite:[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
         - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[ \t]*OPEN QUESTION:'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[ \t]*\[OPEN QUESTION:'
         - '(?ims)^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|'
         - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*[^\[]OPEN QUESTION:'
         - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$[\s\S]*?^[ \t]*-[ \t]*[*_]*(Quote|Readings|Conflict|Missing|Untestable because|Proposed rewrite):'

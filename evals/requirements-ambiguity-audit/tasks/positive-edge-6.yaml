@@ -52,7 +52,7 @@ graders:
         - '(?im)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*The account settings page must feel intuitive to account owners["`*_.;:!? \t]*\r?$'
         - '(?m)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*The account settings page must feel intuitive to account owners\.["`*_]*[ \t]*\r?$'
         - '(?im)^[ \t]*-[ \t]*[*_]*Untestable because:[*_]*[^\r\n]*(objective|metric|test|measure)[^\r\n]*\r?$'
-        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[ \t]*["`*_]*The account settings page meets the usability requirement for account owners when[ \t]+\[OPEN QUESTION:[ \t]+[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\]["`*_.;:!? \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*account settings[^\r\n]*(owner|usability)[^\r\n]*\[OPEN QUESTION:[ \t]+[^\r\n\]]*\b(criterion|metric|threshold|test)\b[^\r\n\]]*—[ \t]+product owner[ \t]+to decide\][^\r\n]*\r?$'
         - '(?im)^### Findings[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+1[*_]*:[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*must feel intuitive[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Untestable because:[*_]*[ \t]*\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*(?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*(\[OPEN QUESTION:[ \t]+[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\](?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*)+\r?$\r?\n([ \t]*\r?\n)*### Open questions \(product decisions, not findings\)[ \t]*\r?$'
         - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*product owner'
       regex_not_match:
@@ -61,6 +61,7 @@ graders:
         - '(?ims)^[ \t]*((#{1,6}|>+|[-+*]|[0-9]+[.)])[ \t]+)*-[ \t]*[*_]*Quote:[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
         - '(?ims)^[ \t]*((#{1,6}|>+|[-+*]|[0-9]+[.)])[ \t]+)*-[ \t]*[*_]*Proposed rewrite:[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
         - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[ \t]*OPEN QUESTION:'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[ \t]*\[OPEN QUESTION:'
         - '(?ims)^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|'
         - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*[^\[]OPEN QUESTION:'
         - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$[\s\S]*?^[ \t]*-[ \t]*[*_]*(Quote|Readings|Conflict|Missing|Untestable because|Proposed rewrite):'
