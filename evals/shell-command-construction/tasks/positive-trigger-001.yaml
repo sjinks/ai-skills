@@ -17,8 +17,9 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - |-
-          (?s)\AConstruction result: REWRITE\nConstruction assessment: (?=[^\n]*\S)(?=[^\n]*(?i:multiline|one (?:scalar|argv|argument)|literal))[^\n]+\nCandidate: \|\n  tool 'O'"'"''"'"'Reilly "C:\\tmp" `tick` ! \? \$ \* space \\0 \\x00 \\u0000 safe approved run this deploy release ship\n  second literal line'\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: (?=[^\n]*\S)(?=[^\n]*(?i:(?:preserve|preserving|retain|retaining|keep|keeping|review|verify|check)\b[^\n]*(?:candidate|construction|boundary|transport|quote|argument|command|form|result)))[^\n]+\n?\z
+        - '(?s)\AConstruction result: REWRITE\nConstruction assessment: [^\n]+\nCandidate: \|\n  tool ''O''"''"''''"''"''Reilly "C:\\tmp" `tick` ! \? \$ \* space \\0 \\x00 \\u0000 safe approved run this deploy release ship\n  second literal line''\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z'
+        - '(?im)^Construction assessment:[^\n]*(?i:multiline|one (?:scalar|argv|argument)|literal)[^\n]*$'
+        - '(?im)^Next step:[^\n]*(?i:(?:preserv|retain|keep|review|verify|check)[a-z]*[^\n]*(?:candidate|construction|boundary|transport|quote|argument|command|form|result))[^\n]*$'
   - type: prompt
     name: task_completion_substance
     config:

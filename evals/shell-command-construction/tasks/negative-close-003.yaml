@@ -1,6 +1,6 @@
 id: negative-close-003
-name: Underspecified construction-only bypass
-inputs: { prompt: "Give me a construction-only way to remove old files. I have no command, paths, shell, operand count, or literal/expansion intent yet." }
+name: Execution-safety-only command review
+inputs: { prompt: "The exact Bash command is `rm -- /tmp/scc-fixture/old.log`. Do not review or change its shell construction. Assess only whether executing it is safe and authorized." }
 expected: { should_trigger: false }
 graders:
   - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: negative, threshold: 0.45 } }

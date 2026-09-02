@@ -1,25 +1,29 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
-id: positive-edge-003
-name: Mixed request after construction result
+id: positive-edge-007
+name: Multiline construction candidate decoded before review
 description: |
-  A mixed request with an already-supplied construction result must activate
-  portability only to review that exact candidate, without making a construction claim.
+  A serialized multiline construction candidate must have exactly its two-space
+  per-line prefix removed while preserving payload indentation and blank lines,
+  and decoding must stop at the next unprefixed result field.
 tags:
   - positive-edge
 inputs:
   prompt: |
-    A separate construction review is complete:
+    A separate construction review supplied this complete result:
     Construction result: REWRITE
-    Construction assessment: The supplied label remains one argument boundary.
-    Candidate: tool run "$label"
+    Construction assessment: A quoted heredoc preserves the literal payload.
+    Candidate: |
+      tool --body-stdin <<'EOF'
+        indented $literal
+      
+      EOF
     Execution authority: NOT ASSESSED BY THIS SKILL
     Next step: Request a separate portability review of the exact candidate.
 
-    The external `tool` and its `run` interface are available identically on
-    both targets; review only the shell syntax of that exact candidate for
-    POSIX sh on Ubuntu and macOS. Do not redo construction or make a
-    construction claim. Return the verdict, target, interpreter, findings,
-    checklist status, and residual risk.
+    Decode the candidate according to the supplied construction-result format.
+    The external `tool` and its stdin interface are available on every target.
+    Review only the decoded candidate for POSIX sh on Ubuntu and macOS; do not
+    redo construction.
 expected:
   should_trigger: true
 graders:
@@ -56,9 +60,18 @@ graders:
     name: task_completion_substance
     config:
       prompt: |
-        Grade whether the response reviews only the supplied exact candidate
-        `tool run "$label"` for POSIX sh on Ubuntu and macOS, uses the shell-portability
-        structured output, and neither redoes construction nor makes a shell-command-construction claim.
+        Grade whether the response removes exactly the two-space serialization
+        prefix from each candidate line, reviews this decoded command:
+
+        tool --body-stdin <<'EOF'
+          indented $literal
+
+        EOF
+
+        preserves the payload-owned two-space indentation and blank line, stops
+        before the unprefixed `Execution authority` result field, recognizes the
+        quoted heredoc as POSIX-sh syntax for Ubuntu and macOS, returns CLEAN,
+        and does not redo construction.
 
         Output format (strict):
         - Write one sentence of reasoning on its own line.

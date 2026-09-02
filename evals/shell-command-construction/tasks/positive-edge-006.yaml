@@ -12,7 +12,7 @@ expected: { should_trigger: true }
 graders:
   - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
   - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
-  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: REWRITE\nConstruction assessment: (?=[^\n]*\S)(?=[^\n]*(?i:heredoc|EOF))(?=[^\n]*(?i:literal|expand|newline))[^\n]+\nCandidate: \|\n  tool --body-stdin <<''EOF''\n  line \$var\n    indented\n\x20{2}\n  \$\(cmd\)\n  `tick`\n  Construction result: VALID\n  EOF\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: (?=[^\n]*\S)(?=[^\n]*(?i:(?:preserve|preserving|retain|retaining|keep|keeping|review|verify|check)\b[^\n]*(?:candidate|construction|boundary|transport|quote|argument|command|form|result)))[^\n]+\n?\z'] } }
+  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: REWRITE\nConstruction assessment: [^\n]+\nCandidate: \|\n  tool --body-stdin <<''EOF''\n  line \$var\n    indented\n\x20{2}\n  \$\(cmd\)\n  `tick`\n  Construction result: VALID\n  EOF\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z', '(?im)^Construction assessment:[^\n]*(?i:heredoc|EOF)[^\n]*$', '(?im)^Construction assessment:[^\n]*(?i:literal|expand|newline)[^\n]*$', '(?im)^Next step:[^\n]*(?i:(?:preserv|retain|keep|review|verify|check)[a-z]*[^\n]*(?:candidate|construction|boundary|transport|quote|argument|command|form|result))[^\n]*$'] } }
   - type: prompt
     name: task_completion_substance
     config:

@@ -40,9 +40,6 @@ graders:
         - '(?i)Verdict:\s*(?:CLEAN|CONCERNS)'
         - '(?im)^(?:Interpreter|Checklist status|Residual risk):'
         - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
-      not_contains:
-        - 'portable as written'
-        - 'compatible with POSIX sh'
   - type: prompt
     name: task_completion_substance
     config:

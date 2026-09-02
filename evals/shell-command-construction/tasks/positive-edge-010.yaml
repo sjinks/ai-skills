@@ -5,4 +5,4 @@ expected: { should_trigger: true }
 graders:
   - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
   - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
-  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: BLOCKED\nConstruction assessment: (?=[^\n]*\S)(?=[^\n]*(?i:literal))(?=[^\n]*(?i:expand))[^\n]+\nCandidate: Not provided\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: (?=[^\n]*\S)(?=[^\n]*(?i:literal))(?=[^\n]*(?i:expand))[^\n]+\n?\z'] } }
+  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: BLOCKED\nConstruction assessment: [^\n]+\nCandidate: Not provided\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z', '(?im)^Construction assessment:[^\n]*(?i:literal)[^\n]*$', '(?im)^Construction assessment:[^\n]*(?i:expand)[^\n]*$', '(?im)^Next step:[^\n]*(?i:literal)[^\n]*$', '(?im)^Next step:[^\n]*(?i:expand)[^\n]*$'] } }

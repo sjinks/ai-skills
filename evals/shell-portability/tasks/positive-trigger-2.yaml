@@ -17,7 +17,8 @@ inputs:
     files=$(find . -printf '%f\n')
     ```
 
-    Give me the verdict, findings, checklist status, and how to verify.
+    Give me the verdict, findings, checklist status, and how to verify. List the
+    findings in this order: 1. `sed -i`, 2. `grep -P`, 3. `find -printf`.
 expected:
   should_trigger: true
 graders:
@@ -37,11 +38,23 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?i)Verdict:\s*(BLOCK|CONCERNS)'
+        - '(?im)^Verdict:\s*BLOCK\s*$'
+        - '(?im)^Target:\s*[^\r\n]*Ubuntu[^\r\n]*macOS[^\r\n]*$'
+        - '(?im)^Interpreter:\s*[^\r\n]+$'
+        - '(?im)^Findings:\s*$'
+        - '(?ims)^1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*(?:CRITICAL|HIGH)\s*\r?\n[ \t]+Classification:\s*Confirmed issue\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*sed -i[^\r\n]*\r?\n[ \t]+Rule:\s*utilities-flags\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*[^\r\n]+\r?$'
+        - '(?ims)^2\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*(?:CRITICAL|HIGH|MEDIUM|LOW)\s*\r?\n[ \t]+Classification:\s*Confirmed issue\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*grep -P[^\r\n]*\r?\n[ \t]+Rule:\s*utilities-flags\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?:grep -E|ERE|awk)[^\r\n]*\r?\n[ \t]+Verification:\s*[^\r\n]+\r?$'
+        - '(?ims)^3\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*(?:CRITICAL|HIGH|MEDIUM|LOW)\s*\r?\n[ \t]+Classification:\s*Confirmed issue\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*find[^\r\n]*-printf[^\r\n]*\r?\n[ \t]+Rule:\s*utilities-flags\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?:-exec|-print)[^\r\n]*\r?\n[ \t]+Verification:\s*[^\r\n]+$'
         - '(?i)sed -i'
         - '(?i)(grep -P|PCRE|grep -E|ERE)'
         - '(?i)(printf|-exec|find -printf|GNU)'
         - '(?i)Checklist status:'
+        - '(?im)^- Interpreter and shebang:\s*(?:covered|missing|n/a)\s*$'
+        - '(?im)^- Bashisms:\s*(?:covered|missing|n/a)\s*$'
+        - '(?im)^- Utilities and flags:\s*(?:covered|missing|n/a)\s*$'
+        - '(?im)^- Output and behavior:\s*(?:covered|missing|n/a)\s*$'
+        - '(?im)^- Verification:\s*(?:covered|missing|n/a)\s*$'
+        - '(?im)^Residual risk:\s*[^\r\n]+$'
       not_contains:
         - "Compatibility promise:"
         - "Dependency policy:"

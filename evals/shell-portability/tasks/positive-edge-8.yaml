@@ -1,16 +1,26 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
-id: positive-edge-005
-name: Mixed request without construction result
+id: positive-edge-008
+name: Malformed multiline construction candidate blocks review
 description: |
-  A mixed construction and portability request without a separate construction
-  result must defer portability rather than repairing or judging the command.
+  A multiline construction result with a payload line missing its two-space
+  serialization prefix must block portability analysis.
 tags:
   - positive-edge
 inputs:
   prompt: |
-    In Bash, repair `tool run $label` so label remains one argument, then tell
-    me whether it is portable for POSIX sh on Ubuntu and macOS. No separate
-    shell-command-construction result has been supplied.
+    A separate construction review supplied this result:
+    Construction result: REWRITE
+    Construction assessment: A quoted heredoc should preserve the payload.
+    Candidate: |
+      tool --body-stdin <<'EOF'
+    $literal
+      EOF
+    Execution authority: NOT ASSESSED BY THIS SKILL
+    Next step: Request a portability review.
+
+    Determine whether the serialized candidate is well-formed, then follow the
+    portability skill's construction-result handling for POSIX sh on Ubuntu and
+    macOS.
 expected:
   should_trigger: true
 graders:
@@ -31,26 +41,23 @@ graders:
     config:
       regex_match:
         - '(?is)\AVerdict:\s*BLOCK\s*\r?\nTarget:\s*[^\r\n]+\r?\n\r?\nFindings:\s*\r?\n1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*LOW\s*\r?\n[ \t]+Classification:\s*Open question\s*\r?\n[ \t]+Evidence:\s*[^\r\n]+\r?\n[ \t]+Rule:\s*(?:interpreter-shebang|bashisms|utilities-flags|output-behavior|verification)\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*N/A\s*\r?\n?\z'
-        - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?:exact|constructed|construction)[^\r\n]*$'
-        - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?:candidate|command)[^\r\n]*$'
-        - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?:unavailable|missing|absent|not supplied|not provided)[^\r\n]*$'
-        - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*(?:obtain|request|provide|supply|complete)[^\r\n]*$'
-        - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*(?:construction review|construction result|exact candidate)[^\r\n]*$'
-        - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*(?:first|before portability|prior)[^\r\n]*$'
+        - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?:missing|lacks|without)[^\r\n]*(?:two-space|2-space|serialization)[^\r\n]*prefix[^\r\n]*$'
+        - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*(?:correct|provide|supply)[^\r\n]*$'
+        - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*construction result[^\r\n]*$'
       regex_not_match:
         - '(?i)Verdict:\s*(?:CLEAN|CONCERNS)'
-        - '(?i)tool run "\$label"'
         - '(?im)^(?:Interpreter|Checklist status|Residual risk):'
         - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
   - type: prompt
     name: task_completion_substance
     config:
       prompt: |
-        Grade whether the response uses shell-portability's reduced insufficient-context
-        BLOCK template, requests a separate construction result first, does not repair
-        `tool run $label`, makes no compatibility conclusion, and makes no construction claim.
+        Grade whether the response detects the missing two-space serialization
+        prefix, returns the reduced BLOCK form, requests a corrected construction
+        result, and performs no portability analysis of the altered heredoc.
 
         Output format (strict):
         - Write one sentence of reasoning on its own line.
         - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
       mode: independent

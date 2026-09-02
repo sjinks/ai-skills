@@ -27,6 +27,8 @@ The goal is shell code that runs identically on its declared targets: no bashism
 
 For a request that combines construction correctness and portability, do not attempt construction here. First request a separate shell command construction result. If no result exists, or the result is `BLOCKED` with no candidate, use the reduced insufficient-context `BLOCK` template: state that no exact constructed candidate is available and require construction to be completed or resolved first. Otherwise review the exact construction candidate and make no construction claim.
 
+When a supplied construction result serializes a multiline candidate as `Candidate: |`, remove exactly the first two spaces from every following candidate payload line before portability analysis. Preserve any additional leading spaces and serialized empty lines as candidate data. Stop at the next unprefixed result field. If a payload line lacks the two-space prefix, use the reduced insufficient-context `BLOCK` template and request a corrected construction result rather than analyzing altered command text.
+
 ## Required Context
 
 Establish or infer before judging:
