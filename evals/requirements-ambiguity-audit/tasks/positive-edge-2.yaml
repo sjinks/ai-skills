@@ -32,10 +32,12 @@ graders:
     config:
       regex_match:
         - '(?is)\A[ \t]*##[ \t]+Requirements Ambiguity Report[ \t]*\r?\n([ \t]*\r?\n)*[ \t]*[*_]*Verdict:[*_ \t]*BLOCK[*_]*\.?[*_]*[ \t]*\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Missing input:[*_]*[ \t]*\S[^\r\n]*\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Smallest addition to proceed:[*_]*[ \t]*\S[^\r\n]*(?:[ \t]*\r?\n)*[ \t]*\z'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Missing input:[*_]*[^\r\n]*(not[ \t]+(provided|supplied|pasted)|no[ \t]+(spec|specification|requirement)[^\r\n]*text|missing|absent)[^\r\n]*\r?$'
       regex_not_match:
         - '(?im)^[ \t]*-[ \t]*[*_]*(Missing input|Smallest addition to proceed):[*_]*[^\r\n]*(Missing input|Smallest addition to proceed):'
         - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:'
         - '(?im)^[ \t]*\|[^\r\n]*\|[^\r\n]*(?:vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[^\r\n]*\|[ \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Missing input:[*_]*[^\r\n]*(unreadable|corrupt|garbl|cannot be (read|recovered))[^\r\n]*\r?$'
       not_contains:
         - "Readings:"
         - "Proposed rewrite:"
