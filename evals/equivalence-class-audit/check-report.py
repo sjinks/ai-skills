@@ -353,6 +353,12 @@ def requests(value):
     value = norm(value)
     if re.match(r"^(?:please\s+)?(?:do not|don't|need not|not)\b", value):
         return False
+    if re.match(
+        r"^(?:please\s+)?(?:provide|specify|clarify|confirm|need)\s+"
+        r"(?:no|not|none|neither)\b",
+        value,
+    ):
+        return False
     imperative = re.match(r"^(?:please\s+)?(?:provide|specify|clarify|confirm|need)\b", value)
     question = re.match(r"^(?:what|which|who|why|can|could|would|are|does|do|is|should)\b.*\?$", value)
     return bool(imperative or question)
@@ -592,8 +598,7 @@ def parse_report(output):
                 r"\b[a-z][a-z0-9 _/-]{2,} section\b|"
                 r"\b(?:test (?:file|case)|"
                 r"(?:policy|api|json) spec|(?:json )?schema(?: artifact)?|migration(?: file)?|"
-                r"config(?:uration)? (?:block|artifact)|(?:audit )?log(?: entry)?|incident(?: note)?|"
-                r"artifact)\b",
+                r"config(?:uration)? (?:block|artifact)|(?:audit )?log(?: entry)?|incident(?: note)?)\b",
                 evidence,
             )
             citation = artifact_citation or re.search(r"\btriggering finding\b", evidence)
@@ -857,6 +862,9 @@ def validate(profile, headers, sections, rows):
     if profile in PROFILE_SCOPE_ARTIFACTS:
         if scope_artifacts(headers["Locked audit scope"]) != PROFILE_SCOPE_ARTIFACTS[profile]:
             fail("Locked audit scope must preserve the exact artifact set")
+        for item in rows:
+            if not scope_artifacts(item["evidence"]) <= PROFILE_SCOPE_ARTIFACTS[profile]:
+                fail("table evidence path must stay within the locked scope")
     if profile == "positive-edge-003":
         if headers["Output depth"].lower() != "standard":
             fail("expected standard output depth")

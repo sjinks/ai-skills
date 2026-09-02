@@ -85,7 +85,10 @@ def complete_report(profile, overrides=None, sections=None, depth="standard"):
     rows = []
     axes = overrides if depth == "quick" else CHECK_REPORT.AXES
     for axis in axes:
-        values = overrides.get(axis, (f"{axis} candidate", "absent", "n/a", "tests/example.md"))
+        values = overrides.get(
+            axis,
+            ("-", "n/a — no candidates in scope", "n/a", "no candidates in locked scope"),
+        )
         entries = [values] if isinstance(values, tuple) else values
         for candidate, presence, disposition, evidence in entries:
             rows.append(f"| {axis} | {candidate} | {presence} | {disposition} | {evidence} |")
@@ -159,7 +162,9 @@ def profile_report(profile):
     if profile == "positive-edge-001":
         overrides = {
             "Opposite Bound": ("timeoutSeconds bound", "present", "fix-now", "config/healthcheck.yml"),
-            "Documentation/Spec Prose Twin": ("docs health guidance", "present", "fix-now", "docs/health.md"),
+            "Documentation/Spec Prose Twin": (
+                "docs health guidance", "present", "fix-now", "Health check timeout section"
+            ),
         }
         for axis in (
             "Sibling Parameter/Field", "Inverse Operation", "Permission/Authorization Class",
@@ -291,7 +296,9 @@ def profile_report(profile):
             (export_test, "present", "fix-now", "tests/project_permissions_test.go"),
             (archive_test, "present", "fix-now", "tests/project_permissions_test.go"),
         ],
-        "Documentation/Spec Prose Twin": ("archive docs defect", "present", "fix-now", "docs/project_exports.md"),
+        "Documentation/Spec Prose Twin": (
+            "archive docs defect", "present", "fix-now", "project exports section"
+        ),
     }, report_sections(
         fix=[f"Fix {exports}, {archive}, denied audit event, {export_test}, {archive_test}, and archive docs defect."],
         implications=[f"Add {export_test}, {archive_test}, and update archive docs defect."],
@@ -330,8 +337,8 @@ BEHAVIOR_MUTATIONS = {
     ),
     "positive-edge-009": ("owner: Platform Docs", "owner: Platform Writers"),
     "positive-edge-010": (
-        "Opposite Bound candidate | absent | n/a",
-        "Opposite Bound candidate | present | fix-now",
+        "| Opposite Bound | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+        "| Opposite Bound | Opposite Bound candidate | present | fix-now | src/pagination.ts |",
     ),
     "positive-edge-011": ("Provide the Triggering finding.", "Provide the Locked audit scope."),
     "positive-trigger-001": ("null retry test | present | fix-now", "sentinel test | present | fix-now"),
@@ -980,8 +987,8 @@ class CheckerContractTests(unittest.TestCase):
 
     def test_mixed_latin_cyrillic_candidate_is_rejected(self):
         invalid = profile_report("positive-edge-010").replace(
-            "Opposite Bound candidate",
-            "shаred candidate",
+            "| Opposite Bound | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            "| Opposite Bound | shаred candidate | n/a — no candidates in scope | n/a | no candidates in locked scope |",
             1,
         )
         error = io.StringIO()
@@ -1004,6 +1011,8 @@ class CheckerContractTests(unittest.TestCase):
             "Provide the Triggering finding and list the files.", "Triggering finding"
         ))
         for value in (
+            "Provide no Triggering finding.",
+            "Need no Locked audit scope.",
             "What defect should be used as the trigger?",
             "Provide the triggering defect.",
             "Provide the triggering finding.",
@@ -1104,7 +1113,11 @@ class CheckerContractTests(unittest.TestCase):
 
 class CheckerIntegrationTests(unittest.TestCase):
     def test_blocked_row_requires_artifact_citation(self):
-        for evidence in ("no candidates in locked scope", "triggering finding"):
+        for evidence in (
+            "no candidates in locked scope",
+            "triggering finding",
+            "no artifact is available",
+        ):
             invalid = profile_report("positive-edge-005").replace(
                 "| Documentation/Spec Prose Twin | docs/operations.md documentation defect | present | blocked | docs/operations.md |",
                 f"| Documentation/Spec Prose Twin | docs/operations.md documentation defect | present | blocked | {evidence} |",
@@ -1116,6 +1129,26 @@ class CheckerIntegrationTests(unittest.TestCase):
                     with self.assertRaises(SystemExit):
                         run_main(invalid, "positive-edge-005")
                 self.assertIn("blocked row evidence must cite an artifact", error.getvalue())
+
+    def test_table_evidence_paths_stay_inside_profile_scope(self):
+        invalid = profile_report("positive-edge-009").replace(
+            "| Opposite Bound | maxRetries zero bound | present | fix-now | config/retry.yml |",
+            "| Opposite Bound | maxRetries zero bound | present | fix-now | secrets/production.env |",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-009")
+        self.assertIn("table evidence path must stay within the locked scope", error.getvalue())
+
+    def test_default_rows_are_anonymous_na_with_scope_reason(self):
+        report = profile_report("positive-edge-010")
+        self.assertNotIn("tests/example.md", report)
+        self.assertIn(
+            "| Opposite Bound | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            report,
+        )
 
     def test_all_supplied_scope_profiles_reject_added_artifact(self):
         for profile in sorted(CHECK_REPORT.PROFILE_SCOPE_ARTIFACTS):
@@ -1370,20 +1403,20 @@ class CheckerIntegrationTests(unittest.TestCase):
             "`.env`", "`BUILD`", "`WORKSPACE`",
         ):
             report = profile_report("positive-edge-010").replace(
-                "tests/example.md", filename, 1
+                "no candidates in locked scope", filename, 1
             )
             with self.subTest(filename=filename):
-                run_main(report, "positive-edge-010")
+                CHECK_REPORT.parse_report(report)
 
     def test_unquoted_standalone_special_basenames_are_not_evidence(self):
         for filename in ("README", "Dockerfile", "Makefile", "LICENSE"):
             invalid = profile_report("positive-edge-010").replace(
-                "tests/example.md", filename, 1
+                "no candidates in locked scope", filename, 1
             )
             with self.subTest(filename=filename):
                 with contextlib.redirect_stderr(io.StringIO()):
                     with self.assertRaises(SystemExit):
-                        run_main(invalid, "positive-edge-010")
+                        CHECK_REPORT.parse_report(invalid)
 
     def test_edge_005_rejects_reversed_missing_metadata_order(self):
         invalid = profile_report("positive-edge-005").replace(
@@ -1399,11 +1432,11 @@ class CheckerIntegrationTests(unittest.TestCase):
 
     def test_dotted_status_prose_is_not_an_artifact_citation(self):
         invalid = profile_report("positive-edge-010").replace(
-            "tests/example.md", "candidate.present", 1
+            "no candidates in locked scope", "candidate.present", 1
         )
         with contextlib.redirect_stderr(io.StringIO()):
             with self.assertRaises(SystemExit):
-                run_main(invalid, "positive-edge-010")
+                CHECK_REPORT.parse_report(invalid)
 
     def test_full_sync_and_async_words_pass_every_mode_branch(self):
         report = profile_report("positive-edge-007")
@@ -1422,8 +1455,8 @@ class CheckerIntegrationTests(unittest.TestCase):
     def test_edge_009_rejects_an_unrelated_deferred_candidate(self):
         invalid = profile_report("positive-edge-009")
         invalid = invalid.replace(
-            "| Sibling Parameter/Field | Sibling Parameter/Field candidate | absent | n/a | tests/example.md |",
-            "| Sibling Parameter/Field | Sibling Parameter/Field candidate | present | defer-with-owner | tests/example.md |",
+            "| Sibling Parameter/Field | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            "| Sibling Parameter/Field | Sibling Parameter/Field candidate | present | defer-with-owner | config/retry.yml |",
             1,
         )
         invalid = invalid.replace(
@@ -1473,6 +1506,10 @@ class CheckerIntegrationTests(unittest.TestCase):
             "Contract\u200b Symmetry candidate",
         ):
             invalid = profile_report("positive-edge-009").replace(
+                "| Contract Symmetry | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+                "| Contract Symmetry | Contract Symmetry candidate | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+                1,
+            ).replace(
                 "defer docs/api.md documentation defect; owner:",
                 f"defer docs/api.md documentation defect and {candidate}; owner:",
                 1,
@@ -1504,8 +1541,8 @@ class CheckerIntegrationTests(unittest.TestCase):
 
     def test_edge_009_rejects_identical_label_with_blocked_disposition(self):
         invalid = profile_report("positive-edge-009").replace(
-            "| Contract Symmetry | Contract Symmetry candidate | absent | n/a | tests/example.md |",
-            "| Contract Symmetry | docs/api.md documentation defect | blocked — clarification needed | blocked | tests/example.md |",
+            "| Contract Symmetry | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            "| Contract Symmetry | docs/api.md documentation defect | blocked — clarification needed | blocked | docs/api.md |",
             1,
         ).replace(
             "### Blocking questions\n- None",
