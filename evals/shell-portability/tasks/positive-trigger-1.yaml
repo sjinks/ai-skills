@@ -20,9 +20,8 @@ inputs:
     fi
     ```
 
-    Assume no divergent `echo -n` output is demonstrated on the named current
-    targets, so treat finding 3 as a MEDIUM Likely risk rather than a confirmed
-    target failure.
+    No divergent `echo -n` output has been demonstrated on the named current
+    targets.
 
     Return the verdict, target, interpreter, findings, checklist status, and
     residual risk. List the findings in this order: 1. `[[ ... ]]` bashism,

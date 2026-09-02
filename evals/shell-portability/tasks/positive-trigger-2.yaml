@@ -17,8 +17,9 @@ inputs:
     files=$(find . -printf '%f\n')
     ```
 
-    macOS is an explicitly named required target. Treat each of the three
-    demonstrated macOS target failures as a CRITICAL Confirmed issue.
+    macOS is an explicitly named required target, and each shown command has
+    been demonstrated to fail there because the GNU-only option is unavailable
+    or incompatible.
 
     Give me the verdict, findings, checklist status, and how to verify. List the
     findings in this order: 1. `sed -i`, 2. `grep -P`, 3. `find -printf`.

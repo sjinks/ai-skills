@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-004
+name: Generic shell goal without construction target
+inputs:
+  prompt: |
+    Remove old files. No command, executable, path, shell syntax, or payload
+    interface has been supplied.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-command-construction/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - 'Construction result:'
+        - 'Construction assessment:'
+        - 'Candidate:'
+        - 'Execution authority:'
+        - 'Next step:'
