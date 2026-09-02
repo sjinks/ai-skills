@@ -41,7 +41,7 @@ Sweep the whole text once per class:
 - A term defined in the supplied glossary or surrounding text is not `undefined-term`.
 - Every finding carries a proposed rewrite that survives the audit it failed; rewrites preserve intent and mark unknowns as explicit open questions rather than inventing values.
 - Do not flag intentional flexibility that is explicitly delegated ("implementation may choose the cache strategy").
-- Route an explicitly acknowledged unresolved product choice directly to open questions, without a finding, only when its alternatives and decision owner are already stated. Independently ambiguous wording remains a finding under its matching class, and its unresolved decision is also routed to open questions.
+- Route an explicitly acknowledged unresolved product choice directly to open questions, without a finding, when its alternatives are already stated. Use the stated decision owner or the `requirements owner` fallback when none is named. Independently ambiguous wording remains a finding under its matching class, and its unresolved decision is also routed to open questions.
 
 ## Severity
 
