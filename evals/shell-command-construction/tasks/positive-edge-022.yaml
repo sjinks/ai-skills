@@ -1,4 +1,5 @@
-id: positive-substance-001
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-022
 name: Multiline commit message transport
 inputs: { prompt: "In Bash, repair `git commit -m \"Subject\nBody with $literal\"`; the exact multiline bytes are already in /tmp/scc-fixture/message.md and `-F` is the required transport. Assess construction only." }
 expected: { should_trigger: true }

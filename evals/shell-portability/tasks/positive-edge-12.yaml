@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-012
+name: Bare pipe candidate with trailing whitespace blocks review
+description: |
+  A bare pipe plus trailing whitespace is not the exact multiline marker and
+  must block portability analysis even when prefixed payload follows.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    Inspect the supplied `construction-result.txt`. Its Candidate line contains
+    a bare pipe followed by one trailing ASCII space, then a prefixed payload.
+    Review its portability for POSIX sh on Ubuntu and macOS, following the
+    portability skill's construction-result handling first.
+  files:
+    - path: construction-result.txt
+      content: "Construction result: REWRITE\nConstruction assessment: A command fragment was serialized.\nCandidate: | \n  printf '%s\\n' hello\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: Request a portability review.\n"
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-portability/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-portability
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?is)\AVerdict:\s*BLOCK\s*\r?\nTarget:\s*[^\r\n]+\r?\n\r?\nFindings:\s*\r?\n1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*LOW\s*\r?\n[ \t]+Classification:\s*Open question\s*\r?\n[ \t]+Evidence:\s*[^\r\n]+\r?\n[ \t]+Rule:\s*(?:interpreter-shebang|bashisms|utilities-flags|output-behavior|verification)\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*N/A\s*\r?\n?\z'
+        - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?i:pipe|\|)[^\r\n]*(?i:trailing|whitespace|multiline|payload|invalid|malformed)[^\r\n]*$'
+        - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*(?i:correct|provide|supply|replace)[^\r\n]*(?i:construction result|candidate|payload)[^\r\n]*$'
+      regex_not_match:
+        - '(?i)Verdict:\s*(?:CLEAN|CONCERNS)'
+        - '(?im)^(?:Interpreter|Checklist status|Residual risk):'
+        - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
+        - '(?i)(?:\A|[:.!?][ \t]+)(?:(?:the[ \t]+)?(?:candidate|command|it|this)[ \t]+(?:is[ \t]+(?:portable|compatible|valid|suitable|supported)|conforms?|works?|runs?)[^\r\n]*(?:POSIX|Ubuntu|macOS)|(?:POSIX|Ubuntu|macOS)[^\r\n]{0,80}(?:portability|compatibility)[ \t]+(?:is|was|has[ \t]+been)[ \t]+(?:confirmed|verified|established))'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response detects that `Candidate: | ` is malformed even
+        though prefixed payload follows, returns reduced BLOCK, requests a corrected
+        exact multiline marker or construction result, and performs no portability
+        analysis or target conclusion.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+      mode: independent

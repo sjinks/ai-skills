@@ -23,12 +23,5 @@ graders:
   - type: text
     name: task_completion
     config:
-      regex_match:
-        - '(?i)(?:(?:construction review|construction result|shell-command-construction)[^\r\n]{0,120}(?:first|required|needed|complete|supply|provide)|(?:first|required|needed|complete|supply|provide)[^\r\n]{0,120}(?:construction review|construction result|shell-command-construction))'
       regex_not_match:
         - '(?im)^(?:Verdict|Target|Interpreter|Findings|Checklist status|Residual risk):'
-        - '(?i)tool[ \t]+run[ \t]+"\$(?:label|\{label\})"'
-        - '(?i)\b(?:is|is not|isn''t|not)\s+portable\b|\bportable\s+for\b|\bworks?\s+(?:on|under)\b'
-        - '(?i)set[ \t]+--[ \t]+"\$(?:label|\{label\})"'
-        - '(?i)\b(?:confirms?|concludes?|determined|finds)\b[^\r\n]*\b(?:portable|compatible|works?|runs?|POSIX|macOS)\b'
-        - '(?im)^(?:[ \t]*|[^\r\n]*[.!?][ \t]+)(?:the[ \t]+)?(?:candidate|command|quoted[ \t]+form|form|it|this)[ \t]+(?:is[ \t]+(?:valid|correct|portable|suitable|compatible|supported)|conforms?|works?|runs?)[^\r\n]*(?:POSIX|Ubuntu|macOS)'

@@ -2,7 +2,7 @@
 
 This matrix maps each synthetic fixture to its discriminating construction behavior. Original planning traces that required execution-safety handling are superseded by the user override: SCC assesses no execution concerns and always uses `Execution authority: NOT ASSESSED BY THIS SKILL`.
 
-The SCC suite contains 27 fixtures; the separate shell-portability suite contains 17 fixtures.
+The SCC suite contains 27 fixtures; the separate shell-portability suite contains 18 fixtures.
 
 | Fixture | SCC-TC | Source trace | Behavioral discriminator | Trigger | Result/exclusion | Authority or handoff | Deterministic focus | Substance |
 |---|---|---|---|---|---|---|---|---|
@@ -27,7 +27,7 @@ The SCC suite contains 27 fixtures; the separate shell-portability suite contain
 | positive-edge-019 | 9 | AC-3, EDGE-3 | Confirmed remote JSON argv transport constructed from intent | yes | REWRITE | not assessed | exact stdin JSON-array candidate; remote JSON parser, one-to-one argv mapping, and no shell reparsing preserve two remote argv entries | no |
 | positive-edge-020 | 9 | AC-3, EDGE-3 | Confirmed local Bash and remote POSIX sh parsers plus two remote argv entries, but no boundary-preserving transport/serialization contract | yes | BLOCKED | not assessed | assessment identifies the remote parser, argv boundaries, and missing transport/serialization contract; next step requests only that contract, not a parser | no |
 | positive-edge-021 | 4 | AC-1, EDGE-1 | Already-correct direct literal scalar representation | yes | VALID | not assessed | preserve exact supplied `tool "hello world"` representation as one argv entry; SCC-Q1 does not rewrite an already-correct representation to single quotes | no |
-| positive-substance-001 | 9 | AC-2, EDGE-6 | Multiline commit message | yes | REWRITE | not assessed | `-F` file transport | yes |
+| positive-edge-022 | 9 | AC-2, EDGE-6 | Multiline commit message | yes | REWRITE | not assessed | `-F` file transport | yes |
 | negative-trigger-001 | 12 | AC-7 | Generic tutoring | no | exclusion | n/a | all markers absent | no |
 | negative-trigger-002 | 12 | AC-7 | Non-shell task | no | exclusion | n/a | all markers absent | no |
 | negative-close-001 | 11 | AC-7 | Portability-only review | no | exclusion | portability-only exclusion | all SCC markers absent | no |

@@ -17,8 +17,22 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - |-
-          (?s)\AConstruction result: REWRITE\nConstruction assessment: [^\n]*(?i:remote)[^\n]*\nCandidate: printf '%s\\n' '\["tool","alpha beta"\]' \| remote-argv --host example\.invalid --stdin-json\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]*(?i:verify|preserve|use|send)[^\n]*\n?\z
+        - '(?s)\AConstruction result: REWRITE\nConstruction assessment: [^\n]+\nCandidate: (?:[^\n]+\n|\|\n(?:  [^\n]*\n)+)Execution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z'
         - '(?im)^Construction assessment:[^\n]*(?i:json)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:argv)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:boundar|one-to-one|mapping)[^\n]*$'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the candidate sends a JSON array containing exactly the two
+        elements `tool` and `alpha beta` on stdin to `remote-argv` for host
+        `example.invalid`, and whether the assessment relies on the supplied
+        one-to-one JSON-array-to-argv mapping with no remote shell reparsing.
+        Accept boundary-equivalent local Bash spellings, option order, and JSON
+        producers; do not require `printf` or one exact command spelling.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+      mode: independent
