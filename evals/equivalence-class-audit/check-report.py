@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-"""Validate equivalence-class-audit output from Waza's JSON stdin envelope.
+"""Validate equivalence-class-audit output from Waza's raw stdin response.
 
-Waza passes a JSON object whose ``output`` member is the model response. Invoke
-this script as ``python3 check-report.py <task-id>``; each profile checks the
-response structure and the task-specific rows that RE2 cannot express safely.
+Invoke this script as ``python3 check-report.py <task-id>``; each profile checks
+the response structure and the task-specific rows that RE2 cannot express safely.
 """
 
-import json
 import html
 import re
 import sys
@@ -416,7 +414,7 @@ def missing_metadata_fields(value):
 def explicit_na_reason(value):
     value = norm(value)
     return bool(re.search(
-        r"\b(?:no candidates?|in (?:the )?(?:locked )?scope|structurally inapplicable|"
+        r"\b(?:no candidates?|structurally inapplicable|"
         r"not applicable|cannot apply)\b",
         value,
     ))
@@ -453,14 +451,8 @@ def table_separator(cells):
 
 
 def parse_output():
-    try:
-        envelope = json.load(sys.stdin)
-    except json.JSONDecodeError:
-        fail("invalid JSON envelope")
-    if not isinstance(envelope, dict):
-        fail("JSON envelope must be an object")
-    output = envelope.get("output")
-    if not isinstance(output, str) or not output.strip():
+    output = sys.stdin.read()
+    if not output.strip():
         fail("missing output")
     return output.replace("\r\n", "\n").replace("\r", "\n")
 
@@ -602,13 +594,12 @@ def parse_report(output):
                 evidence,
             )
             citation = artifact_citation or re.search(r"\btriggering finding\b", evidence)
-            n_a_reason = re.search(
-                r"\b(?:in scope|locked scope|out of scope|structurally inapplicable|no candidates?)\b",
-                evidence,
-            )
+            n_a_reason = explicit_na_reason(evidence)
             reason_allowed = item["presence"].startswith("n/a")
             if item["disposition"] == "blocked" and not artifact_citation:
                 fail("blocked row evidence must cite an artifact")
+            if reason_allowed and not n_a_reason:
+                fail("n/a row evidence must include an explicit absence or inapplicability reason")
             if not citation and not (reason_allowed and n_a_reason):
                 fail("evidence must cite an artifact or an applicable n/a reason")
             rows.append(item)
@@ -952,6 +943,8 @@ def validate(profile, headers, sections, rows):
             matching = [bullet for bullet in out_of_scope if term in bullet.lower()]
             if len(matching) != 1 or "provenance" not in matching[0].lower():
                 fail(f"out-of-scope section must report {term} with provenance")
+            if term == "policy" and "supplied known facts" not in matching[0].lower():
+                fail("policy provenance must cite the supplied Known facts")
     elif profile == "positive-edge-005":
         docs_rows = [item for item in rows if norm(item["axis"]) == norm("Documentation/Spec Prose Twin")]
         if len(docs_rows) != 1:

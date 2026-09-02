@@ -1,7 +1,6 @@
 import contextlib
 import importlib.util
 import io
-import json
 import pathlib
 import re
 import sys
@@ -186,7 +185,7 @@ def profile_report(profile):
             fix=[f"Add {test}."],
             out_of_scope=[
                 "tenantGuard candidate; provenance: src/routes/team.routes.ts",
-                "policy candidate; provenance: policies/team.rego",
+                "tenant ownership policy spec; provenance: supplied Known facts",
             ],
             blockers=[f"Clarify {blocked}: tenantGuard tenant ownership policy spec?"],
             implications=[f"Add {test}."],
@@ -402,7 +401,7 @@ def behavior_invalid_report(profile):
 
 
 def run_main(report, profile):
-    envelope = io.StringIO(json.dumps({"output": report}))
+    envelope = io.StringIO(report)
     with mock.patch.object(sys, "argv", ["check-report.py", profile]):
         with mock.patch.object(sys, "stdin", envelope):
             CHECK_REPORT.main()
@@ -1283,16 +1282,21 @@ class CheckerIntegrationTests(unittest.TestCase):
         run_main(report, "positive-edge-001")
 
     def test_edge_001_requires_explicit_na_reasons(self):
-        invalid = profile_report("positive-edge-001").replace(
-            "no candidates in locked scope",
-            "config/healthcheck.yml",
-            1,
-        )
-        error = io.StringIO()
-        with contextlib.redirect_stderr(error):
-            with self.assertRaises(SystemExit):
-                run_main(invalid, "positive-edge-001")
-        self.assertIn("must include an explicit n/a reason", error.getvalue())
+        for evidence in ("candidate is in scope", "config/healthcheck.yml"):
+            invalid = profile_report("positive-edge-001").replace(
+                "no candidates in locked scope",
+                evidence,
+                1,
+            )
+            error = io.StringIO()
+            with self.subTest(evidence=evidence):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-001")
+                self.assertIn(
+                    "n/a row evidence must include an explicit absence or inapplicability reason",
+                    error.getvalue(),
+                )
 
     def test_quick_omitted_axes_requires_an_actual_missing_declaration(self):
         for explanation in (
@@ -1372,6 +1376,18 @@ class CheckerIntegrationTests(unittest.TestCase):
                         )
                 self.assertIn(expected_error, error.getvalue())
 
+    def test_edge_002_policy_provenance_uses_supplied_facts(self):
+        invalid = profile_report("positive-edge-002").replace(
+            "provenance: supplied Known facts",
+            "provenance: policies/team.rego",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-002")
+        self.assertIn("policy provenance must cite the supplied Known facts", error.getvalue())
+
     def test_complete_reports_reject_embedded_invalid_metadata_suffixes(self):
         cases = (
             (
@@ -1403,7 +1419,9 @@ class CheckerIntegrationTests(unittest.TestCase):
             "`.env`", "`BUILD`", "`WORKSPACE`",
         ):
             report = profile_report("positive-edge-010").replace(
-                "no candidates in locked scope", filename, 1
+                "| Opposite Bound | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+                f"| Opposite Bound | artifact candidate | absent | n/a | {filename} |",
+                1,
             )
             with self.subTest(filename=filename):
                 CHECK_REPORT.parse_report(report)
@@ -1411,7 +1429,9 @@ class CheckerIntegrationTests(unittest.TestCase):
     def test_unquoted_standalone_special_basenames_are_not_evidence(self):
         for filename in ("README", "Dockerfile", "Makefile", "LICENSE"):
             invalid = profile_report("positive-edge-010").replace(
-                "no candidates in locked scope", filename, 1
+                "| Opposite Bound | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+                f"| Opposite Bound | artifact candidate | absent | n/a | {filename} |",
+                1,
             )
             with self.subTest(filename=filename):
                 with contextlib.redirect_stderr(io.StringIO()):
@@ -1432,7 +1452,9 @@ class CheckerIntegrationTests(unittest.TestCase):
 
     def test_dotted_status_prose_is_not_an_artifact_citation(self):
         invalid = profile_report("positive-edge-010").replace(
-            "no candidates in locked scope", "candidate.present", 1
+            "| Opposite Bound | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            "| Opposite Bound | artifact candidate | absent | n/a | candidate.present |",
+            1,
         )
         with contextlib.redirect_stderr(io.StringIO()):
             with self.assertRaises(SystemExit):
@@ -1559,7 +1581,11 @@ class CheckerIntegrationTests(unittest.TestCase):
         )
 
     def test_authorization_profile_requires_policy_spec_in_blocker(self):
-        invalid = profile_report("positive-edge-002").replace("policy spec", "policy", 1)
+        invalid = profile_report("positive-edge-002").replace(
+            "tenantGuard tenant ownership policy spec?",
+            "tenantGuard tenant ownership policy?",
+            1,
+        )
         with contextlib.redirect_stderr(io.StringIO()):
             with self.assertRaises(SystemExit):
                 run_main(invalid, "positive-edge-002")
