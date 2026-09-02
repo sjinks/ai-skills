@@ -38,7 +38,7 @@ graders:
         - "### Findings"
         - "### Open questions (product decisions, not findings)"
         - "Missing input:"
-        - "Smallest addition to proceed"
+        - "Smallest addition to proceed:"
         - "| vague-quantifier |"
         - "| undefined-term |"
         - "| missing-actor |"
