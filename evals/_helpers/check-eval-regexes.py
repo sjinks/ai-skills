@@ -15,7 +15,6 @@ def repository_root() -> Path:
 
 
 def command(root: Path, cases: Optional[Path], go: str) -> list[str]:
-    runner = Path(__file__).resolve().with_name("go-regex-runner")
     result = [go, "run", ".", "--root", str(root.resolve())]
     if cases is not None:
         result.extend(("--cases", str(cases.resolve())))
@@ -30,7 +29,7 @@ def parse_args(arguments: Optional[list[str]] = None) -> argparse.Namespace:
         "--root",
         type=Path,
         default=repository_root() / "evals",
-        help="evals root containing */tasks/*.yaml",
+        help="evals or suite root containing tasks/*.yaml",
     )
     parser.add_argument(
         "--cases",

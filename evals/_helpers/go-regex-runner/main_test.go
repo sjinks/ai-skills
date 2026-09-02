@@ -152,6 +152,25 @@ func TestValidateCases(t *testing.T) {
 	}
 }
 
+func TestValidateCasesNormalizesTaskPath(t *testing.T) {
+	root := t.TempDir()
+	writeTask(t, root, `^ok$`)
+	refs, _, err := collect(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	casePath := filepath.Join(root, "cases.json")
+	content := `{"cases":[{"name":"dot path","task":"./sample/tasks/task.yaml","grader":"task_completion","list":"regex_match","index":0,"matches":["ok"],"does_not_match":["no"]},{"name":"Windows path","task":"sample\\tasks\\task.yaml","grader":"task_completion","list":"regex_match","index":0,"matches":["ok"],"does_not_match":["no"]}]}`
+	writeFile(t, casePath, content)
+	count, err := validateCases(casePath, refs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Fatalf("got %d cases", count)
+	}
+}
+
 func TestValidateCasesReportsMismatch(t *testing.T) {
 	root := t.TempDir()
 	writeTask(t, root, `^ok$`)

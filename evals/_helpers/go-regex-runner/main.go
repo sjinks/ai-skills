@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	pathpkg "path"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -147,6 +148,10 @@ func refKey(taskPath, graderName, list string, index int) string {
 	return fmt.Sprintf("%s\x00%s\x00%s\x00%d", taskPath, graderName, list, index)
 }
 
+func normalizeTaskPath(value string) string {
+	return pathpkg.Clean(strings.ReplaceAll(value, `\`, "/"))
+}
+
 func validateCases(path string, refs []regexRef) (int, error) {
 	if path == "" {
 		return 0, nil
@@ -189,8 +194,9 @@ func validateCases(path string, refs []regexRef) (int, error) {
 		if len(item.Matches) == 0 || len(item.DoesNotMatch) == 0 {
 			return 0, fmt.Errorf("%s: %s: matches and does_not_match must each contain at least one input", path, name)
 		}
-		selector := fmt.Sprintf("task %s grader %s %s[%d]", item.Task, item.Grader, item.List, *item.Index)
-		ref, ok := index[refKey(item.Task, item.Grader, item.List, *item.Index)]
+		taskPath := normalizeTaskPath(item.Task)
+		selector := fmt.Sprintf("task %s grader %s %s[%d]", taskPath, item.Grader, item.List, *item.Index)
+		ref, ok := index[refKey(taskPath, item.Grader, item.List, *item.Index)]
 		if !ok {
 			return 0, fmt.Errorf("%s: %s: regex selector not found: %s", path, name, selector)
 		}
@@ -211,7 +217,7 @@ func validateCases(path string, refs []regexRef) (int, error) {
 func run(arguments []string, stdout, stderr io.Writer) error {
 	flags := flag.NewFlagSet("go-regex-runner", flag.ContinueOnError)
 	flags.SetOutput(stderr)
-	root := flags.String("root", "", "evals root containing */tasks/*.yaml")
+	root := flags.String("root", "", "evals or suite root containing tasks/*.yaml")
 	cases := flags.String("cases", "", "optional JSON contrastive-case file")
 	if err := flags.Parse(arguments); err != nil {
 		return err
