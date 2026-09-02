@@ -82,6 +82,32 @@ PROFILE_HEADERS = {
                               "policies/project_permissions.rego", "tests/project_permissions_test.go",
                               "project exports")),
 }
+PROFILE_SCOPE_ARTIFACTS = {
+    "positive-edge-001": {"config/healthcheck.yml"},
+    "positive-edge-002": {
+        "src/routes/team.routes.ts", "src/controllers/team.controller.ts",
+        "tests/team.controller.spec.ts",
+    },
+    "positive-edge-004": {"src/pagination.ts", "tests/pagination.test.ts"},
+    "positive-edge-005": {"config/retry.yml", "docs/operations.md"},
+    "positive-edge-006": {"src/pagination.ts", "tests/pagination.test.ts"},
+    "positive-edge-007": {
+        "src/pagination.ts", "src/batch-pagination.ts", "tests/pagination.test.ts",
+        "docs/api.md",
+    },
+    "positive-edge-008": {"config/retry.yml", "docs/api.md", "docs/operations.md"},
+    "positive-edge-009": {"config/retry.yml", "docs/api.md"},
+    "positive-edge-010": {"src/pagination.ts", "tests/pagination.test.ts", "docs/api.md"},
+    "positive-trigger-001": {
+        "config/retry.yml", "src/retry_policy.py", "tests/test_retry_policy.py",
+        "docs/operations.md",
+    },
+    "positive-trigger-002": {
+        "routes/projects.yml", "controllers/project_export.go",
+        "controllers/project_archive.go", "controllers/project_report.go",
+        "policies/project_permissions.rego", "tests/project_permissions_test.go",
+    },
+}
 
 
 def fail(message):
@@ -362,6 +388,13 @@ def valid_edge_001_scope(value):
     remainder = remainder.replace("health check timeout", "")
     words = set(re.findall(r"[a-z]+", remainder))
     return words <= {"only", "and", "its", "the", "docs", "documentation", "section"}
+
+
+def scope_artifacts(value):
+    return {
+        match.rstrip(".,;:)")
+        for match in re.findall(r"(?:[\w.-]+/)+[\w.-]+", label_norm(value))
+    }
 
 
 def missing_metadata_fields(value):
@@ -817,6 +850,9 @@ def validate(profile, headers, sections, rows):
                 continue
             if missing_header_marker(value) or not all(norm(term) in value for term in terms):
                 fail(f"{name} must preserve the supplied task input")
+    if profile in PROFILE_SCOPE_ARTIFACTS:
+        if scope_artifacts(headers["Locked audit scope"]) != PROFILE_SCOPE_ARTIFACTS[profile]:
+            fail("Locked audit scope must preserve the exact artifact set")
     if profile == "positive-edge-003":
         if headers["Output depth"].lower() != "standard":
             fail("expected standard output depth")

@@ -17,7 +17,7 @@ inputs:
     `tests/pagination.test.ts`, and the Pagination section of `docs/api.md`.
 
     Known facts:
-    - `maxItems` and `minItems` are sibling fields.
+    - `maxItems` and `minItems` are sibling fields; `maxItems` already rejects zero.
     - Both synchronous and asynchronous pagination use the same validator.
     - Tests cover negative values but not zero or the asynchronous path.
     - The docs say zero is valid.

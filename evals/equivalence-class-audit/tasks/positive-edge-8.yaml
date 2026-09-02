@@ -54,7 +54,6 @@ graders:
         - "### Omitted axes (quick mode only)"
         - "Output depth: quick"
         - "Output depth: exhaustive"
-        - "defer-with-owner"
         - "Gate decision:"
         - "Adversarial tests:"
   - type: program

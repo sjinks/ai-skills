@@ -1093,6 +1093,23 @@ class CheckerContractTests(unittest.TestCase):
                                     CHECK_REPORT.validate_report_outcome(headers, sections, rows)
 
 class CheckerIntegrationTests(unittest.TestCase):
+    def test_all_supplied_scope_profiles_reject_added_artifact(self):
+        for profile in sorted(CHECK_REPORT.PROFILE_SCOPE_ARTIFACTS):
+            report = profile_report(profile)
+            lines = report.splitlines()
+            lines = [
+                line + ", secrets/production.env"
+                if line.startswith("Locked audit scope:")
+                else line
+                for line in lines
+            ]
+            error = io.StringIO()
+            with self.subTest(profile=profile):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        run_main("\n".join(lines), profile)
+                self.assertIn("Locked audit scope", error.getvalue())
+
     def test_missing_input_and_depth_matrix(self):
         missing_cases = (
             (True, False, "Triggering finding"),
@@ -1488,6 +1505,19 @@ class CheckerIntegrationTests(unittest.TestCase):
 
 
 class ConfigurationTests(unittest.TestCase):
+    def test_suppressed_yaml_fixes_remain_projected(self):
+        root = pathlib.Path(__file__).parent / "tasks"
+        for name in (
+            "positive-edge-5.yaml",
+            "positive-edge-8.yaml",
+            "positive-trigger-1.yaml",
+        ):
+            text = (root / name).read_text(encoding="utf-8")
+            not_contains = text.split("not_contains:", 1)[1]
+            self.assertNotIn('- "defer-with-owner"', not_contains, name)
+        edge_007 = (root / "positive-edge-7.yaml").read_text(encoding="utf-8")
+        self.assertIn("`maxItems` already rejects zero", edge_007)
+
     def test_reduced_task_missing_markers_match_checker_vocabulary(self):
         root = pathlib.Path(__file__).parent / "tasks"
         cases = {
