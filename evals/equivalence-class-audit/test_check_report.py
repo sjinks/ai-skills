@@ -184,7 +184,7 @@ def profile_report(profile):
         }, report_sections(
             fix=[f"Add {test}."],
             out_of_scope=[
-                "tenantGuard candidate; provenance: src/routes/team.routes.ts",
+                "tenantGuard candidate; provenance: supplied Known facts",
                 "tenant ownership policy spec; provenance: supplied Known facts",
             ],
             blockers=[f"Clarify {blocked}: tenantGuard tenant ownership policy spec?"],
@@ -1118,6 +1118,10 @@ class CheckerIntegrationTests(unittest.TestCase):
             "no artifact is available",
             "no artifact section",
             "no policy spec is available",
+            "policy spec not supplied",
+            "policy spec not provided",
+            "Health section required",
+            "Health section needed",
         ):
             invalid = profile_report("positive-edge-005").replace(
                 "| Documentation/Spec Prose Twin | docs/operations.md documentation defect | present | blocked | docs/operations.md |",
@@ -1413,16 +1417,25 @@ class CheckerIntegrationTests(unittest.TestCase):
                 self.assertIn(expected_error, error.getvalue())
 
     def test_edge_002_policy_provenance_uses_supplied_facts(self):
-        invalid = profile_report("positive-edge-002").replace(
-            "provenance: supplied Known facts",
-            "provenance: policies/team.rego",
-            1,
+        cases = (
+            ("tenantGuard candidate", "src/routes/team.routes.ts", "tenantguard"),
+            ("tenant ownership policy spec", "policies/team.rego", "policy"),
         )
-        error = io.StringIO()
-        with contextlib.redirect_stderr(error):
-            with self.assertRaises(SystemExit):
-                run_main(invalid, "positive-edge-002")
-        self.assertIn("policy provenance must cite the supplied Known facts", error.getvalue())
+        for candidate, fabricated, label in cases:
+            invalid = profile_report("positive-edge-002").replace(
+                f"{candidate}; provenance: supplied Known facts",
+                f"{candidate}; provenance: {fabricated}",
+                1,
+            )
+            error = io.StringIO()
+            with self.subTest(candidate=candidate):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-002")
+                self.assertIn(
+                    f"{label} provenance must cite the supplied Known facts",
+                    error.getvalue(),
+                )
 
     def test_complete_reports_reject_embedded_invalid_metadata_suffixes(self):
         cases = (
@@ -1438,8 +1451,8 @@ class CheckerIntegrationTests(unittest.TestCase):
             ),
             (
                 "positive-edge-002",
-                "provenance: src/routes/team.routes.ts",
-                "provenance: src/routes/team.routes.ts (unknown)",
+                "provenance: supplied Known facts",
+                "provenance: supplied Known facts (unknown)",
             ),
         )
         for profile, old, new in cases:

@@ -405,10 +405,10 @@ def artifact_citations(value):
     visible_value = visible_text(value)
     normalized = norm(visible_value)
     if re.search(
-        r"\b(?:no|missing|unknown|unavailable)\b[^.;]{0,60}"
+        r"\b(?:no|missing|unknown|unavailable|required|needed|not supplied|not provided)\b[^.;]{0,60}"
         r"\b(?:artifact|section|spec|schema|migration|config|log|incident|file|case)\b|"
         r"\b(?:artifact|section|spec|schema|migration|config|log|incident|file|case)\b"
-        r"[^.;]{0,40}\b(?:missing|unknown|unavailable|not available)\b",
+        r"[^.;]{0,40}\b(?:missing|unknown|unavailable|not available|not supplied|not provided|required|needed)\b",
         normalized,
     ):
         return set()
@@ -969,8 +969,8 @@ def validate(profile, headers, sections, rows):
             matching = [bullet for bullet in out_of_scope if term in bullet.lower()]
             if len(matching) != 1 or "provenance" not in matching[0].lower():
                 fail(f"out-of-scope section must report {term} with provenance")
-            if term == "policy" and "supplied known facts" not in matching[0].lower():
-                fail("policy provenance must cite the supplied Known facts")
+            if "supplied known facts" not in matching[0].lower():
+                fail(f"{term} provenance must cite the supplied Known facts")
     elif profile == "positive-edge-005":
         docs_rows = [item for item in rows if norm(item["axis"]) == norm("Documentation/Spec Prose Twin")]
         if len(docs_rows) != 1:
