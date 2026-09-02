@@ -1069,6 +1069,16 @@ class CheckerContractTests(unittest.TestCase):
                 },
             ),
             (
+                "implication-only",
+                {"_has_table": True},
+                {**section_none, "Test/doc implications": ["Add a regression test."]},
+                [{"presence": "absent", "disposition": "n/a"}],
+                {
+                    ("BLOCK", "CRITICAL"), ("BLOCK", "HIGH"),
+                    ("CONCERNS", "MEDIUM"), ("CONCERNS", "LOW"),
+                },
+            ),
+            (
                 "blocked",
                 {"_has_table": True},
                 {**section_none, "Blocking questions": ["Clarify candidate?"]},
@@ -1093,6 +1103,18 @@ class CheckerContractTests(unittest.TestCase):
                                     CHECK_REPORT.validate_report_outcome(headers, sections, rows)
 
 class CheckerIntegrationTests(unittest.TestCase):
+    def test_blocked_row_requires_artifact_citation(self):
+        invalid = profile_report("positive-edge-005").replace(
+            "| Documentation/Spec Prose Twin | docs/operations.md documentation defect | present | blocked | docs/operations.md |",
+            "| Documentation/Spec Prose Twin | docs/operations.md documentation defect | present | blocked | no candidates in locked scope |",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-005")
+        self.assertIn("evidence must cite an artifact", error.getvalue())
+
     def test_all_supplied_scope_profiles_reject_added_artifact(self):
         for profile in sorted(CHECK_REPORT.PROFILE_SCOPE_ARTIFACTS):
             report = profile_report(profile)

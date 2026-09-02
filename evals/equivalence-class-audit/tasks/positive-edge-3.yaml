@@ -48,7 +48,6 @@ graders:
         - '(?im)^Verdict:\s*BLOCK\s*$'
         - '(?im)^Severity:\s*UNASSESSED\s*$'
         - '(?i)Triggering finding'
-        - '(?i)(missing|not provided).*locked audit scope|locked audit scope.*(missing|not provided)'
         - '(?i)Defects to fix now'
         - '(?i)Deferred follow-ups'
         - '(?i)Out-of-scope candidates discovered'

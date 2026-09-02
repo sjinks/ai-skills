@@ -600,7 +600,7 @@ def parse_report(output):
                 r"\b(?:in scope|locked scope|out of scope|structurally inapplicable|no candidates?)\b",
                 evidence,
             )
-            reason_allowed = item["presence"].startswith("n/a") or item["presence"] == "blocked — clarification needed"
+            reason_allowed = item["presence"].startswith("n/a")
             if not citation and not (reason_allowed and n_a_reason):
                 fail("evidence must cite an artifact or an applicable n/a reason")
             rows.append(item)
@@ -800,6 +800,7 @@ def validate_report_outcome(headers, sections, rows):
     blocked = blocked or sections["Blocking questions"] != ["None"]
     actionable = any(item["presence"] == "present" for item in rows)
     actionable = actionable or sections["Out-of-scope candidates discovered"] != ["None"]
+    actionable = actionable or sections["Test/doc implications"] != ["None"]
 
     if blocked:
         if verdict != "BLOCK" or severity == "NONE":

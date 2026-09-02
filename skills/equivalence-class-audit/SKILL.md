@@ -22,7 +22,7 @@ Do not use for greenfield work, broad initial review, formatting-only changes, i
 ## Procedure
 
 1. Select `quick`, `standard` (default), or `exhaustive`; always emit one `Output depth:` value.
-2. Require a triggering finding and locked audit scope. If either is missing, do not enumerate or invent candidates; return the reduced report without a table and request exactly one missing input under `### Blocking questions`. Request the triggering finding first when both are missing; otherwise request whichever single input is missing. Missing required input suppresses the table, not depth-specific sections: preserve an explicitly requested depth and append `Omitted axes` for `quick`.
+2. Require a triggering finding and locked audit scope. If either is missing, do not enumerate or invent candidates; return the reduced report without a table and request exactly one missing input under `### Blocking questions`. Request the triggering finding first when both are missing; otherwise request whichever single input is missing. Missing required input suppresses the table, not depth-specific sections: preserve an explicitly requested depth and append `### Omitted axes (quick mode only)` for `quick`.
 3. Enumerate candidates in scope using the catalogue below. Record other critical unknowns as Presence `blocked — clarification needed` and Disposition `blocked`.
 4. Mark present defects `fix-now` by default. Use `defer-with-owner` only for an explicit deferral with a named owner/team and reason. If a required deferral lacks either, use `blocked`.
 
@@ -32,7 +32,7 @@ Never guess missing evidence. Use the reduced report shell for missing required 
 
 ## Example
 
-When both required inputs are available, a quick audit emits `Output depth: quick`, only target-specific rows, and `Omitted axes`; a standard audit emits all 18 axes. Missing-input audits use the reduced form at any depth.
+When both required inputs are available, a quick audit emits `Output depth: quick`, only target-specific rows, and `### Omitted axes (quick mode only)`; a standard audit emits all 18 axes. Missing-input audits use the reduced form at any depth.
 
 ## Catalogue
 
