@@ -144,7 +144,7 @@ PROFILE_ACTIVE_AXIS_COUNTS = {
         "Test Mirror": 2, "Documentation/Spec Prose Twin": 2,
     },
 }
-PROFILE_ACTIVE_CANDIDATE_COUNTS = {
+PROFILE_MAX_ACTIVE_CANDIDATES = {
     "positive-edge-001": 2,
     "positive-edge-002": 2,
     "positive-edge-004": 2,
@@ -155,6 +155,10 @@ PROFILE_ACTIVE_CANDIDATE_COUNTS = {
     "positive-edge-010": 0,
     "positive-trigger-001": 8,
     "positive-trigger-002": 7,
+}
+PROFILE_OPTIONAL_ACTIVE_AXES = {
+    "positive-edge-009": {"Contract Symmetry"},
+    "positive-trigger-001": {"Validation vs Normalization/Sanitization"},
 }
 
 
@@ -566,14 +570,44 @@ def requests(value):
         value,
     ):
         return False
-    if re.search(
-        r"\b(?:no clarification is needed|clarification is not needed)\b",
-        value,
-    ):
+    if dismisses_request(value):
         return False
     imperative = re.match(r"^(?:please\s+)?(?:provide|specify|clarify|confirm|need)\b", value)
     question = re.match(r"^(?:what|which|who|why|can|could|would|are|does|do|is|should)\b.*\?$", value)
     return bool(imperative or question)
+
+
+def dismisses_request(value):
+    value = norm(value)
+    for clause in re.split(r"[.;]", value):
+        clause = clause.strip()
+        candidate = re.sub(
+            r"\b(?:we\s+|the audit\s+)?(?:cannot|can't|will not|won't|do not|don't|"
+            r"are unable to|is unable to|nothing can)\s+"
+            r"(?:proceed|continue|start|move on|go ahead|carry on)\b"
+            r"(?:\s+(?:regardless|without\s+(?:it|an?\s+answer|a\s+response)))?|"
+            r"\b(?:do not|don't)\s+assume\s+(?:an?\s+)?default\b",
+            " ",
+            clause,
+        ).strip()
+        if clause.endswith("?") and re.search(r"\bassume\s+(?:an?\s+)?default\b", clause):
+            continue
+        if re.search(
+            r"\b(?:we\s+)?(?:will|can|may|could|should)?\s*"
+            r"(?:proceed(?:s|ing)?|continu(?:e|es|ing)|start(?:s|ing)?|mov(?:e|es|ing)\s+on|"
+            r"go(?:es|ing)?\s+ahead|carr(?:y|ies|ying)\s+on)"
+            r"\s*,?\s*(?:regardless|anyway|without\s+(?:it|an?\s+answer|a\s+response))\b|"
+            r"\b(?:nevertheless|regardless)\s*,?\s*(?:proceed|continue|start|move on|go ahead|carry on)\b|"
+            r"\b(?:this|it|clarification|the clarification|answering|the answer|an? answer|"
+            r"a response|the response|the reply)\s+(?:is\s+|can\s+be\s+)?"
+            r"(?:optional|unnecessary|not required|not needed|ignored)\b|"
+            r"\bno\s+(?:clarification|answer|response|reply)\s+(?:is\s+)?needed\b|"
+            r"\b(?:do not|don't)\s+(?:need\s+(?:an?\s+)?(?:answer|response|reply|clarification)|answer)\b|"
+            r"\bassume\s+(?:an?\s+)?default\b",
+            candidate,
+        ):
+            return True
+    return False
 
 
 def requests_missing_input(value, missing_header):
@@ -606,7 +640,7 @@ def requests_missing_input(value, missing_header):
         normalized,
     ))
     if re.search(
-        rf"\b{escaped_header}\b[^.;?]{{0,100}}\b(?:without|ignore|skip|omit|disregard)\s+it\b|"
+        rf"\b{escaped_header}\b[^.;?]{{0,100}}\b(?:ignore|skip|omit|disregard)\s+it\b|"
         rf"\b{escaped_header}\b[^.;?]{{0,100}}\b(?:pointless|does not matter)\b|"
         rf"\b{escaped_header}\b.{{0,120}}\bproceed regardless\b",
         normalized,
@@ -643,31 +677,37 @@ def scope_artifacts(value):
     return {
         match.rstrip(".,;:)")
         for match in re.findall(r"(?:[\w.-]+/)+[\w.-]+", label_norm(value))
+        if match.rstrip(".,;:)") != "n/a"
     }
 
 
-def artifact_citations(value):
+def artifact_citations(value, suppress_unavailable=True):
     visible_value = visible_text(value)
     normalized = norm(visible_value)
-    if re.search(
-        r"\b(?:no|missing|unknown|unavailable|required|needed|not supplied|not provided)\b[^.;]{0,60}"
-        r"\b(?:artifact|section|spec|schema|migration|config|log|incident|file|case)\b|"
-        r"\b(?:artifact|section|spec|schema|migration|config|log|incident|file|case)\b"
-        r"[^.;]{0,40}\b(?:missing|unknown|unavailable|not available|not supplied|not provided|required|needed)\b",
-        normalized,
-    ):
-        return set()
-
     citations = {f"path:{path}" for path in scope_artifacts(visible_value)}
     for match in re.finditer(r"`([^`]+)`", visible_value):
         basename = label_norm(match.group(1))
         if "/" not in basename and re.fullmatch(r"\.?[a-z0-9][a-z0-9_.+-]*", basename):
             citations.add(f"basename:{basename}")
-
     section_text = re.sub(r"(?:[\w.-]+/)+[\w.-]+", " ", normalized)
     section_text = re.sub(r"[\"']", " ", section_text)
+    section_text = re.sub(
+        r"\b(?:no|zero|none|not any)?\s*(?:relevant|matching|applicable|other)?\s*"
+        r"candidates?\s*(?:were\s+)?(?:found|present|identified|exist(?:ing)?)?\s*"
+        r"(?:in|within|under|for)\s+",
+        " ",
+        section_text,
+    )
     for match in re.finditer(r"\b(?:[a-z0-9_-]+\s+){1,6}section\b", section_text):
         words = match.group(0).split()
+        while words and words[0] in ("and", "plus", "the", "its", "only"):
+            words.pop(0)
+        if words[:3] == ["no", "candidates", "in"]:
+            words = words[3:]
+        elif words[:2] == ["candidates", "in"]:
+            words = words[2:]
+        elif words and words[0] == "no":
+            words = words[1:]
         while words and words[0] in ("and", "plus", "the", "its", "only"):
             words.pop(0)
         words = [word for word in words if word not in ("docs", "documentation")]
@@ -683,7 +723,43 @@ def artifact_citations(value):
     for match in re.finditer(r"\bincident(?: note)?(?:\s+([a-z]+-\d+))?\b", normalized):
         identifier = match.group(1)
         citations.add(f"incident:{identifier}" if identifier else "named:incident note")
-    return citations
+    unavailable = (
+        r"(?:missing|unknown|unavailable|not available|not supplied|not provided|required|needed)"
+    )
+    if not suppress_unavailable:
+        return citations
+    filtered = set()
+    for citation in citations:
+        if not citation.startswith("named:"):
+            filtered.add(citation)
+            continue
+        subject = citation.removeprefix("named:")
+        if re.search(
+            rf"\bno\s+{re.escape(subject)}(?:\s+is\s+available)?(?=$|[.;,])|"
+            rf"\b{re.escape(subject)}(?:\s*:|\s+(?:is|was|remains?|appears?)|\s+)"
+            rf"\s*{unavailable}(?=$|[.;,])|"
+            rf"\b{re.escape(subject)}\s+(?:could not be found|does not exist)(?=$|[.;,])",
+            normalized,
+        ):
+            continue
+        filtered.add(citation)
+    return filtered
+
+
+def has_ongoing_failure_claim(value):
+    value = norm(value)
+    pattern = re.compile(
+        r"\b(?:still\s+|continues?\s+(?:to\s+)?|keeps?\s+|remains?\s+)"
+        r"(?:crash(?:es|ing)?|break(?:s|ing)?|fail(?:s|ing)?|errors?|throws?|hangs?|"
+        r"panics?|broken|open|present|exists?|regresses?|reproduc(?:es|ing)|occurs?|happens?|500)\b"
+    )
+    for match in pattern.finditer(value):
+        clause_start = max(value.rfind(mark, 0, match.start()) for mark in (".", ";", ",")) + 1
+        subject = value[clause_start:match.start()].strip()
+        if re.search(r"\bno request\b", subject):
+            continue
+        return True
+    return False
 
 
 def missing_metadata_fields(value):
@@ -1164,14 +1240,15 @@ def validate(profile, headers, sections, rows):
             if basenames.count(basename) == 1
         )
         for item in rows:
-            row_citations = artifact_citations(item["evidence"])
+            row_citations = artifact_citations(item["evidence"], suppress_unavailable=False)
             if row_citations and not row_citations <= allowed_evidence:
                 fail("table evidence citation must stay within the locked scope")
     if profile == "positive-edge-010":
         finding = norm(headers["Triggering finding"])
         negated = re.search(r"\bunfixed\b|\bnot\b[^.]{0,20}\bfixed\b", finding)
+        ongoing = has_ongoing_failure_claim(finding)
         if (not re.search(r"\bfixed\b", finding) or "previously" not in finding
-            or negated or re.search(r"\bcurrent\b", finding)):
+            or negated or ongoing or re.search(r"\bcurrent\b", finding)):
             fail("clean profile triggering finding must describe a previously fixed defect")
     if profile == "positive-edge-003":
         if headers["Output depth"].lower() != "standard":
@@ -1351,8 +1428,13 @@ def validate(profile, headers, sections, rows):
             fail("known-impact blocked profile must use an assessed severity")
     elif profile == "positive-edge-009":
         row(rows, "Opposite Bound", ("maxretries",), "present", "fix-now")
-        docs_row = row(rows, "Documentation/Spec Prose Twin", ("docs/api.md",),
-                       "present", "defer-with-owner")
+        docs_row = row(rows, "Documentation/Spec Prose Twin",
+                       presence="present", disposition="defer-with-owner",
+                       candidate_any=("docs/api.md", "api.md", "documentation", "api reference", "docs"))
+        if not artifact_citations(docs_row["evidence"]) & {
+            "path:docs/api.md", "basename:api.md",
+        }:
+            fail("documentation deferral evidence must cite docs/api.md")
         deferred_rows = [item for item in rows
                          if item["presence"] == "present" and item["disposition"] == "defer-with-owner"]
         if ({label_norm(item["candidate"]) for item in deferred_rows}
@@ -1364,8 +1446,6 @@ def validate(profile, headers, sections, rows):
             0,
             "Deferred follow-ups",
         )
-        if not all(term in deferred.lower() for term in ("docs/api.md", "platform docs")):
-            fail("deferred follow-up must contain the docs path and owner")
         metadata = re.search(r"\bowner:\s*([^;]+);\s*reason:\s*(.+)$", deferred, flags=re.I)
         if not metadata or label_norm(metadata.group(1)) != "platform docs":
             fail("documentation deferral owner must be Platform Docs")
@@ -1434,10 +1514,7 @@ def validate(profile, headers, sections, rows):
         if any(active_counts[axis] > count for axis, count in minimums.items()):
             fail("report contains an unsupported active candidate set")
         active_labels = {label_norm(item["candidate"]) for item in active_rows}
-        expected_candidates = PROFILE_ACTIVE_CANDIDATE_COUNTS[profile]
-        if len(active_labels) < expected_candidates:
-            fail("report is missing the required active candidate set")
-        if len(active_labels) > expected_candidates:
+        if len(active_labels) > PROFILE_MAX_ACTIVE_CANDIDATES[profile]:
             fail("report contains an unsupported active candidate set")
         required_axis_labels = {
             label_norm(item["candidate"])
@@ -1447,7 +1524,10 @@ def validate(profile, headers, sections, rows):
         unsupported_unexpected = [
             item for item in active_rows
             if item["axis"] not in minimums
-            and label_norm(item["candidate"]) not in required_axis_labels
+            and (
+                item["axis"] not in PROFILE_OPTIONAL_ACTIVE_AXES.get(profile, set())
+                or label_norm(item["candidate"]) not in required_axis_labels
+            )
         ]
         if unsupported_unexpected:
             fail("report contains an unsupported active candidate set")

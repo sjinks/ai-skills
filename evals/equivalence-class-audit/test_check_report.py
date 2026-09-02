@@ -387,7 +387,7 @@ PROFILE_FAILURES = {
     "positive-edge-006": "quick reduced report needs a local omitted-axes explanation",
     "positive-edge-007": "exhaustive report needs separate sync and async validator call sites",
     "positive-edge-008": "missing required Documentation/Spec Prose Twin row",
-    "positive-edge-009": "deferred follow-up must contain the docs path and owner",
+    "positive-edge-009": "documentation deferral owner must be Platform Docs",
     "positive-edge-010": "clean audit may contain only absent or n/a rows",
     "positive-edge-011": "blocking question must name the missing required input",
     "positive-trigger-001": "trigger-001 requires distinct Test Mirror candidates",
@@ -922,6 +922,72 @@ class HeaderMarkerTests(unittest.TestCase):
 
 
 class CheckerContractTests(unittest.TestCase):
+    def test_concrete_paths_survive_missing_evidence_prose(self):
+        self.assertIn(
+            "path:config/retry.yml",
+            CHECK_REPORT.artifact_citations(
+                "no artifact for config/retry.yml upper bound"
+            ),
+        )
+
+    def test_unavailable_named_artifact_subjects_are_not_citations(self):
+        subjects = (
+            "test file", "test case", "policy spec", "api spec", "json spec",
+            "schema", "migration", "config block", "configuration block",
+            "log entry", "audit log", "incident note", "Health section",
+        )
+        templates = (
+            "the {subject} is missing",
+            "no {subject} is available",
+            "the {subject} was not supplied",
+            "the {subject} remains missing",
+            "{subject}: missing",
+            "the {subject} could not be found",
+            "the {subject} does not exist",
+        )
+        for subject in subjects:
+            for template in templates:
+                evidence = template.format(subject=subject)
+                with self.subTest(evidence=evidence):
+                    self.assertEqual(set(), CHECK_REPORT.artifact_citations(evidence))
+
+    def test_missing_property_keeps_named_artifact_citation(self):
+        self.assertIn(
+            "named:retry configuration section",
+            CHECK_REPORT.artifact_citations(
+                "the Retry Configuration section is missing an upper bound"
+            ),
+        )
+
+    def test_na_marker_is_not_a_path_citation(self):
+        self.assertNotIn("path:n/a", CHECK_REPORT.artifact_citations("n/a — no candidates in scope"))
+
+    def test_no_candidate_prose_cannot_hide_out_of_scope_path(self):
+        for evidence in (
+            "no candidates in config/other.yml",
+            "no candidates in the Deployment Topology section",
+            "no candidate in the Deployment Topology section",
+            "no candidates found in the Deployment Topology section",
+            "no candidates within the Deployment Topology section",
+            "no candidates exist in the Deployment Topology section",
+            "no candidates; the Deployment Topology section is missing",
+            "no candidates in incident INC-99",
+            "no candidates in the deploy migration file",
+            "no candidates in locked scope; no artifact is available in the Deployment Topology section",
+            "no candidates in locked scope; no policy spec is available for the Billing Webhooks section",
+            "no candidates in locked scope; no log entry is available for incident INC-99",
+            "no candidates in locked scope; artifact is unavailable, incident INC-99",
+        ):
+            invalid = profile_report("positive-edge-001").replace(
+                "no candidates in locked scope |",
+                f"{evidence} |",
+                1,
+            )
+            with self.subTest(evidence=evidence):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-001")
+
     def test_visible_text_preserves_code_span_angle_brackets(self):
         for value in ("`handler<Foo>`", "`handler<Bar>`", "`std::map<Key, Value>`"):
             with self.subTest(value=value):
@@ -1211,21 +1277,21 @@ class CheckerIntegrationTests(unittest.TestCase):
                 run_main(report, "positive-edge-001")
         self.assertIn("report contains an unsupported active candidate set", error.getvalue())
 
-    def test_unapproved_required_axes_cannot_collapse_to_one_label(self):
-        report = profile_report("positive-trigger-002").replace(
-            "| Permission/Authorization Class | project export permission |",
-            "| Permission/Authorization Class | export denied test |",
-            1,
+    def test_consistent_label_may_collapse_required_axes(self):
+        shared = "docs/operations.md retry docs/config mismatch"
+        report = profile_report("positive-trigger-001").replace(
+            "retry docs/config mismatch", shared,
         ).replace(
-            "Fix project export permission, project archive permission, denied audit event, export denied test,",
-            "Fix project archive permission, denied audit event, export denied test,",
-            1,
+            "docs/operations.md retry prose", shared,
         )
-        error = io.StringIO()
-        with contextlib.redirect_stderr(error):
-            with self.assertRaises(SystemExit):
-                run_main(report, "positive-trigger-002")
-        self.assertIn("missing the required active candidate set", error.getvalue())
+        run_main(report, "positive-trigger-001")
+
+    def test_trigger_002_consistent_label_collapse_is_allowed(self):
+        report = profile_report("positive-trigger-002").replace(
+            "project export permission",
+            "export denied test",
+        )
+        run_main(report, "positive-trigger-002")
 
     def test_consistent_candidate_label_may_span_any_relevant_axes(self):
         report = profile_report("positive-edge-009").replace(
@@ -1259,6 +1325,16 @@ class CheckerIntegrationTests(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 run_main(report, "positive-edge-001")
         self.assertIn("report contains an unsupported active candidate set", error.getvalue())
+
+    def test_required_label_cannot_activate_unsupported_axis(self):
+        report = profile_report("positive-edge-009").replace(
+            "| Resource Cleanup | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            "| Resource Cleanup | maxRetries zero bound | present | fix-now | config/retry.yml |",
+            1,
+        )
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                run_main(report, "positive-edge-009")
 
     def test_hidden_html_cannot_supply_required_header_terms(self):
         cases = [
@@ -1631,6 +1707,11 @@ class CheckerIntegrationTests(unittest.TestCase):
                 "Provide the Locked audit scope.",
                 "Provide the Locked audit scope; no axes can be enumerated without the Locked audit scope.",
             ),
+            (
+                "positive-edge-003",
+                "Provide the Locked audit scope.",
+                "Provide the Locked audit scope; we cannot proceed without it.",
+            ),
         )
         for profile, original, blocker in cases:
             with self.subTest(profile=profile, blocker=blocker):
@@ -1722,6 +1803,30 @@ class CheckerIntegrationTests(unittest.TestCase):
     def test_clean_profile_rejects_current_defect_finding(self):
         for finding in (
             "minItems zero still crashes pagination",
+            "the fixed minItems zero pagination defect previously crashed requests and still crashes requests",
+            "the fixed minItems zero pagination defect previously crashed requests and continues to fail",
+            "the fixed minItems zero pagination defect previously crashed requests and is still failing requests",
+            "the fixed minItems zero pagination defect previously crashed requests and keeps failing",
+            "the fixed minItems zero pagination defect previously crashed requests and it remains broken",
+            "the fixed minItems zero pagination defect previously crashed requests and still reproduces today",
+            "the fixed minItems zero pagination defect previously crashed requests; it still crashes requests",
+            "the fixed minItems zero pagination defect previously crashed requests, still crashes requests",
+            "the fixed minItems zero pagination defect previously crashed requests. it still crashes requests",
+            "the fixed minItems zero pagination defect previously crashed requests and still errors on every page",
+            "the fixed minItems zero pagination defect previously crashed requests and the crash still occurs",
+            "the fixed minItems zero pagination defect previously crashed requests and it remains open",
+            "the fixed minItems zero pagination defect previously crashed requests although pagination remains broken",
+            "the fixed minItems zero pagination defect previously crashed requests and the tenant guard path still crashes",
+            "the fixed minItems zero pagination defect previously crashed requests and after the test suite ran it still crashes",
+            "the fixed minItems zero pagination defect previously crashed requests and the monitoring endpoint still crashes",
+            "the fixed minItems zero pagination defect previously crashed requests and still throws",
+            "the fixed minItems zero pagination defect previously crashed requests and still hangs",
+            "the fixed minItems zero pagination defect previously crashed requests and still panics",
+            "the fixed minItems zero pagination defect previously crashed requests and the crash still happens",
+            "the fixed minItems zero pagination defect previously crashed requests and requests still 500",
+            "the fixed minItems zero pagination defect previously crashed requests and the defect still exists",
+            "the fixed minItems zero pagination defect previously crashed requests and is still present",
+            "the fixed minItems zero pagination defect previously crashed requests and still regresses",
             "current unfixed minItems zero defect previously crashed requests",
             "current minItems zero pagination defect was previously fixed",
             "minItems zero defect was not yet fixed and previously crashed requests",
@@ -1737,6 +1842,23 @@ class CheckerIntegrationTests(unittest.TestCase):
                     with self.assertRaises(SystemExit):
                         run_main(invalid, "positive-edge-010")
                 self.assertIn("clean profile triggering finding", error.getvalue())
+
+    def test_clean_profile_accepts_ongoing_verification_prose(self):
+        for finding in (
+            "the fixed minItems zero pagination defect previously crashed requests; regression tests still cover the crash",
+            "the fixed minItems zero pagination defect previously crashed requests; the guard still prevents crashes",
+            "the fixed minItems zero pagination defect previously crashed requests; monitoring still watches for crashes",
+            "the fixed minItems zero pagination defect previously crashed requests; no request still crashes",
+        ):
+            with self.subTest(finding=finding):
+                run_main(
+                    profile_report("positive-edge-010").replace(
+                        "fixed minItems zero pagination defect previously crashed requests",
+                        finding,
+                        1,
+                    ),
+                    "positive-edge-010",
+                )
 
     def test_deferred_reason_cannot_deny_its_justification(self):
         for reason, expected_error in (
@@ -1808,6 +1930,103 @@ class CheckerIntegrationTests(unittest.TestCase):
         with contextlib.redirect_stderr(io.StringIO()):
             with self.assertRaises(SystemExit):
                 run_main(invalid, "positive-edge-005")
+
+    def test_complete_blocker_rejects_proceed_regardless_reversal(self):
+        for reversal in (
+            "we will proceed regardless",
+            "we will proceed anyway",
+            "we do not need an answer",
+            "Proceed, regardless",
+            "proceed without it",
+            "we will move on regardless",
+            "we will go ahead regardless",
+            "carry on anyway",
+            "we will continue without an answer",
+            "answering is optional",
+            "a response is optional",
+            "no response is needed",
+            "the reply is unnecessary",
+            "this can be ignored",
+            "we will assume a default",
+            "proceeding regardless",
+            "this is optional",
+            "it is not required",
+            "no answer is needed",
+            "clarification is optional",
+            "but do not answer",
+        ):
+            invalid = profile_report("positive-edge-005").replace(
+                "Provide owner and reason for docs/operations.md documentation defect; missing: owner, reason",
+                f"Provide owner and reason for docs/operations.md documentation defect; {reversal}; missing: owner, reason",
+                1,
+            )
+            with self.subTest(reversal=reversal):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-005")
+
+    def test_blocker_accepts_negative_capability_explanations(self):
+        for explanation in (
+            "we cannot proceed without an answer",
+            "we can't proceed without an answer",
+            "we are unable to proceed without an answer",
+            "we will not proceed without an answer",
+            "the audit will not continue without a response",
+            "do not proceed regardless",
+            "nothing can proceed without it",
+            "do not assume a default",
+            "do not go ahead regardless",
+            "we will not carry on without an answer",
+        ):
+            with self.subTest(explanation=explanation):
+                report = profile_report("positive-edge-005").replace(
+                    "Provide owner and reason for docs/operations.md documentation defect; missing: owner, reason",
+                    f"Provide owner and reason for docs/operations.md documentation defect; {explanation}; missing: owner, reason",
+                    1,
+                )
+                run_main(report, "positive-edge-005")
+
+    def test_complete_blocker_rejects_mixed_polarity(self):
+        invalid = profile_report("positive-edge-005").replace(
+            "Provide owner and reason for docs/operations.md documentation defect; missing: owner, reason",
+            "Provide owner and reason for docs/operations.md documentation defect; we cannot proceed without an answer, but we will proceed anyway; missing: owner, reason",
+            1,
+        )
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-005")
+
+        for continuation in ("we will go ahead regardless", "carry on anyway"):
+            invalid = profile_report("positive-edge-005").replace(
+                "Provide owner and reason for docs/operations.md documentation defect; missing: owner, reason",
+                f"Provide owner and reason for docs/operations.md documentation defect; we cannot proceed without an answer, but {continuation}; missing: owner, reason",
+                1,
+            )
+            with self.subTest(continuation=continuation):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-005")
+
+    def test_reduced_blocker_rejects_mixed_polarity(self):
+        invalid = profile_report("positive-edge-003").replace(
+            "Provide the Locked audit scope.",
+            "Provide the Locked audit scope; we cannot proceed without it, but we will proceed anyway.",
+            1,
+        )
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-003")
+
+        for continuation in ("we will go ahead regardless", "carry on anyway"):
+            invalid = profile_report("positive-edge-003").replace(
+                "Provide the Locked audit scope.",
+                f"Provide the Locked audit scope; we cannot proceed without it, but {continuation}.",
+                1,
+            )
+            with self.subTest(continuation=continuation):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-003")
 
     def test_fix_now_summary_may_describe_prior_unfixed_state(self):
         report = profile_report("positive-edge-009").replace(
@@ -2560,6 +2779,42 @@ class CheckerIntegrationTests(unittest.TestCase):
 
 
 class ConfigurationTests(unittest.TestCase):
+    def test_edge_009_text_grader_uses_candidate_and_evidence_fields(self):
+        root = pathlib.Path(__file__).parent
+        task = yaml.safe_load((root / "tasks" / "positive-edge-9.yaml").read_text())
+        config = next(
+            grader["config"] for grader in task["graders"]
+            if grader["type"] == "text"
+        )
+        report = profile_report("positive-edge-009").replace(
+            "docs/api.md documentation defect",
+            "Retry Configuration documentation",
+        )
+        reports = (
+            report,
+            report.replace(
+                "| Documentation/Spec Prose Twin | Retry Configuration documentation | present | defer-with-owner | docs/api.md |",
+                "| Documentation/Spec Prose Twin | Retry Configuration documentation | present | defer-with-owner | `api.md` |",
+                1,
+            ),
+        )
+        for candidate_report in reports:
+            run_main(candidate_report, "positive-edge-009")
+            for pattern in config.get("regex_match", []):
+                self.assertIsNotNone(re.search(pattern, candidate_report), pattern)
+        invalid = profile_report("positive-edge-009").replace(
+            "docs/api.md documentation defect",
+            "retry backoff implementation",
+        )
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-009")
+        documentation_pattern = next(
+            pattern for pattern in config["regex_match"]
+            if "Documentation/Spec Prose Twin" in pattern
+        )
+        self.assertIsNone(re.search(documentation_pattern, invalid))
+
     def test_edge_011_exercises_exhaustive_missing_input_collision(self):
         root = pathlib.Path(__file__).parent / "tasks"
         text = (root / "positive-edge-11.yaml").read_text(encoding="utf-8")

@@ -48,7 +48,7 @@ graders:
         - '(?im)^Severity:\s*(CRITICAL|HIGH|MEDIUM|LOW)\s*$'
         - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
         - '(?i)\|\s*Opposite Bound\s*\|[^\n|]*maxRetries[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
-        - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|[^\n|]*docs/api\.md[^\n|]*\|\s*present\s*\|\s*defer-with-owner\s*\|'
+        - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|[^\n|]*(?:doc|api\.md|api reference)[^\n|]*\|\s*present\s*\|\s*defer-with-owner\s*\|[^\n|]*(?:docs/)?api\.md[^\n|]*\|'
       not_contains:
         - "### Omitted axes (quick mode only)"
         - "Output depth: quick"
