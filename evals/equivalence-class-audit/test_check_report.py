@@ -296,7 +296,7 @@ def profile_report(profile):
             (archive_test, "present", "fix-now", "tests/project_permissions_test.go"),
         ],
         "Documentation/Spec Prose Twin": (
-            "archive docs defect", "present", "fix-now", "project exports section"
+            "archive docs defect", "present", "fix-now", "routes/projects.yml"
         ),
     }, report_sections(
         fix=[f"Fix {exports}, {archive}, denied audit event, {export_test}, {archive_test}, and archive docs defect."],
@@ -1116,6 +1116,8 @@ class CheckerIntegrationTests(unittest.TestCase):
             "no candidates in locked scope",
             "triggering finding",
             "no artifact is available",
+            "no artifact section",
+            "no policy spec is available",
         ):
             invalid = profile_report("positive-edge-005").replace(
                 "| Documentation/Spec Prose Twin | docs/operations.md documentation defect | present | blocked | docs/operations.md |",
@@ -1129,17 +1131,51 @@ class CheckerIntegrationTests(unittest.TestCase):
                         run_main(invalid, "positive-edge-005")
                 self.assertIn("blocked row evidence must cite an artifact", error.getvalue())
 
-    def test_table_evidence_paths_stay_inside_profile_scope(self):
-        invalid = profile_report("positive-edge-009").replace(
-            "| Opposite Bound | maxRetries zero bound | present | fix-now | config/retry.yml |",
-            "| Opposite Bound | maxRetries zero bound | present | fix-now | secrets/production.env |",
+    def test_nonblocked_row_rejects_triggering_finding_as_evidence(self):
+        invalid = profile_report("positive-edge-010").replace(
+            "| Opposite Bound | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            "| Opposite Bound | checked candidate | absent | n/a | triggering finding |",
             1,
         )
         error = io.StringIO()
         with contextlib.redirect_stderr(error):
             with self.assertRaises(SystemExit):
-                run_main(invalid, "positive-edge-009")
-        self.assertIn("table evidence path must stay within the locked scope", error.getvalue())
+                CHECK_REPORT.parse_report(invalid)
+        self.assertIn("evidence must cite an artifact", error.getvalue())
+
+    def test_table_evidence_paths_stay_inside_profile_scope(self):
+        for evidence in (
+            "secrets/production.env",
+            "`production.env`",
+            "tenant ownership policy spec",
+        ):
+            invalid = profile_report("positive-edge-009").replace(
+                "| Opposite Bound | maxRetries zero bound | present | fix-now | config/retry.yml |",
+                f"| Opposite Bound | maxRetries zero bound | present | fix-now | {evidence} |",
+                1,
+            )
+            error = io.StringIO()
+            with self.subTest(evidence=evidence):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-009")
+                self.assertIn("table evidence citation must stay within the locked scope", error.getvalue())
+
+    def test_edge_007_requires_maxitems_absent_state(self):
+        invalid = profile_report("positive-edge-007").replace(
+            "| Sibling Parameter/Field | maxItems sibling | absent | n/a | src/pagination.ts |",
+            "| Sibling Parameter/Field | maxItems sibling | present | fix-now | src/pagination.ts |",
+            1,
+        ).replace(
+            "Fix minItems zero bound, sync validator",
+            "Fix minItems zero bound, maxItems sibling, sync validator",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-007")
+        self.assertIn("missing required Sibling Parameter/Field row", error.getvalue())
 
     def test_default_rows_are_anonymous_na_with_scope_reason(self):
         report = profile_report("positive-edge-010")

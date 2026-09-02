@@ -401,6 +401,42 @@ def scope_artifacts(value):
     }
 
 
+def artifact_citations(value):
+    visible_value = visible_text(value)
+    normalized = norm(visible_value)
+    if re.search(
+        r"\b(?:no|missing|unknown|unavailable)\b[^.;]{0,60}"
+        r"\b(?:artifact|section|spec|schema|migration|config|log|incident|file|case)\b|"
+        r"\b(?:artifact|section|spec|schema|migration|config|log|incident|file|case)\b"
+        r"[^.;]{0,40}\b(?:missing|unknown|unavailable|not available)\b",
+        normalized,
+    ):
+        return set()
+
+    citations = {f"path:{path}" for path in scope_artifacts(visible_value)}
+    for match in re.finditer(r"`([^`]+)`", visible_value):
+        basename = label_norm(match.group(1))
+        if "/" not in basename and re.fullmatch(r"\.?[a-z0-9][a-z0-9_.+-]*", basename):
+            citations.add(f"basename:{basename}")
+
+    for match in re.finditer(r"\b(?:[a-z0-9_-]+\s+){1,5}section\b", normalized):
+        words = match.group(0).split()
+        while words and words[0] in ("and", "the", "its", "only"):
+            words.pop(0)
+        words = [word for word in words if word not in ("docs", "documentation")]
+        citations.add("named:" + " ".join(words))
+
+    fixed = re.findall(
+        r"\b(?:test (?:file|case)|(?:policy|api|json) spec|"
+        r"(?:json )?schema(?: artifact)?|migration(?: file)?|"
+        r"config(?:uration)? (?:block|artifact)|(?:audit )?log(?: entry)?|"
+        r"incident(?: note)?)\b",
+        normalized,
+    )
+    citations.update(f"named:{label_norm(value)}" for value in fixed)
+    return citations
+
+
 def missing_metadata_fields(value):
     match = re.search(
         r";\s*missing:\s*(owner(?:\s*,\s*reason)?|reason)\s*$",
@@ -580,20 +616,8 @@ def parse_report(output):
                 fail("candidate must be named unless the row is n/a")
             evidence_raw = item["evidence"]
             evidence = norm(evidence_raw)
-            explicit_artifact = re.search(
-                r"`(?:\.[a-z0-9_.+-]+|[a-z0-9][a-z0-9_.+-]*)`",
-                evidence_raw,
-                flags=re.I,
-            )
-            artifact_citation = explicit_artifact or re.search(
-                r"(?:[\w.-]+/)+[\w.-]+|"
-                r"\b[a-z][a-z0-9 _/-]{2,} section\b|"
-                r"\b(?:test (?:file|case)|"
-                r"(?:policy|api|json) spec|(?:json )?schema(?: artifact)?|migration(?: file)?|"
-                r"config(?:uration)? (?:block|artifact)|(?:audit )?log(?: entry)?|incident(?: note)?)\b",
-                evidence,
-            )
-            citation = artifact_citation or re.search(r"\btriggering finding\b", evidence)
+            artifact_citation = artifact_citations(evidence_raw)
+            citation = bool(artifact_citation)
             n_a_reason = explicit_na_reason(evidence)
             reason_allowed = item["presence"].startswith("n/a")
             if item["disposition"] == "blocked" and not artifact_citation:
@@ -853,9 +877,11 @@ def validate(profile, headers, sections, rows):
     if profile in PROFILE_SCOPE_ARTIFACTS:
         if scope_artifacts(headers["Locked audit scope"]) != PROFILE_SCOPE_ARTIFACTS[profile]:
             fail("Locked audit scope must preserve the exact artifact set")
+        scope_citations = artifact_citations(headers["Locked audit scope"])
         for item in rows:
-            if not scope_artifacts(item["evidence"]) <= PROFILE_SCOPE_ARTIFACTS[profile]:
-                fail("table evidence path must stay within the locked scope")
+            row_citations = artifact_citations(item["evidence"])
+            if row_citations and not row_citations <= scope_citations:
+                fail("table evidence citation must stay within the locked scope")
     if profile == "positive-edge-003":
         if headers["Output depth"].lower() != "standard":
             fail("expected standard output depth")
@@ -973,7 +999,7 @@ def validate(profile, headers, sections, rows):
     elif profile == "positive-edge-007":
         row(rows, "Opposite Bound", presence="present", disposition="fix-now",
             candidate_any=("minitems", "zero"))
-        row(rows, "Sibling Parameter/Field", ("maxitems",))
+        row(rows, "Sibling Parameter/Field", ("maxitems",), "absent", "n/a")
         mirror_rows = [item for item in rows if item["axis"] == "Mirror Call Site/Use Site"]
         synchronous = [item for item in mirror_rows
                    if has_mode_term(item["candidate"], "sync")
