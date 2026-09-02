@@ -23,6 +23,7 @@ graders:
         - '(?im)^Construction assessment:[^\n]*(?i:json)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:argv)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:boundar|one-to-one|mapping)[^\n]*$'
+        - '(?im)^Next step:[^\n]*(?i:preserv|review|verify|validate|check|use|send|submit)[^\n]*$'
   - type: prompt
     name: task_completion_substance
     config:

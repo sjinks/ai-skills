@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-016
+name: Reordered SCC fields block review
+tags: [positive-edge]
+inputs:
+  prompt: |
+    A mixed-request handoff supplied this reordered SCC result:
+    Construction result: REWRITE
+    Candidate: echo hello
+    Construction assessment: One command boundary was reviewed.
+    Execution authority: NOT ASSESSED BY THIS SKILL
+    Next step: Request portability review.
+
+    Review it for POSIX sh on Ubuntu and macOS.
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-portability/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-portability], mode: any_order } }
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?is)\AVerdict:\s*BLOCK\s*\r?\nTarget:\s*[^\r\n]+\r?\n\r?\nFindings:\s*\r?\n1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*LOW\s*\r?\n[ \t]+Classification:\s*Open question\s*\r?\n[ \t]+Evidence:\s*[^\r\n]+\r?\n[ \t]+Rule:\s*(?:interpreter-shebang|bashisms|utilities-flags|output-behavior|verification)\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*N/A\s*\r?\n?\z'
+        - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?i:reordered|order|before|after|malformed)[^\r\n]*(?i:field|Candidate|assessment|SCC)[^\r\n]*$'
+        - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*(?i:provide|supply|correct|replace)[^\r\n]*(?i:ordered|SCC|construction result|field)[^\r\n]*$'
+      regex_not_match:
+        - '(?i)Verdict:\s*(?:CLEAN|CONCERNS)'
+        - '(?im)^(?:Interpreter|Checklist status|Residual risk):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response detects reordered Candidate/assessment fields,
+        returns reduced BLOCK, requests an ordered corrected SCC result, and makes
+        no portability conclusion. End with only 1.0, 0.5, or 0.0 on the last line.
+      mode: independent

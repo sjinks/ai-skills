@@ -50,7 +50,7 @@ Targets referenced below:
 
 | Non-portable | Portable approach | Notes |
 |---|---|---|
-| `readlink -f` / `-m` | require available GNU `realpath`/`grealpath` for exact canonicalization; otherwise document reduced semantics | BSD/macOS `readlink` has no `-f`. `cd`+`pwd -P` resolves parent directories but appending `basename` does not resolve a symlink in the final component. `realpath(1)` is not POSIX or guaranteed present. |
+| `readlink -f` / `-m` | require a confirmed available `realpath` implementation with matching final-component, existence, and error semantics; otherwise document reduced semantics | BSD/macOS `readlink` has no `-f`. GNU `realpath`/`grealpath` are examples, but BSD/macOS implementations may also satisfy the required semantics. `cd`+`pwd -P` plus `basename` does not resolve a final-component symlink. `realpath(1)` is not POSIX or guaranteed present. |
 | `sed -i 's/.../.../' f` | `t=$(mktemp); sed '...' f >"$t" && mv "$t" f` | GNU `-i` (no arg), BSD/macOS `-i ''` (empty backup suffix). In-place is non-portable. |
 | `sed -r` / `sed -E` | rewrite to POSIX BRE, or branch by target | POSIX `sed` specifies neither `-r` nor `-E` (BRE only). BSD/macOS and modern GNU accept `-E`; `-r` is GNU/busybox. For strict portability rewrite to BRE. |
 | `grep -P` (PCRE) | `grep -E` (ERE) or `awk` | PCRE is GNU-only; `grep -E` (ERE) is POSIX. Rewrite the pattern in ERE. |
@@ -71,7 +71,7 @@ Targets referenced below:
 | `mktemp` | `mktemp 2>/dev/null \|\| mktemp -t prefix` | Template/`-t` semantics differ GNU vs BSD. |
 | `stat -c` (GNU) / `stat -f` (BSD) | avoid, or branch by `uname`; use `find -printf`-free alternatives, `wc -c`, `ls` parsing as last resort | Format strings are entirely different. |
 | `head -c N` | `dd bs=1 count=N 2>/dev/null` for strict POSIX | `head -c` is widely available but not POSIX; busybox quirks exist. |
-| `realpath` | explicitly available GNU coreutils, or a documented reduced-semantics fallback | Not POSIX; availability varies, and simple `cd`/`pwd -P` fallbacks do not resolve final-component symlinks. |
+| `realpath` | any confirmed available implementation whose final-component, existence, and error semantics match the requirement; otherwise a documented reduced-semantics fallback | Not POSIX; availability and options vary across GNU/BSD/macOS, and simple `cd`/`pwd -P` fallbacks do not resolve final-component symlinks. |
 | `getopt` (GNU enhanced) | POSIX `getopts` builtin | GNU `getopt` long-options are non-portable; `getopts` is the portable builtin (short opts only). |
 | `awk` GNU extensions (`gensub`, `asort`, `length(arr)`, `match` 3rd arg, `--`) | POSIX awk only | BSD `awk`/`mawk`/busybox `awk` lack them. |
 | `ls --color`, `grep --color` | omit or branch | GNU-only long flags. |

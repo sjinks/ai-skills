@@ -21,9 +21,10 @@ inputs:
     ```
 
     No divergent `echo -n` output has been demonstrated on the named current
-    targets. Exact `readlink -f` canonicalization, including resolving a symlink
-    in the final path component, must be preserved. A scoped GNU coreutils
-    dependency providing `grealpath` is approved on both targets.
+    targets. Exact `readlink -f` canonicalization, including final-component
+    symlink resolution and matching existence/error behavior, must be preserved.
+    A `realpath` implementation with those semantics is confirmed available on
+    both targets under the command name `realpath`.
 
     Return the verdict, target, interpreter, findings, checklist status, and
     residual risk. List the findings in this order: 1. `[[ ... ]]` bashism,
@@ -55,9 +56,9 @@ graders:
         - '(?ims)^2\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*CRITICAL\s*\r?\n[ \t]+Classification:\s*Confirmed issue\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*readlink -f[^\r\n]*\r?\n[ \t]+Rule:\s*utilities-flags\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*[^\r\n]+\r?$'
         - '(?ims)^3\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*MEDIUM\s*\r?\n[ \t]+Classification:\s*Likely risk\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*echo -n[^\r\n]*\r?\n[ \t]+Rule:\s*output-behavior\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]*printf[^\r\n]*\r?\n[ \t]+Verification:\s*[^\r\n]+$'
         - '(?ims)^1\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:case)[ \t]+"\$1"[ \t]+(?i:in)[ \t]+start\*\)[^\r\n]*$'
-        - '(?ims)^2\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:grealpath)[^\r\n]*$'
+        - '(?ims)^2\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:\brealpath\b)[^\r\n]*$'
         - '(?ims)^2\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*\$2[^\r\n]*$'
-        - '(?ims)^2\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:dependency|GNU|coreutils|approved)[^\r\n]*$'
+        - '(?ims)^2\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:available|confirmed|final.component|existence|error semantics)[^\r\n]*$'
         - '(?i)(\[\[|bashism|not POSIX|case)'
         - '(?i)readlink'
         - '(?i)(printf|echo -n)'
@@ -79,9 +80,9 @@ graders:
         - `[[ ... == start* ]]` is a bashism that fails under busybox/dash;
           it should be a POSIX `case` statement preserving the `start*` prefix match.
         - `readlink -f` is GNU-only; macOS/BSD readlink lacks `-f`. Exact
-          canonicalization includes resolving a symlink in the final component,
-          so the approved scoped GNU coreutils `grealpath` dependency must be
-          used on `"$2"`; a `cd`/`pwd -P` plus basename function is not equivalent.
+          canonicalization includes final-component symlink resolution and
+          matching existence/error behavior, so use the confirmed available
+          `realpath "$2"`; a `cd`/`pwd -P` plus basename function is not equivalent.
         - `echo -n` is unspecified across shells; because no divergent output
           is demonstrated on the named current targets, it is a MEDIUM Likely
           risk, and `printf` is the portable form.

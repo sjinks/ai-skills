@@ -1,13 +1,13 @@
 ---
 name: shell-command-construction
-description: "Use when constructing, repairing, or validating a concrete supplied shell command, fragment, heredoc, redirection, or payload interface where literal text, argv boundaries, shell parsing, multiline data, or transport is primary. Do not use for generic goals without a supplied shell target, generic shell tutoring, prose-only drafting, non-shell work, portability-only analysis, or GitHub CLI interface semantics."
+description: "Use when constructing, repairing, or validating a concrete supplied shell command, fragment, heredoc, redirection, or payload interface where literal/expansion intent, argv or stream boundaries, multiline data, or transport is primary. Do not use for general shell grammar/debugging, generic goals without a supplied shell target, generic shell tutoring, prose-only drafting, non-shell work, portability-only analysis, or GitHub CLI interface semantics."
 argument-hint: "Provide the concrete command or fragment, shell/interpreter, and intended literal/expansion, argv, and transport boundaries."
 user-invocable: true
 ---
 
 # Shell Command Construction
 
-Use this skill only when the request supplies a concrete shell construction target whose correct parsing or data delivery matters: a named executable, exact command fragment, heredoc/redirection, or payload interface/data. A generic goal such as “remove old files” with no command, executable, path, shell syntax, or supplied payload interface/data does not activate this skill. A concrete but incomplete construction request does activate and may be `BLOCKED`.
+Use this skill only when the request supplies a concrete catalogued construction target involving literal/expansion intent, argv/operand or stream boundaries, heredoc/redirection, multiline data, or a payload interface/transport. A generic goal such as “remove old files” with no command, executable, path, shell syntax, or supplied payload interface/data does not activate this skill. A concrete but incomplete catalogued construction request does activate and may be `BLOCKED`; general shell grammar defects such as missing `then`/`fi` or unmatched grouping are outside scope.
 
 **UTILITY SKILL.** INVOKES: supplied command text and declared construction facts only. FOR SINGLE OPERATIONS: use to repair or validate one concrete command, fragment, heredoc, redirection, or payload transport.
 
@@ -25,6 +25,7 @@ Do not activate when correctness depends on GitHub CLI-specific interface semant
 - Drafting prose without a shell invocation, non-shell work, or portability-only analysis.
 - Execution safety, authorization, target validity, destructive-effect review, or permission to run.
 - GitHub CLI requests whose correctness depends on `gh` field, endpoint, stdin, or body-file semantics.
+- General shell grammar or debugging defects not represented by a canonical construction rule.
 
 ## Required facts
 
