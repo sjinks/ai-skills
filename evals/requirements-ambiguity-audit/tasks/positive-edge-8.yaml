@@ -21,6 +21,9 @@ inputs:
     - Any threshold from 100 through 1,000 milliseconds can be met with the
       current architecture, and no threshold is preferred by this context.
       Every threshold in that range preserves the same implementation shape.
+    - For this audit, use 100 milliseconds / 1,000 milliseconds as the
+      representative readings; this grading guidance does not prefer either
+      threshold as the product decision.
 expected:
   should_trigger: true
 graders:
