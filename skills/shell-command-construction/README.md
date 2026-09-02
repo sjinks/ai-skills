@@ -4,7 +4,7 @@
 
 This skill returns a construction result only. Execution safety, authorization, target validity, destructive-effect review, and permission to run are outside its scope and are not assessed.
 
-It helps an assistant preserve confirmed argument boundaries, literal-versus-expansion intent, operand order, input transport, and multiline payloads. It blocks rather than guessing a shell, quote boundary, scalar/list intent, glob binding, downstream grammar, empty/unset behavior, or secret-safe transport.
+It helps an assistant preserve confirmed shell token and quote boundaries, literal-versus-expansion intent, operand order, input transport, and multiline payloads. SCC-Q1 keeps even a multiline scalar in one argv word; SCC-M1 covers only supplied stdin, file, and heredoc payload transport. It blocks rather than guessing a shell, a shell boundary that affects construction, scalar/list intent, glob binding, empty/unset behavior, or secret-safe transport. Exact supplied literal argument text does not require validating downstream semantics; downstream grammar is required only when its token boundaries affect shell parsing. Positive and negative downstream syntax or semantic judgments are not assessed.
 
 Portability-only analysis does not activate this skill and belongs to a separate portability review. For mixed requests, SCC produces its five-field construction response first. Its `Next step` requires a separate portability review of the exact SCC candidate before any cross-target compatibility conclusion. Resolve a `BLOCKED` construction result before that review. SCC does not construct a portability candidate or make a compatibility claim.
 

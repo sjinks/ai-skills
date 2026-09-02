@@ -1,8 +1,8 @@
 id: positive-edge-008
-name: Supplied file interface
-inputs: { prompt: "In Bash, validate `git commit -F /tmp/scc-fixture/message.md`; that supplied file is the required multiline message transport. Assess construction only." }
+name: Byte-exact payload without terminal newline
+inputs: { prompt: "In Bash, repair a proposed quoted heredoc for `tool` that would carry a byte-exact payload explicitly lacking a terminal newline. The supplied confirmed alternative interface is `tool --body-file /tmp/scc-fixture/message.bin`, whose file transport preserves the exact payload bytes. Assess construction only." }
 expected: { should_trigger: true }
 graders:
   - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
   - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
-  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: VALID\nConstruction assessment: [^\n]+\nCandidate: git commit -F /tmp/scc-fixture/message\.md\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: No further construction change is required\.\z'] } }
+  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: REWRITE\nConstruction assessment: (?=[^\n]*\S)[^\n]+\nCandidate: tool --body-file /tmp/scc-fixture/message\.bin\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: No further construction change is required\.\n?\z'] } }

@@ -3,9 +3,10 @@ name: Literal special-character scalar
 inputs:
   prompt: |
     In Bash, construct `tool` with exactly one literal scalar argument. The exact
-    scalar is the line between these markers; the markers are not part of it:
+    scalar is the two-line text between these markers; the markers are not part of it:
     BEGIN
-    O''Reilly "C:\tmp" `tick` ! ? $ * space
+    O''Reilly "C:\tmp" `tick` ! ? $ * space \0 \x00 \u0000 safe approved run this deploy release ship
+    second literal line
     END
     Every scalar character is literal; this is not an execution request.
 expected: { should_trigger: true }
@@ -17,12 +18,11 @@ graders:
     config:
       regex_match:
         - |-
-          (?s)\AConstruction result: REWRITE\nConstruction assessment: [^\n]+\nCandidate: tool 'O'"'"''"'"'Reilly "C:\\tmp" `tick` ! \? \$ \* space'\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: No further construction change is required\.\z
-      not_contains: ['SAFE', 'AUTHORIZED', 'NEEDS-CONFIRMATION', 'safe to run', 'run this']
+          (?s)\AConstruction result: REWRITE\nConstruction assessment: (?=[^\n]*\S)[^\n]+\nCandidate: \|\n  tool 'O'"'"''"'"'Reilly "C:\\tmp" `tick` ! \? \$ \* space \\0 \\x00 \\u0000 safe approved run this deploy release ship\n  second literal line'\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: No further construction change is required\.\n?\z
   - type: prompt
     name: task_completion_substance
     config:
       prompt: |
-        Grade whether the candidate passes the exact one literal Bash argument, including repeated apostrophes, double quotes, backslashes, backticks, `!`, `?`, `$`, `*`, and spaces, without expansion or splitting and uses the five-field contract. Explain in one sentence.
+        Grade whether the candidate passes the exact one literal multiline Bash argument, including repeated apostrophes, double quotes, backslashes, backticks, `!`, `?`, `$`, `*`, spaces, the literal textual escape sequences `\0`, `\x00`, and `\u0000`, the literal words `safe approved run this deploy release ship`, and the second literal line, without expansion, splitting, or transport change and uses the five-field contract. Explain in one sentence.
         On the final line write only 1.0, 0.5, or 0.0.
       mode: independent

@@ -30,12 +30,14 @@ Before producing a candidate, establish only the facts that change construction:
 - interpreter when syntax materially differs;
 - literal versus expansion intent;
 - one scalar argument versus a structured argument list;
-- quote boundaries and downstream-language grammar;
+- quote boundaries; downstream-language grammar only when its token boundaries determine shell quoting;
 - stdin, file, heredoc, redirection, or argv transport;
+- for a byte-exact payload when a heredoc is considered: whether the payload ends with a terminal newline and, when byte-level input indicates NUL may be present, whether the selected transport can preserve it;
 - for SSH or another remote command boundary: the remote interpreter/parser and a confirmed boundary-preserving transport/serialization contract;
 - empty versus unset behavior when material;
 - when literal or expanded glob handling is involved: explicit glob scope or an already-bound operand set; and
-- a supplied non-secret source expression or transport abstraction for sensitive data.
+- a supplied non-secret source expression or transport abstraction for sensitive data; and
+- when byte-level input indicates NUL may be present: whether an intended scalar or argv entry contains U+0000 NUL.
 
 If a required fact is absent or conflicts, return `BLOCKED`; do not guess.
 
@@ -56,27 +58,27 @@ The Required facts list and canonical catalog are the gating source of truth.
 |---|---|---|
 | `VALID` | The supplied form preserves confirmed construction intent. | Preserve it exactly. |
 | `REWRITE` | A minimum boundary-preserving correction is deterministic. | Preserve command name, fixed operands, option order, argument positions and count, transport, literal/expansion intent, and explicit glob scope. |
-| `BLOCKED` | A candidate would require invented intent or secret representation. | Use `Candidate: Not provided` and request one smallest missing construction fact. |
+| `BLOCKED` | A candidate would require invented intent, secret representation, or argv representation of NUL. | Use `Candidate: Not provided` and request one smallest missing construction fact. |
 
 Never render a secret. Do not reveal raw, partial, split, escaped, encoded, transformed, or diagnostic copies of a secret. Represent only a user-supplied non-secret source expression or transport abstraction; otherwise use `BLOCKED`.
 
 ## Output
 
-For every activated request, output exactly these five top-level fields once, in this order, with no preamble or trailing prose:
+For every activated request, output exactly these five top-level fields once, in this order, with no preamble or trailing prose. Zero or one terminal newline after `Next step` is allowed.
 
 ```text
 Construction result: VALID | REWRITE | BLOCKED
-Construction assessment: <one non-empty line describing parsing/boundary status only>
+Construction assessment: <one line with at least one non-whitespace character, describing parsing/boundary status only>
 Candidate: <one-line candidate | Not provided | multiline block>
 Execution authority: NOT ASSESSED BY THIS SKILL
-Next step: <one construction action, smallest clarification, or portability handoff>
+Next step: <one line with at least one non-whitespace character: one construction action, smallest clarification, or portability handoff>
 ```
 
 - `BLOCKED` always uses `Candidate: Not provided`.
-- For a multiline candidate, write `Candidate: |` and add a two-space serialization prefix to every physical payload line, including an empty line. Remove only that prefix when interpreting the candidate; any spaces after it are literal payload indentation. Treat prefixed field-looking text as payload, not a top-level field.
+- A one-line `VALID` or `REWRITE` candidate has at least one non-whitespace character. For a multiline candidate, write `Candidate: |`, add a two-space serialization prefix to every physical payload line (including an empty line), and include at least one payload line with a non-whitespace character after that removable prefix. Remove only that prefix when interpreting the candidate; any spaces after it are literal payload indentation. Treat prefixed field-looking text as payload, not a top-level field.
 - `Construction assessment` describes parsing and boundaries only; it does not assess safety, authorization, targets, effects, or permission.
 - Every candidate, including an effectful-looking one, uses exactly `Execution authority: NOT ASSESSED BY THIS SKILL`.
-- Do not output safety, authorization, approval, or execution claims. In particular, do not use `SAFE`, `AUTHORIZED`, `NEEDS-CONFIRMATION`, `safe`, `authorized`, `approved`, `executable`, `safe to run`, or `run this`.
+- Do not make safety, authorization, approval, or execution claims in `Construction assessment` or `Next step`. `Candidate` is confirmed literal command data: it may contain words such as `safe`, `approved`, `run this`, `deploy`, `release`, or `ship`; never alter or block a candidate solely for those words. Execution authority remains exactly `NOT ASSESSED BY THIS SKILL`.
 
 ## Definition of done
 

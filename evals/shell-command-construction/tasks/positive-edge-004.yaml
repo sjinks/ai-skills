@@ -1,15 +1,15 @@
 id: positive-edge-004
 name: Bash structured argv
-inputs: { prompt: "In Bash, repair `tool $items`. The already-bound ordered result of an earlier pathname expansion is exactly two operands: `/tmp/scc-fixture/alpha beta.log` and `/tmp/scc-fixture/gamma.log`. Preserve those two argv boundaries using the supplied array intent; do not retain a wildcard, rediscover files, or reorder operands." }
+inputs: { prompt: "In Bash, repair `tool $items`. The already-bound ordered result of an earlier pathname expansion is exactly three operands: `/tmp/scc-fixture/alpha beta.log`, `/tmp/scc-fixture/gamma.log`, and one empty string as the third operand. Preserve those three argv boundaries using the supplied array intent; do not retain a wildcard, rediscover files, or reorder operands." }
 expected: { should_trigger: true }
 graders:
   - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
   - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
-  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: REWRITE\nConstruction assessment: [^\n]+\nCandidate: \|\n  items=\(''/tmp/scc-fixture/alpha beta\.log'' /tmp/scc-fixture/gamma\.log\)\n  tool "\$\{items\[@\]\}"\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: No further construction change is required\.\z'], not_contains: ['*.log', 'find /tmp/scc-fixture'] } }
+  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: REWRITE\nConstruction assessment: (?=[^\n]*\S)[^\n]+\nCandidate: \|\n  items=\(''/tmp/scc-fixture/alpha beta\.log'' ''/tmp/scc-fixture/gamma\.log'' ''''\)\n  tool "\$\{items\[@\]\}"\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: No further construction change is required\.\n?\z'], not_contains: ['*.log', 'find /tmp/scc-fixture'] } }
   - type: prompt
     name: task_completion_substance
     config:
       prompt: |
-        Grade whether the Bash candidate retains the two supplied already-bound operands in exact order, including one with a space, without scalar reparsing, wildcard retention, or file rediscovery. Explain in one sentence.
+        Grade whether the Bash candidate retains the two supplied already-bound file operands in exact order, including one with a space, and one empty third argv entry, without scalar reparsing, wildcard retention, or file rediscovery. Explain in one sentence.
         On the final line write only 1.0, 0.5, or 0.0.
       mode: independent

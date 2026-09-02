@@ -8,10 +8,10 @@ All records use this fixed shape. The catalog-only `Safety projection` field is 
 
 Trigger: One confirmed scalar must remain literal through shell parsing.
 Construction risk: Spaces, quotes, `$`, backticks, `!`, globs, or backslashes are expanded, split, or reparsed.
-Required facts: Interpreter; one scalar intent; literal versus expansion intent.
-Disposition: VALID or REWRITE.
-Construction-preserving action: For declared POSIX-like `sh`, Bash, ksh, or zsh, single-quote literal scalar text. Within that representation, replace each embedded apostrophe with the exact close-single-quote, double-quoted-apostrophe, reopen-single-quote sequence `'"'"'`. For example, literal `O'Reilly $HOME *` is `'O'"'"'Reilly $HOME *'`; adjacent quoted segments with no unquoted whitespace form one shell word. Use a quoted heredoc for literal multiline text. If the shell is undeclared or unsupported and the syntax materially differs, return BLOCKED.
-No-drift constraints: Preserve command name, fixed operands, option order, one-argument boundary, and literal bytes/characters.
+Required facts: Interpreter; one scalar intent; literal versus expansion intent; when byte-level input indicates NUL may be present, whether the scalar contains NUL.
+Disposition: VALID, REWRITE, or BLOCKED.
+Construction-preserving action: POSIX-like shell words and process argv cannot represent U+0000 NUL. If the intended scalar contains NUL, return BLOCKED even when every other fact is complete, with `Candidate: Not provided`; request a confirmed non-argv NUL-capable transport/interface rather than inventing one. Otherwise, for declared POSIX-like `sh`, Bash, ksh, or zsh, single-quote literal scalar text. Within that representation, replace each embedded apostrophe with the exact close-single-quote, double-quoted-apostrophe, reopen-single-quote sequence `'"'"'`. For example, literal `O'Reilly $HOME *` is `'O'"'"'Reilly $HOME *'`; adjacent quoted segments with no unquoted whitespace form one shell word. A multiline scalar remains one quoted shell word containing its newline; do not change its transport to stdin, a file, or a heredoc. If the shell is undeclared or unsupported and the syntax materially differs, return BLOCKED.
+No-drift constraints: Preserve command name, fixed operands, option order, the one-argv-entry boundary, and literal bytes/characters, including embedded newlines.
 Effectful marker: none.
 Portability handoff: separate portability review required before a cross-target claim.
 Provenance: POSIX Shell Command Language; Bash manual; high.
@@ -19,12 +19,12 @@ Safety projection: catalog metadata only; execution concerns not assessed by thi
 
 ### SCC-Q2 — Expansion and quote ambiguity
 
-Trigger: `$`, command substitution syntax, history-sensitive `!`, glob characters, backslashes, or quote boundaries have unspecified intent.
+Trigger: `$`, command substitution syntax, history-sensitive `!`, glob characters, backslashes, or quote boundaries have unspecified shell intent; or downstream token boundaries materially determine shell parsing and are unknown.
 Construction risk: A plausible quote choice changes data into expansion or expansion into literal data.
-Required facts: Interpreter; literal/expansion intent; intended quote boundary.
+Required facts: Interpreter; literal/expansion intent; intended quote boundary; downstream-language grammar only when its token boundaries materially determine shell parsing.
 Disposition: BLOCKED.
-Construction-preserving action: Request the one missing literal/expansion or quote-boundary fact.
-No-drift constraints: Do not assume a shell or reinterpret downstream syntax.
+Construction-preserving action: Request the one missing literal/expansion, quote-boundary, or parsing-relevant downstream-token-boundary fact. Exact supplied literal argument text with confirmed shell boundaries does not require target/downstream semantic validation; do not issue such a validation result.
+No-drift constraints: Do not assume a shell or reinterpret downstream syntax when it materially affects parsing or validation.
 Effectful marker: none.
 Portability handoff: separate portability review required before a cross-target claim.
 Provenance: POSIX Shell Command Language; Bash manual; high.
@@ -34,9 +34,9 @@ Safety projection: catalog metadata only; execution concerns not assessed by thi
 
 Trigger: Input may be one scalar operand or multiple operands.
 Construction risk: Word splitting or quoting collapses or expands argument count.
-Required facts: Interpreter; scalar/list intent; each intended argument boundary.
+Required facts: Interpreter; scalar/list intent; each intended argument boundary; when byte-level input indicates NUL may be present, whether any intended argv entry contains NUL.
 Disposition: REWRITE or BLOCKED.
-Construction-preserving action: Quote a confirmed single scalar; use a declared-shell structured argv form only for confirmed multiple entries; otherwise request scalar/list intent.
+Construction-preserving action: Quote a confirmed single scalar; use a declared-shell structured argv form only for confirmed multiple NUL-free entries; otherwise request scalar/list intent. Block any intended argv entry containing U+0000 NUL.
 No-drift constraints: Preserve argument count, order, positions, command name, and fixed operands.
 Effectful marker: none.
 Portability handoff: separate portability review required before a cross-target claim.
@@ -58,11 +58,11 @@ Safety projection: catalog metadata only; execution concerns not assessed by thi
 
 ### SCC-M1 — Multiline stdin, file, and heredoc payloads
 
-Trigger: Markdown, JSON, commit messages, comments, or other multiline data must reach a known stdin, file, or heredoc interface.
+Trigger: Markdown, JSON, commit messages, comments, or other multiline data must reach a supplied stdin, file, or heredoc interface.
 Construction risk: Inline quoting, unquoted heredocs, or substitution changes lines or expands payload text.
-Required facts: Interpreter; literal/expansion intent; confirmed destination interface and transport.
+Required facts: Interpreter; literal/expansion intent; confirmed destination interface and transport; when a byte-exact payload and a heredoc are considered, terminal-newline intent and, if byte-level input indicates NUL may be present, NUL presence plus confirmed selected-transport capability to preserve it.
 Disposition: VALID, REWRITE, or BLOCKED.
-Construction-preserving action: Retain the supplied transport; use a quoted heredoc delimiter when literal body text requires it; block if choosing stdin versus file would be invented.
+Construction-preserving action: Retain the supplied transport; use a quoted heredoc delimiter when literal body text requires it and the payload ends with the heredoc's unavoidable newline before its delimiter. If a byte-exact payload must not end in a newline, retain another confirmed byte-preserving file/stdin-like interface or return `BLOCKED` when none is supplied; do not invent a transport. When byte-level input indicates NUL is present, a heredoc must return `BLOCKED` or switch only to a supplied confirmed NUL-capable transport; heredoc and argv cannot carry NUL, while a supplied file or binary-safe interface may.
 No-drift constraints: Preserve line boundaries, empty lines, payload-owned indentation and characters, transport, command name, fixed operands, and redirection placement. The two-space response serialization prefix is not payload data.
 Effectful marker: outside construction scope.
 Portability handoff: separate portability review required before a cross-target claim.

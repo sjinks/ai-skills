@@ -4,23 +4,23 @@ This matrix maps each synthetic fixture to its discriminating construction behav
 
 | Fixture | SCC-TC | Source trace | Behavioral discriminator | Trigger | Result/exclusion | Authority or handoff | Deterministic focus | Substance |
 |---|---|---|---|---|---|---|---|---|
-| positive-trigger-001 | 4 | AC-1, EDGE-1/2 | Literal scalar with repeated apostrophes, double quotes, backslashes, backticks, and shell metacharacters | yes | REWRITE | not assessed | exact one-word POSIX-like single-quote composition using `'"'"'` per apostrophe | yes |
+| positive-trigger-001 | 4 | AC-1, EDGE-1/2 | Literal multiline one-argv scalar with repeated apostrophes, double quotes, backslashes, shell metacharacters, textual escape forms, and authority-looking literal words | yes | REWRITE | not assessed | exact one-word POSIX-like single-quote composition using `'"'"'` per apostrophe; the embedded newline remains in the one argv scalar, and textual `\0`, `\x00`, and `\u0000` remain literal data rather than U+0000 NUL | yes |
 | positive-trigger-002 | 9 | AC-5, EDGE-11 | Confirmed in-shell pathname expansion | yes | VALID | not assessed | exact unquoted `/tmp/scc-fixture/*.log`; no literalization, scope change, external rediscovery, or invented results | no |
 | positive-edge-003 | 5 | AC-2, EDGE-4 | Leading-dash operand | yes | REWRITE | not assessed | operand position | no |
-| positive-edge-004 | 5 | AC-2, EDGE-3/9 | Already-bound glob-derived Bash argv | yes | REWRITE | not assessed | exact operands/order; array boundaries; no wildcard rediscovery | yes |
-| positive-edge-005 | 5 | AC-2, EDGE-5 | Confirmed set scalar that may be empty | yes | REWRITE | not assessed | one quoted argument; empty remains one argument | no |
-| positive-edge-006 | 6 | AC-1, EDGE-7 | Literal multiline heredoc | yes | REWRITE | not assessed | exact `<<'EOF'` body; removable two-space prefix; payload indentation and empty line | yes |
-| positive-edge-007 | 6 | AC-2, EDGE-6 | JSON stdin plus stdout/stderr routing | yes | VALID | not assessed | stdin retained; `> result.json 2>&1` order preserved | no |
-| positive-edge-008 | 6 | AC-2, EDGE-8 | Supplied file interface | yes | VALID | not assessed | file transport retained | no |
+| positive-edge-004 | 5 | AC-2, EDGE-3/9 | Already-bound glob-derived Bash argv with a confirmed empty third operand | yes | REWRITE | not assessed | exact ordered file operands plus empty third argv entry; array boundaries; no wildcard rediscovery | yes |
+| positive-edge-005 | 5 | AC-2, EDGE-5 | Confirmed exact literal query scalar with downstream semantics intentionally unrequested | yes | REWRITE | not assessed | flexible boundary-only assessment; representative positive and negative downstream semantic judgments rejected | no |
+| positive-edge-006 | 6 | AC-1, EDGE-7 | Literal multiline heredoc with terminal newline | yes | REWRITE | not assessed | exact `<<'EOF'` body; terminal newline, removable two-space prefix, payload indentation, and empty line | yes |
+| positive-edge-007 | 6 | AC-2, EDGE-6 | Reversed JSON stdin plus stdout/stderr routing | yes | REWRITE | not assessed | stdin retained; repair `2>&1 > result.json` to `> result.json 2>&1`; positive and negative downstream JSON semantic judgments rejected | no |
+| positive-edge-008 | 6 | AC-2, EDGE-8 | Proposed heredoc for a byte-exact payload without terminal newline, with supplied byte-preserving file interface | yes | REWRITE | not assessed | replace the heredoc-incompatible branch with the exact supplied file transport | no |
 | positive-edge-009 | 7 | AC-3, EDGE-3 | Unknown scalar/list | yes | BLOCKED | not assessed | no candidate | no |
 | positive-edge-010 | 7 | AC-3, EDGE-2 | Unknown literal/expansion | yes | BLOCKED | not assessed | smallest fact | no |
-| positive-edge-011 | 7 | AC-3 | Unknown downstream grammar only | yes | BLOCKED | not assessed | asks only for downstream grammar; quote boundary supplied | no |
+| positive-edge-011 | 7 | AC-3 | Byte-exact alpha + U+0000 NUL + beta payload where only argv or heredoc are available | yes | BLOCKED | not assessed | one representability defect covers argv and heredoc; exact non-argv NUL-capable transport/interface request | no |
 | positive-edge-012 | 7 | AC-3, EDGE-9 | Empty versus unset behavior only | yes | BLOCKED | not assessed | asks only whether unset is rejected or passed as one empty argument | no |
-| positive-edge-013 | 8 | AC-4, EDGE-10 | Supplied non-secret transport | yes | VALID | not assessed | source expression retained | no |
-| positive-edge-014 | 8 | AC-4, EDGE-10 | Missing secret transport | yes | BLOCKED | not assessed | representative raw, fragment, explicit lowercase, Base64, URL-encoded, hex, reversed, escaped, and split sentinel forms absent; generic source request | no |
+| positive-edge-013 | 8 | AC-4, EDGE-10 | Supplied non-secret transport | yes | VALID | not assessed | source expression retained; no stale sentinel assertion | no |
+| positive-edge-014 | 8 | AC-4, EDGE-10 | Missing secret value and transport | yes | BLOCKED | not assessed | abstract secret reference only; no prompt-facing value; generic source/transport request | no |
 | positive-edge-015 | 9 | AC-5, EDGE-11 | Remote transport facts absent | yes | BLOCKED | not assessed | asks first for remote parser; transport contract remains a later required fact | no |
 | positive-edge-016 | 10 | AC-3, EDGE-9 | Unbound external glob result set | yes | BLOCKED | not assessed | exact ordered operands required; no wildcard retention, rediscovery, or invented matches | no |
-| positive-edge-017 | 11 | AC-7 | Mixed construction/portability | yes | REWRITE | separate portability review required | exact candidate must be reviewed before any compatibility claim | no |
+| positive-edge-017 | 11 | AC-7 | Mixed construction/portability with neutral domain wording | yes | REWRITE | separate portability review required | neutral `run`, deployment, and release words accepted; representative active, passive, and bare standalone authority/safety claims rejected | no |
 | positive-substance-001 | 9 | AC-2, EDGE-6 | Multiline commit message | yes | REWRITE | not assessed | `-F` file transport | yes |
 | negative-trigger-001 | 12 | AC-7 | Generic tutoring | no | exclusion | n/a | all markers absent | no |
 | negative-trigger-002 | 12 | AC-7 | Non-shell task | no | exclusion | n/a | all markers absent | no |
@@ -28,4 +28,4 @@ This matrix maps each synthetic fixture to its discriminating construction behav
 | negative-close-002 | 12 | AC-7 | Prose-only drafting | no | exclusion | n/a | all markers absent | no |
 | negative-close-003 | 12 | AC-3/7 | Underspecified bypass framing | no | exclusion | n/a | all markers absent | no |
 
-All fixture data is synthetic. `SCC_TEST_SECRET_DO_NOT_RENDER_7c4f` appears only in a prompt and representative forbidden-output assertions; these variants are adversarial coverage, not an exhaustive DLP claim. Superseded planning traces that assigned safety, execution, or cross-target authority to SCC do not describe these fixtures; SCC uses only its construction contract.
+All fixture data is synthetic. Secret fixtures use only abstract references or non-secret transport names; no secret-like value is supplied to or expected from the model. Positive serializers permit zero or one terminal newline after a nonblank `Next step`, but reject extra blank lines or trailing prose. The global output contract rejects positive and negative downstream semantic judgments in the assessment and next-step fields while allowing boundary-only construction statements. SCC-Q1 keeps a multiline scalar as one argv word; SCC-M1 exclusively covers supplied stdin, file, and heredoc payload transport. Superseded planning traces that assigned safety, execution, or cross-target authority to SCC do not describe these fixtures; SCC uses only its construction contract.
