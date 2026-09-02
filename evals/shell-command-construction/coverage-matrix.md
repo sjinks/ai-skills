@@ -2,6 +2,8 @@
 
 This matrix maps each synthetic fixture to its discriminating construction behavior. Original planning traces that required execution-safety handling are superseded by the user override: SCC assesses no execution concerns and always uses `Execution authority: NOT ASSESSED BY THIS SKILL`.
 
+The SCC suite contains 26 fixtures; the separate shell-portability suite remains at 14 fixtures.
+
 | Fixture | SCC-TC | Source trace | Behavioral discriminator | Trigger | Result/exclusion | Authority or handoff | Deterministic focus | Substance |
 |---|---|---|---|---|---|---|---|---|
 | positive-trigger-001 | 4 | AC-1, EDGE-1/2 | Literal multiline one-argv scalar with repeated apostrophes, double quotes, backslashes, shell metacharacters, textual escape forms, and authority-looking literal words | yes | REWRITE | not assessed | exact one-word POSIX-like single-quote composition using `'"'"'` per apostrophe; assessment identifies the literal multiline scalar; next step remains construction-relevant; the embedded newline remains in the one argv scalar, and textual `\0`, `\x00`, and `\u0000` remain literal data rather than U+0000 NUL | yes |
@@ -9,7 +11,7 @@ This matrix maps each synthetic fixture to its discriminating construction behav
 | positive-edge-003 | 5 | AC-2, EDGE-4 | Leading-dash operand | yes | REWRITE | not assessed | option termination and operand position; prompt requires POSIX single-quote representation; next step is construction-relevant | no |
 | positive-edge-004 | 5 | AC-2, EDGE-3/9 | Already-bound glob-derived Bash argv with a confirmed empty third operand | yes | REWRITE | not assessed | exact ordered file operands plus empty third argv entry; array boundaries; no wildcard rediscovery | yes |
 | positive-edge-005 | 5 | AC-2, EDGE-5 | Confirmed one-argument parameter expansion with downstream semantics intentionally unrequested | yes | REWRITE | not assessed | SCC-A1 quotes the confirmed scalar expansion as `"$query"`; representative positive and negative downstream semantic judgments rejected | no |
-| positive-edge-006 | 6 | AC-1, EDGE-7 | Literal multiline heredoc with terminal newline | yes | REWRITE | not assessed | exact `<<'EOF'` body; terminal newline, removable two-space prefix, payload indentation, and empty line | yes |
+| positive-edge-006 | 6 | AC-1, EDGE-7 | Literal multiline heredoc with terminal newline and no caller-fixed delimiter | yes | REWRITE | not assessed | select collision-free `SCC_BODY`; preserve terminal newline, removable two-space prefix, payload indentation, and empty line | yes |
 | positive-edge-007 | 6 | AC-2, EDGE-6 | Reversed JSON stdin plus stdout/stderr routing | yes | REWRITE | not assessed | stdin retained; repair `2>&1 > result.json` to `> result.json 2>&1`; positive and negative downstream JSON semantic judgments rejected | no |
 | positive-edge-008 | 6 | AC-2, EDGE-8 | Proposed heredoc for a byte-exact payload without terminal newline, with supplied byte-preserving file interface | yes | REWRITE | not assessed | replace the heredoc-incompatible branch with the exact supplied file transport | no |
 | positive-edge-009 | 7 | AC-3, EDGE-3 | Unknown scalar/list | yes | BLOCKED | not assessed | assessment and next step each distinguish scalar/one value from multiple/list/argv intent; no candidate | no |
@@ -21,6 +23,9 @@ This matrix maps each synthetic fixture to its discriminating construction behav
 | positive-edge-015 | 9 | AC-5, EDGE-11 | Remote transport facts absent | yes | BLOCKED | not assessed | asks first for remote parser; transport contract remains a later required fact | no |
 | positive-edge-016 | 10 | AC-3, EDGE-9 | Unbound external glob result set | yes | BLOCKED | not assessed | exact ordered operands required; no wildcard retention, rediscovery, or invented matches | no |
 | positive-edge-017 | 11 | AC-7 | Mixed construction/portability with neutral domain wording | yes | REWRITE | separate portability review required | assessment identifies the `tool run` label boundary; next step hands only the exact candidate to a separate portability review; neutral `run`, deployment, and release words accepted; representative active, passive, and bare standalone authority/safety claims rejected | no |
+| positive-edge-018 | 6 | AC-2, EDGE-4 | Fixed heredoc delimiter collides with literal payload line | yes | BLOCKED | not assessed | exact `EOF` body line collides with the caller-required delimiter; no alternate delimiter or transport is invented | no |
+| positive-edge-019 | 9 | AC-3, EDGE-3 | Confirmed remote JSON argv transport constructed from intent | yes | REWRITE | not assessed | exact stdin JSON-array candidate; remote JSON parser, one-to-one argv mapping, and no shell reparsing preserve two remote argv entries | no |
+| positive-edge-020 | 9 | AC-3, EDGE-3 | Confirmed local Bash and remote POSIX sh parsers plus two remote argv entries, but no boundary-preserving transport/serialization contract | yes | BLOCKED | not assessed | assessment identifies the remote parser, argv boundaries, and missing transport/serialization contract; next step requests only that contract, not a parser | no |
 | positive-substance-001 | 9 | AC-2, EDGE-6 | Multiline commit message | yes | REWRITE | not assessed | `-F` file transport | yes |
 | negative-trigger-001 | 12 | AC-7 | Generic tutoring | no | exclusion | n/a | all markers absent | no |
 | negative-trigger-002 | 12 | AC-7 | Non-shell task | no | exclusion | n/a | all markers absent | no |

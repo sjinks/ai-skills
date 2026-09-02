@@ -1,11 +1,18 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 id: negative-trigger-001
-name: Off-topic cooking question
-description: Unrelated everyday question must not activate the shell-portability skill.
+name: Non-shell Python portability question
+description: Python portability language without shell code must not activate the shell-portability skill.
 tags:
   - negative-trigger
 inputs:
-  prompt: "How long should I rest a steak after grilling it medium-rare?"
+  prompt: |
+    Will this Python 3.11 script behave the same on Ubuntu and macOS, and what
+    portability changes should I make?
+
+    ```python
+    from pathlib import Path
+    print(Path.cwd())
+    ```
 expected:
   should_trigger: false
 graders:

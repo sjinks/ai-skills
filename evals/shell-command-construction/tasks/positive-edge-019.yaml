@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-019
+name: Confirmed remote JSON argv transport
+inputs:
+  prompt: |
+    In Bash, construct the exact remote invocation for the two remote argv
+    entries `tool` and `alpha beta`. Local Bash parses the pipeline. The
+    external `remote-argv` contract accepts a JSON array on stdin, uses the
+    confirmed remote JSON-array parser, maps each array element one-to-one to
+    remote argv, and performs no shell reparsing. Use host example.invalid.
+expected:
+  should_trigger: true
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - |-
+          (?s)\AConstruction result: REWRITE\nConstruction assessment: [^\n]*(?i:remote)[^\n]*\nCandidate: printf '%s\\n' '\["tool","alpha beta"\]' \| remote-argv --host example\.invalid --stdin-json\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]*(?i:verify|preserve|use|send)[^\n]*\n?\z
+        - '(?im)^Construction assessment:[^\n]*(?i:json)[^\n]*$'
+        - '(?im)^Construction assessment:[^\n]*(?i:argv)[^\n]*$'
+        - '(?im)^Construction assessment:[^\n]*(?i:boundar|one-to-one|mapping)[^\n]*$'

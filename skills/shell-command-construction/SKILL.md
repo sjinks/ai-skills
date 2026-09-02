@@ -32,7 +32,7 @@ Before producing a candidate, establish only the facts that change construction:
 - one scalar argument versus a structured argument list;
 - quote boundaries; downstream-language grammar only when its token boundaries determine shell quoting;
 - stdin, file, heredoc, redirection, or argv transport;
-- for a byte-exact payload when a heredoc is considered: whether the payload ends with a terminal newline and, when byte-level input indicates NUL may be present, whether the selected transport can preserve it;
+- for a byte-exact payload when a heredoc is considered: whether the payload ends with a terminal newline; if the caller fixes the delimiter, whether it occurs alone on any payload line, otherwise whether a collision-free delimiter can be selected; and, when byte-level input indicates NUL may be present, whether the selected transport can preserve it;
 - for SSH or another remote command boundary: the remote interpreter/parser and a confirmed boundary-preserving transport/serialization contract;
 - empty versus unset behavior when material;
 - when literal or expanded glob handling is involved: explicit glob scope or an already-bound operand set;
@@ -46,7 +46,7 @@ If a required fact is absent or conflicts, return `BLOCKED`; do not guess.
 1. Confirm this is an activated concrete construction request.
 2. Identify the interpreter and command form when construction differs by shell.
 3. Identify literal/expansion, scalar/list, operand, and transport intent.
-4. Select the applicable canonical rule in [construction-rules.md](references/construction-rules.md); read [quoting-rules.md](references/quoting-rules.md) only for semantic detail.
+4. Select all applicable canonical rules in [construction-rules.md](references/construction-rules.md), then compose them by that catalog's precedence; read [quoting-rules.md](references/quoting-rules.md) only for semantic detail.
 5. Produce the smallest candidate that preserves the confirmed construction intent, or block on the smallest missing fact.
 6. Serialize the exact output contract below. For a mixed request, require a separate portability review of the exact construction candidate as the single next step. If construction is `BLOCKED`, request its smallest missing fact instead.
 
@@ -56,8 +56,8 @@ The Required facts list and canonical catalog are the gating source of truth.
 
 | Result | Use when | Candidate rule |
 |---|---|---|
-| `VALID` | The supplied form preserves confirmed construction intent. | Preserve it exactly. |
-| `REWRITE` | A minimum boundary-preserving correction is deterministic. | Preserve command name, fixed operands, option order, argument positions and count, transport, literal/expansion intent, and explicit glob scope. |
+| `VALID` | A supplied, already-correct form preserves confirmed construction intent. | Preserve it exactly. |
+| `REWRITE` | A minimum boundary-preserving correction to a supplied defective form is deterministic, or a candidate can be constructed from confirmed intent when no candidate was supplied. | Preserve command name, fixed operands, option order, argument positions and count, transport, literal/expansion intent, and explicit glob scope. Preserve the original transport unless an applicable canonical rule approves a caller-supplied alternative because the original cannot preserve required bytes or boundaries. |
 | `BLOCKED` | A required construction fact is absent or conflicting, or the requested boundary/data cannot be represented. | Use `Candidate: Not provided` and request one smallest missing fact or alternative. |
 
 Never render a secret. Do not reveal raw, partial, split, escaped, encoded, transformed, or diagnostic copies of a secret. Represent only a user-supplied non-secret source expression or transport abstraction; otherwise use `BLOCKED`.

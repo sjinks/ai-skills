@@ -1,13 +1,13 @@
 ---
 name: shell-portability
-description: "Use when: writing, reviewing, or fixing shell scripts that must run on more than one shell or OS — POSIX sh vs bash/ksh/zsh, dash/ash/busybox as /bin/sh, GNU vs BSD/macOS vs busybox coreutils, CI containers, Alpine, or unknown targets. Covers bashisms, non-portable utility flags (readlink -f, sed -i, grep -P, date -d), shebang and interpreter targeting, locale and word-splitting hazards, and portable replacements."
+description: "Use when: writing, reviewing, or fixing shell code against a declared shell/OS target or across multiple targets — POSIX sh vs bash/ksh/zsh, dash/ash/busybox as /bin/sh, GNU vs BSD/macOS vs busybox coreutils, CI containers, Alpine, or unknown targets. Covers bashisms, non-portable utility flags, shebang/interpreter targeting, locale and word-splitting hazards, and portable replacements. Do not use for generic shell feature tutoring or a raw mixed construction-and-portability request before a separate construction result is supplied."
 argument-hint: "Paste the script or the commands, and name the target shells/OSes if known."
 user-invocable: true
 ---
 
 # Shell Portability
 
-Use this skill when shell code (a script, a snippet, a `Makefile`/CI recipe, or a single command) must run correctly on more than one shell or operating system, and the question is whether every construct and utility invocation is portable across that target set.
+Use this skill when shell code (a script, snippet, `Makefile`/CI recipe, or command) must be assessed against a declared shell/OS target or across multiple targets, and the question is whether every construct and utility invocation is portable for that target set.
 
 The goal is shell code that runs identically on its declared targets: no bashisms in a `#!/bin/sh` script, no GNU-only utility flags on a BSD/macOS/busybox box, and every behavioral assumption (word-splitting, locale, `echo`, glob) made explicit and safe.
 
@@ -25,7 +25,7 @@ The goal is shell code that runs identically on its declared targets: no bashism
 - Pure bash feature questions where bash is the only declared target and portability is not required.
 - Performance tuning, general scripting style, or non-shell languages (Python, Perl, PowerShell) where shell portability does not apply.
 
-For a request that combines construction correctness and portability, do not attempt construction here. First request a separate shell command construction result. If no result exists, or the result is `BLOCKED` with no candidate, use the reduced insufficient-context `BLOCK` template: state that no exact constructed candidate is available and require construction to be completed or resolved first. Otherwise review the exact construction candidate and make no construction claim.
+For a raw request that combines construction correctness and portability, do not activate this skill. If it supplies a concrete construction target, construction review owns the first response; otherwise ask for a concrete command, executable, fragment, or payload interface before either review. After a separate construction result is supplied, if it is `BLOCKED` with no candidate, use the reduced insufficient-context `BLOCK` template: state that no exact constructed candidate is available and require construction to be completed or resolved first. Otherwise review the exact construction candidate and make no construction claim.
 
 When a supplied construction result serializes a multiline candidate as `Candidate: |`, remove exactly the first two spaces from every following candidate payload line before portability analysis. Preserve any additional leading spaces and serialized empty lines as candidate data. Stop at the next unprefixed result field. If a payload line lacks the two-space prefix, use the reduced insufficient-context `BLOCK` template and request a corrected construction result rather than analyzing altered command text.
 
@@ -135,7 +135,7 @@ Residual risk: <remaining caveats or None>
 
 When no material issues exist, write exactly `Findings: None` (allowed only with `CLEAN`) and list assumptions under Residual risk.
 
-Insufficient-context mode: when no code is supplied, emit exactly this reduced template and stop; do not emit interpreter or checklist status with guessed values. The `BLOCK` verdict here is triggered by the missing code, not by the finding's severity:
+Insufficient-context mode: when no reviewable code or exact construction candidate is available because no code was supplied, construction was `BLOCKED` without a candidate, or multiline construction serialization is malformed, emit exactly this reduced template and stop; do not emit interpreter or checklist status with guessed values. The `BLOCK` verdict here is triggered by unavailable reviewable command text, not by the finding's severity:
 
 ```text
 Verdict: BLOCK
@@ -145,10 +145,10 @@ Findings:
 1. <missing-context short title>
   Severity: LOW
   Classification: Open question
-  Evidence: <what is missing — no script/commands supplied>
+  Evidence: <why no reviewable command text is available>
   Rule: <interpreter-shebang | bashisms | utilities-flags | output-behavior | verification>
   Risk: <why no safe conclusion is possible>
-  Portable fix: <what must be supplied>
+  Portable fix: <the code, completed construction, or corrected serialization that must be supplied>
   Verification: N/A
 ```
 

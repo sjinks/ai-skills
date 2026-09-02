@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-004
+name: Raw mixed request without construction result
+description: |
+  A raw mixed construction and portability request belongs to construction review
+  first and must not activate portability review.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    In Bash, repair `tool run $label` so label remains one argument, then tell
+    me whether it is portable for POSIX sh on Ubuntu and macOS. No separate
+    construction result has been supplied.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-portability/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)(?:(?:construction review|construction result|shell-command-construction)[^\r\n]{0,120}(?:first|required|needed|complete|supply|provide)|(?:first|required|needed|complete|supply|provide)[^\r\n]{0,120}(?:construction review|construction result|shell-command-construction))'
+      regex_not_match:
+        - '(?im)^(?:Verdict|Target|Interpreter|Findings|Checklist status|Residual risk):'
+        - '(?i)tool[ \t]+run[ \t]+"\$(?:label|\{label\})"'
+        - '(?i)\b(?:is|is not|isn''t|not)\s+portable\b|\bportable\s+for\b|\bworks?\s+(?:on|under)\b'
+        - '(?i)set[ \t]+--[ \t]+"\$(?:label|\{label\})"'
+        - '(?i)\b(?:confirms?|concludes?|determined|finds)\b[^\r\n]*\b(?:portable|compatible|works?|runs?|POSIX|macOS)\b'
+        - '(?im)^(?:[ \t]*|[^\r\n]*[.!?][ \t]+)(?:the[ \t]+)?(?:candidate|command|quoted[ \t]+form|form|it|this)[ \t]+(?:is[ \t]+(?:valid|correct|portable|suitable|compatible|supported)|conforms?|works?|runs?)[^\r\n]*(?:POSIX|Ubuntu|macOS)'

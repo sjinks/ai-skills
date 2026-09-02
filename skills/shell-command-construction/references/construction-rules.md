@@ -1,12 +1,16 @@
 Read this catalog when selecting a construction disposition; it is the sole normative owner of the construction decisions in this package.
 
+## Composition and precedence
+
+Select every applicable canonical rule, not one rule by preference. Representability and fail-closed constraints always apply. Transport- and boundary-specific rules constrain the candidate. SCC-A1 owns scalar/list intent and confirmed parameter-expansion argv boundaries; SCC-Q1 applies only to directly supplied literal scalar data, never an expansion source. Combine nonconflicting no-drift constraints. If applicable actions conflict after this precedence, or a required fact is missing, return `BLOCKED`.
+
 # Construction Rules
 
 All records use this fixed shape. The catalog-only `Safety projection` field is metadata; it never assesses execution concerns and is not part of the user-facing output contract.
 
-### SCC-Q1 — Literal scalar text
+### SCC-Q1 — Direct literal scalar text
 
-Trigger: One confirmed scalar must remain literal through shell parsing.
+Trigger: Directly supplied literal scalar data must remain literal through shell parsing; this does not cover a parameter-expansion source.
 Construction risk: Spaces, quotes, `$`, backticks, `!`, globs, or backslashes are expanded, split, or reparsed.
 Required facts: Interpreter; one scalar intent; literal versus expansion intent; when byte-level input indicates NUL may be present, whether the scalar contains NUL.
 Disposition: VALID, REWRITE, or BLOCKED.
@@ -60,9 +64,9 @@ Safety projection: catalog metadata only; execution concerns not assessed by thi
 
 Trigger: Markdown, JSON, commit messages, comments, or other multiline data must reach a supplied stdin, file, or heredoc interface.
 Construction risk: Inline quoting, unquoted heredocs, or substitution changes lines or expands payload text.
-Required facts: Interpreter; literal/expansion intent; confirmed destination interface and transport; when a byte-exact payload and a heredoc are considered, terminal-newline intent and, if byte-level input indicates NUL may be present, NUL presence plus confirmed selected-transport capability to preserve it.
+Required facts: Interpreter; literal/expansion intent; confirmed destination interface and transport; when a heredoc is considered, whether a caller-fixed delimiter occurs alone on any payload line, or otherwise whether a collision-free delimiter can be selected; when a byte-exact payload and a heredoc are considered, terminal-newline intent and, if byte-level input indicates NUL may be present, NUL presence plus confirmed selected-transport capability to preserve it.
 Disposition: VALID, REWRITE, or BLOCKED.
-Construction-preserving action: Retain the supplied transport; use a quoted heredoc delimiter when literal body text requires it and the payload ends with the heredoc's unavoidable newline before its delimiter. If a byte-exact payload must not end in a newline, retain another confirmed byte-preserving file/stdin-like interface or return `BLOCKED` when none is supplied; do not invent a transport. When byte-level input indicates NUL is present, a heredoc must return `BLOCKED` or switch only to a supplied confirmed NUL-capable transport; heredoc and argv cannot carry NUL, while a supplied file or binary-safe interface may.
+Construction-preserving action: Retain the supplied transport; use a quoted heredoc delimiter when literal body text requires it and the payload ends with the heredoc's unavoidable newline before its delimiter. The delimiter must be absent from body delimiter lines. If a caller-required or fixed delimiter collides and no caller-supplied alternate delimiter or transport is allowed, return `BLOCKED`. If the delimiter is selectable, use a confirmed collision-free delimiter without changing payload data. If a byte-exact payload must not end in a newline, retain another confirmed byte-preserving file/stdin-like interface or return `BLOCKED` when none is supplied; do not invent a transport. When byte-level input indicates NUL is present, a heredoc must return `BLOCKED` or switch only to a supplied confirmed NUL-capable transport; heredoc and argv cannot carry NUL, while a supplied file or binary-safe interface may.
 No-drift constraints: Preserve line boundaries, empty lines, payload-owned indentation and characters, transport, command name, fixed operands, and redirection placement. The two-space response serialization prefix is not payload data.
 Effectful marker: outside construction scope.
 Portability handoff: separate portability review required before a cross-target claim.

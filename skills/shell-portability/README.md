@@ -1,8 +1,8 @@
 # shell-portability
 
-> Use when: writing, reviewing, or fixing shell scripts that must run on more than one shell or OS — POSIX sh vs bash/ksh/zsh, dash/ash/busybox as /bin/sh, GNU vs BSD/macOS vs busybox coreutils, CI containers, Alpine, or unknown targets. Covers bashisms, non-portable utility flags (readlink -f, sed -i, grep -P, date -d), shebang and interpreter targeting, locale and word-splitting hazards, and portable replacements.
+> Use when: writing, reviewing, or fixing shell code against a declared shell/OS target or across multiple targets — POSIX sh vs bash/ksh/zsh, dash/ash/busybox as /bin/sh, GNU vs BSD/macOS vs busybox coreutils, CI containers, Alpine, or unknown targets. Covers bashisms, non-portable utility flags, shebang/interpreter targeting, locale and word-splitting hazards, and portable replacements.
 
-This skill is aimed at shell code that must run identically across multiple shells and operating systems, where the question is whether every construct and utility invocation is portable across the declared target set rather than whether it happens to work on the author's machine.
+This skill is aimed at shell code assessed against an explicit shell/OS target or across multiple targets, where the question is whether every construct and utility invocation is portable for the declared target rather than whether it happens to work on the author's machine.
 
 It helps an assistant:
 
@@ -12,7 +12,7 @@ It helps an assistant:
 - catch behavioral hazards: `echo` escapes/flags, unquoted word-splitting, locale-dependent `sort`/`tr`, non-POSIX `trap`/`set` options
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with target, interpreter, findings, checklist status, verification path, and an insufficient-context template
 
-It is **not** for concrete shell command construction correctness where literal data, argv boundaries, heredocs, redirection, or transport preservation are the primary concern; it is also not for pure bash-only feature questions or non-shell languages. Quoting is still in scope here for its word-splitting/globbing portability effects. For mixed requests, request a separate shell command construction result first. If no exact candidate is available because the result is absent or blocked, return the reduced `BLOCK` form and require construction first; otherwise review only the exact resulting candidate and make no construction claim. For a serialized multiline candidate, remove exactly its two-space per-line serialization prefix before review while preserving additional indentation and empty lines; a missing prefix uses the reduced `BLOCK` form and requires a corrected construction result.
+It is **not** for concrete shell command construction correctness where literal data, argv boundaries, heredocs, redirection, or transport preservation are the primary concern; it is also not for pure bash-only feature questions or non-shell languages. Quoting is still in scope here for its word-splitting/globbing portability effects. A raw mixed request without a separate construction result does not activate this skill: construction review owns a concrete target first, while a generic request needs a concrete command, executable, fragment, or payload interface before either review. After a construction result is supplied, a blocked result with no candidate uses the reduced `BLOCK` form, while a complete candidate is reviewed without making a construction claim. For a serialized multiline candidate, remove exactly its two-space per-line serialization prefix before review while preserving additional indentation and empty lines; a missing prefix uses the reduced `BLOCK` form and requires a corrected construction result.
 
 ## Files
 
