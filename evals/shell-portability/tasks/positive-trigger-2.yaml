@@ -51,6 +51,7 @@ graders:
         - '(?ims)^3\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*CRITICAL\s*\r?\n[ \t]+Classification:\s*Confirmed issue\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*find[^\r\n]*-printf[^\r\n]*\r?\n[ \t]+Rule:\s*utilities-flags\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?:-exec|-print)[^\r\n]*\r?\n[ \t]+Verification:\s*[^\r\n]+$'
         - '(?ims)^2\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:grep -E|ERE|awk)[^\r\n]*(?:\[0-9\]\{3\}|\[\[:digit:\]\]\{3\}|\[0-9\]\[0-9\]\[0-9\])[^\r\n]*$'
         - '(?ims)^3\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:-exec[^\r\n]*basename|basename[^\r\n]*-exec)[^\r\n]*$'
+        - '(?ims)^1\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:branch|case|detect|probe|\bif\b)[^\r\n]*$'
         - '(?i)sed -i'
         - '(?i)(grep -P|PCRE|grep -E|ERE)'
         - '(?i)(printf|-exec|find -printf|GNU)'
@@ -70,11 +71,11 @@ graders:
       prompt: |
         Grade whether the response identifies these issues:
         - `sed -i` differs between GNU (no backup arg) and BSD/macOS
-          (requires `-i ''`); the portable fix preserves the in-place result
-          using the documented portable `mktemp 2>/dev/null || mktemp -t ...`
-          strategy plus `mv`, or an explicit GNU/BSD branch. Accept equivalent
-          prose or command ordering, but reject token-stuffed text or bare
-          `tmp=$(mktemp)` that does not establish the fallback/branch semantics.
+          (requires `-i ''`). To preserve the requested in-place behavior and
+          avoid cross-filesystem, metadata, and cleanup drift, require an explicit
+          target-named or feature-detected GNU/BSD behavior branch using the
+          appropriate form; reject generic temp+`mv` fixes. Accept equivalent
+          branch wording regardless of whether vendor names are written.
         - `grep -P` (PCRE) is GNU-only and must be rewritten with `grep -E`
           (ERE) or awk while replacing `\d{3}` semantics with `[0-9]{3}` or
           equivalent.

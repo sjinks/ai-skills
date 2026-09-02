@@ -51,7 +51,7 @@ Targets referenced below:
 | Non-portable | Portable approach | Notes |
 |---|---|---|
 | `readlink -f` / `-m` | require a confirmed available `realpath` implementation with matching final-component, existence, and error semantics; otherwise document reduced semantics | BSD/macOS `readlink` has no `-f`. GNU `realpath`/`grealpath` are examples, but BSD/macOS implementations may also satisfy the required semantics. `cd`+`pwd -P` plus `basename` does not resolve a final-component symlink. `realpath(1)` is not POSIX or guaranteed present. |
-| `sed -i 's/.../.../' f` | `t=$(mktemp); sed '...' f >"$t" && mv "$t" f` | GNU `-i` (no arg), BSD/macOS `-i ''` (empty backup suffix). In-place is non-portable. |
+| `sed -i 's/.../.../' f` | explicit target-named or feature-detected GNU/BSD behavior branch: GNU `sed -i '...' f`; BSD/macOS `sed -i '' '...' f` | In-place syntax differs. Replacing through a generic `$TMPDIR` file can be cross-filesystem/non-atomic, alter metadata, and leak on failure; use it only with same-directory creation, cleanup, and explicit metadata guarantees. |
 | `sed -r` / `sed -E` | rewrite to POSIX BRE, or branch by target | POSIX `sed` specifies neither `-r` nor `-E` (BRE only). BSD/macOS and modern GNU accept `-E`; `-r` is GNU/busybox. For strict portability rewrite to BRE. |
 | `grep -P` (PCRE) | `grep -E` (ERE) or `awk` | PCRE is GNU-only; `grep -E` (ERE) is POSIX. Rewrite the pattern in ERE. |
 | `grep -o` | mostly portable now (GNU+BSD+busybox) | OK on modern targets; avoid on ancient ones. |
