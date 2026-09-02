@@ -22,6 +22,8 @@ inputs:
       for retry.
 
     Context:
+    - The only plausible deletion actors are the account service and an admin
+      operator.
     - If an account-deletion attempt fails, the same actor retries it 24 hours
       later until it succeeds.
     - Queuing for retry is the gateway's complete failure outcome regardless
@@ -58,6 +60,8 @@ graders:
         - '(?im)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*if it is unavailable[^\r\n]*\r?$'
         - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(service|system|operator|admin|actor)[^\r\n]*\r?$'
         - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(primary|fallback)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(account service[^\r\n]*/[^\r\n]*admin operator|admin operator[^\r\n]*/[^\r\n]*account service)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(primary[^\r\n]*/[^\r\n]*fallback|fallback[^\r\n]*/[^\r\n]*primary)[^\r\n]*\r?$'
         - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*(?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*(account|delet)(?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*\[OPEN QUESTION:[ \t]+'
         - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*(?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*(gateway|queue|endpoint)(?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*\[OPEN QUESTION:[ \t]+'
         - '(?im)^### Findings[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+1[*_]*:[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*Deactivated accounts are deleted 90 days after deactivation[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(service|system|operator|admin|actor)[^\r\n]*\S[ \t]+/[ \t]+\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*(?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*(account|delet)(?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*(\[OPEN QUESTION:[ \t]+[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\](?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*)+\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+2[*_]*:[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*if it is unavailable[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(primary|fallback)[^\r\n]*\S[ \t]+/[ \t]+\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*(?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*(gateway|queue|endpoint)(?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*(\[OPEN QUESTION:[ \t]+[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\](?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*)+\r?$\r?\n([ \t]*\r?\n)*### Open questions \(product decisions, not findings\)[ \t]*\r?$'

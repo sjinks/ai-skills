@@ -32,6 +32,7 @@ inputs:
     decision, workflow transition, or safety control. No plausible timing is
     preferred by the supplied context, and every plausible resolution preserves
     the same implementation shape.
+    The two plausible timing readings are within one minute and within 24 hours.
 expected:
   should_trigger: true
 graders:
@@ -59,6 +60,7 @@ graders:
         - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|[^\r\n]*\|[^\r\n]*\bR3\b[^\r\n]*\|\s*$'
         - '(?im)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*promptly after session expiry[^\r\n]*\r?$'
         - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(second|minute|hour|day)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*((one|1)[ \t]+minute[^\r\n]*/[^\r\n]*(24|twenty-four)[ \t]+hours|(24|twenty-four)[ \t]+hours[^\r\n]*/[^\r\n]*(one|1)[ \t]+minute)[^\r\n]*\r?$'
         - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*(?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*(email|notification|send)(?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*\[OPEN QUESTION:[ \t]+'
         - '(?im)^### Findings[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+1[*_]*:[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*promptly after session expiry[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Readings:[*_]*[ \t]*[^\r\n]*\S[ \t]+/[ \t]+\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*(?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*(\[OPEN QUESTION:[ \t]+[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\](?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*)+\r?$\r?\n([ \t]*\r?\n)*### Open questions \(product decisions, not findings\)[ \t]*\r?$'
         - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*product owner'

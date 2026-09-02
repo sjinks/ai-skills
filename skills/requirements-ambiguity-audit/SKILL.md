@@ -75,7 +75,7 @@ The table and `### Findings` must have exactly the same cardinality. For each ta
 
 Class-specific `Readings:` replacements: `conflicting-requirements` → `Conflict: <why both cannot hold>`; `placeholder` → `Missing: <what content must be supplied>`; `untestable-wording` → `Untestable because: <why no objective check exists>`.
 
-In each proposed rewrite, retain concrete requirement text before the first token and format every unresolved value as `[OPEN QUESTION: <decision> — <owner> to decide]`; a token-only line is not a rewrite. Do not invent values. Use `requirements owner` when the input names no accountable owner, both in rewrite tokens and the Open Questions section. The exact `[OPEN QUESTION:` prefix is reserved for these tokens; preserve other balanced square-bracket text without a colon when it belongs to the requirement.
+In each proposed rewrite, retain concrete requirement text before the first token and format every unresolved value as `[OPEN QUESTION: <decision> — <owner> to decide]`; a token-only line is not a rewrite. Do not invent values. Use `requirements owner` when the input names no explicit decision owner, both in rewrite tokens and the Open Questions section. The exact `[OPEN QUESTION:` prefix is reserved for these tokens; preserve other balanced square-bracket text without a colon when it belongs to the requirement.
 
 Verdict mapping: `BLOCK` — at least one `blocker` finding, or insufficient input. `CONCERNS` — findings exist, none `blocker`. `CLEAN` — no findings; immediately after the verdict line write exactly `All eight ambiguity classes were swept; no findings.` and keep the report with an empty table. Empty sections are written with `None`.
 

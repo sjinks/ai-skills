@@ -36,7 +36,8 @@ inputs:
     configuration and deletion behavior. Whether "quickly" means an interactive
     response or a background job changes the request and worker architecture.
     Existing product context favors an interactive response, but R1 does not
-    state that choice.
+    state that choice. Atlas-7 could mean the CSV export profile or the JSON
+    export profile.
 expected:
   should_trigger: true
 graders:
@@ -71,6 +72,8 @@ graders:
         - '(?im)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*Atlas-7 export profile[^\r\n]*\r?$'
         - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(second|minute|hour|interactive|background)[^\r\n]*\r?$'
         - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(profile|encoding|format)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(interactive[^\r\n]*/[^\r\n]*background|background[^\r\n]*/[^\r\n]*interactive)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(CSV[^\r\n]*/[^\r\n]*JSON|JSON[^\r\n]*/[^\r\n]*CSV)[^\r\n]*\r?$'
         - '(?im)^[ \t]*-[ \t]*[*_]*Missing:[*_]*[^\r\n]*retention[^\r\n]*\r?$'
         - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*(?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*complete(?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*\[OPEN QUESTION:[ \t]+'
         - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*(?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*(retain|retention)(?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*\[OPEN QUESTION:[ \t]+'
