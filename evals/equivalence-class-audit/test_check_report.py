@@ -1126,6 +1126,7 @@ class CheckerIntegrationTests(unittest.TestCase):
         for finding in (
             "minItems zero still crashes pagination",
             "current unfixed minItems zero defect previously crashed requests",
+            "current minItems zero pagination defect was previously fixed",
             "minItems zero defect was not yet fixed and previously crashed requests",
         ):
             invalid = profile_report("positive-edge-010").replace(

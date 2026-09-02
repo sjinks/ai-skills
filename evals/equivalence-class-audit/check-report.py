@@ -917,7 +917,8 @@ def validate(profile, headers, sections, rows):
     if profile == "positive-edge-010":
         finding = norm(headers["Triggering finding"])
         negated = re.search(r"\bunfixed\b|\bnot\b[^.]{0,20}\bfixed\b", finding)
-        if not re.search(r"\bfixed\b", finding) or "previously" not in finding or negated:
+        if (not re.search(r"\bfixed\b", finding) or "previously" not in finding
+            or negated or re.search(r"\bcurrent\b", finding)):
             fail("clean profile triggering finding must describe a previously fixed defect")
     if profile == "positive-edge-003":
         if headers["Output depth"].lower() != "standard":
