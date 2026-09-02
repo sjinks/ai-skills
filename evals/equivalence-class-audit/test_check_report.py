@@ -1123,16 +1123,22 @@ class CheckerContractTests(unittest.TestCase):
 
 class CheckerIntegrationTests(unittest.TestCase):
     def test_clean_profile_rejects_current_defect_finding(self):
-        invalid = profile_report("positive-edge-010").replace(
-            "fixed minItems zero pagination defect previously crashed requests",
+        for finding in (
             "minItems zero still crashes pagination",
-            1,
-        )
-        error = io.StringIO()
-        with contextlib.redirect_stderr(error):
-            with self.assertRaises(SystemExit):
-                run_main(invalid, "positive-edge-010")
-        self.assertIn("Triggering finding must preserve the supplied task input", error.getvalue())
+            "current unfixed minItems zero defect previously crashed requests",
+            "minItems zero defect was not yet fixed and previously crashed requests",
+        ):
+            invalid = profile_report("positive-edge-010").replace(
+                "fixed minItems zero pagination defect previously crashed requests",
+                finding,
+                1,
+            )
+            error = io.StringIO()
+            with self.subTest(finding=finding):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-010")
+                self.assertIn("clean profile triggering finding", error.getvalue())
 
     def test_deferred_reason_cannot_negate_deferral(self):
         invalid = profile_report("positive-edge-009").replace(

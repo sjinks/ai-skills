@@ -69,7 +69,7 @@ PROFILE_HEADERS = {
     "positive-edge-008": (("maxretries", "zero"),
                           ("config/retry.yml", "docs/api.md", "docs/operations.md")),
     "positive-edge-009": (("maxretries", "zero"), ("config/retry.yml", "docs/api.md")),
-    "positive-edge-010": (("minitems", "zero", "fixed"),
+    "positive-edge-010": (("minitems", "zero"),
                           ("src/pagination.ts", "tests/pagination.test.ts", "docs/api.md")),
     "positive-trigger-001": (("maxretries", "zero", "inc-17"),
                              ("config/retry.yml", "src/retry_policy.py", "tests/test_retry_policy.py",
@@ -914,6 +914,11 @@ def validate(profile, headers, sections, rows):
             row_citations = artifact_citations(item["evidence"])
             if row_citations and not row_citations <= allowed_evidence:
                 fail("table evidence citation must stay within the locked scope")
+    if profile == "positive-edge-010":
+        finding = norm(headers["Triggering finding"])
+        negated = re.search(r"\bunfixed\b|\bnot\b[^.]{0,20}\bfixed\b", finding)
+        if not re.search(r"\bfixed\b", finding) or "previously" not in finding or negated:
+            fail("clean profile triggering finding must describe a previously fixed defect")
     if profile == "positive-edge-003":
         if headers["Output depth"].lower() != "standard":
             fail("expected standard output depth")
