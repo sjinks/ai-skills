@@ -670,6 +670,10 @@ class SummaryAssignmentsTests(unittest.TestCase):
         self.assertEqual("candidate", CHECK_REPORT.label_norm("__candidate__"))
         self.assertEqual("candidate", CHECK_REPORT.label_norm("＿candidate＿"))
         self.assertEqual("candidate", CHECK_REPORT.label_norm("&#95;candidate&#95;"))
+        self.assertEqual(
+            CHECK_REPORT.label_norm("candidate ``` inner"),
+            CHECK_REPORT.label_norm("````candidate ``` inner````"),
+        )
 
     def test_same_disposition_nested_labels_need_distinct_mentions(self):
         cases = (
@@ -1014,6 +1018,8 @@ class CheckerContractTests(unittest.TestCase):
             "Provide the Triggering finding; then provide the Locked audit scope.",
             "Provide the Unlocked audit scope.",
             "Provide the Locked audit scopeish.",
+            "Provide the Triggering finding-ish.",
+            "Provide the Locked audit scope.md.",
             "Provide the NotTriggering finding.",
             "Provide the Triggering findingish.",
         ):
@@ -1201,6 +1207,18 @@ class CheckerIntegrationTests(unittest.TestCase):
             1,
         )
         run_main(report, "positive-edge-001")
+
+    def test_edge_001_requires_explicit_na_reasons(self):
+        invalid = profile_report("positive-edge-001").replace(
+            "no candidates in locked scope",
+            "config/healthcheck.yml",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-001")
+        self.assertIn("must include an explicit n/a reason", error.getvalue())
 
     def test_quick_omitted_axes_requires_an_actual_missing_declaration(self):
         for explanation in (

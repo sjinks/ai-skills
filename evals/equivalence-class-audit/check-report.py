@@ -104,7 +104,13 @@ def strip_markdown_markers(value):
     previous = None
     while value != previous:
         previous = value
-        value = re.sub(r"(`{1,3}|\*{1,3}|~{2})(.+?)\1", r"\2", value)
+        value = re.sub(
+            r"(?<!`)(`+)(?!`)(.*?)(?<!`)\1(?!`)",
+            r"\2",
+            value,
+            flags=re.DOTALL,
+        )
+        value = re.sub(r"(\*{1,3}|~{2})(.+?)\1", r"\2", value)
         value = re.sub(r"(?<!\w)(_{1,2})([^_\n]+?)\1(?!\w)", r"\2", value)
     return value
 
@@ -335,11 +341,11 @@ def requests_missing_input(value, missing_header):
         else "Triggering finding"
     )
     names_expected = bool(re.search(
-        rf"(?<![\w]){re.escape(missing_header)}(?![\w])",
+        rf"(?<![\w./-]){re.escape(missing_header)}(?![\w/-]|\.[\w])",
         value,
     ))
     names_other = bool(re.search(
-        rf"(?<![\w]){re.escape(other_header)}(?![\w])",
+        rf"(?<![\w./-]){re.escape(other_header)}(?![\w/-]|\.[\w])",
         value,
     ))
     return names_expected and not names_other
@@ -366,6 +372,15 @@ def missing_metadata_fields(value):
     if not match:
         return set()
     return {field.strip() for field in match.group(1).split(",")}
+
+
+def explicit_na_reason(value):
+    value = norm(value)
+    return bool(re.search(
+        r"\b(?:no candidates?|in (?:the )?(?:locked )?scope|structurally inapplicable|"
+        r"not applicable|cannot apply)\b",
+        value,
+    ))
 
 
 def table_cells(line):
@@ -863,6 +878,8 @@ def validate(profile, headers, sections, rows):
             item = matches[0]
             if item["presence"] not in ("n/a — structurally inapplicable", "n/a — no candidates in scope") or item["disposition"] != "n/a":
                 fail(f"{axis} must be an explicit n/a row")
+            if not explicit_na_reason(item["evidence"]):
+                fail(f"{axis} must include an explicit n/a reason")
         row(rows, "Documentation/Spec Prose Twin", ("docs",), "present", "fix-now")
     elif profile == "positive-edge-002":
         delete_row = row(rows, "Permission/Authorization Class", ("delete",),
