@@ -415,6 +415,7 @@ def requests_missing_input(value, missing_header):
     names_other = bool(re.search(
         rf"(?<![\w./-]){re.escape(other_header)}(?![\w/-]|\.[\w])",
         value,
+        flags=re.I,
     ))
     return names_expected and not names_other
 
@@ -849,7 +850,6 @@ def validate_report_outcome(headers, sections, rows):
         return
 
     blocked = any(item["disposition"] == "blocked" for item in rows)
-    blocked = blocked or sections["Blocking questions"] != ["None"]
     actionable = any(item["presence"] == "present" for item in rows)
     actionable = actionable or sections["Out-of-scope candidates discovered"] != ["None"]
     actionable = actionable or sections["Test/doc implications"] != ["None"]

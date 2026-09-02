@@ -47,7 +47,7 @@ Disposition: `fix-now`, `defer-with-owner`, `n/a`, `blocked`.
 
 Severity: `CRITICAL` for immediate severe security, privacy, data-loss, safety, legal, or irreversible production harm; `HIGH` for normally triggerable major security, authorization, reliability, contract, or data-integrity harm; `MEDIUM` for a credible bounded regression or meaningful user/operational harm; `LOW` for a localized low-impact correctness or maintainability concern; `NONE` only for a clean report; `UNASSESSED` only when missing information prevents impact assessment. Use the highest applicable severity.
 
-Verdict mapping: a reduced missing-input report is `BLOCK` / `UNASSESSED`. A complete report with a blocked row or blocking question is `BLOCK` with a non-`NONE` severity. Without blockers, `CRITICAL` or `HIGH` is `BLOCK`, actionable `MEDIUM` or `LOW` is `CONCERNS`, and only an all-absent/`n/a` report with no actionable summaries is `CLEAN` / `NONE`.
+Verdict mapping: a reduced missing-input report is `BLOCK` / `UNASSESSED`. A complete report with a blocked row is `BLOCK` with a non-`NONE` severity; every complete-report blocking question maps one-to-one to such a row. Without blocked rows, `CRITICAL` or `HIGH` is `BLOCK`, actionable `MEDIUM` or `LOW` is `CONCERNS`, and only an all-absent/`n/a` report with no actionable summaries is `CLEAN` / `NONE`.
 
 ## Output
 

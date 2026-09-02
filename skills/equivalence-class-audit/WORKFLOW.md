@@ -99,7 +99,7 @@ The report table must use only these values.
 - `NONE` - only for a clean report.
 - `UNASSESSED` - only when missing information prevents impact assessment.
 
-Use the highest applicable severity. A reduced missing-input report is `Verdict: BLOCK` with `Severity: UNASSESSED`. A complete report with a blocked row or blocking question is `BLOCK` with any non-`NONE` severity. Without blockers, `CRITICAL` or `HIGH` maps to `BLOCK`, actionable `MEDIUM` or `LOW` maps to `CONCERNS`, and only an all-absent/`n/a` report with no actionable summaries maps to `CLEAN` / `NONE`.
+Use the highest applicable severity. A reduced missing-input report is `Verdict: BLOCK` with `Severity: UNASSESSED`. A complete report with a blocked row is `BLOCK` with any non-`NONE` severity; every complete-report blocking question maps one-to-one to such a row. Without blocked rows, `CRITICAL` or `HIGH` maps to `BLOCK`, actionable `MEDIUM` or `LOW` maps to `CONCERNS`, and only an all-absent/`n/a` report with no actionable summaries maps to `CLEAN` / `NONE`.
 
 **Evidence** must cite a file, section, test, spec, schema, migration, configuration artifact, log, incident note, or state the reason for an `n/a` row. Paths containing `/` may be plain text; wrap standalone basenames, dotfiles, and extensionless filenames in backticks so they are unambiguous artifact citations. A row without evidence is incomplete.
 

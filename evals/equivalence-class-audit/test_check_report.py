@@ -1033,6 +1033,7 @@ class CheckerContractTests(unittest.TestCase):
             "Which defect files should the audit inspect?",
             "Provide the triggering defect and audit scope.",
             "Provide the Triggering finding and Locked audit scope.",
+            "Provide the Triggering finding; then provide the locked audit scope.",
             "Provide the Triggering finding; then provide the Locked audit scope.",
             "Provide the Unlocked audit scope.",
             "Provide the Locked audit scopeish.",
@@ -1121,6 +1122,22 @@ class CheckerContractTests(unittest.TestCase):
                                     CHECK_REPORT.validate_report_outcome(headers, sections, rows)
 
 class CheckerIntegrationTests(unittest.TestCase):
+    def test_complete_report_rejects_standalone_blocking_question(self):
+        rows = [{
+            "axis": "Opposite Bound", "candidate": "checked candidate",
+            "presence": "absent", "disposition": "n/a",
+        }]
+        sections = {
+            "Defects to fix now": ["None"],
+            "Deferred follow-ups": ["None"],
+            "Out-of-scope candidates discovered": ["None"],
+            "Blocking questions": ["Clarify checked candidate?"],
+            "Test/doc implications": ["None"],
+        }
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                CHECK_REPORT.reconcile_summaries(sections, rows)
+
     def test_edge_004_contains_only_supported_active_candidates(self):
         report = profile_report("positive-edge-004")
         self.assertNotIn("| Empty/Sentinel Equivalence |", report)
