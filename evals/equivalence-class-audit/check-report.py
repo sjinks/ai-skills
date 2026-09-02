@@ -145,6 +145,16 @@ PROFILE_ACTIVE_AXIS_COUNTS = {
     },
 }
 PROFILE_ALLOWED_ACTIVE_OVERLAPS = {
+    "positive-edge-007": {
+        "async validator": {
+            "Mirror Call Site/Use Site",
+            "Async/Sync or Mode Twin",
+        },
+        "asynchronous validator": {
+            "Mirror Call Site/Use Site",
+            "Async/Sync or Mode Twin",
+        },
+    },
     "positive-trigger-001": {
         "null retry value": {
             "Empty/Sentinel Equivalence",
@@ -213,7 +223,49 @@ def visible_text(value):
         value,
         flags=re.DOTALL,
     )
-    if re.search(r"</?(?:script|style|template|details|dialog)\b", value, flags=re.I):
+
+    def strip_inline_links(text):
+        result = []
+        index = 0
+        while index < len(text):
+            label_start = text.find("[", index)
+            if label_start < 0:
+                result.append(text[index:])
+                break
+            label_end = text.find("](", label_start + 1)
+            if label_end < 0:
+                result.append(text[index:])
+                break
+            depth = 1
+            cursor = label_end + 2
+            escaped = False
+            while cursor < len(text) and depth:
+                character = text[cursor]
+                if escaped:
+                    escaped = False
+                elif character == "\\":
+                    escaped = True
+                elif character == "(":
+                    depth += 1
+                elif character == ")":
+                    depth -= 1
+                cursor += 1
+            if depth:
+                result.append(text[index:])
+                break
+            image_start = label_start - 1 if label_start and text[label_start - 1] == "!" else label_start
+            result.append(text[index:image_start])
+            result.append(text[label_start + 1:label_end])
+            index = cursor
+        return "".join(result)
+
+    value = strip_inline_links(value)
+    value = re.sub(r"!?\[([^\]]*)\]\[[^\]]*\]", r"\1", value)
+    if re.search(
+        r"</?(?:script|style|template|details|dialog|svg|title|head|meta|noscript)\b",
+        value,
+        flags=re.I,
+    ):
         return ""
     if re.search(
         r"<[a-z][^>]*(?:\shidden(?:\s|=|>)|\saria-hidden\s*=\s*['\"]?true\b)",
@@ -261,6 +313,117 @@ def missing_marker(value):
 
 def missing_header_marker(value):
     return value.strip() in MISSING
+
+
+def affirmative_relation(value, pattern):
+    value = norm(value)
+    for match in re.finditer(pattern, value):
+        verb_start = match.start("verb")
+        prefix = value[max(0, verb_start - 45):verb_start]
+        if not re.search(
+            r"\b(?:not|never|no longer|cannot|can't|fails? to|unable to|stopped|nowhere)"
+            r"(?:\s+\w+){0,3}\s+$",
+            prefix,
+        ):
+            return True
+    return False
+
+
+def finding_preserves_meaning(profile, value):
+    if re.search(
+        r"\b(?:it is|that's|that is)\s+(?:simply\s+)?false\s+that\b",
+        norm(value),
+    ):
+        return False
+    if profile == "positive-edge-010":
+        return True
+    if profile == "positive-edge-001":
+        if re.search(r"\b(?:does not|doesn't|cannot|can't|never)\s+(?:\w+\s+){0,2}spin\b", norm(value)):
+            return False
+        return any(affirmative_relation(value, pattern) for pattern in (
+            r"\btimeoutseconds\b.{0,80}\b(?P<verb>breaks?|crashes?)\b.{0,30}\bhealth\b",
+            r"\btimeoutseconds\b.{0,80}\b(?P<verb>accepted)\b.{0,20}\bzero\b.{0,60}\bhealth checker\b.{0,20}\bspin\b",
+        ))
+    if profile == "positive-edge-004":
+        if re.search(r"\b(?:does not|doesn't|cannot|can't|never)\s+(?:\w+\s+){0,2}(?:breaks?|crashes?)\b", norm(value)):
+            return False
+        return any(affirmative_relation(value, pattern) for pattern in (
+            r"\bmaxitems\b.{0,80}\bzero\b.{0,30}\b(?P<verb>breaks?|crashes?)\b.{0,30}\bpagination\b",
+            r"\bmaxitems\b.{0,80}\b(?P<verb>accepts?)\b.{0,20}\bzero\b.{0,40}\bcrashes?\b.{0,20}\bpagination\b",
+            r"\bpagination\b.{0,30}\b(?P<verb>breaks?|crashes?)\b.{0,30}\bmaxitems\b.{0,20}\bzero\b",
+        ))
+    if profile == "positive-edge-007":
+        if re.search(r"\b(?:does not|doesn't|cannot|can't|never)\s+(?:\w+\s+){0,2}(?:breaks?|crashes?)\b", norm(value)):
+            return False
+        return any(affirmative_relation(value, pattern) for pattern in (
+            r"\bminitems\b.{0,60}\bzero\b.{0,30}\b(?P<verb>breaks?|crashes?)\b.{0,30}\bpagination\b",
+            r"\bminitems\b.{0,60}\b(?P<verb>accepts?)\b.{0,20}\bzero\b.{0,30}\bcrashes?\b.{0,20}\bpagination\b",
+        ))
+    if profile in ("positive-edge-005", "positive-edge-008", "positive-edge-009", "positive-trigger-001"):
+        return any(affirmative_relation(value, pattern) for pattern in (
+            r"\bmaxretries\b.{0,80}\b(?P<verb>accepts?|allows?|permits?)\b.{0,20}\bzero\b",
+            r"\bzero\b.{0,30}\b(?:is\s+)?(?P<verb>accepted|allowed|permitted)\b.{0,20}\bby\s+maxretries\b",
+        ))
+    if profile in ("positive-edge-002", "positive-edge-003"):
+        normalized = norm(value)
+        return bool(
+            affirmative_relation(
+                normalized,
+                r"\b(?P<verb>lacks?|missing)\b[^.;]{0,30}\btenant ownership\b",
+            )
+            or re.search(
+                r"\b(?:does not|doesn't|did not|may not|never)\s+"
+                r"(?:show|check|enforce)\b[^.;]{0,30}\btenant ownership\b|"
+                r"\b(?:without|no)\s+(?:a\s+)?tenant ownership(?:\s+check)?\b",
+                normalized,
+            )
+        )
+    if profile == "positive-trigger-002":
+        normalized = norm(value)
+        return bool(
+            affirmative_relation(
+                normalized, r"\bcan_export\b.{0,50}\b(?P<verb>missing|absent)\b"
+            )
+            or re.search(
+                r"\b(?:did not|does not|doesn't)\s+(?:check|enforce|verify)\b"
+                r".{0,50}\bcan_export\b",
+                normalized,
+            )
+            or re.search(r"\b(?:without|no)\s+(?:a\s+)?can_export\b", normalized)
+        )
+    return True
+
+
+def excludes_locked_scope(value, required_items=()):
+    value = norm(value)
+    if re.search(
+        r"\bthese(?:\s+(?:artifacts|files|sections))?\s+(?:are\s+)?"
+        r"(?:excluded|omitted|removed|dropped|out of scope)\b|"
+        r"\b(?:those|the above|the listed|the named)\s+(?:artifacts|files|sections)\s+"
+        r"(?:are\s+)?(?:excluded|omitted|removed|dropped|out of scope)\b|"
+        r"\b(?:all|both)\s+of\s+them\s+(?:are\s+)?(?:excluded|out of scope)\b|"
+        r"\bboth files\s+are\s+excluded\b|\bnothing here\s+is\s+in scope\b|"
+        r"\bnone of these\s+(?:artifacts|files|sections)?\s*(?:are|is)\s+in scope\b|"
+        r"\b(?:do not|don't|never)\s+audit\s+these\b|"
+        r"\b(?:audit|review)\s+excludes\s+these\b",
+        value,
+    ):
+        return True
+    exclusion = (
+        r"(?:is|are)\s+(?:explicitly\s+)?(?:excluded|omitted|removed|dropped|out of scope|not in scope)"
+    )
+    return any(
+        norm(artifact) in clause and (
+            re.search(rf"\b{exclusion}\b", clause)
+            or re.search(
+                rf"\b(?:do not|don't|never)\s+audit\b.{{0,40}}{re.escape(norm(artifact))}|"
+                rf"\b(?:audit\s+excludes|skip|ignore)\b.{{0,40}}{re.escape(norm(artifact))}",
+                clause,
+            )
+        )
+        for clause in value.split(";")
+        for artifact in required_items
+    )
 
 
 def mixes_latin_and_cyrillic(value):
@@ -409,6 +572,11 @@ def requests(value):
         value,
     ):
         return False
+    if re.search(
+        r"\b(?:no clarification is needed|clarification is not needed)\b",
+        value,
+    ):
+        return False
     imperative = re.match(r"^(?:please\s+)?(?:provide|specify|clarify|confirm|need)\b", value)
     question = re.match(r"^(?:what|which|who|why|can|could|would|are|does|do|is|should)\b.*\?$", value)
     return bool(imperative or question)
@@ -426,6 +594,30 @@ def requests_missing_input(value, missing_header):
         rf"(?<![\w./-]){re.escape(missing_header)}(?![\w/-]|\.[\w])",
         value,
     ))
+    normalized = norm(value)
+    escaped_header = re.escape(norm(missing_header))
+    supplies_expected = bool(re.search(
+        rf"\b(?:provide|specify|identify|name|supply|send|share|clarify|confirm|need)\b"
+        rf"[^.;?]{{0,100}}\b{escaped_header}\b|"
+        rf"^(?:what|which|who|why|can|could|would|are|does|do|is|should)\b"
+        rf"[^?]{{0,100}}\b{escaped_header}\b.*\?$",
+        normalized,
+    ))
+    dismisses_expected = bool(re.search(
+        rf"\b(?:can|may|will|could|should)\s+(?:proceed|continue|start)\s+without\b"
+        rf"[^.;?]{{0,30}}\b{escaped_header}\b|"
+        rf"\b{escaped_header}\b[^.;?]{{0,30}}\b"
+        rf"(?:unnecessary|irrelevant|optional|superfluous|not needed|not required)\b|"
+        rf"\b(?:skip|ignore|omit|drop|disregard)\b[^.;?]{{0,20}}\b{escaped_header}\b",
+        normalized,
+    ))
+    if re.search(
+        rf"\b{escaped_header}\b[^.;?]{{0,100}}\b(?:without|ignore|skip|omit|disregard)\s+it\b|"
+        rf"\b{escaped_header}\b[^.;?]{{0,100}}\b(?:pointless|does not matter)\b|"
+        rf"\b{escaped_header}\b.{{0,120}}\bproceed regardless\b",
+        normalized,
+    ):
+        dismisses_expected = True
     names_other = bool(re.search(
         rf"(?<![\w./-]){re.escape(other_header)}(?![\w/-]|\.[\w])",
         value,
@@ -449,7 +641,8 @@ def requests_missing_input(value, missing_header):
             value,
             flags=re.I,
         ))
-    return names_expected and not names_other and not requests_other
+    return (names_expected and supplies_expected and not dismisses_expected
+            and not names_other and not requests_other)
 
 
 def scope_artifacts(value):
@@ -572,9 +765,12 @@ def parse_report(output):
         matches = [(index, line.strip().split(":", 1)[1].strip())
                    for index, line in enumerate(lines)
                    if line.strip().startswith(f"{name}:")]
-        if len(matches) != 1 or not visible(matches[0][1]):
+        if len(matches) != 1:
             fail(f"expected exactly one populated {name} header")
-        header_indexes[name], headers[name] = matches[0]
+        value = visible_text(matches[0][1])
+        if not visible(value):
+            fail(f"expected exactly one populated {name} header")
+        header_indexes[name], headers[name] = matches[0][0], value
     ordered_headers = [header_indexes[name] for name in report_headers]
     if ordered_headers != sorted(ordered_headers) or ordered_headers[0] <= report_index:
         fail("report headers must follow the report heading in canonical order")
@@ -744,11 +940,25 @@ def summary_assignments(candidates, bullets, section, one_to_one=False):
                         rf"(?<![a-z0-9_./-]){re.escape(norm(candidate))}(?![a-z0-9_/-]|\.[a-z0-9_])",
                         " ", action,
                     )
-            if re.search(r"\b(?:do not fix|don't fix|need not fix|not fix|never[ -]fix|no action|skip)\b", action):
+            if not re.match(
+                r"^(?:fix|correct|repair|update|add|remove|change|align|enforce|implement)\b",
+                action,
+            ):
+                fail(f"{section} cannot contain a negated action")
+            if re.search(
+                r"\b(?:do not fix|don't fix|need not fix|not fix|never[ -]fix|"
+                r"no action|skip it|skip this)\b|\bleave\b[^.;]{0,40}\bunchanged\b",
+                action,
+            ):
                 fail(f"{section} cannot contain a negated action")
     elif section == "Deferred follow-ups":
         for bullet in bullets:
             action = norm(bullet)
+            if not re.search(
+                r"(?:^|[;.!]\s*)(?:defer|postpone|schedule|track|follow up)\b",
+                action,
+            ):
+                fail(f"{section} cannot negate deferral")
             if re.search(
                 r"\b(?:(?:do not|don't|never|not)\s+defer|no[ -]reason[ -]to[ -]defer|"
                 r"(?:skip|cancel)\s+(?:the\s+)?deferral)\b",
@@ -935,7 +1145,15 @@ def validate(profile, headers, sections, rows):
             value = norm(headers[name])
             if missing_header_marker(value) or not all(norm(term) in value for term in terms):
                 fail(f"{name} must preserve the supplied task input")
+        if not finding_preserves_meaning(profile, headers["Triggering finding"]):
+            fail("Triggering finding must preserve the supplied task meaning")
     if profile in PROFILE_SCOPE_ARTIFACTS:
+        required_scope_items = set(PROFILE_SCOPE_ARTIFACTS[profile]) | {
+            section.removeprefix("named:")
+            for section in PROFILE_SCOPE_SECTIONS.get(profile, set())
+        }
+        if excludes_locked_scope(headers["Locked audit scope"], required_scope_items):
+            fail("Locked audit scope must include the supplied artifacts")
         if scope_artifacts(headers["Locked audit scope"]) != PROFILE_SCOPE_ARTIFACTS[profile]:
             fail("Locked audit scope must preserve the exact artifact set")
         scope_citations = artifact_citations(headers["Locked audit scope"])
@@ -973,6 +1191,8 @@ def validate(profile, headers, sections, rows):
             "security review", "delete /teams/{teamid}", "organization membership", "tenant ownership",
         )):
             fail("missing-scope report must preserve the supplied triggering finding")
+        if not finding_preserves_meaning(profile, supplied):
+            fail("missing-scope report must preserve the supplied triggering finding meaning")
     elif profile == "positive-edge-006":
         if headers["Output depth"].lower() != "quick":
             fail("expected quick output depth")
@@ -1155,7 +1375,13 @@ def validate(profile, headers, sections, rows):
         if not metadata or label_norm(metadata.group(1)) != "platform docs":
             fail("documentation deferral owner must be Platform Docs")
         reason = norm(metadata.group(2))
-        if (not all(term in reason for term in ("outside", "change"))
+        if (re.search(
+            r"\b(?:not|never)\s+(?:owned\s+)?outside\b|"
+            r"\b(?:inside|within|internally|locally|in-repo)\b[^.;]{0,30}"
+            r"\b(?:not|rather than|instead of)\s+outside\b",
+            reason,
+            )
+            or not all(term in reason for term in ("outside", "change"))
                 or not any(term in reason for term in ("owned", "owns"))
                 or not any(term in reason for term in ("documentation", "public api reference"))):
             fail("documentation deferral reason must cite ownership outside this change")
@@ -1222,7 +1448,7 @@ def validate(profile, headers, sections, rows):
             if (allowed_axes is None or set(axis_counts) != allowed_axes
                     or any(count != 1 for count in axis_counts.values())):
                 fail("report contains an unsupported active candidate overlap")
-            allowed_extra_count += len(allowed_axes) - 1
+            allowed_extra_count += len(allowed_axes - set(minimums))
         unsupported_unexpected = [
             item for item in active_rows
             if item["axis"] not in minimums

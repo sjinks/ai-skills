@@ -43,7 +43,7 @@ graders:
         - '(?i)Equivalence-Class Audit Report'
         - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
         - '(?im)^Triggering finding:[ \t]+\S[^\r\n]*$'
-        - '(?im)^Locked audit scope:[ \t]+(missing|not provided|not supplied|required|needed)[ \t]*$'
+        - '(?m)^Locked audit scope:[ \t]+(missing|not provided|not supplied|required|needed)[ \t]*$'
         - '(?im)^Output depth:\s*standard\s*$'
         - '(?im)^Verdict:\s*BLOCK\s*$'
         - '(?im)^Severity:\s*UNASSESSED\s*$'

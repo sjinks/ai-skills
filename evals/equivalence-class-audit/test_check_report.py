@@ -231,7 +231,7 @@ def profile_report(profile):
                 ("sync validator", "present", "fix-now", "src/pagination.ts"),
                 ("async validator", "present", "fix-now", "src/batch-pagination.ts"),
             ],
-            "Async/Sync or Mode Twin": ("async validator mode", "present", "fix-now", "src/batch-pagination.ts"),
+            "Async/Sync or Mode Twin": ("async validator", "present", "fix-now", "src/batch-pagination.ts"),
             "Test Mirror": [
                 ("zero boundary test", "present", "fix-now", "tests/pagination.test.ts"),
                 ("async validator test", "present", "fix-now", "tests/pagination.test.ts"),
@@ -370,7 +370,7 @@ BEHAVIOR_REPAIRS = {
         ("### Blocking questions\n- Provide owner and reason for docs/operations.md documentation defect; missing: owner, reason", "### Blocking questions\n- None"),
         ("### Test/doc implications\n- Update docs/operations.md documentation defect after clarification.", "### Test/doc implications\n- None"),
     ),
-    "positive-edge-007": (("sync validator, async validator, async validator mode", "sync validator, worker validator, async validator mode"),),
+    "positive-edge-007": (("sync validator, async validator, async validator", "sync validator, worker validator, async validator"),),
     "positive-edge-008": (
         ("Provide owner for docs/operations.md documentation defect; missing: owner", "Provide owner for docs/other.md documentation defect; missing: owner"),
         ("Track docs/api.md documentation defect and docs/operations.md documentation defect.", "Track docs/api.md documentation defect and docs/other.md documentation defect."),
@@ -903,6 +903,9 @@ class HeaderMarkerTests(unittest.TestCase):
         for value in (
             "MISSING",
             "Not Provided",
+            "NOT SUPPLIED",
+            "Required",
+            "NEEDED",
             "Triggering finding is required.",
             "scope is not provided",
             "missing (no defect supplied)",
@@ -1172,17 +1175,8 @@ class CheckerIntegrationTests(unittest.TestCase):
                 run_main(report, "positive-trigger-001")
         self.assertIn("report contains an unsupported active candidate set", error.getvalue())
 
-    def test_required_axes_cannot_reuse_an_unapproved_candidate_label(self):
-        report = profile_report("positive-edge-007").replace(
-            "| Async/Sync or Mode Twin | async validator mode |",
-            "| Async/Sync or Mode Twin | async validator |",
-            1,
-        )
-        error = io.StringIO()
-        with contextlib.redirect_stderr(error):
-            with self.assertRaises(SystemExit):
-                run_main(report, "positive-edge-007")
-        self.assertIn("unsupported active candidate overlap", error.getvalue())
+    def test_required_axes_may_reuse_a_consistent_candidate_label(self):
+        run_main(profile_report("positive-edge-007"), "positive-edge-007")
 
     def test_approved_overlap_allows_only_one_row_per_axis(self):
         report = profile_report("positive-trigger-001").replace(
@@ -1216,6 +1210,434 @@ class CheckerIntegrationTests(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 run_main(report, "positive-edge-001")
         self.assertIn("report contains an unsupported active candidate overlap", error.getvalue())
+
+    def test_unapproved_required_axes_cannot_collapse_to_one_label(self):
+        report = profile_report("positive-trigger-002").replace(
+            "| Permission/Authorization Class | project export permission |",
+            "| Permission/Authorization Class | export denied test |",
+            1,
+        ).replace(
+            "Fix project export permission, project archive permission, denied audit event, export denied test,",
+            "Fix project archive permission, denied audit event, export denied test,",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(report, "positive-trigger-002")
+        self.assertIn("unsupported active candidate overlap", error.getvalue())
+
+    def test_hidden_html_cannot_supply_required_header_terms(self):
+        cases = [
+            (
+                profile,
+                f"Triggering finding: {finding}",
+                f"Triggering finding: unrelated <!-- {finding} -->",
+            )
+            for profile, (finding, _) in HEADERS.items()
+            if profile != "positive-edge-010"
+        ]
+        cases.extend((
+            (
+                "positive-edge-003",
+                "Triggering finding: Security review found a missing tenant ownership check:",
+                "Triggering finding: unrelated <!-- Security review found a missing tenant ownership check: -->",
+            ),
+            (
+                "positive-edge-006",
+                "Locked audit scope: src/pagination.ts and tests/pagination.test.ts",
+                "Locked audit scope: unrelated <!-- src/pagination.ts and tests/pagination.test.ts -->",
+            ),
+        ))
+        for profile, original, hidden in cases:
+            with self.subTest(profile=profile):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(profile_report(profile).replace(original, hidden, 1), profile)
+
+    def test_hidden_markdown_link_metadata_cannot_supply_required_header_terms(self):
+        cases = (
+            (
+                "positive-edge-001",
+                "Triggering finding: timeoutSeconds breaks health checks",
+                'Triggering finding: [unrelated](https://example.invalid "timeoutSeconds breaks health checks")',
+            ),
+            (
+                "positive-edge-003",
+                "Triggering finding: Security review found a missing tenant ownership check:",
+                'Triggering finding: [unrelated](https://example.invalid "Security review found a missing tenant ownership check: DELETE /teams/{teamId} checks organization membership only")',
+            ),
+            (
+                "positive-edge-006",
+                "Locked audit scope: src/pagination.ts and tests/pagination.test.ts",
+                'Locked audit scope: [unrelated](https://example.invalid "src/pagination.ts and tests/pagination.test.ts")',
+            ),
+            (
+                "positive-edge-001",
+                "Triggering finding: timeoutSeconds breaks health checks",
+                'Triggering finding: [unrelated](https://example.invalid/a_(x) "timeoutSeconds breaks health checks")',
+            ),
+            (
+                "positive-edge-001",
+                "Triggering finding: timeoutSeconds breaks health checks",
+                "Triggering finding: <svg><title>timeoutSeconds breaks health checks</title></svg>",
+            ),
+        )
+        for profile, original, hidden in cases:
+            with self.subTest(profile=profile):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(profile_report(profile).replace(original, hidden, 1), profile)
+
+    def test_verbatim_task_findings_satisfy_profile_meaning(self):
+        cases = (
+            (
+                "positive-edge-001",
+                "timeoutSeconds breaks health checks",
+                "bug BUG-221 found that the timeoutSeconds field in a single-file YAML configuration accepted zero and made the health checker spin",
+            ),
+            (
+                "positive-edge-002",
+                "DELETE /teams/{teamId} checks organization membership but lacks tenant ownership",
+                "a security/authorization review found that DELETE /teams/{teamId} checks organization membership but does not show a tenant ownership check",
+            ),
+            (
+                "positive-edge-003",
+                "Security review found a missing tenant ownership check: DELETE /teams/{teamId} checks organization membership only.",
+                "a security review found that DELETE /teams/{teamId} checks organization membership but may not check tenant ownership.",
+            ),
+            (
+                "positive-edge-004",
+                "maxItems zero breaks pagination",
+                "maxItems rejects negative values but still accepts zero, which crashes pagination",
+            ),
+            ("positive-edge-005", "maxRetries accepts zero", "maxRetries accepts zero, which disables retries"),
+            ("positive-edge-007", "minItems zero breaks pagination", "minItems accepts zero and crashes pagination"),
+            ("positive-edge-008", "maxRetries accepts zero", "maxRetries accepts zero, which disables retries"),
+            ("positive-edge-009", "maxRetries accepts zero", "maxRetries accepts zero, which disables retries"),
+            (
+                "positive-trigger-001",
+                "INC-17: maxRetries accepts zero",
+                "a reviewer found that maxRetries in config/retry.yml accepts zero, which silently disables retries and caused incident INC-17",
+            ),
+            (
+                "positive-trigger-002",
+                "can_export is missing for Projects export",
+                "INC-44 showed that GET /projects/{id}/export checked organization membership but did not check project-level can_export",
+            ),
+        )
+        for profile, fixture, supplied in cases:
+            with self.subTest(profile=profile):
+                report = profile_report(profile).replace(
+                    f"Triggering finding: {fixture}",
+                    f"Triggering finding: {supplied}",
+                    1,
+                )
+                run_main(report, profile)
+
+    def test_visible_header_markup_is_canonicalized_before_validation(self):
+        report = profile_report("positive-edge-001").replace(
+            "Triggering finding: timeoutSeconds breaks health checks",
+            "Triggering finding: <em>timeoutSeconds breaks health checks</em>",
+            1,
+        )
+        run_main(report, "positive-edge-001")
+
+    def test_inverted_triggering_findings_are_rejected(self):
+        cases = (
+            ("positive-edge-001", "timeoutSeconds breaks health checks", "timeoutSeconds does not break health checks"),
+            ("positive-edge-002", "lacks tenant ownership", "has tenant ownership"),
+            (
+                "positive-edge-003",
+                "Security review found a missing tenant ownership check: DELETE /teams/{teamId} checks organization membership only.",
+                "Security review confirmed DELETE /teams/{teamId} checks organization membership only and possesses tenant ownership.",
+            ),
+            ("positive-edge-004", "maxItems zero breaks pagination", "maxItems zero does not break pagination"),
+            ("positive-edge-005", "maxRetries accepts zero", "maxRetries does not accept zero"),
+            ("positive-edge-007", "minItems zero breaks pagination", "minItems zero does not break pagination"),
+            ("positive-edge-008", "maxRetries accepts zero", "maxRetries rejects zero"),
+            ("positive-edge-009", "maxRetries accepts zero", "maxRetries never accepts zero"),
+            ("positive-trigger-001", "maxRetries accepts zero", "maxRetries does not accept zero"),
+            ("positive-trigger-002", "can_export is missing for Projects export", "can_export is not missing and is present for Projects export"),
+        )
+        for profile, original, inverted in cases:
+            error = io.StringIO()
+            with self.subTest(profile=profile):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        run_main(profile_report(profile).replace(original, inverted, 1), profile)
+                self.assertIn("meaning", error.getvalue())
+
+    def test_equivalent_triggering_finding_inversions_are_rejected(self):
+        cases = (
+            ("positive-edge-001", "timeoutSeconds breaks health checks", "timeoutSeconds fails to break health checks"),
+            ("positive-edge-002", "lacks tenant ownership", "possesses tenant ownership"),
+            ("positive-edge-004", "maxItems zero breaks pagination", "maxItems zero no longer breaks pagination"),
+            ("positive-edge-005", "maxRetries accepts zero", "maxRetries is unable to accept zero"),
+            ("positive-edge-007", "minItems zero breaks pagination", "minItems zero never breaks pagination"),
+            ("positive-edge-008", "maxRetries accepts zero", "maxRetries stopped accepting zero"),
+            ("positive-edge-009", "maxRetries accepts zero", "maxRetries refuses zero"),
+            ("positive-trigger-001", "maxRetries accepts zero", "maxRetries no longer accepts zero"),
+            ("positive-trigger-002", "can_export is missing for Projects export", "can_export exists for Projects export"),
+        )
+        for profile, original, inverted in cases:
+            with self.subTest(profile=profile):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(profile_report(profile).replace(original, inverted, 1), profile)
+
+    def test_triggering_finding_consequence_inversions_are_rejected(self):
+        cases = (
+            (
+                "positive-edge-001",
+                "timeoutSeconds breaks health checks",
+                "timeoutSeconds accepted zero and the health checker does not spin",
+            ),
+            (
+                "positive-edge-004",
+                "maxItems zero breaks pagination",
+                "maxItems accepts zero but does not crash pagination",
+            ),
+            (
+                "positive-edge-007",
+                "minItems zero breaks pagination",
+                "minItems accepts zero but never crashes pagination",
+            ),
+        )
+        for profile, original, inverted in cases:
+            with self.subTest(profile=profile):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(profile_report(profile).replace(original, inverted, 1), profile)
+
+    def test_proposition_level_triggering_finding_inversion_is_rejected(self):
+        for profile, (finding, _) in HEADERS.items():
+            with self.subTest(profile=profile):
+                invalid = profile_report(profile).replace(
+                    f"Triggering finding: {finding}",
+                    f"Triggering finding: It is false that {finding}",
+                    1,
+                )
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, profile)
+
+    def test_verbatim_task_finding_inversion_is_rejected(self):
+        cases = (
+            (
+                "positive-edge-002",
+                "DELETE /teams/{teamId} checks organization membership but lacks tenant ownership",
+                "It is false that a security/authorization review found that DELETE /teams/{teamId} checks organization membership but does not show a tenant ownership check",
+            ),
+            (
+                "positive-edge-003",
+                "Security review found a missing tenant ownership check: DELETE /teams/{teamId} checks organization membership only.",
+                "It is false that a security review found that DELETE /teams/{teamId} checks organization membership but may not check tenant ownership.",
+            ),
+            (
+                "positive-trigger-002",
+                "can_export is missing for Projects export",
+                "It is false that INC-44 showed that GET /projects/{id}/export checked organization membership but did not check project-level can_export",
+            ),
+        )
+        for profile, original, inverted in cases:
+            with self.subTest(profile=profile):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(
+                            profile_report(profile).replace(original, inverted, 1),
+                            profile,
+                        )
+
+    def test_locked_scope_cannot_exclude_the_supplied_artifacts(self):
+        for profile in CHECK_REPORT.PROFILE_SCOPE_ARTIFACTS:
+            report = profile_report(profile)
+            scope = HEADERS.get(profile, (None, None))[1]
+            if profile == "positive-edge-006":
+                scope = "src/pagination.ts and tests/pagination.test.ts"
+            with self.subTest(profile=profile):
+                invalid = report.replace(
+                    f"Locked audit scope: {scope}",
+                    f"Locked audit scope: {scope}; these are excluded from the audit scope",
+                    1,
+                )
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, profile)
+
+    def test_locked_scope_rejects_equivalent_deictic_exclusions(self):
+        scope = HEADERS["positive-edge-009"][1]
+        for suffix in (
+            "these are out of scope",
+            "these are dropped from the audit scope",
+            "none of these files are in scope",
+            "do not audit these artifacts",
+            "the audit excludes these files",
+            "those files are excluded from the audit scope",
+            "the above files are out of scope",
+            "all of them are excluded",
+            "the listed artifacts are excluded from the audit scope",
+        ):
+            invalid = profile_report("positive-edge-009").replace(
+                f"Locked audit scope: {scope}",
+                f"Locked audit scope: {scope}; {suffix}",
+                1,
+            )
+            with self.subTest(suffix=suffix):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-009")
+
+    def test_locked_scope_may_exclude_unrelated_artifacts(self):
+        scope = HEADERS["positive-edge-009"][1]
+        report = profile_report("positive-edge-009").replace(
+            f"Locked audit scope: {scope}",
+            f"Locked audit scope: {scope}; unrelated integration tests are excluded from the audit scope",
+            1,
+        )
+        run_main(report, "positive-edge-009")
+
+    def test_locked_scope_rejects_named_artifact_exclusions(self):
+        scope = HEADERS["positive-edge-009"][1]
+        for suffix in (
+            "config/retry.yml is excluded from the audit scope",
+            "docs/api.md is not in scope",
+            "do not audit config/retry.yml",
+            "the audit excludes docs/api.md",
+            "ignore config/retry.yml",
+        ):
+            invalid = profile_report("positive-edge-009").replace(
+                f"Locked audit scope: {scope}",
+                f"Locked audit scope: {scope}; {suffix}",
+                1,
+            )
+            with self.subTest(suffix=suffix):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-009")
+
+    def test_locked_scope_rejects_required_named_section_exclusion(self):
+        scope = HEADERS["positive-edge-001"][1]
+        invalid = profile_report("positive-edge-001").replace(
+            f"Locked audit scope: {scope}",
+            f"Locked audit scope: {scope}; Health check timeout section is excluded from the audit scope",
+            1,
+        )
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-001")
+
+    def test_locked_scope_accepts_explicit_required_item_inclusion(self):
+        scope = HEADERS["positive-edge-005"][1]
+        report = profile_report("positive-edge-005").replace(
+            f"Locked audit scope: {scope}",
+            f"Locked audit scope: {scope}; both files are in scope",
+            1,
+        )
+        run_main(report, "positive-edge-005")
+
+    def test_visible_scope_link_labels_are_the_rendered_artifacts(self):
+        scope = HEADERS["positive-edge-009"][1]
+        report = profile_report("positive-edge-009").replace(
+            f"Locked audit scope: {scope}",
+            "Locked audit scope: [config/retry.yml](src/unrelated.md) and the Retry Configuration section of [docs/api.md](other)",
+            1,
+        )
+        run_main(report, "positive-edge-009")
+
+    def test_reduced_blocker_cannot_dismiss_the_missing_input(self):
+        for blocker in (
+            "Confirm the Locked audit scope is unnecessary.",
+            "Confirm the Locked audit scope is not needed.",
+            "Can we skip the Locked audit scope?",
+            "Confirm we can proceed without the Locked audit scope.",
+            "Provide the Locked audit scope, though it is probably superfluous.",
+            "Provide the Locked audit scope (optional).",
+        ):
+            with self.subTest(blocker=blocker):
+                invalid = profile_report("positive-edge-003").replace(
+                    "Provide the Locked audit scope.", blocker, 1,
+                )
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-003")
+
+    def test_reduced_blocker_may_explain_why_work_is_omitted(self):
+        for blocker in (
+            "Provide the Locked audit scope so we do not skip material candidates.",
+            "Provide the Locked audit scope; until it arrives we omit axis enumeration.",
+            "Provide the Locked audit scope; do not ignore docs artifacts.",
+        ):
+            with self.subTest(blocker=blocker):
+                report = profile_report("positive-edge-003").replace(
+                    "Provide the Locked audit scope.", blocker, 1,
+                )
+                run_main(report, "positive-edge-003")
+
+    def test_reduced_blocker_accepts_authorized_request_forms(self):
+        cases = (
+            ("positive-edge-003", "Provide the Locked audit scope.", "Need the Locked audit scope."),
+            (
+                "positive-edge-003",
+                "Provide the Locked audit scope.",
+                "Provide the smallest set of route, controller, and spec files for the Locked audit scope.",
+            ),
+            (
+                "positive-edge-003",
+                "Provide the Locked audit scope.",
+                "Which route, controller, and spec files form the Locked audit scope?",
+            ),
+            ("positive-edge-006", "Provide the Triggering finding.", "Need the Triggering finding."),
+            (
+                "positive-edge-003",
+                "Provide the Locked audit scope.",
+                "Provide the Locked audit scope; we cannot proceed without the Locked audit scope.",
+            ),
+            (
+                "positive-edge-003",
+                "Provide the Locked audit scope.",
+                "Provide the Locked audit scope; no axes can be enumerated without the Locked audit scope.",
+            ),
+        )
+        for profile, original, blocker in cases:
+            with self.subTest(profile=profile, blocker=blocker):
+                run_main(profile_report(profile).replace(original, blocker, 1), profile)
+
+    def test_reduced_blocker_rejects_pronoun_dismissal(self):
+        for blocker in (
+            "Provide the Locked audit scope so we can proceed without it.",
+            "Provide the Locked audit scope so we can ignore it.",
+            "Provide the Locked audit scope; we will proceed regardless.",
+            "Provide the Locked audit scope even though it does not matter.",
+        ):
+            error = io.StringIO()
+            with self.subTest(blocker=blocker):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        run_main(
+                            profile_report("positive-edge-003").replace(
+                                "Provide the Locked audit scope.", blocker, 1,
+                            ),
+                            "positive-edge-003",
+                        )
+                self.assertIn("blocking question must name the missing required input", error.getvalue())
+
+    def test_reduced_blocker_must_request_the_named_missing_header(self):
+        for blocker in (
+            "Confirm the severity rating; Locked audit scope noted.",
+            "Provide the fix owner. Locked audit scope is already known.",
+        ):
+            error = io.StringIO()
+            with self.subTest(blocker=blocker):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        run_main(
+                            profile_report("positive-edge-003").replace(
+                                "Provide the Locked audit scope.", blocker, 1,
+                            ),
+                            "positive-edge-003",
+                        )
+                self.assertIn("blocking question must name the missing required input", error.getvalue())
 
     def test_edge_002_header_preserves_tenant_ownership_omission(self):
         invalid = profile_report("positive-edge-002").replace(
@@ -1283,8 +1705,13 @@ class CheckerIntegrationTests(unittest.TestCase):
                         run_main(invalid, "positive-edge-010")
                 self.assertIn("clean profile triggering finding", error.getvalue())
 
-    def test_deferred_reason_cannot_negate_deferral(self):
-        for reason in ("no reason to defer", "no-reason-to-defer"):
+    def test_deferred_reason_cannot_deny_its_justification(self):
+        for reason, expected_error in (
+            ("no reason to defer", "Deferred follow-ups cannot negate deferral"),
+            ("no-reason-to-defer", "Deferred follow-ups cannot negate deferral"),
+            ("no deferral", "documentation deferral reason must cite ownership outside this change"),
+            ("deferral is not warranted", "documentation deferral reason must cite ownership outside this change"),
+        ):
             invalid = profile_report("positive-edge-009").replace(
                 "reason: documentation is owned outside this change",
                 f"reason: {reason}",
@@ -1295,10 +1722,125 @@ class CheckerIntegrationTests(unittest.TestCase):
                 with contextlib.redirect_stderr(error):
                     with self.assertRaises(SystemExit):
                         run_main(invalid, "positive-edge-009")
-                self.assertIn("Deferred follow-ups cannot negate deferral", error.getvalue())
+                self.assertIn(expected_error, error.getvalue())
+
+    def test_fix_and_deferral_summaries_reject_avoidance_wording(self):
+        cases = (
+            ("Fix maxRetries zero bound.", "Avoid fixing maxRetries zero bound."),
+            ("Fix maxRetries zero bound.", "Defer maxRetries zero bound."),
+            (
+                "Do not fix this now; defer docs/api.md documentation defect;",
+                "Do not fix this now; avoid deferring docs/api.md documentation defect;",
+            ),
+            (
+                "Do not fix this now; defer docs/api.md documentation defect;",
+                "Fix docs/api.md documentation defect now;",
+            ),
+            (
+                "Fix maxRetries zero bound.",
+                "Update maxRetries zero bound: no action required.",
+            ),
+            (
+                "Fix maxRetries zero bound.",
+                "Fix maxRetries zero bound. Actually, skip it.",
+            ),
+            (
+                "Do not fix this now; defer docs/api.md documentation defect;",
+                "Do not fix this now; defer docs/api.md documentation defect; cancel the deferral;",
+            ),
+            (
+                "Do not fix this now; defer docs/api.md documentation defect;",
+                "Do not fix this now; track docs/api.md documentation defect but do not defer it;",
+            ),
+            (
+                "Fix maxRetries zero bound.",
+                "Fix maxRetries zero bound; leave maxRetries zero bound unchanged.",
+            ),
+        )
+        for original, replacement in cases:
+            with self.subTest(replacement=replacement):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(
+                            profile_report("positive-edge-009").replace(original, replacement, 1),
+                            "positive-edge-009",
+                        )
+
+    def test_blocker_rejects_trailing_clarification_reversal(self):
+        invalid = profile_report("positive-edge-005").replace(
+            "Provide owner and reason for docs/operations.md documentation defect; missing: owner, reason",
+            "Provide owner and reason for docs/operations.md documentation defect; no clarification is needed; missing: owner, reason",
+            1,
+        )
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-005")
+
+    def test_fix_now_summary_may_describe_prior_unfixed_state(self):
+        report = profile_report("positive-edge-009").replace(
+            "Fix maxRetries zero bound.",
+            "Fix maxRetries zero bound; it was left unfixed by the prior patch.",
+            1,
+        )
+        run_main(report, "positive-edge-009")
+
+    def test_deferral_reason_may_contrast_local_and_external_ownership(self):
+        report = profile_report("positive-edge-009").replace(
+            "reason: documentation is owned outside this change",
+            "reason: documentation is not owned by this change; Platform Docs owns the public API reference outside this change",
+            1,
+        )
+        run_main(report, "positive-edge-009")
+
+    def test_deferral_reason_rejects_inside_not_outside_inversion(self):
+        for reason in (
+            "documentation is owned inside, rather than outside, this change",
+            "documentation is owned within, instead of outside, this change",
+            "documentation is owned internally, rather than outside, this change",
+            "documentation is owned locally, not outside, this change",
+        ):
+            invalid = profile_report("positive-edge-009").replace(
+                "reason: documentation is owned outside this change",
+                f"reason: {reason}",
+                1,
+            )
+            with self.subTest(reason=reason):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-009")
+
+    def test_edge_007_overlap_does_not_create_extra_candidate_budget(self):
+        report = profile_report("positive-edge-007").replace(
+            "| Opposite Bound | minItems zero bound | present | fix-now | src/pagination.ts |",
+            "| Opposite Bound | minItems zero bound | present | fix-now | src/pagination.ts |\n"
+            "| Opposite Bound | fabricated zero guard | present | fix-now | src/pagination.ts |",
+            1,
+        ).replace(
+            "Fix minItems zero bound,",
+            "Fix minItems zero bound, fabricated zero guard,",
+            1,
+        )
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                run_main(report, "positive-edge-007")
+
+    def test_case_variant_missing_marker_is_rejected_end_to_end(self):
+        for profile, header in (
+            ("positive-edge-003", "Locked audit scope"),
+            ("positive-edge-006", "Triggering finding"),
+        ):
+            with self.subTest(profile=profile):
+                invalid = profile_report(profile).replace(
+                    f"{header}: missing", f"{header}: MISSING", 1,
+                )
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, profile)
 
     def test_fix_now_summary_rejects_never_fix(self):
-        for action in ("Never fix", "Never-fix"):
+        for action in (
+            "Never fix", "Never-fix", "Won't fix", "Cannot fix", "No fix planned for",
+        ):
             invalid = profile_report("positive-edge-009").replace(
                 "Fix maxRetries zero bound.",
                 f"{action} maxRetries zero bound.",
@@ -1742,6 +2284,12 @@ class CheckerIntegrationTests(unittest.TestCase):
                 "reason: pending legal approval",
                 "documentation deferral reason must cite ownership outside this change",
             ),
+            (
+                "positive-edge-009",
+                "reason: documentation is owned outside this change",
+                "reason: documentation is not owned outside this change",
+                "documentation deferral reason must cite ownership outside this change",
+            ),
         )
         for profile, original, invalid_value, expected_error in cases:
             error = io.StringIO()
@@ -2037,7 +2585,7 @@ class ConfigurationTests(unittest.TestCase):
             text = (root / name).read_text(encoding="utf-8")
             for header in headers:
                 match = re.search(
-                    rf"'(?P<pattern>\(\?im\)\^{re.escape(header)}:[^']+)'",
+                    rf"'(?P<pattern>\(\?m\)\^{re.escape(header)}:[^']+)'",
                     text,
                 )
                 self.assertIsNotNone(match, f"{name}: {header}")
@@ -2045,6 +2593,7 @@ class ConfigurationTests(unittest.TestCase):
                 for marker in CHECK_REPORT.MISSING:
                     self.assertRegex(f"{header}: {marker}", pattern)
                     self.assertTrue(CHECK_REPORT.missing_header_marker(marker))
+                self.assertIsNone(re.search(pattern, f"{header}: MISSING"))
                 for invalid in (
                     f"{header}: missing (clarifier)",
                     f"{header}: The {header.lower()} is missing.",
