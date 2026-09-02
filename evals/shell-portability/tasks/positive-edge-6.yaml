@@ -1,0 +1,84 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-006
+name: Concrete script uses default portability baseline
+description: |
+  Concrete shell code without a declared target must use and state the skill's
+  broad default baseline before judging portability.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    Review this script for portability. I have not declared target shells or
+    operating systems.
+
+    ```sh
+    #!/bin/sh
+    if [[ "$value" == demo ]]; then
+      echo -e "$value"
+    fi
+    ```
+
+    Return the verdict, target, interpreter, findings, checklist status, and
+    residual risk. List the `[[ ... ]]` bashism first and the `echo -e` output
+    issue second.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-portability/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-portability
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?im)^Verdict:\s*BLOCK\s*$'
+        - '(?i)Target:.*default baseline.*POSIX sh.*(?:dash|busybox).*GNU.*(?:BSD|macOS).*busybox'
+        - '(?im)^Interpreter:\s*#!/bin/sh\s*$'
+        - '(?im)^Findings:\s*$'
+        - '(?im)^1\.\s+[^\r\n]+$'
+        - '(?im)^[ \t]+Severity:\s*(?:CRITICAL|HIGH|MEDIUM|LOW)\s*$'
+        - '(?im)^[ \t]+Classification:\s*(?:Confirmed issue|Likely risk|Open question|Accepted tradeoff)\s*$'
+        - '(?im)^[ \t]+Evidence:\s*[^\r\n]+$'
+        - '(?im)^[ \t]+Rule:\s*(?:interpreter-shebang|bashisms|utilities-flags|output-behavior|verification)\s*$'
+        - '(?im)^[ \t]+Risk:\s*[^\r\n]+$'
+        - '(?im)^[ \t]+Portable fix:\s*[^\r\n]+$'
+        - '(?im)^[ \t]+Verification:\s*[^\r\n]+$'
+        - '(?ims)^1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*(?:CRITICAL|HIGH|MEDIUM|LOW)\s*\r?\n[ \t]+Classification:\s*(?:Confirmed issue|Likely risk|Open question|Accepted tradeoff)\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*(?:\[\[|bashism)[^\r\n]*\r?\n[ \t]+Rule:\s*bashisms\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*[^\r\n]+$'
+        - '(?ims)^2\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*(?:CRITICAL|HIGH|MEDIUM|LOW)\s*\r?\n[ \t]+Classification:\s*(?:Confirmed issue|Likely risk|Open question|Accepted tradeoff)\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*echo -e[^\r\n]*\r?\n[ \t]+Rule:\s*output-behavior\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]*printf[^\r\n]*\r?\n[ \t]+Verification:\s*[^\r\n]+$'
+        - '(?i)(?:\[\[|bashism|not.*POSIX)'
+        - '(?i)(?:echo -e|printf)'
+        - '(?im)^Checklist status:\s*$'
+        - '(?im)^- Interpreter and shebang:\s*(?:covered|missing|n/a)\s*$'
+        - '(?im)^- Bashisms:\s*(?:covered|missing|n/a)\s*$'
+        - '(?im)^- Utilities and flags:\s*(?:covered|missing|n/a)\s*$'
+        - '(?im)^- Output and behavior:\s*(?:covered|missing|n/a)\s*$'
+        - '(?im)^- Verification:\s*(?:covered|missing|n/a)\s*$'
+        - '(?im)^Residual risk:\s*[^\r\n]+$'
+      not_contains:
+        - 'Construction result:'
+        - 'Construction assessment:'
+        - 'Execution authority:'
+        - 'Next step:'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response explicitly applies the documented broad
+        default baseline because no target was declared, returns BLOCK, and
+        identifies both the `[[ ... ]]` bashism under `#!/bin/sh` and the
+        non-portable `echo -e` behavior with a `printf` replacement.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+      mode: independent

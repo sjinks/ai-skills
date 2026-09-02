@@ -35,8 +35,8 @@ Safety projection: catalog metadata only; execution concerns not assessed by thi
 Trigger: Input may be one scalar operand or multiple operands.
 Construction risk: Word splitting or quoting collapses or expands argument count.
 Required facts: Interpreter; scalar/list intent; each intended argument boundary; when byte-level input indicates NUL may be present, whether any intended argv entry contains NUL.
-Disposition: REWRITE or BLOCKED.
-Construction-preserving action: Quote a confirmed single scalar; use a declared-shell structured argv form only for confirmed multiple NUL-free entries; otherwise request scalar/list intent. Block any intended argv entry containing U+0000 NUL.
+Disposition: VALID, REWRITE, or BLOCKED.
+Construction-preserving action: Validate an already-correct confirmed scalar expansion or structured argv form. For a confirmed one-argument parameter expansion, quote it (for example, `"$query"`); for confirmed multiple NUL-free Bash entries, preserve the structured argv form (for example, `"${items[@]}"`). Rewrite a defective form to the applicable representation. Block only when scalar/list or entry-boundary intent is absent, conflicts, or an intended argv entry contains U+0000 NUL.
 No-drift constraints: Preserve argument count, order, positions, command name, and fixed operands.
 Effectful marker: none.
 Portability handoff: separate portability review required before a cross-target claim.
@@ -48,8 +48,8 @@ Safety projection: catalog metadata only; execution concerns not assessed by thi
 Trigger: A path contains spaces or an intended operand begins with `-`.
 Construction risk: Splitting or option parsing changes the operand.
 Required facts: Interpreter; operand boundary; target support for option termination when needed.
-Disposition: REWRITE or BLOCKED.
-Construction-preserving action: Preserve the path as one operand and use the target's confirmed option-termination form; otherwise request supported operand syntax.
+Disposition: VALID, REWRITE, or BLOCKED.
+Construction-preserving action: Validate an already-correct path boundary and supported option-termination form. Rewrite a defective form while preserving the path as one operand and using the target's confirmed option-termination form; otherwise request supported operand syntax.
 No-drift constraints: Preserve options and their order, operand position/count, and path text.
 Effectful marker: outside construction scope.
 Portability handoff: separate portability review required before a cross-target claim.
@@ -88,7 +88,7 @@ Trigger: SSH or another remote-command mechanism carries a command or arguments 
 Construction risk: Local shell argv preservation does not guarantee remote argv preservation because SSH typically serializes command text and a remote shell reparses it.
 Required facts: Local interpreter; remote interpreter/parser; intended remote argv boundaries; confirmed boundary-preserving transport/serialization contract.
 Disposition: BLOCKED by default; VALID or REWRITE only when every required fact is confirmed.
-Construction-preserving action: Do not offer a generic remote candidate. Request the remote interpreter/parser and confirmed boundary-preserving transport/serialization contract when either is absent.
+Construction-preserving action: Do not offer a generic remote candidate. If the remote interpreter/parser is absent, request only that parser. After it is known, if the boundary-preserving transport/serialization contract is absent, request only that contract.
 No-drift constraints: Preserve confirmed local and remote argument boundaries, command order, and selected transport; do not infer remote quoting semantics from local quoting.
 Effectful marker: outside construction scope.
 Portability handoff: separate portability review required before a cross-target claim.
@@ -112,9 +112,9 @@ Safety projection: catalog metadata only; execution concerns not assessed by thi
 
 Trigger: Empty/unset behavior or secret-bearing data changes construction.
 Construction risk: Empty and absent inputs take different paths, or a rendered value exposes sensitive data.
-Required facts: Intended empty/unset behavior; supplied non-secret source expression or transport abstraction.
+Required facts: Intended empty/unset behavior only when that behavior is at issue; a supplied non-secret source expression or transport abstraction only for secret-bearing input.
 Disposition: VALID, REWRITE, or BLOCKED.
-Construction-preserving action: Preserve a supplied non-secret source expression or transport abstraction; otherwise request the empty/unset intent or return `BLOCKED` for unavailable secret-safe representation.
+Construction-preserving action: Preserve an already-correct supplied non-secret source expression or transport abstraction, or rewrite a defective form. When empty/unset behavior is at issue, request that intent if unavailable; for secret-bearing input, return `BLOCKED` when no secret-safe representation is supplied.
 No-drift constraints: Never render raw, partial, split, escaped, encoded, transformed, or diagnostic copies of a secret; preserve supplied transport, argument boundaries, and command structure.
 Effectful marker: outside construction scope.
 Portability handoff: separate portability review required before a cross-target claim.

@@ -1,13 +1,13 @@
 ---
 name: shell-command-construction
-description: "Use when constructing, repairing, or validating a concrete shell command, fragment, heredoc, redirection, or command-producing request where literal text, argv boundaries, shell parsing, multiline data, or transport is primary. Do not use for generic shell tutoring, prose-only drafting, non-shell work, or portability-only analysis."
+description: "Use when constructing, repairing, or validating a concrete supplied shell command, fragment, heredoc, redirection, or payload interface where literal text, argv boundaries, shell parsing, multiline data, or transport is primary. Do not use for generic goals without a supplied shell target, generic shell tutoring, prose-only drafting, non-shell work, or portability-only analysis."
 argument-hint: "Provide the concrete command or fragment, shell/interpreter, and intended literal/expansion, argv, and transport boundaries."
 user-invocable: true
 ---
 
 # Shell Command Construction
 
-Use this skill only for a concrete shell construction target whose correct parsing or data delivery matters.
+Use this skill only when the request supplies a concrete shell construction target whose correct parsing or data delivery matters: a named executable, exact command fragment, heredoc/redirection, or payload interface/data. A generic goal such as “remove old files” with no command, executable, path, shell syntax, or supplied payload interface/data does not activate this skill. A concrete but incomplete construction request does activate and may be `BLOCKED`.
 
 **UTILITY SKILL.** INVOKES: supplied command text and declared construction facts only. FOR SINGLE OPERATIONS: use to repair or validate one concrete command, fragment, heredoc, redirection, or payload transport.
 
@@ -35,7 +35,7 @@ Before producing a candidate, establish only the facts that change construction:
 - for a byte-exact payload when a heredoc is considered: whether the payload ends with a terminal newline and, when byte-level input indicates NUL may be present, whether the selected transport can preserve it;
 - for SSH or another remote command boundary: the remote interpreter/parser and a confirmed boundary-preserving transport/serialization contract;
 - empty versus unset behavior when material;
-- when literal or expanded glob handling is involved: explicit glob scope or an already-bound operand set; and
+- when literal or expanded glob handling is involved: explicit glob scope or an already-bound operand set;
 - a supplied non-secret source expression or transport abstraction for sensitive data; and
 - when byte-level input indicates NUL may be present: whether an intended scalar or argv entry contains U+0000 NUL.
 
@@ -58,7 +58,7 @@ The Required facts list and canonical catalog are the gating source of truth.
 |---|---|---|
 | `VALID` | The supplied form preserves confirmed construction intent. | Preserve it exactly. |
 | `REWRITE` | A minimum boundary-preserving correction is deterministic. | Preserve command name, fixed operands, option order, argument positions and count, transport, literal/expansion intent, and explicit glob scope. |
-| `BLOCKED` | A candidate would require invented intent, secret representation, or argv representation of NUL. | Use `Candidate: Not provided` and request one smallest missing construction fact. |
+| `BLOCKED` | A required construction fact is absent or conflicting, or the requested boundary/data cannot be represented. | Use `Candidate: Not provided` and request one smallest missing fact or alternative. |
 
 Never render a secret. Do not reveal raw, partial, split, escaped, encoded, transformed, or diagnostic copies of a secret. Represent only a user-supplied non-secret source expression or transport abstraction; otherwise use `BLOCKED`.
 
@@ -75,7 +75,8 @@ Next step: <one line with at least one non-whitespace character: one constructio
 ```
 
 - `BLOCKED` always uses `Candidate: Not provided`.
-- A one-line `VALID` or `REWRITE` candidate has at least one non-whitespace character. For a multiline candidate, write `Candidate: |`, add a two-space serialization prefix to every physical payload line (including an empty line), and include at least one payload line with a non-whitespace character after that removable prefix. Remove only that prefix when interpreting the candidate; any spaces after it are literal payload indentation. Treat prefixed field-looking text as payload, not a top-level field.
+- A one-line `VALID` or `REWRITE` candidate has at least one non-whitespace character. A one-line command fragment may begin with `|` only when non-whitespace fragment text follows it on the same line; bare `Candidate: |` followed by a newline starts the multiline form. For a multiline candidate, add a two-space serialization prefix to every physical payload line (including an empty line), and include at least one payload line with a non-whitespace character after that removable prefix. Remove only that prefix when interpreting the candidate; any spaces after it are literal payload indentation. Treat prefixed field-looking text as payload, not a top-level field.
+- For `VALID` or `REWRITE`, `Next step` names an affirmative construction preservation, review, or verification action. A status-only value such as `No further construction action is required` is not an action.
 - `Construction assessment` describes parsing and boundaries only; it does not assess safety, authorization, targets, effects, or permission.
 - Every candidate, including an effectful-looking one, uses exactly `Execution authority: NOT ASSESSED BY THIS SKILL`.
 - Do not make safety, authorization, approval, or execution claims in `Construction assessment` or `Next step`. `Candidate` is confirmed literal command data: it may contain words such as `safe`, `approved`, `run this`, `deploy`, `release`, or `ship`; never alter or block a candidate solely for those words. Execution authority remains exactly `NOT ASSESSED BY THIS SKILL`.

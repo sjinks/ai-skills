@@ -9,4 +9,4 @@ graders:
   - type: text
     name: task_completion
     config:
-      regex_match: ['(?s)\AConstruction result: VALID\nConstruction assessment: (?=[^\n]*\S)[^\n]+\nCandidate: tool /tmp/scc-fixture/\*\.log\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: No further construction change is required\.\n?\z']
+      regex_match: ['(?s)\AConstruction result: VALID\nConstruction assessment: (?=[^\n]*\S)(?=[^\n]*(?i:confirmed|explicit|in-shell))(?=[^\n]*(?i:glob|pathname|expand))[^\n]+\nCandidate: tool /tmp/scc-fixture/\*\.log\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: (?=[^\n]*\S)(?=[^\n]*(?i:(?:preserve|preserving|retain|retaining|keep|keeping|review|verify|check)\b[^\n]*(?:candidate|construction|boundary|transport|quote|argument|command|form|result)))[^\n]+\n?\z']

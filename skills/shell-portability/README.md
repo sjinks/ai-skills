@@ -12,7 +12,7 @@ It helps an assistant:
 - catch behavioral hazards: `echo` escapes/flags, unquoted word-splitting, locale-dependent `sort`/`tr`, non-POSIX `trap`/`set` options
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with target, interpreter, findings, checklist status, verification path, and an insufficient-context template
 
-It is **not** for concrete shell command construction correctness where literal data, argv boundaries, heredocs, redirection, or transport preservation are the primary concern; it is also not for pure bash-only feature questions or non-shell languages. Quoting is still in scope here for its word-splitting/globbing portability effects. For mixed requests, request a separate shell command construction result first; if it is unresolved, resolve it before portability review. Review only the exact resulting candidate and do not make a construction claim.
+It is **not** for concrete shell command construction correctness where literal data, argv boundaries, heredocs, redirection, or transport preservation are the primary concern; it is also not for pure bash-only feature questions or non-shell languages. Quoting is still in scope here for its word-splitting/globbing portability effects. For mixed requests, request a separate shell command construction result first. If no exact candidate is available because the result is absent or blocked, return the reduced `BLOCK` form and require construction first; otherwise review only the exact resulting candidate and make no construction claim.
 
 ## Files
 

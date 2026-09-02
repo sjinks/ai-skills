@@ -1,8 +1,8 @@
 id: positive-edge-003
 name: Leading-dash operand
-inputs: { prompt: "In Bash, rewrite `tool --mode scan -input file` so the final name is one operand. `tool` supports `--`; preserve option order." }
+inputs: { prompt: "In Bash, rewrite `tool --mode scan -input file` so the final name is one operand. `tool` supports `--`; preserve option order and use the POSIX single-quote representation for the final operand." }
 expected: { should_trigger: true }
 graders:
   - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
   - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
-  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: REWRITE\nConstruction assessment: (?=[^\n]*\S)[^\n]+\nCandidate: tool --mode scan -- ''-input file''\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: No further construction change is required\.\n?\z'] } }
+  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: REWRITE\nConstruction assessment: (?=[^\n]*\S)(?=[^\n]*(?i:--|option|operand|leading dash))[^\n]+\nCandidate: tool --mode scan -- ''-input file''\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: (?=[^\n]*\S)(?=[^\n]*(?i:(?:preserve|preserving|retain|retaining|keep|keeping|review|verify|check)\b[^\n]*(?:candidate|construction|boundary|transport|quote|argument|command|form|result)))[^\n]+\n?\z'] } }

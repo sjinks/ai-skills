@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-003
+name: Bash-only command boundary repair
+description: |
+  A concrete single-shell quoting repair with no portability objective must not
+  activate the portability skill.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    In Bash only, repair `tool $label` so `label` remains exactly one argument
+    when it contains spaces. Do not perform a portability review.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-portability/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Verdict:"
+        - "Target:"
+        - "Interpreter:"
+        - "Findings:"
+        - "Checklist status:"
+        - "Residual risk:"
