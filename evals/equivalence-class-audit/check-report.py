@@ -802,7 +802,7 @@ def reconcile_summaries(sections, rows):
     blocked = list(blocked_by_label.values())
     blocker_bullets = sections["Blocking questions"]
     if blocked and len(blocker_bullets) != len(blocked):
-        fail("Blocking questions must contain one bullet per blocked row")
+        fail("Blocking questions must contain one bullet per distinct blocked candidate label")
     assignments = summary_assignments(
         blocked, blocker_bullets, "Blocking questions", one_to_one=True
     )
@@ -1123,6 +1123,11 @@ def validate(profile, headers, sections, rows):
         metadata = re.search(r"\bowner:\s*([^;]+);\s*reason:\s*(.+)$", deferred, flags=re.I)
         if not metadata or label_norm(metadata.group(1)) != "platform docs":
             fail("documentation deferral owner must be Platform Docs")
+        reason = norm(metadata.group(2))
+        if (not all(term in reason for term in ("outside", "change"))
+                or not any(term in reason for term in ("owned", "owns"))
+                or not any(term in reason for term in ("documentation", "public api reference"))):
+            fail("documentation deferral reason must cite ownership outside this change")
     elif profile == "positive-edge-010":
         if any(item["presence"] not in (
             "absent", "n/a — structurally inapplicable", "n/a — no candidates in scope",

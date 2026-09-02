@@ -1647,6 +1647,12 @@ class CheckerIntegrationTests(unittest.TestCase):
                 "owner: API Team; reason: Platform Docs requested transfer",
                 "documentation deferral owner must be Platform Docs",
             ),
+            (
+                "positive-edge-009",
+                "reason: documentation is owned outside this change",
+                "reason: pending legal approval",
+                "documentation deferral reason must cite ownership outside this change",
+            ),
         )
         for profile, original, invalid_value, expected_error in cases:
             error = io.StringIO()
@@ -1943,10 +1949,11 @@ class ConfigurationTests(unittest.TestCase):
             "positive-edge-006": ("BLOCK", "UNASSESSED"),
             "positive-edge-010": ("CLEAN", "NONE"),
             "positive-edge-011": ("BLOCK", "UNASSESSED"),
+            "positive-trigger-002": ("BLOCK", "HIGH"),
         }
         actionable_profiles = {
             "positive-edge-001", "positive-edge-004", "positive-edge-007",
-            "positive-edge-009", "positive-trigger-001", "positive-trigger-002",
+            "positive-edge-009", "positive-trigger-001",
         }
         blocked_profiles = {"positive-edge-002"}
         known_impact_blocked_profiles = {"positive-edge-005", "positive-edge-008"}
