@@ -1104,16 +1104,18 @@ class CheckerContractTests(unittest.TestCase):
 
 class CheckerIntegrationTests(unittest.TestCase):
     def test_blocked_row_requires_artifact_citation(self):
-        invalid = profile_report("positive-edge-005").replace(
-            "| Documentation/Spec Prose Twin | docs/operations.md documentation defect | present | blocked | docs/operations.md |",
-            "| Documentation/Spec Prose Twin | docs/operations.md documentation defect | present | blocked | no candidates in locked scope |",
-            1,
-        )
-        error = io.StringIO()
-        with contextlib.redirect_stderr(error):
-            with self.assertRaises(SystemExit):
-                run_main(invalid, "positive-edge-005")
-        self.assertIn("evidence must cite an artifact", error.getvalue())
+        for evidence in ("no candidates in locked scope", "triggering finding"):
+            invalid = profile_report("positive-edge-005").replace(
+                "| Documentation/Spec Prose Twin | docs/operations.md documentation defect | present | blocked | docs/operations.md |",
+                f"| Documentation/Spec Prose Twin | docs/operations.md documentation defect | present | blocked | {evidence} |",
+                1,
+            )
+            error = io.StringIO()
+            with self.subTest(evidence=evidence):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-005")
+                self.assertIn("blocked row evidence must cite an artifact", error.getvalue())
 
     def test_all_supplied_scope_profiles_reject_added_artifact(self):
         for profile in sorted(CHECK_REPORT.PROFILE_SCOPE_ARTIFACTS):

@@ -587,20 +587,23 @@ def parse_report(output):
                 evidence_raw,
                 flags=re.I,
             )
-            citation = explicit_artifact or re.search(
+            artifact_citation = explicit_artifact or re.search(
                 r"(?:[\w.-]+/)+[\w.-]+|"
                 r"\b[a-z][a-z0-9 _/-]{2,} section\b|"
                 r"\b(?:test (?:file|case)|"
                 r"(?:policy|api|json) spec|(?:json )?schema(?: artifact)?|migration(?: file)?|"
                 r"config(?:uration)? (?:block|artifact)|(?:audit )?log(?: entry)?|incident(?: note)?|"
-                r"triggering finding)\b",
+                r"artifact)\b",
                 evidence,
             )
+            citation = artifact_citation or re.search(r"\btriggering finding\b", evidence)
             n_a_reason = re.search(
                 r"\b(?:in scope|locked scope|out of scope|structurally inapplicable|no candidates?)\b",
                 evidence,
             )
             reason_allowed = item["presence"].startswith("n/a")
+            if item["disposition"] == "blocked" and not artifact_citation:
+                fail("blocked row evidence must cite an artifact")
             if not citation and not (reason_allowed and n_a_reason):
                 fail("evidence must cite an artifact or an applicable n/a reason")
             rows.append(item)
