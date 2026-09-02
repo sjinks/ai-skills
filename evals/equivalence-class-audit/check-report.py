@@ -124,7 +124,7 @@ PROFILE_SCOPE_SECTIONS = {
 PROFILE_ACTIVE_AXIS_COUNTS = {
     "positive-edge-001": {"Opposite Bound": 1, "Documentation/Spec Prose Twin": 1},
     "positive-edge-002": {"Permission/Authorization Class": 1, "Test Mirror": 1},
-    "positive-edge-004": {"Opposite Bound": 1, "Test Mirror": 1, "Empty/Sentinel Equivalence": 1},
+    "positive-edge-004": {"Opposite Bound": 1, "Test Mirror": 1},
     "positive-edge-005": {"Opposite Bound": 1, "Documentation/Spec Prose Twin": 1},
     "positive-edge-007": {
         "Opposite Bound": 1, "Mirror Call Site/Use Site": 2,
@@ -141,7 +141,7 @@ PROFILE_ACTIVE_AXIS_COUNTS = {
     },
     "positive-trigger-002": {
         "Permission/Authorization Class": 2, "Observability Twin": 1,
-        "Test Mirror": 2, "Documentation/Spec Prose Twin": 1,
+        "Test Mirror": 2, "Documentation/Spec Prose Twin": 2,
     },
 }
 
@@ -950,14 +950,13 @@ def validate(profile, headers, sections, rows):
     elif profile == "positive-edge-004":
         standard_table(headers, rows, "quick")
         reconcile_summaries(sections, rows)
-        allowed = {"Opposite Bound", "Test Mirror", "Empty/Sentinel Equivalence"}
+        allowed = {"Opposite Bound", "Test Mirror"}
         if any(item["axis"] not in allowed for item in rows):
             fail("quick profile may include only target-specific rows")
         for axis, terms in (("Opposite Bound", ("zero",)), ("Test Mirror", ("zero",))):
             item = row(rows, axis, terms, "present", "fix-now")
             if not any(token in item["evidence"].lower() for token in ("src/pagination.ts", "tests/pagination.test.ts", "triggering finding")):
                 fail(f"{axis} needs scoped evidence")
-        row(rows, "Empty/Sentinel Equivalence", ("zero",), "present", "fix-now")
         omitted = " ".join(sections["Omitted axes (quick mode only)"]).lower()
         if "omitted" not in omitted or not any(term in omitted for term in ("scope", "inapplicable", "material")):
             fail("quick report needs an omitted-axis reason")
@@ -1144,7 +1143,10 @@ def validate(profile, headers, sections, rows):
         row(rows, "Observability Twin", ("denied",), "present", "fix-now")
         row(rows, "Test Mirror", ("export", "denied"), "present", "fix-now", ("archive",))
         row(rows, "Test Mirror", ("archive", "denied"), "present", "fix-now", ("export",))
-        row(rows, "Documentation/Spec Prose Twin", ("archive",), "present", "fix-now")
+        row(rows, "Documentation/Spec Prose Twin", ("export",), "present", "fix-now",
+            excluded_terms=("archive",))
+        row(rows, "Documentation/Spec Prose Twin", ("archive",), "present", "fix-now",
+            excluded_terms=("export",))
     if profile in PROFILE_ACTIVE_AXIS_COUNTS:
         active_counts = Counter(
             item["axis"] for item in rows

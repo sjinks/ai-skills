@@ -202,10 +202,9 @@ def profile_report(profile):
         candidates = {
             "Opposite Bound": ("maxItems zero bound", "present", "fix-now", "src/pagination.ts"),
             "Test Mirror": ("maxItems zero test", "present", "fix-now", "tests/pagination.test.ts"),
-            "Empty/Sentinel Equivalence": ("maxItems zero sentinel", "present", "fix-now", "src/pagination.ts"),
         }
         return complete_report(profile, candidates, report_sections(
-            fix=["Fix maxItems zero bound, maxItems zero test, and maxItems zero sentinel."],
+            fix=["Fix maxItems zero bound and maxItems zero test."],
             implications=["Add maxItems zero test."],
             omitted=["Other axes omitted because they are not material to the locked scope."],
         ), depth="quick")
@@ -303,12 +302,13 @@ def profile_report(profile):
             (export_test, "present", "fix-now", "tests/project_permissions_test.go"),
             (archive_test, "present", "fix-now", "tests/project_permissions_test.go"),
         ],
-        "Documentation/Spec Prose Twin": (
-            "archive docs defect", "present", "fix-now", "routes/projects.yml"
-        ),
+        "Documentation/Spec Prose Twin": [
+            ("export docs defect", "present", "fix-now", "Project exports API section"),
+            ("archive docs defect", "present", "fix-now", "Project exports API section"),
+        ],
     }, report_sections(
-        fix=[f"Fix {exports}, {archive}, denied audit event, {export_test}, {archive_test}, and archive docs defect."],
-        implications=[f"Add {export_test}, {archive_test}, and update archive docs defect."],
+        fix=[f"Fix {exports}, {archive}, denied audit event, {export_test}, {archive_test}, export docs defect, and archive docs defect."],
+        implications=[f"Add {export_test}, {archive_test}, and update export docs defect and archive docs defect."],
     ))
 
 
@@ -323,8 +323,8 @@ BEHAVIOR_MUTATIONS = {
     ),
     "positive-edge-003": ("Provide the Locked audit scope.", "Provide the Triggering finding."),
     "positive-edge-004": (
-        "maxItems zero sentinel | present | fix-now",
-        "maxItems zero sentinel | absent | n/a",
+        "maxItems zero test | present | fix-now",
+        "maxItems zero test | absent | n/a",
     ),
     "positive-edge-005": (
         "docs/operations.md documentation defect | present | blocked",
@@ -357,7 +357,7 @@ BEHAVIOR_MUTATIONS = {
 BEHAVIOR_REPAIRS = {
     "positive-edge-001": (("Fix timeoutSeconds bound and docs health guidance.", "Fix docs health guidance."),),
     "positive-edge-002": (("### Blocking questions\n- Clarify DELETE", "### Blocking questions\n- None\n<!-- removed blocker -->\n- Clarify DELETE"),),
-    "positive-edge-004": (("Fix maxItems zero bound, maxItems zero test, and maxItems zero sentinel.", "Fix maxItems zero bound and maxItems zero test."),),
+    "positive-edge-004": (("Fix maxItems zero bound and maxItems zero test.", "Fix maxItems zero bound."),),
     "positive-edge-005": (
         ("### Blocking questions\n- Provide owner and reason for docs/operations.md documentation defect; missing: owner, reason", "### Blocking questions\n- None"),
         ("### Test/doc implications\n- Update docs/operations.md documentation defect after clarification.", "### Test/doc implications\n- None"),
@@ -374,7 +374,7 @@ PROFILE_FAILURES = {
     "positive-edge-001": "missing required Opposite Bound row",
     "positive-edge-002": "missing required Permission/Authorization Class row",
     "positive-edge-003": "blocking question must name the missing required input",
-    "positive-edge-004": "missing required Empty/Sentinel Equivalence row",
+    "positive-edge-004": "missing required Test Mirror row",
     "positive-edge-005": "documentation candidate must remain present and blocked",
     "positive-edge-006": "quick reduced report needs a local omitted-axes explanation",
     "positive-edge-007": "exhaustive report needs separate sync and async validator call sites",
@@ -1121,6 +1121,31 @@ class CheckerContractTests(unittest.TestCase):
                                     CHECK_REPORT.validate_report_outcome(headers, sections, rows)
 
 class CheckerIntegrationTests(unittest.TestCase):
+    def test_edge_004_contains_only_supported_active_candidates(self):
+        report = profile_report("positive-edge-004")
+        self.assertNotIn("| Empty/Sentinel Equivalence |", report)
+        run_main(report, "positive-edge-004")
+
+    def test_trigger_002_requires_export_and_archive_documentation(self):
+        invalid = profile_report("positive-trigger-002").replace(
+            "| Documentation/Spec Prose Twin | export docs defect | present | fix-now | Project exports API section |",
+            "| Documentation/Spec Prose Twin | export docs defect | absent | n/a | Project exports API section |",
+            1,
+        ).replace(
+            ", export docs defect, and archive docs defect.",
+            ", and archive docs defect.",
+            1,
+        ).replace(
+            "update export docs defect and archive docs defect.",
+            "update archive docs defect.",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-trigger-002")
+        self.assertIn("missing required Documentation/Spec Prose Twin row", error.getvalue())
+
     def test_known_impact_blocked_profiles_reject_unassessed(self):
         for profile in ("positive-edge-005", "positive-edge-008"):
             invalid = profile_report(profile).replace("Severity: MEDIUM", "Severity: UNASSESSED", 1)
