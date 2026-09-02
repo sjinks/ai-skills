@@ -1142,28 +1142,32 @@ class CheckerIntegrationTests(unittest.TestCase):
                 self.assertIn("clean profile triggering finding", error.getvalue())
 
     def test_deferred_reason_cannot_negate_deferral(self):
-        invalid = profile_report("positive-edge-009").replace(
-            "reason: documentation is owned outside this change",
-            "reason: no reason to defer",
-            1,
-        )
-        error = io.StringIO()
-        with contextlib.redirect_stderr(error):
-            with self.assertRaises(SystemExit):
-                run_main(invalid, "positive-edge-009")
-        self.assertIn("Deferred follow-ups cannot negate deferral", error.getvalue())
+        for reason in ("no reason to defer", "no-reason-to-defer"):
+            invalid = profile_report("positive-edge-009").replace(
+                "reason: documentation is owned outside this change",
+                f"reason: {reason}",
+                1,
+            )
+            error = io.StringIO()
+            with self.subTest(reason=reason):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-009")
+                self.assertIn("Deferred follow-ups cannot negate deferral", error.getvalue())
 
     def test_fix_now_summary_rejects_never_fix(self):
-        invalid = profile_report("positive-edge-009").replace(
-            "Fix maxRetries zero bound.",
-            "Never fix maxRetries zero bound.",
-            1,
-        )
-        error = io.StringIO()
-        with contextlib.redirect_stderr(error):
-            with self.assertRaises(SystemExit):
-                run_main(invalid, "positive-edge-009")
-        self.assertIn("Defects to fix now cannot contain a negated action", error.getvalue())
+        for action in ("Never fix", "Never-fix"):
+            invalid = profile_report("positive-edge-009").replace(
+                "Fix maxRetries zero bound.",
+                f"{action} maxRetries zero bound.",
+                1,
+            )
+            error = io.StringIO()
+            with self.subTest(action=action):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-edge-009")
+                self.assertIn("Defects to fix now cannot contain a negated action", error.getvalue())
 
     def test_complete_report_rejects_standalone_blocking_question(self):
         rows = [{

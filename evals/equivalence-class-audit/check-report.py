@@ -712,13 +712,13 @@ def summary_assignments(candidates, bullets, section, one_to_one=False):
                         rf"(?<![a-z0-9_./-]){re.escape(norm(candidate))}(?![a-z0-9_/-]|\.[a-z0-9_])",
                         " ", action,
                     )
-            if re.search(r"\b(?:do not fix|don't fix|need not fix|not fix|never fix|no action|skip)\b", action):
+            if re.search(r"\b(?:do not fix|don't fix|need not fix|not fix|never[ -]fix|no action|skip)\b", action):
                 fail(f"{section} cannot contain a negated action")
     elif section == "Deferred follow-ups":
         for bullet in bullets:
             action = norm(bullet)
             if re.search(
-                r"\b(?:(?:do not|don't|never|not)\s+defer|no reason to defer|"
+                r"\b(?:(?:do not|don't|never|not)\s+defer|no[ -]reason[ -]to[ -]defer|"
                 r"(?:skip|cancel)\s+(?:the\s+)?deferral)\b",
                 action,
             ):
