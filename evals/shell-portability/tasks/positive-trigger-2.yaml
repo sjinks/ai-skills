@@ -49,7 +49,6 @@ graders:
         - '(?ims)^1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*CRITICAL\s*\r?\n[ \t]+Classification:\s*Confirmed issue\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*sed -i[^\r\n]*\r?\n[ \t]+Rule:\s*utilities-flags\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*[^\r\n]+\r?$'
         - '(?ims)^2\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*CRITICAL\s*\r?\n[ \t]+Classification:\s*Confirmed issue\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*grep -P[^\r\n]*\r?\n[ \t]+Rule:\s*utilities-flags\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?:grep -E|ERE|awk)[^\r\n]*\r?\n[ \t]+Verification:\s*[^\r\n]+\r?$'
         - '(?ims)^3\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*CRITICAL\s*\r?\n[ \t]+Classification:\s*Confirmed issue\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*find[^\r\n]*-printf[^\r\n]*\r?\n[ \t]+Rule:\s*utilities-flags\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?:-exec|-print)[^\r\n]*\r?\n[ \t]+Verification:\s*[^\r\n]+$'
-        - '(?ims)^1\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:(?:temp|mktemp)[^\r\n]*\bmv\b|(?:GNU[^\r\n]*BSD|BSD[^\r\n]*GNU)[^\r\n]*(?:branch|case|condition|detect))[^\r\n]*$'
         - '(?ims)^2\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:grep -E|ERE|awk)[^\r\n]*(?:\[0-9\]\{3\}|\[\[:digit:\]\]\{3\}|\[0-9\]\[0-9\]\[0-9\])[^\r\n]*$'
         - '(?ims)^3\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:-exec[^\r\n]*basename|basename[^\r\n]*-exec)[^\r\n]*$'
         - '(?i)sed -i'
@@ -72,7 +71,10 @@ graders:
         Grade whether the response identifies these issues:
         - `sed -i` differs between GNU (no backup arg) and BSD/macOS
           (requires `-i ''`); the portable fix preserves the in-place result
-          with a temp file + mv (or an explicit GNU/BSD branch).
+          using the documented portable `mktemp 2>/dev/null || mktemp -t ...`
+          strategy plus `mv`, or an explicit GNU/BSD branch. Accept equivalent
+          prose or command ordering, but reject token-stuffed text or bare
+          `tmp=$(mktemp)` that does not establish the fallback/branch semantics.
         - `grep -P` (PCRE) is GNU-only and must be rewritten with `grep -E`
           (ERE) or awk while replacing `\d{3}` semantics with `[0-9]{3}` or
           equivalent.

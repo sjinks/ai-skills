@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-005
+name: GitHub CLI interface semantics ownership
+inputs:
+  prompt: |
+    Repair this GitHub CLI request so a multiline Markdown body is read from
+    stdin instead of posting literal `@-`:
+
+    `gh api repos/example/project/issues/1/comments -f body=@-`
+
+    Decide the GitHub CLI field flag and stdin body transport. Do not perform a
+    general shell-construction review.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-command-construction/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - 'Construction result:'
+        - 'Construction assessment:'
+        - 'Candidate:'
+        - 'Execution authority:'
+        - 'Next step:'

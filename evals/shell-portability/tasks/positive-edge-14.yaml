@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-014
+name: Premature SCC field blocks multiline review
+description: |
+  An unprefixed SCC field before the exact authority terminator makes a multiline
+  handoff malformed and must not truncate candidate data silently.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    A separate SCC review supplied this malformed result:
+    Construction result: REWRITE
+    Construction assessment: A multiline command was serialized.
+    Candidate: |
+      printf '%s\n' hello
+    Next step: This field appears before execution authority.
+    Execution authority: NOT ASSESSED BY THIS SKILL
+
+    Review its portability for POSIX sh on Ubuntu and macOS.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-portability/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-portability
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?is)\AVerdict:\s*BLOCK\s*\r?\nTarget:\s*[^\r\n]+\r?\n\r?\nFindings:\s*\r?\n1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*LOW\s*\r?\n[ \t]+Classification:\s*Open question\s*\r?\n[ \t]+Evidence:\s*[^\r\n]+\r?\n[ \t]+Rule:\s*(?:interpreter-shebang|bashisms|utilities-flags|output-behavior|verification)\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*N/A\s*\r?\n?\z'
+        - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?i:Next step|premature|unprefixed|order|terminator|malformed)[^\r\n]*$'
+        - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*(?i:correct|provide|supply|replace)[^\r\n]*(?i:SCC|construction result|field|terminator)[^\r\n]*$'
+      regex_not_match:
+        - '(?i)Verdict:\s*(?:CLEAN|CONCERNS)'
+        - '(?im)^(?:Interpreter|Checklist status|Residual risk):'
+        - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
+        - '(?i)(?:\A|[:.!?][ \t]+)(?:(?:the[ \t]+)?(?:candidate|command|it|this)[ \t]+(?:is[ \t]+(?:portable|compatible|valid|suitable|supported)|conforms?|works?|runs?)[^\r\n]*(?:POSIX|Ubuntu|macOS)|(?:POSIX|Ubuntu|macOS)[^\r\n]{0,80}(?:portability|compatibility)[ \t]+(?:is|was|has[ \t]+been)[ \t]+(?:confirmed|verified|established))'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response detects the premature unprefixed Next step
+        field before the exact Execution authority terminator, returns reduced
+        BLOCK, requests a corrected SCC result, and performs no portability
+        analysis or target conclusion.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+      mode: independent

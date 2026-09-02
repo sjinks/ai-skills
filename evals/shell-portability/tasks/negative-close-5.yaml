@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-005
+name: Raw GitHub CLI interface and portability request
+description: |
+  GitHub CLI-specific correction owns the first response; portability waits for
+  the exact corrected command and does not require an SCC result afterward.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Repair `gh api repos/example/project/issues/1/comments -f body=@-` so a
+    multiline body is read from stdin, then tell me whether the repaired command
+    is portable across Bash on Ubuntu and macOS. No exact corrected command has
+    been supplied yet.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-portability/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      regex_not_match:
+        - '(?im)^(?:Verdict|Target|Interpreter|Findings|Checklist status|Residual risk):'

@@ -1,6 +1,6 @@
 ---
 name: shell-command-construction
-description: "Use when constructing, repairing, or validating a concrete supplied shell command, fragment, heredoc, redirection, or payload interface where literal text, argv boundaries, shell parsing, multiline data, or transport is primary. Do not use for generic goals without a supplied shell target, generic shell tutoring, prose-only drafting, non-shell work, or portability-only analysis."
+description: "Use when constructing, repairing, or validating a concrete supplied shell command, fragment, heredoc, redirection, or payload interface where literal text, argv boundaries, shell parsing, multiline data, or transport is primary. Do not use for generic goals without a supplied shell target, generic shell tutoring, prose-only drafting, non-shell work, portability-only analysis, or GitHub CLI interface semantics."
 argument-hint: "Provide the concrete command or fragment, shell/interpreter, and intended literal/expansion, argv, and transport boundaries."
 user-invocable: true
 ---
@@ -17,11 +17,14 @@ This skill assesses construction only: shell parsing, argv boundaries, literal d
 
 Do not activate for generic shell tutoring, prose-only drafting without a shell invocation, non-shell work, or portability-only analysis; treat portability-only work as outside this skill's scope. For a mixed construction-and-portability request, produce the construction result first and require a separate portability review of the exact candidate as the only next step; make no cross-target compatibility claim. If construction is `BLOCKED`, resolve that first.
 
+Do not activate when correctness depends on GitHub CLI-specific interface semantics such as `gh api` `-f`/`-F`, endpoint selection, stdin field transport, or `--body-file`; the dedicated GitHub CLI workflow owns those requests, including their shell delivery details.
+
 ## DO NOT USE FOR:
 
 - Generic shell education with no concrete command, fragment, or payload transport.
 - Drafting prose without a shell invocation, non-shell work, or portability-only analysis.
 - Execution safety, authorization, target validity, destructive-effect review, or permission to run.
+- GitHub CLI requests whose correctness depends on `gh` field, endpoint, stdin, or body-file semantics.
 
 ## Required facts
 
