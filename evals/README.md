@@ -24,6 +24,43 @@ Evaluation suites for the skills in this repository, in
   look like the skill's target but should still not activate it (e.g. a
   single-lens CSS question for `multi-lens-review`).
 
+## Offline regex validation
+
+Validate one suite without issuing model/API calls:
+
+```sh
+python3 evals/_helpers/check-eval-regexes.py --root evals/<skill-name>
+```
+
+Use `--root evals` for the repository-wide inventory. The validator decodes YAML
+before counting and compiling every `regex_match` and `regex_not_match` value
+with Go's `regexp` engine. Raw grep/line counts are not authoritative. The first
+run may download the Go module's pinned YAML dependency. It requires Python 3.9+
+and Go 1.20+.
+
+Optional contrastive cases are JSON and select a decoded regex by task path
+relative to `--root`, grader name, list name, and zero-based index:
+
+```json
+{
+  "cases": [
+    {
+      "name": "complete verdict",
+      "task": "example/tasks/positive-trigger-1.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 0,
+      "matches": ["Verdict: CLEAN"],
+      "does_not_match": ["Verdict: CLEAN trailing text"]
+    }
+  ]
+}
+```
+
+Pass the file with `--cases path/to/cases.json`. A missing selector, unexpected
+match/non-match, YAML error, or Go-incompatible regex fails the command with task
+and grader context.
+
 ## Grader Design
 
 Each task has a baseline set of task-level graders plus one eval-level
@@ -211,15 +248,17 @@ checks:
 
 ## Running these evals
 
-No CI workflow ships in this repo. The non-secret baseline validation is
-schema/spec validation only:
+No CI workflow ships in this repo. The non-secret baseline validates the
+schema/spec and decoded task regexes:
 
 ```bash
 waza check skills/<skill>
+python3 evals/_helpers/check-eval-regexes.py --root evals/<skill>
 ```
 
 `waza check` does not execute a model and is the default validation path for
-frontmatter, token budget, and eval presence checks.
+frontmatter, token budget, and eval presence checks. Run the regex validator
+whenever task YAML or grader contracts change; it also does not execute a model.
 
 Model evals are optional and require local Copilot authentication or a
 user-scoped GitHub Copilot PAT. The waza CLI's `copilot-sdk` executor rejects
