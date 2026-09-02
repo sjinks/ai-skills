@@ -1143,10 +1143,13 @@ def validate(profile, headers, sections, rows):
         row(rows, "Observability Twin", ("denied",), "present", "fix-now")
         row(rows, "Test Mirror", ("export", "denied"), "present", "fix-now", ("archive",))
         row(rows, "Test Mirror", ("archive", "denied"), "present", "fix-now", ("export",))
-        row(rows, "Documentation/Spec Prose Twin", ("export",), "present", "fix-now",
-            excluded_terms=("archive",))
-        row(rows, "Documentation/Spec Prose Twin", ("archive",), "present", "fix-now",
-            excluded_terms=("export",))
+        for term, excluded in (("export", "archive"), ("archive", "export")):
+            docs_row = row(
+                rows, "Documentation/Spec Prose Twin", (term,), "present", "fix-now",
+                excluded_terms=(excluded,),
+            )
+            if "named:project exports api section" not in artifact_citations(docs_row["evidence"]):
+                fail(f"{term} documentation row must cite the Project exports API section")
     if profile in PROFILE_ACTIVE_AXIS_COUNTS:
         active_counts = Counter(
             item["axis"] for item in rows

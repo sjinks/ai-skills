@@ -1146,6 +1146,23 @@ class CheckerIntegrationTests(unittest.TestCase):
                 run_main(invalid, "positive-trigger-002")
         self.assertIn("missing required Documentation/Spec Prose Twin row", error.getvalue())
 
+    def test_trigger_002_documentation_uses_named_section_evidence(self):
+        for candidate, code_path in (
+            ("export docs defect", "controllers/project_export.go"),
+            ("archive docs defect", "controllers/project_archive.go"),
+        ):
+            invalid = profile_report("positive-trigger-002").replace(
+                f"| Documentation/Spec Prose Twin | {candidate} | present | fix-now | Project exports API section |",
+                f"| Documentation/Spec Prose Twin | {candidate} | present | fix-now | {code_path} |",
+                1,
+            )
+            error = io.StringIO()
+            with self.subTest(candidate=candidate):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, "positive-trigger-002")
+                self.assertIn("documentation row must cite the Project exports API section", error.getvalue())
+
     def test_known_impact_blocked_profiles_reject_unassessed(self):
         for profile in ("positive-edge-005", "positive-edge-008"):
             invalid = profile_report(profile).replace("Severity: MEDIUM", "Severity: UNASSESSED", 1)
