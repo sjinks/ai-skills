@@ -13,8 +13,8 @@ inputs:
     Audit this requirement for ambiguity before implementation. Route open
     questions to the product owner:
 
-    Requirement R1: The account settings page must feel intuitive to
-    account owners.
+    Requirement R1: The account settings page [account-owner view] must feel
+    intuitive to account owners.
 
     Glossary:
     - account settings page: the web page at /settings/account.
@@ -49,25 +49,26 @@ graders:
         - '(?im)^[ \t]*\|[ \t]*#[ \t]*\|[ \t]*Class[ \t]*\|[ \t]*Severity[ \t]*\|[ \t]*Location[ \t]*\|[ \t]*\r?$\r?\n^[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*\r?$\r?\n^[ \t]*\|[ \t]*[`*_]*1[`*_]*[ \t]*\|[ \t]*[^|\r\n]*\S[^|\r\n]*[ \t]*\|[ \t]*[^|\r\n]*\S[^|\r\n]*[ \t]*\|[ \t]*[^|\r\n]*\S[^|\r\n]*[ \t]*\|[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*### Findings[ \t]*\r?$'
         - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|\s*[`*_]*untestable-wording[`*_]*\s*\|\s*[`*_]*suggestion[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
         - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|[^\r\n]*\|[^\r\n]*\bR1\b[^\r\n]*\|\s*$'
-        - '(?im)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*The account settings page must feel intuitive to account owners["`*_.;:!? \t]*\r?$'
-        - '(?m)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*The account settings page must feel intuitive to account owners\.["`*_]*[ \t]*\r?$'
-        - '(?im)^[ \t]*-[ \t]*[*_]*Untestable because:[*_]*[^\r\n]*(objective|metric|test|measure)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*The account settings page \[account-owner view\] must feel intuitive to account owners["`*_.;:!? \t]*\r?$'
+        - '(?m)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*The account settings page \[account-owner view\] must feel intuitive to account owners\.["`*_]*[ \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Untestable because:[*_]*[^\r\n]*(objective|metric|test|measure|criterion|criteria|pass/fail|subjective|acceptance)[^\r\n]*\r?$'
         - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*account settings[^\r\n]*(owner|usability)[^\r\n]*\[OPEN QUESTION:[ \t]+[^\r\n\]]*\b(criterion|metric|threshold|test)\b[^\r\n\]]*—[ \t]+product owner[ \t]+to decide\][^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*\[account-owner view\][^\r\n]*\r?$'
         - '(?im)^### Findings[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+1[*_]*:[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[^\r\n]*must feel intuitive[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Untestable because:[*_]*[ \t]*\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*(?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*(\[OPEN QUESTION:[ \t]+[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\](?:[^\[\]\r\n]|\[[^\]:\r\n]*\])*)+\r?$\r?\n([ \t]*\r?\n)*### Open questions \(product decisions, not findings\)[ \t]*\r?$'
         - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*((criterion|metric|threshold|usability)[^\r\n]*product owner|product owner[^\r\n]*(criterion|metric|threshold|usability))'
       regex_not_match:
-        - '(?im)^[ \t]*((#{1,6}|>+|[-+*]|[0-9]+[.)])[ \t]+)*[*_]*Finding[ \t]+\d+[^0-9\s:*_][^:\r\n]*:[^\r\n]*\r?$'
-        - '(?ims)^[ \t]*((#{1,6}|>+|[-+*]|[0-9]+[.)])[ \t]+)*-[ \t]*[*_]*(Quote|Readings|Conflict|Missing|Untestable because|Proposed rewrite):[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
-        - '(?ims)^[ \t]*((#{1,6}|>+|[-+*]|[0-9]+[.)])[ \t]+)*-[ \t]*[*_]*Quote:[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
-        - '(?ims)^[ \t]*((#{1,6}|>+|[-+*]|[0-9]+[.)])[ \t]+)*-[ \t]*[*_]*Proposed rewrite:[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
+        - '(?im)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Finding[ \t]+\d+[^0-9\s:*_][^:\r\n]*:[^\r\n]*\r?$'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*-[ \t]*[*_]*(Quote|Readings|Conflict|Missing|Untestable because|Proposed rewrite):[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*-[ \t]*[*_]*Quote:[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*-[ \t]*[*_]*Proposed rewrite:[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
         - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[ \t]*OPEN QUESTION:'
         - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[ \t]*\[OPEN QUESTION:'
         - '(?ims)^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|'
         - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*[^\[]OPEN QUESTION:'
         - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$[\s\S]*?^[ \t]*-[ \t]*[*_]*(Quote|Readings|Conflict|Missing|Untestable because|Proposed rewrite):'
-        - '(?ims)^[ \t]*((#{1,6}|>+|[-+*]|[0-9]+[.)])[ \t]+)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|>+|[-+*]|[0-9]+[.)])[ \t]+)*[*_]*Verdict:'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:'
         - '(?ims)^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|'
-        - '(?ims)^[ \t]*((#{1,6}|>+|[-+*]|[0-9]+[.)])[ \t]+)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|>+|[-+*]|[0-9]+[.)])[ \t]+)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[^\r\n]*\r?$'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[^\r\n]*\r?$'
         - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*\s*\|\s*[`*_]*blocker[`*_]*\s*\|'
         - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*vague-quantifier[`*_]*\s*\|'
       not_contains:

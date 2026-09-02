@@ -41,9 +41,9 @@ graders:
         - '(?im)^[ \t]*[*_]*Verdict:[*_ \t]*CLEAN[*_]*\.?[*_]*[ \t]*\r?\n[ \t]*[*_]*All eight ambiguity classes were swept; no findings\.[*_]*[ \t]*\r?$'
         - '(?im)^[ \t]*\|[ \t]*#[ \t]*\|[ \t]*Class[ \t]*\|[ \t]*Severity[ \t]*\|[ \t]*Location[ \t]*\|[ \t]*\r?$\r?\n^[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*### Findings[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*[*_]*None[*_.]*[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*-[^\r\n]*((blue[^\r\n]*green|green[^\r\n]*blue)[^\r\n]*product owner|product owner[^\r\n]*(blue[^\r\n]*green|green[^\r\n]*blue))[^\r\n]*(?:[ \t]*\r?\n)*[ \t]*\z'
       regex_not_match:
-        - '(?ims)^[ \t]*((#{1,6}|>+|[-+*]|[0-9]+[.)])[ \t]+)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|>+|[-+*]|[0-9]+[.)])[ \t]+)*[*_]*Verdict:'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:'
         - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*\s*\|\s*[`*_]*(blocker|should-fix|suggestion)[`*_]*\s*\|[^\r\n]*\S[^\r\n]*\|\s*$'
-        - '(?im)^[ \t]*((#{1,6}|>+|[-+*]|[0-9]+[.)])[ \t]+)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*([^\r\n]*)\r?$'
+        - '(?im)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*([^\r\n]*)\r?$'
       not_contains:
         - "Verdict: BLOCK"
         - "Verdict: CONCERNS"
