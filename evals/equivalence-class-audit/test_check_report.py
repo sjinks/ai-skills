@@ -7,6 +7,8 @@ import sys
 import unittest
 from unittest import mock
 
+import yaml
+
 
 MODULE_PATH = pathlib.Path(__file__).with_name("check-report.py")
 SPEC = importlib.util.spec_from_file_location("check_report", MODULE_PATH)
@@ -187,7 +189,10 @@ def profile_report(profile):
         test = "tenant mismatch test"
         return complete_report(profile, {
             "Permission/Authorization Class": (blocked, "blocked — clarification needed", "blocked", "src/routes/team.routes.ts"),
-            "Mirror Call Site/Use Site": ("GET tenantGuard", "absent", "n/a", "src/routes/team.routes.ts"),
+            "Mirror Call Site/Use Site": (
+                "GET /teams/{teamId}/members tenantGuard",
+                "absent", "n/a", "src/routes/team.routes.ts",
+            ),
             "Test Mirror": (test, "present", "fix-now", "tests/team.controller.spec.ts"),
         }, report_sections(
             fix=[f"Add {test}."],
@@ -1022,10 +1027,8 @@ class CheckerContractTests(unittest.TestCase):
         self.assertTrue(CHECK_REPORT.requests_missing_input(
             "Provide the Locked audit scope for the bug report.", "Locked audit scope"
         ))
-        self.assertTrue(CHECK_REPORT.requests_missing_input(
-            "Provide the Triggering finding and list the files.", "Triggering finding"
-        ))
         for value in (
+            "Provide the Triggering finding and list the files.",
             "Provide no Triggering finding.",
             "Need no Locked audit scope.",
             "What defect should be used as the trigger?",
@@ -1890,6 +1893,21 @@ class CheckerIntegrationTests(unittest.TestCase):
 
 
 class ConfigurationTests(unittest.TestCase):
+    def test_edge_002_valid_fixture_satisfies_text_grader(self):
+        root = pathlib.Path(__file__).parent
+        task = yaml.safe_load((root / "tasks" / "positive-edge-2.yaml").read_text())
+        config = next(
+            grader["config"] for grader in task["graders"]
+            if grader["type"] == "text"
+        )
+        report = profile_report("positive-edge-002")
+        for pattern in config.get("regex_match", []):
+            self.assertIsNotNone(re.search(pattern, report), pattern)
+        for pattern in config.get("regex_not_match", []):
+            self.assertIsNone(re.search(pattern, report), pattern)
+        for token in config.get("not_contains", []):
+            self.assertNotIn(token.lower(), report.lower(), token)
+
     def test_suppressed_yaml_fixes_remain_projected(self):
         root = pathlib.Path(__file__).parent / "tasks"
         for name in (

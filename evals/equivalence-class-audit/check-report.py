@@ -423,7 +423,21 @@ def requests_missing_input(value, missing_header):
         value,
         flags=re.I,
     ))
-    return names_expected and not names_other
+    if missing_header == "Triggering finding":
+        requests_other = bool(re.search(
+            r"\b(?:and|then|also)\s+(?:list|provide|specify|identify|include)\s+"
+            r"(?:the\s+)?(?:scope|files|modules|artifacts|specs|tests)\b",
+            value,
+            flags=re.I,
+        ))
+    else:
+        requests_other = bool(re.search(
+            r"\b(?:and|then|also)\s+(?:provide|specify|identify|name)\s+"
+            r"(?:the\s+)?(?:finding|defect|trigger|incident|bug report)\b",
+            value,
+            flags=re.I,
+        ))
+    return names_expected and not names_other and not requests_other
 
 
 def scope_artifacts(value):
