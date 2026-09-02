@@ -1,0 +1,1548 @@
+#!/usr/bin/env python3
+"""Validate equivalence-class-audit output from Waza's raw stdin response.
+
+Invoke this script as ``python3 check-report.py <task-id>``; each profile checks
+the response structure and the task-specific rows that RE2 cannot express safely.
+"""
+
+import html
+import re
+import sys
+import unicodedata
+from collections import Counter
+
+
+AXES = (
+    "Opposite Bound", "Sibling Parameter/Field", "Mirror Call Site/Use Site",
+    "Inverse Operation", "Type/Schema Narrowing",
+    "Validation vs Normalization/Sanitization",
+    "Happy/Error/Retry/Cancel Path Twin", "Race/Shared-State Twin",
+    "Permission/Authorization Class", "Observability Twin", "Resource Cleanup",
+    "Contract Symmetry", "Equivalence by Naming", "Test Mirror",
+    "Empty/Sentinel Equivalence", "Async/Sync or Mode Twin",
+    "Documentation/Spec Prose Twin", "Cache/Projection/Source-of-Truth Twin",
+)
+SECTIONS = (
+    "Defects to fix now", "Deferred follow-ups",
+    "Out-of-scope candidates discovered", "Blocking questions",
+    "Test/doc implications",
+)
+MISSING = ("missing", "not provided", "not supplied", "required", "needed")
+PRESENCE_VALUES = {
+    "present", "absent", "n/a — structurally inapplicable",
+    "n/a — no candidates in scope", "blocked — clarification needed",
+}
+DISPOSITIONS = {"fix-now", "defer-with-owner", "n/a", "blocked"}
+VERDICTS = {"BLOCK", "CONCERNS", "CLEAN"}
+SEVERITIES = {"CRITICAL", "HIGH", "MEDIUM", "LOW", "NONE", "UNASSESSED"}
+METADATA_PLACEHOLDERS = {"name", "owner", "provenance", "rationale", "reason", "source"}
+NON_POPULATED_METADATA = {
+    "missing", "unknown", "unavailable", "not supplied", "none", "n/a", "tbd",
+    "unassigned", "not the owner",
+}
+FIELD_NON_POPULATED_METADATA = {
+    "owner": {"nobody", "no one", "someone", "somebody", "unowned", "pending"},
+    "reason": {"pending", "unresolved"},
+    "provenance": {"somewhere", "pending", "unresolved"},
+}
+PROFILES = {
+    "positive-edge-001", "positive-edge-002", "positive-edge-003",
+    "positive-edge-004", "positive-edge-005", "positive-edge-006",
+    "positive-edge-007", "positive-edge-008", "positive-edge-009", "positive-edge-010",
+    "positive-edge-011",
+    "positive-trigger-001", "positive-trigger-002",
+}
+PROFILE_HEADERS = {
+    "positive-edge-001": (
+        ("timeoutseconds", "health"),
+        ("config/healthcheck.yml", "health check timeout"),
+    ),
+    "positive-edge-002": (("delete /teams/{teamid}", "organization membership", "tenant ownership"),
+                          ("src/routes/team.routes.ts", "src/controllers/team.controller.ts",
+                           "tests/team.controller.spec.ts")),
+    "positive-edge-004": (("maxitems", "zero", "pagination"),
+                          ("src/pagination.ts", "tests/pagination.test.ts")),
+    "positive-edge-005": (("maxretries", "zero"), ("config/retry.yml", "docs/operations.md")),
+    "positive-edge-007": (("minitems", "zero", "pagination"),
+                          ("src/pagination.ts", "src/batch-pagination.ts", "tests/pagination.test.ts",
+                           "docs/api.md")),
+    "positive-edge-008": (("maxretries", "zero"),
+                          ("config/retry.yml", "docs/api.md", "docs/operations.md")),
+    "positive-edge-009": (("maxretries", "zero"), ("config/retry.yml", "docs/api.md")),
+    "positive-edge-010": (("minitems", "zero"),
+                          ("src/pagination.ts", "tests/pagination.test.ts", "docs/api.md")),
+    "positive-trigger-001": (("maxretries", "zero", "inc-17"),
+                             ("config/retry.yml", "src/retry_policy.py", "tests/test_retry_policy.py",
+                              "docs/operations.md")),
+    "positive-trigger-002": (("can_export", "projects", "export"),
+                             ("routes/projects.yml", "controllers/project_export.go",
+                              "controllers/project_archive.go", "controllers/project_report.go",
+                              "policies/project_permissions.rego", "tests/project_permissions_test.go",
+                              "project exports")),
+}
+PROFILE_SCOPE_ARTIFACTS = {
+    "positive-edge-001": {"config/healthcheck.yml"},
+    "positive-edge-002": {
+        "src/routes/team.routes.ts", "src/controllers/team.controller.ts",
+        "tests/team.controller.spec.ts",
+    },
+    "positive-edge-004": {"src/pagination.ts", "tests/pagination.test.ts"},
+    "positive-edge-005": {"config/retry.yml", "docs/operations.md"},
+    "positive-edge-006": {"src/pagination.ts", "tests/pagination.test.ts"},
+    "positive-edge-007": {
+        "src/pagination.ts", "src/batch-pagination.ts", "tests/pagination.test.ts",
+        "docs/api.md",
+    },
+    "positive-edge-008": {"config/retry.yml", "docs/api.md", "docs/operations.md"},
+    "positive-edge-009": {"config/retry.yml", "docs/api.md"},
+    "positive-edge-010": {"src/pagination.ts", "tests/pagination.test.ts", "docs/api.md"},
+    "positive-trigger-001": {
+        "config/retry.yml", "src/retry_policy.py", "tests/test_retry_policy.py",
+        "docs/operations.md",
+    },
+    "positive-trigger-002": {
+        "routes/projects.yml", "controllers/project_export.go",
+        "controllers/project_archive.go", "controllers/project_report.go",
+        "policies/project_permissions.rego", "tests/project_permissions_test.go",
+    },
+}
+PROFILE_EXTRA_EVIDENCE = {
+    "positive-trigger-001": {"incident:inc-17"},
+}
+PROFILE_SCOPE_SECTIONS = {
+    "positive-edge-001": {"named:health check timeout section"},
+    "positive-edge-005": {"named:retry configuration section"},
+    "positive-edge-007": {"named:pagination section"},
+    "positive-edge-008": {
+        "named:retry configuration section", "named:retry operations section",
+    },
+    "positive-edge-009": {"named:retry configuration section"},
+    "positive-edge-010": {"named:pagination section"},
+    "positive-trigger-001": {"named:retry configuration section"},
+    "positive-trigger-002": {"named:project exports api section"},
+}
+PROFILE_ACTIVE_AXIS_COUNTS = {
+    "positive-edge-001": {"Opposite Bound": 1, "Documentation/Spec Prose Twin": 1},
+    "positive-edge-002": {"Permission/Authorization Class": 1, "Test Mirror": 1},
+    "positive-edge-004": {"Opposite Bound": 1, "Test Mirror": 1},
+    "positive-edge-005": {"Opposite Bound": 1, "Documentation/Spec Prose Twin": 1},
+    "positive-edge-007": {
+        "Opposite Bound": 1, "Mirror Call Site/Use Site": 2,
+        "Async/Sync or Mode Twin": 1, "Test Mirror": 2,
+        "Documentation/Spec Prose Twin": 1,
+    },
+    "positive-edge-008": {"Opposite Bound": 1, "Documentation/Spec Prose Twin": 2},
+    "positive-edge-009": {"Opposite Bound": 1, "Documentation/Spec Prose Twin": 1},
+    "positive-edge-010": {},
+    "positive-trigger-001": {
+        "Opposite Bound": 1, "Sibling Parameter/Field": 1,
+        "Test Mirror": 3, "Empty/Sentinel Equivalence": 1,
+        "Contract Symmetry": 1, "Documentation/Spec Prose Twin": 1,
+    },
+    "positive-trigger-002": {
+        "Permission/Authorization Class": 2, "Observability Twin": 1,
+        "Test Mirror": 2, "Documentation/Spec Prose Twin": 2,
+    },
+}
+PROFILE_MAX_ACTIVE_CANDIDATES = {
+    "positive-edge-001": 2,
+    "positive-edge-002": 2,
+    "positive-edge-004": 2,
+    "positive-edge-005": 2,
+    "positive-edge-007": 6,
+    "positive-edge-008": 3,
+    "positive-edge-009": 2,
+    "positive-edge-010": 0,
+    "positive-trigger-001": 8,
+    "positive-trigger-002": 7,
+}
+PROFILE_OPTIONAL_ACTIVE_AXES = {
+    "positive-edge-009": {"Contract Symmetry"},
+    "positive-trigger-001": {"Validation vs Normalization/Sanitization"},
+}
+
+
+def fail(message):
+    print(message, file=sys.stderr)
+    raise SystemExit(1)
+
+
+def canonical_unicode(value):
+    """Decode entities, remove format controls, and normalize compatibility forms."""
+    value = html.unescape(value)
+    value = "".join(character for character in value
+                    if unicodedata.category(character) != "Cf")
+    value = unicodedata.normalize("NFKC", value)
+    value = "".join(character for character in value
+                    if unicodedata.category(character) != "Cf")
+    return unicodedata.normalize("NFKC", value)
+
+
+def strip_markdown_markers(value):
+    previous = None
+    while value != previous:
+        previous = value
+        value = re.sub(
+            r"(?<!`)(`+)(?!`)(.*?)(?<!`)\1(?!`)",
+            r"\2",
+            value,
+            flags=re.DOTALL,
+        )
+        value = re.sub(r"(\*{1,3}|~{2})(.+?)\1", r"\2", value)
+        value = re.sub(r"(?<!\w)(_{1,2})([^_\n]+?)\1(?!\w)", r"\2", value)
+    return value
+
+
+def label_norm(value):
+    value = strip_markdown_markers(canonical_unicode(value))
+    return " ".join(value.casefold().split())
+
+
+def norm(value):
+    value = strip_markdown_markers(canonical_unicode(value))
+    value = re.sub(r"\b0\b", "zero", value)
+    return " ".join(value.lower().split())
+
+
+def visible(value):
+    return bool(re.search(r"\w", visible_text(value), flags=re.UNICODE))
+
+
+def visible_text(value):
+    code_spans = []
+
+    def protect_code_span(match):
+        code_spans.append(match.group(0))
+        return f"\ufff0{len(code_spans) - 1}\ufff1"
+
+    value = re.sub(
+        r"(?<!`)(`+)(?!`)(.*?)(?<!`)\1(?!`)",
+        protect_code_span,
+        value,
+        flags=re.DOTALL,
+    )
+
+    def strip_inline_links(text):
+        result = []
+        index = 0
+        while index < len(text):
+            label_start = text.find("[", index)
+            if label_start < 0:
+                result.append(text[index:])
+                break
+            label_end = text.find("](", label_start + 1)
+            if label_end < 0:
+                result.append(text[index:])
+                break
+            depth = 1
+            cursor = label_end + 2
+            escaped = False
+            while cursor < len(text) and depth:
+                character = text[cursor]
+                if escaped:
+                    escaped = False
+                elif character == "\\":
+                    escaped = True
+                elif character == "(":
+                    depth += 1
+                elif character == ")":
+                    depth -= 1
+                cursor += 1
+            if depth:
+                result.append(text[index:])
+                break
+            image_start = label_start - 1 if label_start and text[label_start - 1] == "!" else label_start
+            result.append(text[index:image_start])
+            result.append(text[label_start + 1:label_end])
+            index = cursor
+        return "".join(result)
+
+    value = strip_inline_links(value)
+    value = re.sub(r"!?\[([^\]]*)\]\[[^\]]*\]", r"\1", value)
+    if re.search(
+        r"</?(?:script|style|template|details|dialog|svg|title|head|meta|noscript)\b",
+        value,
+        flags=re.I,
+    ):
+        return ""
+    if re.search(
+        r"<[a-z][^>]*(?:\shidden(?:\s|=|>)|\saria-hidden\s*=\s*['\"]?true\b)",
+        value,
+        flags=re.I,
+    ):
+        return ""
+    if re.search(
+        r"<[a-z][^>]*\sstyle\s*=",
+        value,
+        flags=re.I,
+    ):
+        return ""
+    value = re.sub(r"<!--.*?-->", "", value, flags=re.DOTALL)
+    if "<!--" in value:
+        return ""
+    if re.search(r"<[a-z!/][^>]*$", value, flags=re.I):
+        return ""
+    value = re.sub(r"<[^>]+>", "", value)
+    value = html.unescape(value)
+    value = re.sub(r"&(?:#\d+|#x[0-9a-f]+|[a-z]+);", "", value, flags=re.I)
+    for index, code_span in enumerate(code_spans):
+        value = value.replace(f"\ufff0{index}\ufff1", html.unescape(code_span))
+    return " ".join(value.split())
+
+
+def contains(value, *terms):
+    value = value.lower()
+    return all(term.lower() in value for term in terms)
+
+
+def missing_marker(value):
+    value = norm(value)
+    if (re.search(r"\b(?:no|neither)\b[^.]{0,80}\b(?:missing|required|needed)\b", value)
+            or re.search(
+                r"\b(?:is|are|was|were)\s+not\s+(?:missing|required|needed)\b",
+                value,
+            )):
+        return False
+    if value in MISSING:
+        return True
+    return bool(re.search(r"\b(?:missing|not provided|not supplied)\b", value)
+                or re.search(r"\b(?:is|are|remains?)\s+(?:required|needed)\b", value))
+
+
+def missing_header_marker(value):
+    return value.strip() in MISSING
+
+
+def affirmative_relation(value, pattern):
+    value = norm(value)
+    for match in re.finditer(pattern, value):
+        verb_start = match.start("verb")
+        prefix = value[max(0, verb_start - 45):verb_start]
+        if not re.search(
+            r"\b(?:not|never|no longer|cannot|can't|fails? to|unable to|stopped|nowhere)"
+            r"(?:\s+\w+){0,3}\s+$",
+            prefix,
+        ):
+            return True
+    return False
+
+
+def finding_preserves_meaning(profile, value):
+    if re.search(
+        r"\b(?:it is|that's|that is)\s+(?:simply\s+)?false\s+that\b",
+        norm(value),
+    ):
+        return False
+    if profile == "positive-edge-010":
+        return True
+    if profile == "positive-edge-001":
+        if re.search(r"\b(?:does not|doesn't|cannot|can't|never)\s+(?:\w+\s+){0,2}spin\b", norm(value)):
+            return False
+        return any(affirmative_relation(value, pattern) for pattern in (
+            r"\btimeoutseconds\b.{0,80}\b(?P<verb>breaks?|crashes?)\b.{0,30}\bhealth\b",
+            r"\btimeoutseconds\b.{0,80}\b(?P<verb>accepted)\b.{0,20}\bzero\b.{0,60}\bhealth checker\b.{0,20}\bspin\b",
+        ))
+    if profile == "positive-edge-004":
+        if re.search(r"\b(?:does not|doesn't|cannot|can't|never)\s+(?:\w+\s+){0,2}(?:breaks?|crashes?)\b", norm(value)):
+            return False
+        return any(affirmative_relation(value, pattern) for pattern in (
+            r"\bmaxitems\b.{0,80}\bzero\b.{0,30}\b(?P<verb>breaks?|crashes?)\b.{0,30}\bpagination\b",
+            r"\bmaxitems\b.{0,80}\b(?P<verb>accepts?)\b.{0,20}\bzero\b.{0,40}\bcrashes?\b.{0,20}\bpagination\b",
+            r"\bpagination\b.{0,30}\b(?P<verb>breaks?|crashes?)\b.{0,30}\bmaxitems\b.{0,20}\bzero\b",
+        ))
+    if profile == "positive-edge-007":
+        if re.search(r"\b(?:does not|doesn't|cannot|can't|never)\s+(?:\w+\s+){0,2}(?:breaks?|crashes?)\b", norm(value)):
+            return False
+        return any(affirmative_relation(value, pattern) for pattern in (
+            r"\bminitems\b.{0,60}\bzero\b.{0,30}\b(?P<verb>breaks?|crashes?)\b.{0,30}\bpagination\b",
+            r"\bminitems\b.{0,60}\b(?P<verb>accepts?)\b.{0,20}\bzero\b.{0,30}\bcrashes?\b.{0,20}\bpagination\b",
+        ))
+    if profile in ("positive-edge-005", "positive-edge-008", "positive-edge-009", "positive-trigger-001"):
+        return any(affirmative_relation(value, pattern) for pattern in (
+            r"\bmaxretries\b.{0,80}\b(?P<verb>accepts?|allows?|permits?)\b.{0,20}\bzero\b",
+            r"\bzero\b.{0,30}\b(?:is\s+)?(?P<verb>accepted|allowed|permitted)\b.{0,20}\bby\s+maxretries\b",
+        ))
+    if profile in ("positive-edge-002", "positive-edge-003"):
+        normalized = norm(value)
+        return bool(
+            affirmative_relation(
+                normalized,
+                r"\b(?P<verb>lacks?|missing)\b[^.;]{0,30}\btenant ownership\b",
+            )
+            or re.search(
+                r"\b(?:does not|doesn't|did not|may not|never)\s+"
+                r"(?:show|check|enforce)\b[^.;]{0,30}\btenant ownership\b|"
+                r"\b(?:without|no)\s+(?:a\s+)?tenant ownership(?:\s+check)?\b",
+                normalized,
+            )
+        )
+    if profile == "positive-trigger-002":
+        normalized = norm(value)
+        return bool(
+            affirmative_relation(
+                normalized, r"\bcan_export\b.{0,50}\b(?P<verb>missing|absent)\b"
+            )
+            or re.search(
+                r"\b(?:did not|does not|doesn't)\s+(?:check|enforce|verify)\b"
+                r".{0,50}\bcan_export\b",
+                normalized,
+            )
+            or re.search(r"\b(?:without|no)\s+(?:a\s+)?can_export\b", normalized)
+        )
+    return True
+
+
+def excludes_locked_scope(value, required_items=()):
+    value = norm(value)
+    if re.search(
+        r"\bthese(?:\s+(?:artifacts|files|sections))?\s+(?:are\s+)?"
+        r"(?:excluded|omitted|removed|dropped|out of scope)\b|"
+        r"\b(?:those|the above|the listed|the named)\s+(?:artifacts|files|sections)\s+"
+        r"(?:are\s+)?(?:excluded|omitted|removed|dropped|out of scope)\b|"
+        r"\b(?:all|both)\s+of\s+them\s+(?:are\s+)?(?:excluded|out of scope)\b|"
+        r"\bboth files\s+are\s+excluded\b|\bnothing here\s+is\s+in scope\b|"
+        r"\bnone of these\s+(?:artifacts|files|sections)?\s*(?:are|is)\s+in scope\b|"
+        r"\b(?:do not|don't|never)\s+audit\s+these\b|"
+        r"\b(?:audit|review)\s+excludes\s+these\b",
+        value,
+    ):
+        return True
+    exclusion = (
+        r"(?:is|are)\s+(?:explicitly\s+)?(?:excluded|omitted|removed|dropped|out of scope|not in scope)"
+    )
+    return any(
+        norm(artifact) in clause and (
+            re.search(rf"\b{exclusion}\b", clause)
+            or re.search(
+                rf"\b(?:do not|don't|never)\s+audit\b.{{0,40}}{re.escape(norm(artifact))}|"
+                rf"\b(?:audit\s+excludes|skip|ignore)\b.{{0,40}}{re.escape(norm(artifact))}",
+                clause,
+            )
+        )
+        for clause in value.split(";")
+        for artifact in required_items
+    )
+
+
+def mixes_latin_and_cyrillic(value):
+    names = (unicodedata.name(character, "") for character in canonical_unicode(value))
+    scripts = {
+        script
+        for name in names
+        for script in ("LATIN", "CYRILLIC")
+        if script in name
+    }
+    return len(scripts) > 1
+
+
+def populated_metadata(value):
+    if not visible(value):
+        return False
+    normalized = unicodedata.normalize("NFKC", norm(visible_text(value)))
+    bare = re.sub(r"^\W+|\W+$", "", normalized, flags=re.UNICODE)
+    return bool(bare) and bare not in METADATA_PLACEHOLDERS
+
+
+def non_populated_metadata(value, field=None):
+    normalized = unicodedata.normalize("NFKC", norm(visible_text(value)))
+    bare = re.sub(r"^\W+|\W+$", "", normalized, flags=re.UNICODE)
+    field_terms = {
+        "owner": r"owner|ownership|owning team|assignee",
+        "reason": r"reason|rationale|justification",
+        "provenance": r"provenance|source",
+    }
+    terms = field_terms.get(field, "|".join(field_terms.values()))
+    negative_phrase = re.search(
+        rf"\b(?:not\s+(?:the\s+|an?\s+)?(?:{terms})|"
+        rf"without\s+(?:the\s+|an?\s+)?(?:{terms})|"
+        rf"(?:{terms})\s+(?:(?:is|are|was|were|remains?)\s+)?"
+        rf"(?:unknown|missing|unavailable|unsupplied|unassigned|pending|tbd|"
+        rf"unspecified|not\s+(?:known|provided|supplied|available|assigned)|"
+        rf"cannot\s+be\s+(?:determined|identified|confirmed)))\b",
+        bare,
+    )
+    no_value_phrase = re.search(
+        rf"\bno\s+(?:{terms})(?:\s+(?:is|was|has been))?\s*"
+        rf"(?:provided|supplied|given|available|known|assigned)\b|"
+        rf"\bno\s+(?:{terms})\s*(?:$|[,;.)\]])",
+        bare,
+    )
+    invalid_suffix = re.search(
+        r"(?:[([{]|[;,:]|\s[—–-])\s*"
+        r"(?:missing|unknown|unavailable|not supplied|none|n/a|tbd|unassigned|"
+        r"name|owner|provenance|rationale|reason|source)\s*$",
+        bare,
+    )
+    if negative_phrase or no_value_phrase or invalid_suffix:
+        return True
+    if re.search(
+        r"\b(?:or|/)\s*(?:someone|somebody|nobody|somewhere|unknown|unavailable|"
+        r"unassigned|tbd|pending|unresolved)\b",
+        bare,
+    ):
+        return True
+    return (bare in NON_POPULATED_METADATA
+        or bare in FIELD_NON_POPULATED_METADATA.get(field, set())
+        or bool(re.fullmatch(
+        r"to be (?:assigned|determined)|(?:unknown|missing|unassigned|tbd)\s+"
+        r"(?:owner|ownership|team|source|provenance|reason|metadata|assignment)(?:\s+.*)?"
+        r"|not supplied(?: by .+)?|no\s+(?:owner|team|source|provenance|reason|metadata)",
+        bare,
+    )))
+
+
+def overlaps(left, right):
+    words = set(re.findall(r"[a-z0-9_./-]{4,}", norm(left)))
+    return bool(words & set(re.findall(r"[a-z0-9_./-]{4,}", norm(right))))
+
+
+def candidate_spans(candidate, bullet):
+    candidate = label_norm(candidate)
+    bullet = label_norm(bullet)
+    spans = []
+
+    def label_character(character):
+        return character == "_" or unicodedata.category(character)[:1] in ("L", "N", "M")
+
+    for match in re.finditer(re.escape(candidate), bullet):
+        start, end = match.span()
+        if start and (label_character(bullet[start - 1]) or bullet[start - 1] in "./-"):
+            continue
+        if end < len(bullet) and (label_character(bullet[end]) or bullet[end] in "/-"):
+            continue
+        if (end + 1 < len(bullet) and bullet[end] == "."
+                and label_character(bullet[end + 1])):
+            continue
+        spans.append((start, end))
+    return spans
+
+
+def candidate_named(candidate, bullet):
+    return bool(candidate_spans(candidate, bullet))
+
+
+def mentioned_candidate_indexes(candidates, bullet):
+    raw = [index for index, candidate in enumerate(candidates)
+           if candidate_named(candidate, bullet)]
+    mentions = []
+    for candidate_index in raw:
+        spans = candidate_spans(candidates[candidate_index], bullet)
+        contained = all(any(
+            other_start <= start and end <= other_end
+            and label_norm(candidates[candidate_index]) != label_norm(candidates[other_index])
+            for other_index in raw
+            for other_start, other_end in candidate_spans(candidates[other_index], bullet)
+        ) for start, end in spans)
+        if not contained:
+            mentions.append(candidate_index)
+    return mentions
+
+
+def has_mode_term(value, mode):
+    patterns = {
+        "sync": r"\bsync(?:hronous)?\b",
+        "async": r"\basync(?:hronous)?\b",
+    }
+    return bool(re.search(patterns[mode], norm(value)))
+
+
+def requests(value):
+    value = value.strip()
+    value = re.sub(
+        r"^([_*~]{1,3})(provide|specify|clarify|confirm|need)\1(?=\s|$)",
+        r"\2",
+        value,
+        flags=re.I,
+    )
+    while True:
+        for marker in ("___", "***", "~~~", "__", "**", "~~", "_", "*", "~"):
+            if value.startswith(marker) and value.endswith(marker) and len(value) > 2 * len(marker):
+                value = value[len(marker):-len(marker)].strip()
+                break
+        else:
+            break
+    value = norm(value)
+    if re.match(r"^(?:please\s+)?(?:do not|don't|need not|not)\b", value):
+        return False
+    if re.match(
+        r"^(?:please\s+)?(?:provide|specify|clarify|confirm|need)\s+"
+        r"(?:no|not|none|neither)\b",
+        value,
+    ):
+        return False
+    if dismisses_request(value):
+        return False
+    imperative = re.match(r"^(?:please\s+)?(?:provide|specify|clarify|confirm|need)\b", value)
+    question = re.match(r"^(?:what|which|who|why|can|could|would|are|does|do|is|should)\b.*\?$", value)
+    return bool(imperative or question)
+
+
+def dismisses_request(value):
+    value = norm(value)
+    for clause in re.split(r"[.;]", value):
+        clause = clause.strip()
+        candidate = re.sub(
+            r"\b(?:we\s+|the audit\s+)?(?:cannot|can't|will not|won't|do not|don't|"
+            r"are unable to|is unable to|nothing can)\s+"
+            r"(?:proceed|continue|start|move on|go ahead|carry on)\b"
+            r"(?:\s+(?:regardless|without\s+(?:it|an?\s+answer|a\s+response)))?|"
+            r"\b(?:do not|don't)\s+assume\s+(?:an?\s+)?default\b",
+            " ",
+            clause,
+        ).strip()
+        if clause.endswith("?") and re.search(r"\bassume\s+(?:an?\s+)?default\b", clause):
+            continue
+        if re.search(
+            r"\b(?:we\s+)?(?:will|can|may|could|should)?\s*"
+            r"(?:proceed(?:s|ing)?|continu(?:e|es|ing)|start(?:s|ing)?|mov(?:e|es|ing)\s+on|"
+            r"go(?:es|ing)?\s+ahead|carr(?:y|ies|ying)\s+on)"
+            r"\s*,?\s*(?:regardless|anyway|without\s+(?:it|an?\s+answer|a\s+response))\b|"
+            r"\b(?:nevertheless|regardless)\s*,?\s*(?:proceed|continue|start|move on|go ahead|carry on)\b|"
+            r"\b(?:this|it|clarification|the clarification|answering|the answer|an? answer|"
+            r"a response|the response|the reply)\s+(?:is\s+|can\s+be\s+)?"
+            r"(?:optional|unnecessary|not required|not needed|ignored)\b|"
+            r"\bno\s+(?:clarification|answer|response|reply)\s+(?:is\s+)?needed\b|"
+            r"\b(?:do not|don't)\s+(?:need\s+(?:an?\s+)?(?:answer|response|reply|clarification)|answer)\b|"
+            r"\bassume\s+(?:an?\s+)?default\b",
+            candidate,
+        ):
+            return True
+    return False
+
+
+def requests_missing_input(value, missing_header):
+    if not requests(value):
+        return False
+    other_header = (
+        "Locked audit scope"
+        if missing_header == "Triggering finding"
+        else "Triggering finding"
+    )
+    names_expected = bool(re.search(
+        rf"(?<![\w./-]){re.escape(missing_header)}(?![\w/-]|\.[\w])",
+        value,
+    ))
+    normalized = norm(value)
+    escaped_header = re.escape(norm(missing_header))
+    supplies_expected = bool(re.search(
+        rf"\b(?:provide|specify|identify|name|supply|send|share|clarify|confirm|need)\b"
+        rf"[^.;?]{{0,100}}\b{escaped_header}\b|"
+        rf"^(?:what|which|who|why|can|could|would|are|does|do|is|should)\b"
+        rf"[^?]{{0,100}}\b{escaped_header}\b.*\?$",
+        normalized,
+    ))
+    dismisses_expected = bool(re.search(
+        rf"\b(?:can|may|will|could|should)\s+(?:proceed|continue|start)\s+without\b"
+        rf"[^.;?]{{0,30}}\b{escaped_header}\b|"
+        rf"\b{escaped_header}\b[^.;?]{{0,30}}\b"
+        rf"(?:unnecessary|irrelevant|optional|superfluous|not needed|not required)\b|"
+        rf"\b(?:skip|ignore|omit|drop|disregard)\b[^.;?]{{0,20}}\b{escaped_header}\b",
+        normalized,
+    ))
+    if re.search(
+        rf"\b{escaped_header}\b[^.;?]{{0,100}}\b(?:ignore|skip|omit|disregard)\s+it\b|"
+        rf"\b{escaped_header}\b[^.;?]{{0,100}}\b(?:pointless|does not matter)\b|"
+        rf"\b{escaped_header}\b.{{0,120}}\bproceed regardless\b",
+        normalized,
+    ):
+        dismisses_expected = True
+    names_other = bool(re.search(
+        rf"(?<![\w./-]){re.escape(other_header)}(?![\w/-]|\.[\w])",
+        value,
+        flags=re.I,
+    ))
+    if missing_header == "Triggering finding":
+        requests_other = bool(re.search(
+            r"\b(?:and|then|also)\s+(?:list|provide|specify|identify|include)\s+"
+            r"(?:the\s+)?(?:scope|files|modules|artifacts|specs|tests|endpoints|routes|"
+            r"api surfaces|resources)\b|"
+            r"\b(?:and|then|also)\s+(?:the\s+)?(?:scope|files|modules|artifacts|"
+            r"specs|tests|endpoints|routes|api surfaces|resources)\b",
+            value,
+            flags=re.I,
+        ))
+    else:
+        requests_other = bool(re.search(
+            r"\b(?:and|then|also)\s+(?:provide|specify|identify|name)\s+"
+            r"(?:the\s+)?(?:finding|defect|trigger|incident|bug report)\b|"
+            r"\b(?:and|then|also)\s+(?:the\s+)?(?:finding|defect|trigger|incident|bug report)\b",
+            value,
+            flags=re.I,
+        ))
+    return (names_expected and supplies_expected and not dismisses_expected
+            and not names_other and not requests_other)
+
+
+def scope_artifacts(value):
+    return {
+        match.rstrip(".,;:)")
+        for match in re.findall(r"(?:[\w.-]+/)+[\w.-]+", label_norm(value))
+        if match.rstrip(".,;:)") != "n/a"
+    }
+
+
+def artifact_citations(value, suppress_unavailable=True):
+    visible_value = visible_text(value)
+    normalized = norm(visible_value)
+    citations = {f"path:{path}" for path in scope_artifacts(visible_value)}
+    for match in re.finditer(r"`([^`]+)`", visible_value):
+        basename = label_norm(match.group(1))
+        if "/" not in basename and re.fullmatch(r"\.?[a-z0-9][a-z0-9_.+-]*", basename):
+            citations.add(f"basename:{basename}")
+    section_text = re.sub(r"(?:[\w.-]+/)+[\w.-]+", " ", normalized)
+    section_text = re.sub(r"[\"']", " ", section_text)
+    section_text = re.sub(
+        r"\b(?:no|zero|none|not any)?\s*(?:relevant|matching|applicable|other)?\s*"
+        r"candidates?\s*(?:were\s+)?(?:found|present|identified|exist(?:ing)?)?\s*"
+        r"(?:in|within|under|for)\s+",
+        " ",
+        section_text,
+    )
+    for match in re.finditer(r"\b(?:[a-z0-9_-]+\s+){1,6}section\b", section_text):
+        words = match.group(0).split()
+        while words and words[0] in ("and", "plus", "the", "its", "only"):
+            words.pop(0)
+        if words[:3] == ["no", "candidates", "in"]:
+            words = words[3:]
+        elif words[:2] == ["candidates", "in"]:
+            words = words[2:]
+        elif words and words[0] == "no":
+            words = words[1:]
+        while words and words[0] in ("and", "plus", "the", "its", "only"):
+            words.pop(0)
+        words = [word for word in words if word not in ("docs", "documentation")]
+        citations.add("named:" + " ".join(words))
+
+    fixed = re.findall(
+        r"\b(?:test (?:file|case)|(?:policy|api|json) spec|"
+        r"(?:json )?schema(?: artifact)?|migration(?: file)?|"
+        r"config(?:uration)? (?:block|artifact)|(?:audit )?log(?: entry)?)\b",
+        normalized,
+    )
+    citations.update(f"named:{label_norm(value)}" for value in fixed)
+    for match in re.finditer(r"\bincident(?: note)?(?:\s+([a-z]+-\d+))?\b", normalized):
+        identifier = match.group(1)
+        citations.add(f"incident:{identifier}" if identifier else "named:incident note")
+    unavailable = (
+        r"(?:missing|unknown|unavailable|not available|not supplied|not provided|required|needed)"
+    )
+    if not suppress_unavailable:
+        return citations
+    filtered = set()
+    for citation in citations:
+        if not citation.startswith("named:"):
+            filtered.add(citation)
+            continue
+        subject = citation.removeprefix("named:")
+        if re.search(
+            rf"\bno\s+{re.escape(subject)}(?:\s+is\s+available)?(?=$|[.;,])|"
+            rf"\b{re.escape(subject)}(?:\s*:|\s+(?:is|was|remains?|appears?)|\s+)"
+            rf"\s*{unavailable}(?=$|[.;,])|"
+            rf"\b{re.escape(subject)}\s+(?:could not be found|does not exist)(?=$|[.;,])",
+            normalized,
+        ):
+            continue
+        filtered.add(citation)
+    return filtered
+
+
+def has_ongoing_failure_claim(value):
+    value = norm(value)
+    pattern = re.compile(
+        r"\b(?:still\s+|continues?\s+(?:to\s+)?|keeps?\s+|remains?\s+)"
+        r"(?:crash(?:es|ing)?|break(?:s|ing)?|fail(?:s|ing)?|errors?|throws?|hangs?|"
+        r"panics?|broken|open|present|exists?|regresses?|reproduc(?:es|ing)|occurs?|happens?|500)\b"
+    )
+    for match in pattern.finditer(value):
+        clause_start = max(value.rfind(mark, 0, match.start()) for mark in (".", ";", ",")) + 1
+        subject = value[clause_start:match.start()].strip()
+        if re.search(r"\bno request\b", subject):
+            continue
+        return True
+    return False
+
+
+def missing_metadata_fields(value):
+    match = re.search(
+        r";\s*missing:\s*(owner(?:\s*,\s*reason)?|reason)\s*$",
+        norm(value),
+    )
+    if not match:
+        return set()
+    return {field.strip() for field in match.group(1).split(",")}
+
+
+def explicit_na_reason(value):
+    value = norm(value)
+    return bool(re.search(
+        r"\b(?:no candidates?|structurally inapplicable|"
+        r"not applicable|cannot apply)\b",
+        value,
+    ))
+
+
+def table_cells(line):
+    line = line.strip(" \t")
+    if not line.startswith("|") or not line.endswith("|"):
+        return None
+    cells = []
+    cell = []
+    escaped = False
+    for character in line[1:-1]:
+        if escaped:
+            if character != "|":
+                cell.append("\\")
+            cell.append(character)
+            escaped = False
+        elif character == "\\":
+            escaped = True
+        elif character == "|":
+            cells.append("".join(cell).strip())
+            cell = []
+        else:
+            cell.append(character)
+    if escaped:
+        cell.append("\\")
+    cells.append("".join(cell).strip())
+    return cells
+
+
+def table_separator(cells):
+    return len(cells) == 5 and all(re.fullmatch(r"-{3,}", cell) for cell in cells)
+
+
+def parse_output():
+    output = sys.stdin.read()
+    if not output.strip():
+        fail("missing output")
+    return output.replace("\r\n", "\n").replace("\r", "\n")
+
+
+def parse_report(output):
+    lines = output.split("\n")
+    report_indexes = [index for index, line in enumerate(lines)
+                      if line.strip() == "## Equivalence-Class Audit Report"]
+    if len(report_indexes) != 1:
+        fail("expected exactly one report heading")
+    report_index = report_indexes[0]
+    if any(line.strip() for line in lines[:report_index]):
+        fail("report heading must be the first content line")
+
+    headers = {}
+    header_indexes = {}
+    report_headers = ("Triggering finding", "Locked audit scope", "Output depth", "Verdict", "Severity")
+    for name in report_headers:
+        matches = [(index, line.strip().split(":", 1)[1].strip())
+                   for index, line in enumerate(lines)
+                   if line.strip().startswith(f"{name}:")]
+        if len(matches) != 1:
+            fail(f"expected exactly one populated {name} header")
+        value = visible_text(matches[0][1])
+        if not visible(value):
+            fail(f"expected exactly one populated {name} header")
+        header_indexes[name], headers[name] = matches[0][0], value
+    ordered_headers = [header_indexes[name] for name in report_headers]
+    if ordered_headers != sorted(ordered_headers) or ordered_headers[0] <= report_index:
+        fail("report headers must follow the report heading in canonical order")
+    for left, right in zip([report_index] + ordered_headers, ordered_headers):
+        if any(line.strip() for line in lines[left + 1:right]):
+            fail("report heading and headers may be separated only by blank lines")
+    if headers["Verdict"] not in VERDICTS:
+        fail("report Verdict has an invalid value")
+    if headers["Severity"] not in SEVERITIES:
+        fail("report Severity has an invalid value")
+    if headers["Output depth"] not in ("quick", "standard", "exhaustive"):
+        fail("Output depth must use a canonical lowercase value")
+
+    heading_entries = [(index, line[4:].strip()) for index, line in enumerate(lines)
+                       if line.startswith("### ")]
+    headings = [heading for _, heading in heading_entries]
+    expected = list(SECTIONS)
+    if headers["Output depth"].lower() == "quick":
+        expected.append("Omitted axes (quick mode only)")
+    if headings != expected:
+        fail("headings must be canonical, singleton, and ordered")
+
+    sections = {}
+    for index, heading in enumerate(headings):
+        start = heading_entries[index][0] + 1
+        end = heading_entries[index + 1][0] if index + 1 < len(headings) else len(lines)
+        if any(line.strip() and not line.startswith("- ") for line in lines[start:end]):
+            fail(f"{heading} payload must use bullets only")
+        payload = [visible_text(line[2:].strip()) for line in lines[start:end] if line.startswith("- ")]
+        if not payload:
+            fail(f"{heading} needs a local bullet payload")
+        if "None" in payload and payload != ["None"]:
+            fail(f"{heading} cannot mix None with other bullets")
+        if any(bullet != "None" and not visible(bullet) for bullet in payload):
+            fail(f"{heading} bullets must contain visible text")
+        if heading == "Out-of-scope candidates discovered" and payload != ["None"]:
+            for bullet in payload:
+                match = re.search(r"\bprovenance:\s*(.+)$", bullet, flags=re.I)
+                if (not match or not populated_metadata(match[1])
+                    or non_populated_metadata(match[1], "provenance")):
+                    fail("out-of-scope bullets need populated provenance metadata")
+        sections[heading] = payload
+
+    first_section = heading_entries[0][0]
+    if first_section <= ordered_headers[-1]:
+        fail("report sections must follow the canonical headers")
+    table_entries = [(index, line.strip(" \t")) for index, line in enumerate(lines)
+                     if line.strip(" \t").startswith("|")]
+    table_lines = [line for _, line in table_entries]
+    rows = []
+    if table_lines:
+        if any(table_cells(line) is None for line in table_lines):
+            fail("every table line must use leading and trailing pipes")
+        if any(index <= ordered_headers[-1] or index >= first_section for index, _ in table_entries):
+            fail("table must appear before report sections")
+        table_indexes = [index for index, _ in table_entries]
+        if table_indexes != list(range(table_indexes[0], table_indexes[-1] + 1)):
+            fail("table lines must be contiguous")
+        header_cells = ["Axis", "Candidate", "Presence", "Disposition", "Evidence"]
+        header_indexes = [index for index, line in enumerate(table_lines)
+                          if table_cells(line) == header_cells]
+        separator_indexes = [index for index, line in enumerate(table_lines)
+                             if table_cells(line) and table_separator(table_cells(line))]
+        if len(header_indexes) != 1 or len(separator_indexes) != 1:
+            fail("table must use canonical header and separator")
+        if separator_indexes[0] != header_indexes[0] + 1:
+            fail("table separator must follow the canonical header")
+        if header_indexes[0] != 0:
+            fail("canonical table header must be the first table line")
+        if any(line.strip() for line in lines[ordered_headers[-1] + 1:table_indexes[0]]):
+            fail("only blank lines may precede the table")
+        if any(line.strip() for line in lines[table_indexes[-1] + 1:first_section]):
+            fail("only blank lines may follow the table")
+        for index, line in enumerate(table_lines):
+            if index in (header_indexes[0], separator_indexes[0]):
+                continue
+            cells = [visible_text(cell) for cell in table_cells(line)]
+            if len(cells) != 5:
+                fail("table row must have five cells")
+            if not visible(cells[4]):
+                fail("candidate and evidence must be visibly substantive")
+            item = dict(zip(("axis", "candidate", "presence", "disposition", "evidence"), cells))
+            if item["axis"] not in AXES:
+                fail("table axis must be a canonical catalogue axis")
+            if mixes_latin_and_cyrillic(item["candidate"]):
+                fail("candidate label must not mix Latin and Cyrillic letters")
+            if item["presence"] not in PRESENCE_VALUES or item["disposition"] not in DISPOSITIONS:
+                fail("table row has an invalid Presence or Disposition value")
+            expected = {
+                "present": {"fix-now", "defer-with-owner", "blocked"},
+                "absent": {"n/a"},
+                "n/a — structurally inapplicable": {"n/a"},
+                "n/a — no candidates in scope": {"n/a"},
+                "blocked — clarification needed": {"blocked"},
+            }
+            if item["disposition"] not in expected[item["presence"]]:
+                fail("table Presence and Disposition values conflict")
+            if not visible(item["candidate"]) and not (
+                item["candidate"].strip() == "-" and item["presence"].startswith("n/a")
+            ):
+                fail("candidate must be named unless the row is n/a")
+            evidence_raw = item["evidence"]
+            evidence = norm(evidence_raw)
+            artifact_citation = artifact_citations(evidence_raw)
+            citation = bool(artifact_citation)
+            n_a_reason = explicit_na_reason(evidence)
+            reason_allowed = item["presence"].startswith("n/a")
+            if item["disposition"] == "blocked" and not artifact_citation:
+                fail("blocked row evidence must cite an artifact")
+            if reason_allowed and not n_a_reason:
+                fail("n/a row evidence must include an explicit absence or inapplicability reason")
+            if not citation and not (reason_allowed and n_a_reason):
+                fail("evidence must cite an artifact or an applicable n/a reason")
+            rows.append(item)
+        pairs = [(label_norm(row["axis"]), label_norm(row["candidate"])) for row in rows]
+        if any(count > 1 for count in Counter(pairs).values()):
+            fail("duplicate normalized axis/candidate pair")
+    elif any(line.strip() for line in lines[ordered_headers[-1] + 1:first_section]):
+        fail("only blank lines may separate report headers and sections")
+    headers["_has_table"] = bool(table_lines)
+    return headers, sections, rows
+
+
+def row(rows, axis, candidate_terms=(), presence=None, disposition=None, excluded_terms=(), candidate_any=()):
+    for item in rows:
+        if norm(item["axis"]) != norm(axis):
+            continue
+        candidate = norm(item["candidate"])
+        if candidate_terms and not all(norm(term) in candidate for term in candidate_terms):
+            continue
+        if candidate_any and not any(norm(term) in candidate for term in candidate_any):
+            continue
+        if any(norm(term) in candidate for term in excluded_terms):
+            continue
+        if presence and norm(item["presence"]) != norm(presence):
+            continue
+        if disposition and norm(item["disposition"]) != norm(disposition):
+            continue
+        return item
+    fail(f"missing required {axis} row")
+
+
+def standard_table(headers, rows, depth="standard"):
+    if headers["Output depth"].lower() != depth:
+        fail(f"expected {depth} output depth")
+    if not rows:
+        fail("complete report requires a table")
+    if depth in ("standard", "exhaustive"):
+        missing = [axis for axis in AXES if not any(norm(item["axis"]) == norm(axis) for item in rows)]
+        if missing:
+            fail(f"missing catalogue axes: {', '.join(missing)}")
+
+
+def summary_assignments(candidates, bullets, section, one_to_one=False):
+    if not candidates:
+        if bullets != ["None"]:
+            fail(f"{section} has a bullet without a compatible table row")
+        return {}
+    if bullets == ["None"]:
+        fail(f"{section} cannot be None when table rows require it")
+    if section == "Defects to fix now":
+        for bullet in bullets:
+            action = norm(bullet)
+            for candidate in candidates:
+                if candidate_named(candidate, bullet):
+                    action = re.sub(
+                        rf"(?<![a-z0-9_./-]){re.escape(norm(candidate))}(?![a-z0-9_/-]|\.[a-z0-9_])",
+                        " ", action,
+                    )
+            if not re.match(
+                r"^(?:fix|correct|repair|update|add|remove|change|align|enforce|implement)\b",
+                action,
+            ):
+                fail(f"{section} cannot contain a negated action")
+            if re.search(
+                r"\b(?:do not fix|don't fix|need not fix|not fix|never[ -]fix|"
+                r"no action|skip it|skip this)\b|\bleave\b[^.;]{0,40}\bunchanged\b",
+                action,
+            ):
+                fail(f"{section} cannot contain a negated action")
+    elif section == "Deferred follow-ups":
+        for bullet in bullets:
+            action = norm(bullet)
+            if not re.search(
+                r"(?:^|[;.!]\s*)(?:defer|postpone|schedule|track|follow up)\b",
+                action,
+            ):
+                fail(f"{section} cannot negate deferral")
+            if re.search(
+                r"\b(?:(?:do not|don't|never|not)\s+defer|no[ -]reason[ -]to[ -]defer|"
+                r"(?:skip|cancel)\s+(?:the\s+)?deferral)\b",
+                action,
+            ):
+                fail(f"{section} cannot negate deferral")
+    mentions_by_bullet = {
+        bullet_index: mentioned_candidate_indexes(candidates, bullet)
+        for bullet_index, bullet in enumerate(bullets)
+    }
+    matches = {
+        candidate_index: sorted(
+            (bullet_index for bullet_index, mentions in mentions_by_bullet.items()
+             if candidate_index in mentions),
+            key=lambda index: (len(norm(bullets[index])), index),
+        )
+        for candidate_index in range(len(candidates))
+    }
+    for candidate_index, matching in matches.items():
+        if not matching:
+            fail(f"{section} must name {candidates[candidate_index]}")
+
+    if one_to_one:
+        assignments = {}
+        assigned_by_label = {}
+        for bullet_index, bullet in enumerate(bullets):
+            bullet_candidates = mentions_by_bullet[bullet_index]
+            labels = {label_norm(candidates[index]) for index in bullet_candidates}
+            if len(labels) != 1:
+                fail(f"{section} bullets must each name exactly one candidate")
+            label = labels.pop()
+            label_candidates = [
+                index for index, candidate in enumerate(candidates)
+                if label_norm(candidate) == label
+            ]
+            used = assigned_by_label.get(label, 0)
+            if used >= len(label_candidates):
+                fail(f"{section} must use one bullet per candidate")
+            candidate_index = label_candidates[used]
+            assignments[candidate_index] = bullet_index
+            assigned_by_label[label] = used + 1
+        if len(assignments) != len(candidates):
+            fail(f"{section} must use one bullet per candidate")
+    else:
+        assignments = {
+            candidate_index: matching[0]
+            for candidate_index, matching in matches.items()
+        }
+    for bullet in bullets:
+        if not any(candidate_named(candidate, bullet) for candidate in candidates):
+            fail(f"{section} has a bullet without a compatible table row")
+    return assignments
+
+
+def summary_bullet(candidates, bullets, candidate_index, section, one_to_one=False):
+    assignments = summary_assignments(candidates, bullets, section, one_to_one)
+    return bullets[assignments[candidate_index]]
+
+
+def reconcile_summaries(sections, rows):
+    dispositions_by_label = {}
+    for item in rows:
+        label = label_norm(item["candidate"])
+        dispositions_by_label.setdefault(label, set()).add(item["disposition"])
+    for label, dispositions in dispositions_by_label.items():
+        if len(dispositions) > 1:
+            fail(f"candidate label {label} has multiple dispositions")
+    for disposition, section in (("fix-now", "Defects to fix now"),
+                                 ("defer-with-owner", "Deferred follow-ups")):
+        candidates = [item["candidate"] for item in rows
+                      if item["presence"] == "present" and item["disposition"] == disposition]
+        summary_assignments(candidates, sections[section], section)
+    blocked_by_label = {}
+    for item in rows:
+        if item["disposition"] == "blocked":
+            blocked_by_label.setdefault(label_norm(item["candidate"]), item["candidate"])
+    blocked = list(blocked_by_label.values())
+    blocker_bullets = sections["Blocking questions"]
+    if blocked and len(blocker_bullets) != len(blocked):
+        fail("Blocking questions must contain one bullet per distinct blocked candidate label")
+    assignments = summary_assignments(
+        blocked, blocker_bullets, "Blocking questions", one_to_one=True
+    )
+    for candidate_index, bullet_index in assignments.items():
+        candidate = blocked[candidate_index]
+        if not requests(blocker_bullets[bullet_index]):
+            fail(f"Blocking questions must name and request clarification for {candidate}")
+    for bullet in blocker_bullets:
+        if bullet == "None":
+            continue
+        if not requests(bullet):
+            fail("each blocking question must request clarification")
+    disposition_sections = {
+        "fix-now": "Defects to fix now",
+        "defer-with-owner": "Deferred follow-ups",
+        "blocked": "Blocking questions",
+    }
+    matchable_rows = [item for item in rows if item["candidate"].strip() != "-"]
+    all_candidates = [item["candidate"] for item in matchable_rows]
+    for disposition, section in disposition_sections.items():
+        for bullet in sections[section]:
+            if bullet == "None":
+                continue
+            for candidate_index in mentioned_candidate_indexes(all_candidates, bullet):
+                item = matchable_rows[candidate_index]
+                if item["disposition"] != disposition:
+                    fail(f"{section} must not name {item['candidate']} from another disposition")
+    for bullet in sections["Deferred follow-ups"]:
+        if bullet == "None":
+            continue
+        metadata = re.search(r"\bowner:\s*([^;]+);\s*reason:\s*(.+)$", bullet, flags=re.I)
+        if not metadata or not all(populated_metadata(value) for value in metadata.groups()):
+            fail("each deferred candidate bullet needs owner and reason metadata")
+        if any(non_populated_metadata(value, field)
+               for field, value in zip(("owner", "reason"), metadata.groups())):
+            fail("deferred candidate metadata must be positive and populated")
+    implications = [item["candidate"] for item in rows if item["presence"] == "present"
+                    and item["axis"] in ("Test Mirror", "Documentation/Spec Prose Twin")]
+    if implications and sections["Test/doc implications"] == ["None"]:
+        fail("Test/doc implications cannot be None for present test/docs rows")
+    mentioned_implications = set()
+    for bullet in sections["Test/doc implications"]:
+        mentioned_implications.update(mentioned_candidate_indexes(implications, bullet))
+    for candidate_index, candidate in enumerate(implications):
+        if candidate_index not in mentioned_implications:
+            fail(f"Test/doc implications must name {candidate}")
+
+
+def validate_report_outcome(headers, sections, rows):
+    verdict = headers["Verdict"]
+    severity = headers["Severity"]
+    if not headers["_has_table"]:
+        if verdict != "BLOCK" or severity != "UNASSESSED":
+            fail("reduced report must use Verdict BLOCK and Severity UNASSESSED")
+        return
+
+    blocked = any(item["disposition"] == "blocked" for item in rows)
+    actionable = any(item["presence"] == "present" for item in rows)
+    actionable = actionable or sections["Out-of-scope candidates discovered"] != ["None"]
+    actionable = actionable or sections["Test/doc implications"] != ["None"]
+
+    if blocked:
+        if verdict != "BLOCK" or severity == "NONE":
+            fail("blocked report must use Verdict BLOCK and a non-NONE Severity")
+    elif actionable:
+        expected = "BLOCK" if severity in ("CRITICAL", "HIGH") else "CONCERNS"
+        if severity not in ("CRITICAL", "HIGH", "MEDIUM", "LOW") or verdict != expected:
+            fail("actionable report has an invalid Verdict/Severity combination")
+    elif verdict != "CLEAN" or severity != "NONE":
+        fail("clean report must use Verdict CLEAN and Severity NONE")
+
+
+def reduced(headers, sections, rows, missing_header, quick=False, expected_missing=None):
+    if headers["_has_table"] or rows:
+        fail("reduced report must not include a table")
+    expected_missing = set(expected_missing or (missing_header,))
+    for header in ("Triggering finding", "Locked audit scope"):
+        is_missing = missing_header_marker(headers[header])
+        if is_missing != (header in expected_missing):
+            state = "missing" if header in expected_missing else "supplied"
+            fail(f"{header} must remain {state}")
+    for section in ("Defects to fix now", "Deferred follow-ups",
+                    "Out-of-scope candidates discovered", "Test/doc implications"):
+        if sections[section] != ["None"]:
+            fail(f"reduced {section} must contain only None")
+    if len(sections["Blocking questions"]) != 1:
+        fail("reduced report needs exactly one blocking question")
+    blockers = sections["Blocking questions"][0]
+    if not requests_missing_input(blockers, missing_header):
+        fail("blocking question must name the missing required input")
+    if quick:
+        omitted = " ".join(sections["Omitted axes (quick mode only)"])
+        if not missing_marker(omitted) or not any(
+            term in omitted.lower() for term in ("no axes", "not enumerated", "not expanded", "omitted")
+        ):
+            fail("quick reduced report needs a local omitted-axes explanation")
+
+
+def validate(profile, headers, sections, rows):
+    if profile != "positive-edge-009" and any(item["disposition"] == "defer-with-owner" for item in rows):
+        fail("profile does not provide an explicit deferral boundary")
+    if profile in PROFILE_HEADERS:
+        for name, terms in zip(("Triggering finding", "Locked audit scope"), PROFILE_HEADERS[profile]):
+            value = norm(headers[name])
+            if missing_header_marker(value) or not all(norm(term) in value for term in terms):
+                fail(f"{name} must preserve the supplied task input")
+        if not finding_preserves_meaning(profile, headers["Triggering finding"]):
+            fail("Triggering finding must preserve the supplied task meaning")
+    if profile in PROFILE_SCOPE_ARTIFACTS:
+        required_scope_items = set(PROFILE_SCOPE_ARTIFACTS[profile]) | {
+            section.removeprefix("named:")
+            for section in PROFILE_SCOPE_SECTIONS.get(profile, set())
+        }
+        if excludes_locked_scope(headers["Locked audit scope"], required_scope_items):
+            fail("Locked audit scope must include the supplied artifacts")
+        if scope_artifacts(headers["Locked audit scope"]) != PROFILE_SCOPE_ARTIFACTS[profile]:
+            fail("Locked audit scope must preserve the exact artifact set")
+        scope_citations = artifact_citations(headers["Locked audit scope"])
+        scope_sections = {
+            citation for citation in scope_citations
+            if citation.startswith("named:") and citation.endswith(" section")
+        }
+        if scope_sections != PROFILE_SCOPE_SECTIONS.get(profile, set()):
+            fail("Locked audit scope must preserve the exact named sections")
+        allowed_evidence = scope_citations | PROFILE_EXTRA_EVIDENCE.get(profile, set())
+        basenames = [path.rsplit("/", 1)[-1] for path in PROFILE_SCOPE_ARTIFACTS[profile]]
+        allowed_evidence.update(
+            f"basename:{basename}" for basename in basenames
+            if basenames.count(basename) == 1
+        )
+        for item in rows:
+            row_citations = artifact_citations(item["evidence"], suppress_unavailable=False)
+            if row_citations and not row_citations <= allowed_evidence:
+                fail("table evidence citation must stay within the locked scope")
+    if profile == "positive-edge-010":
+        finding = norm(headers["Triggering finding"])
+        negated = re.search(r"\bunfixed\b|\bnot\b[^.]{0,20}\bfixed\b", finding)
+        ongoing = has_ongoing_failure_claim(finding)
+        if (not re.search(r"\bfixed\b", finding) or "previously" not in finding
+            or negated or ongoing or re.search(r"\bcurrent\b", finding)):
+            fail("clean profile triggering finding must describe a previously fixed defect")
+    if profile == "positive-edge-003":
+        if headers["Output depth"].lower() != "standard":
+            fail("expected standard output depth")
+        reduced(
+            headers, sections, rows, "Locked audit scope",
+            expected_missing={"Locked audit scope"},
+        )
+        supplied = headers["Triggering finding"].lower()
+        if missing_header_marker(supplied) or not all(term in supplied for term in (
+            "security review", "delete /teams/{teamid}", "organization membership", "tenant ownership",
+        )):
+            fail("missing-scope report must preserve the supplied triggering finding")
+        if not finding_preserves_meaning(profile, supplied):
+            fail("missing-scope report must preserve the supplied triggering finding meaning")
+    elif profile == "positive-edge-006":
+        if headers["Output depth"].lower() != "quick":
+            fail("expected quick output depth")
+        reduced(
+            headers, sections, rows, "Triggering finding", quick=True,
+            expected_missing={"Triggering finding"},
+        )
+        supplied = headers["Locked audit scope"].lower()
+        if missing_header_marker(supplied) or not all(
+            term in supplied for term in ("src/pagination.ts", "tests/pagination.test.ts")
+        ):
+            fail("missing-finding report must preserve the supplied locked scope")
+    elif profile == "positive-edge-011":
+        if headers["Output depth"] != "exhaustive":
+            fail("expected exhaustive output depth")
+        reduced(
+            headers, sections, rows, "Triggering finding",
+            expected_missing={"Triggering finding", "Locked audit scope"},
+        )
+        if not missing_header_marker(headers["Locked audit scope"]):
+            fail("both-missing report must preserve the missing locked scope header")
+    elif profile == "positive-edge-004":
+        standard_table(headers, rows, "quick")
+        reconcile_summaries(sections, rows)
+        allowed = {"Opposite Bound", "Test Mirror"}
+        if any(item["axis"] not in allowed for item in rows):
+            fail("quick profile may include only target-specific rows")
+        for axis, terms in (("Opposite Bound", ("zero",)), ("Test Mirror", ("zero",))):
+            item = row(rows, axis, terms, "present", "fix-now")
+            if not any(token in item["evidence"].lower() for token in ("src/pagination.ts", "tests/pagination.test.ts", "triggering finding")):
+                fail(f"{axis} needs scoped evidence")
+        omitted = " ".join(sections["Omitted axes (quick mode only)"]).lower()
+        if "omitted" not in omitted or not any(term in omitted for term in ("scope", "inapplicable", "material")):
+            fail("quick report needs an omitted-axis reason")
+    else:
+        standard_table(headers, rows, "exhaustive" if profile == "positive-edge-007" else "standard")
+        reconcile_summaries(sections, rows)
+
+    if profile == "positive-edge-001":
+        row(rows, "Opposite Bound", ("timeoutseconds",), "present", "fix-now")
+        for axis in ("Sibling Parameter/Field", "Inverse Operation", "Permission/Authorization Class",
+                     "Resource Cleanup", "Async/Sync or Mode Twin", "Cache/Projection/Source-of-Truth Twin"):
+            matches = [item for item in rows if item["axis"] == axis]
+            if len(matches) != 1:
+                fail(f"{axis} must have exactly one no-candidate row")
+            item = matches[0]
+            if item["presence"] not in ("n/a — structurally inapplicable", "n/a — no candidates in scope") or item["disposition"] != "n/a":
+                fail(f"{axis} must be an explicit n/a row")
+            if not explicit_na_reason(item["evidence"]):
+                fail(f"{axis} must include an explicit n/a reason")
+        row(rows, "Documentation/Spec Prose Twin", ("docs",), "present", "fix-now")
+    elif profile == "positive-edge-002":
+        delete_row = row(rows, "Permission/Authorization Class", ("delete",),
+                         "blocked — clarification needed", "blocked")
+        row(rows, "Mirror Call Site/Use Site", ("get", "tenantguard"), "absent", "n/a")
+        row(rows, "Test Mirror", ("tenant mismatch",), "present", "fix-now")
+        blocked_rows = [item for item in rows if item["disposition"] == "blocked"]
+        delete_index = next(index for index, item in enumerate(blocked_rows) if item is delete_row)
+        blocker = summary_bullet(
+            [item["candidate"] for item in blocked_rows],
+            sections["Blocking questions"],
+            delete_index,
+            "Blocking questions",
+            one_to_one=True,
+        )
+        if (not all(term in blocker.lower() for term in (
+                "tenantguard", "tenant ownership", "policy spec"))
+            or not requests(blocker)):
+            fail("authorization blocker must name tenantGuard, ownership, and policy spec")
+        out_of_scope = sections["Out-of-scope candidates discovered"]
+        for term in ("tenantguard", "policy"):
+            matching = [bullet for bullet in out_of_scope if term in bullet.lower()]
+            if len(matching) != 1 or "provenance" not in matching[0].lower():
+                fail(f"out-of-scope section must report {term} with provenance")
+            if "supplied known facts" not in matching[0].lower():
+                fail(f"{term} provenance must cite the supplied Known facts")
+    elif profile == "positive-edge-005":
+        docs_rows = [item for item in rows if norm(item["axis"]) == norm("Documentation/Spec Prose Twin")]
+        if len(docs_rows) != 1:
+            fail("expected one documentation candidate")
+        item = docs_rows[0]
+        if item["presence"] != "present" or item["disposition"] != "blocked":
+            fail("documentation candidate must remain present and blocked")
+        row(rows, "Opposite Bound", ("maxretries",), "present", "fix-now")
+        if sections["Deferred follow-ups"] != ["None"]:
+            fail("blocked deferral must not appear in deferred follow-ups")
+        if any(candidate_named(item["candidate"], bullet)
+               for bullet in sections["Defects to fix now"]):
+            fail("blocked documentation must not appear in fix-now summary")
+        blocked_rows = [candidate for candidate in rows if candidate["disposition"] == "blocked"]
+        item_index = next(index for index, candidate in enumerate(blocked_rows) if candidate is item)
+        blocker = summary_bullet(
+            [candidate["candidate"] for candidate in blocked_rows],
+            sections["Blocking questions"],
+            item_index,
+            "Blocking questions",
+            one_to_one=True,
+        ).lower()
+        if ("doc" not in blocker or missing_metadata_fields(blocker) != {"owner", "reason"}
+            or not requests(blocker)):
+            fail("documentation blocker must request owner and reason")
+        if headers["Severity"] == "UNASSESSED":
+            fail("known-impact blocked profile must use an assessed severity")
+    elif profile == "positive-edge-007":
+        row(rows, "Opposite Bound", presence="present", disposition="fix-now",
+            candidate_any=("minitems", "zero"))
+        row(rows, "Sibling Parameter/Field", ("maxitems",), "absent", "n/a")
+        mirror_rows = [item for item in rows if item["axis"] == "Mirror Call Site/Use Site"]
+        synchronous = [item for item in mirror_rows
+                   if has_mode_term(item["candidate"], "sync")
+                   and not has_mode_term(item["candidate"], "async")]
+        asynchronous = [item for item in mirror_rows
+                if has_mode_term(item["candidate"], "async")]
+        if len(synchronous) != 1 or len(asynchronous) != 1 or any(
+            item["presence"] != "present" or item["disposition"] != "fix-now"
+            or "validator" not in item["candidate"].lower()
+            for item in synchronous + asynchronous
+        ):
+            fail("exhaustive report needs separate sync and async validator call sites")
+        mode_rows = [item for item in rows if item["axis"] == "Async/Sync or Mode Twin"
+                     and has_mode_term(item["candidate"], "async")
+                     and item["presence"] == "present" and item["disposition"] == "fix-now"]
+        if len(mode_rows) != 1:
+            fail("exhaustive report needs one async mode candidate")
+        zero = row(rows, "Test Mirror", ("zero",), "present", "fix-now")
+        async_tests = [item for item in rows if item["axis"] == "Test Mirror"
+                       and has_mode_term(item["candidate"], "async")
+                       and item["presence"] == "present" and item["disposition"] == "fix-now"]
+        if len(async_tests) != 1:
+            fail("exhaustive report needs one async Test Mirror candidate")
+        async_row = async_tests[0]
+        if has_mode_term(zero["candidate"], "async") or "zero" in async_row["candidate"].lower():
+            fail("zero and async Test Mirror candidates must be distinct")
+        row(rows, "Documentation/Spec Prose Twin", ("zero",), "present", "fix-now")
+    elif profile == "positive-edge-008":
+        row(rows, "Opposite Bound", ("maxretries",), "present", "fix-now")
+        docs_rows = [item for item in rows if norm(item["axis"]) == norm("Documentation/Spec Prose Twin")]
+        if len(docs_rows) != 2:
+            fail("expected separate API and operations documentation candidates")
+        for document, need in (("docs/api.md", "reason"), ("docs/operations.md", "owner")):
+            other = "docs/operations.md" if document == "docs/api.md" else "docs/api.md"
+            document_row = row(rows, "Documentation/Spec Prose Twin", (document,), "present", "blocked", (other,))
+            blocked_rows = [item for item in rows if item["disposition"] == "blocked"]
+            document_index = next(index for index, item in enumerate(blocked_rows)
+                                  if item is document_row)
+            blocker = summary_bullet(
+                [item["candidate"] for item in blocked_rows],
+                sections["Blocking questions"],
+                document_index,
+                "Blocking questions",
+                one_to_one=True,
+            ).lower()
+            if missing_metadata_fields(blocker) != {need} or not requests(blocker):
+                fail(f"{document} needs a separate blocker requesting {need}")
+        if sections["Deferred follow-ups"] != ["None"]:
+            fail("blocked docs must not appear in deferred follow-ups")
+        if any(candidate_named(item["candidate"], bullet)
+               for item in docs_rows
+               for bullet in sections["Defects to fix now"]):
+            fail("blocked docs must not appear in fix-now summary")
+        if headers["Severity"] == "UNASSESSED":
+            fail("known-impact blocked profile must use an assessed severity")
+    elif profile == "positive-edge-009":
+        row(rows, "Opposite Bound", ("maxretries",), "present", "fix-now")
+        docs_row = row(rows, "Documentation/Spec Prose Twin",
+                       presence="present", disposition="defer-with-owner",
+                       candidate_any=("docs/api.md", "api.md", "documentation", "api reference", "docs"))
+        if not artifact_citations(docs_row["evidence"]) & {
+            "path:docs/api.md", "basename:api.md",
+        }:
+            fail("documentation deferral evidence must cite docs/api.md")
+        deferred_rows = [item for item in rows
+                         if item["presence"] == "present" and item["disposition"] == "defer-with-owner"]
+        if ({label_norm(item["candidate"]) for item in deferred_rows}
+            != {label_norm(docs_row["candidate"])}):
+            fail("documentation must be the only deferred candidate")
+        deferred = summary_bullet(
+            [item["candidate"] for item in deferred_rows],
+            sections["Deferred follow-ups"],
+            0,
+            "Deferred follow-ups",
+        )
+        metadata = re.search(r"\bowner:\s*([^;]+);\s*reason:\s*(.+)$", deferred, flags=re.I)
+        if not metadata or label_norm(metadata.group(1)) != "platform docs":
+            fail("documentation deferral owner must be Platform Docs")
+        reason = norm(metadata.group(2))
+        if (re.search(
+            r"\b(?:not|never)\s+(?:owned\s+)?outside\b|"
+            r"\b(?:inside|within|internally|locally|in-repo)\b[^.;]{0,30}"
+            r"\b(?:not|rather than|instead of)\s+outside\b",
+            reason,
+            )
+            or not all(term in reason for term in ("outside", "change"))
+                or not any(term in reason for term in ("owned", "owns"))
+                or not any(term in reason for term in ("documentation", "public api reference"))):
+            fail("documentation deferral reason must cite ownership outside this change")
+    elif profile == "positive-edge-010":
+        if any(item["presence"] not in (
+            "absent", "n/a — structurally inapplicable", "n/a — no candidates in scope",
+        ) for item in rows):
+            fail("clean audit may contain only absent or n/a rows")
+        if any(sections[section] != ["None"] for section in SECTIONS):
+            fail("clean audit summaries must contain only None")
+    elif profile == "positive-trigger-001":
+        row(rows, "Opposite Bound", ("maxretries", "upper"), "present", "fix-now")
+        row(rows, "Sibling Parameter/Field", ("retrydelayseconds",), "present", "fix-now")
+        row(rows, "Empty/Sentinel Equivalence", ("null",), "present", "fix-now")
+        row(rows, "Contract Symmetry", ("retry", "docs", "config"), "present", "fix-now")
+        test_rows = [item for item in rows if item["axis"] == "Test Mirror"
+                     and item["presence"] == "present" and item["disposition"] == "fix-now"]
+        used = set()
+        for term in ("upper", "retrydelayseconds", "null"):
+            match = next((index for index, item in enumerate(test_rows)
+                          if index not in used and term in item["candidate"].lower()), None)
+            if match is None:
+                fail("trigger-001 requires distinct Test Mirror candidates")
+            used.add(match)
+        item = row(rows, "Documentation/Spec Prose Twin", ("docs/operations.md",), "present", "fix-now")
+        if not visible(item["evidence"]):
+            fail("documentation row needs substantive evidence")
+    elif profile == "positive-trigger-002":
+        export = row(rows, "Permission/Authorization Class", ("export",), "present", "fix-now",
+                 excluded_terms=("archive",))
+        if "can_export" not in export["evidence"].lower():
+            fail("export candidate needs can_export evidence")
+        row(rows, "Permission/Authorization Class", ("archive",), "present", "fix-now",
+            excluded_terms=("export",))
+        report = row(rows, "Permission/Authorization Class", ("report",), "absent", "n/a")
+        if "can_view_report" not in report["evidence"].lower():
+            fail("report candidate needs can_view_report evidence")
+        row(rows, "Observability Twin", ("denied",), "present", "fix-now")
+        row(rows, "Test Mirror", ("export", "denied"), "present", "fix-now", ("archive",))
+        row(rows, "Test Mirror", ("archive", "denied"), "present", "fix-now", ("export",))
+        for term, excluded in (("export", "archive"), ("archive", "export")):
+            docs_row = row(
+                rows, "Documentation/Spec Prose Twin", (term,), "present", "fix-now",
+                excluded_terms=(excluded,),
+            )
+            if "named:project exports api section" not in artifact_citations(docs_row["evidence"]):
+                fail(f"{term} documentation row must cite the Project exports API section")
+    if profile in PROFILE_ACTIVE_AXIS_COUNTS:
+        active_rows = [item for item in rows
+                       if item["presence"] == "present" or item["disposition"] == "blocked"]
+        active_counts = Counter(item["axis"] for item in active_rows)
+        minimums = Counter(PROFILE_ACTIVE_AXIS_COUNTS[profile])
+        if any(active_counts[axis] < count for axis, count in minimums.items()):
+            fail("report is missing the required active candidate set")
+        if any(active_counts[axis] > count for axis, count in minimums.items()):
+            fail("report contains an unsupported active candidate set")
+        active_labels = {label_norm(item["candidate"]) for item in active_rows}
+        if len(active_labels) > PROFILE_MAX_ACTIVE_CANDIDATES[profile]:
+            fail("report contains an unsupported active candidate set")
+        required_axis_labels = {
+            label_norm(item["candidate"])
+            for item in active_rows
+            if item["axis"] in minimums
+        }
+        unsupported_unexpected = [
+            item for item in active_rows
+            if item["axis"] not in minimums
+            and (
+                item["axis"] not in PROFILE_OPTIONAL_ACTIVE_AXES.get(profile, set())
+                or label_norm(item["candidate"]) not in required_axis_labels
+            )
+        ]
+        if unsupported_unexpected:
+            fail("report contains an unsupported active candidate set")
+    validate_report_outcome(headers, sections, rows)
+
+
+def main():
+    if len(sys.argv) != 2:
+        fail("usage: check-report.py <task-id>")
+    if sys.argv[1] not in PROFILES:
+        fail("unknown task profile")
+    output = parse_output()
+    headers, sections, rows = parse_report(output)
+    validate(sys.argv[1], headers, sections, rows)
+
+
+if __name__ == "__main__":
+    main()

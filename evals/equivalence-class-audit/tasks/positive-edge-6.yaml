@@ -1,26 +1,21 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
-id: positive-edge-003
-name: Missing locked scope blocks before enumeration
+id: positive-edge-006
+name: Missing triggering finding blocks before enumeration
 description: |
-  A concrete finding without a locked audit scope should return the report
-  sections with a blocking question, not inferred candidates or invented scope.
+  A locked scope without a triggering finding must return the complete report
+  shell without inventing candidates or emitting the audit table.
 tags:
   - positive-trigger
   - positive-edge
 inputs:
   prompt: |
-    Apply equivalence-class-audit.
+    Apply equivalence-class-audit in quick mode.
 
-    Triggering finding: a security review found that `DELETE /teams/{teamId}`
-    checks organization membership but may not check tenant ownership.
+    Locked audit scope: `src/pagination.ts` and `tests/pagination.test.ts`.
 
-    No locked audit scope is provided. The reporter mentioned that route files,
-    controllers, policies, and tests probably exist somewhere, but did not name
-    exact files, modules, API surfaces, specs, tests, or artifacts to inspect.
-
-    Produce the audit report header and sections, but do not enumerate axes or
-    candidates until the locked scope is supplied. Ask for the smallest missing
-    input needed to proceed.
+    No concrete defect, incident, review finding, test failure, or bug report is
+    supplied. Produce the reduced report, omit the table and candidate rows, and
+    ask for the smallest missing triggering finding needed to proceed.
 expected:
   should_trigger: true
 graders:
@@ -42,25 +37,23 @@ graders:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
         - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
-        - '(?im)^Triggering finding:[ \t]+\S[^\r\n]*$'
-        - '(?m)^Locked audit scope:[ \t]+(missing|not provided|not supplied|required|needed)[ \t]*$'
-        - '(?im)^Output depth:\s*standard\s*$'
+        - '(?m)^Triggering finding:[ \t]+(missing|not provided|not supplied|required|needed)[ \t]*$'
+        - '(?im)^Locked audit scope:[ \t]+\S[^\r\n]*$'
+        - '(?im)^Output depth:\s*quick\s*$'
         - '(?im)^Verdict:\s*BLOCK\s*$'
         - '(?im)^Severity:\s*UNASSESSED\s*$'
-        - '(?i)Triggering finding'
+        - '(?im)^### Defects to fix now[ \t]*\r?\n-[ \t]*None[ \t]*$'
+        - '(?im)^### Deferred follow-ups[ \t]*\r?\n-[ \t]*None[ \t]*$'
+        - '(?im)^### Out-of-scope candidates discovered[ \t]*\r?\n-[ \t]*None[ \t]*$'
+        - '(?im)^### Test/doc implications[ \t]*\r?\n-[ \t]*None[ \t]*$'
         - '(?i)Defects to fix now'
         - '(?i)Deferred follow-ups'
         - '(?i)Out-of-scope candidates discovered'
         - '(?i)Blocking questions'
         - '(?i)Test/doc implications'
-        - '(?im)^### Defects to fix now[ \t]*\r?\n-[ \t]*None[ \t]*$'
-        - '(?im)^### Deferred follow-ups[ \t]*\r?\n-[ \t]*None[ \t]*$'
-        - '(?im)^### Out-of-scope candidates discovered[ \t]*\r?\n-[ \t]*None[ \t]*$'
-        - '(?im)^### Test/doc implications[ \t]*\r?\n-[ \t]*None[ \t]*$'
       not_contains:
-        - "### Omitted axes (quick mode only)"
         - "|"
-        - "Output depth: quick"
+        - "Output depth: standard"
         - "Output depth: exhaustive"
         - "| Axis | Candidate | Presence | Disposition | Evidence |"
         - "|------|-----------|----------|-------------|----------|"
@@ -83,18 +76,12 @@ graders:
         - "Documentation/Spec Prose Twin"
         - "Cache/Projection/Source-of-Truth Twin"
         - "Gate decision:"
-        - "Lenses applied:"
-        - "Checklist evidence"
         - "Adversarial tests:"
-        - "Egress policy:"
-        - "Trusted root:"
-        - "PLAN-READY"
-        - "PLAN-PARTIAL"
   - type: program
     name: report_contract
     config:
       command: python3
       args:
         - evals/equivalence-class-audit/check-report.py
-        - positive-edge-003
+        - positive-edge-006
       timeout: 60
