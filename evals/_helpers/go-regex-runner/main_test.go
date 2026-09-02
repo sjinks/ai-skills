@@ -72,11 +72,11 @@ func TestTaskPathsUsePathsRelativeToRoot(t *testing.T) {
 
 func TestCollectRejectsDuplicateIDsWithinSuite(t *testing.T) {
 	root := t.TempDir()
-	first := writeTask(t, root, `^ok$`)
+	writeTask(t, root, `^ok$`)
 	second := filepath.Join(root, "sample", "tasks", "other.yaml")
 	writeFile(t, second, "id: sample-task\ngraders: []\n")
 	_, _, err := collect(root)
-	if err == nil || !strings.Contains(err.Error(), "duplicate task id") || !strings.Contains(err.Error(), first) || !strings.Contains(err.Error(), second) {
+	if err == nil || !strings.Contains(err.Error(), "duplicate task id") || !strings.Contains(err.Error(), "sample/tasks/task.yaml") || !strings.Contains(err.Error(), "sample/tasks/other.yaml") || strings.Contains(err.Error(), root) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
@@ -92,12 +92,12 @@ func TestCollectAllowsDuplicateIDsAcrossSuites(t *testing.T) {
 
 func TestCollectReportsRegexLocation(t *testing.T) {
 	root := t.TempDir()
-	path := writeTask(t, root, `(`)
+	writeTask(t, root, `(`)
 	_, _, err := collect(root)
 	if err == nil {
 		t.Fatal("expected invalid regex to fail")
 	}
-	for _, expected := range []string{path, "sample-task", "task_completion", "regex_match[0]"} {
+	for _, expected := range []string{"sample/tasks/task.yaml", "sample-task", "task_completion", "regex_match[0]"} {
 		if !strings.Contains(err.Error(), expected) {
 			t.Fatalf("error %q does not contain %q", err, expected)
 		}
@@ -107,9 +107,9 @@ func TestCollectReportsRegexLocation(t *testing.T) {
 func TestCollectReportsRegexNotMatchLocation(t *testing.T) {
 	root := t.TempDir()
 	path := filepath.Join(root, "sample", "tasks", "task.yaml")
-	writeFile(t, path, "id: sample-task\ngraders:\n  - name: completion\n    config:\n      regex_not_match:\n        - '('\n")
+	writeFile(t, path, "id: sample-task\ngraders:\n  - type: text\n    name: completion\n    config:\n      regex_not_match:\n        - '('\n")
 	_, _, err := collect(root)
-	if err == nil || !strings.Contains(err.Error(), "regex_not_match[0]") || !strings.Contains(err.Error(), path) {
+	if err == nil || !strings.Contains(err.Error(), "regex_not_match[0]") || !strings.Contains(err.Error(), "sample/tasks/task.yaml") || strings.Contains(err.Error(), root) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
@@ -186,6 +186,7 @@ func TestValidateCasesRejectsInvalidContracts(t *testing.T) {
 		{name: "missing cases", content: `{}`, want: "at least one contrastive case"},
 		{name: "empty cases", content: `{"cases":[]}`, want: "at least one contrastive case"},
 		{name: "unknown field", content: `{"case":[]}`, want: "unknown field"},
+		{name: "multiple documents", content: `{"cases":[]} {"cases":[]}`, want: "expected one JSON document"},
 		{name: "invalid list", content: `{"cases":[{"name":"bad","task":"sample/tasks/task.yaml","grader":"task_completion","list":"other","index":0,"matches":["ok"],"does_not_match":["no"]}]}`, want: "list must be"},
 		{name: "missing index", content: `{"cases":[{"name":"bad","task":"sample/tasks/task.yaml","grader":"task_completion","list":"regex_match","matches":["ok"],"does_not_match":["no"]}]}`, want: "index is required"},
 		{name: "vacuous", content: `{"cases":[{"name":"bad","task":"sample/tasks/task.yaml","grader":"task_completion","list":"regex_match","index":0}]}`, want: "must each contain"},
@@ -207,7 +208,7 @@ func TestValidateCasesRejectsInvalidContracts(t *testing.T) {
 func TestValidateCasesRejectsDuplicateSelectors(t *testing.T) {
 	root := t.TempDir()
 	path := filepath.Join(root, "sample", "tasks", "task.yaml")
-	writeFile(t, path, "id: sample-task\ngraders:\n  - name: duplicate\n    config:\n      regex_match: ['^one$']\n  - name: duplicate\n    config:\n      regex_match: ['^two$']\n")
+	writeFile(t, path, "id: sample-task\ngraders:\n  - type: text\n    name: duplicate\n    config:\n      regex_match: ['^one$']\n  - type: text\n    name: duplicate\n    config:\n      regex_match: ['^two$']\n")
 	refs, _, err := collect(root)
 	if err != nil {
 		t.Fatal(err)
@@ -231,6 +232,19 @@ func TestValidateCasesTargetsRegexNotMatch(t *testing.T) {
 	writeFile(t, path, `{"cases":[{"task":"sample/tasks/task.yaml","grader":"task_completion","list":"regex_not_match","index":0,"matches":["forbidden"],"does_not_match":["allowed"]}]}`)
 	if _, err := validateCases(path, refs); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestCollectIgnoresRegexFieldsOnNonTextGraders(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "sample", "tasks", "task.yaml")
+	writeFile(t, path, "id: sample-task\ngraders:\n  - type: prompt\n    name: judge\n    config:\n      regex_match: ['(']\n")
+	refs, tasks, err := collect(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tasks != 1 || len(refs) != 0 {
+		t.Fatalf("got %d tasks and %d regexes", tasks, len(refs))
 	}
 }
 

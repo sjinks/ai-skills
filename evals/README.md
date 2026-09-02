@@ -33,10 +33,10 @@ python3 evals/_helpers/check-eval-regexes.py --root evals/<skill-name>
 ```
 
 Use `--root evals` for the repository-wide inventory. The validator decodes YAML
-before counting and compiling every `regex_match` and `regex_not_match` value
-with Go's `regexp` engine. Raw grep/line counts are not authoritative. The first
-run may download the Go module's pinned YAML dependency. It requires Python 3.9+
-and Go 1.20+.
+before counting and compiling every text grader's `regex_match` and
+`regex_not_match` value with Go's `regexp` engine. Raw grep/line counts are not
+authoritative. The first run may download the Go module's pinned YAML dependency.
+It requires Python 3.9+ and Go 1.20+.
 
 Optional contrastive cases are JSON and select a decoded regex by task path
 relative to `--root`, grader name, list name, and zero-based index:

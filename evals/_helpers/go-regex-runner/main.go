@@ -23,6 +23,7 @@ type graderConfig struct {
 }
 
 type grader struct {
+	Type   string       `yaml:"type"`
 	Name   string       `yaml:"name"`
 	Config graderConfig `yaml:"config"`
 }
@@ -99,24 +100,28 @@ func collect(root string) ([]regexRef, int, error) {
 		if relativeErr != nil {
 			return nil, 0, relativeErr
 		}
+		displayPath := filepath.ToSlash(relativePath)
 		data, readErr := os.ReadFile(path)
 		if readErr != nil {
-			return nil, 0, readErr
+			return nil, 0, fmt.Errorf("%s: read task: %w", displayPath, readErr)
 		}
 		var value task
 		if decodeErr := yaml.Unmarshal(data, &value); decodeErr != nil {
-			return nil, 0, fmt.Errorf("%s: decode YAML: %w", path, decodeErr)
+			return nil, 0, fmt.Errorf("%s: decode YAML: %w", displayPath, decodeErr)
 		}
 		if value.ID == "" {
-			return nil, 0, fmt.Errorf("%s: task id is empty", path)
+			return nil, 0, fmt.Errorf("%s: task id is empty", displayPath)
 		}
 		suite := filepath.ToSlash(filepath.Dir(filepath.Dir(relativePath)))
 		idKey := suite + "\x00" + value.ID
 		if previous, exists := taskIDs[idKey]; exists {
-			return nil, 0, fmt.Errorf("duplicate task id %s in suite %s: %s and %s", value.ID, suite, previous, path)
+			return nil, 0, fmt.Errorf("duplicate task id %s in suite %s: %s and %s", value.ID, suite, previous, displayPath)
 		}
-		taskIDs[idKey] = path
+		taskIDs[idKey] = displayPath
 		for _, grader := range value.Graders {
+			if grader.Type != "text" {
+				continue
+			}
 			lists := []struct {
 				name     string
 				patterns []string
@@ -128,9 +133,9 @@ func collect(root string) ([]regexRef, int, error) {
 				for index, pattern := range list.patterns {
 					compiled, compileErr := regexp.Compile(pattern)
 					if compileErr != nil {
-						return nil, 0, fmt.Errorf("%s: task %s grader %s %s[%d]: %w", path, value.ID, grader.Name, list.name, index, compileErr)
+						return nil, 0, fmt.Errorf("%s: task %s grader %s %s[%d]: %w", displayPath, value.ID, grader.Name, list.name, index, compileErr)
 					}
-					refs = append(refs, regexRef{TaskID: value.ID, TaskPath: filepath.ToSlash(relativePath), Path: path, Grader: grader.Name, List: list.name, Index: index, Pattern: pattern, Regex: compiled})
+					refs = append(refs, regexRef{TaskID: value.ID, TaskPath: displayPath, Path: displayPath, Grader: grader.Name, List: list.name, Index: index, Pattern: pattern, Regex: compiled})
 				}
 			}
 		}
