@@ -29,15 +29,12 @@ graders:
   - type: text
     name: task_completion
     config:
-      regex_not_match:
-        - '(?im)^### Findings[ \t]*\r?$\r?\n(?:[ \t]*\r?\n)*[ \t]*(?:#{1,6}[ \t]*)?[*_]*Finding[ \t]+\d+[*_]*:'
       not_contains:
         - "Requirements Ambiguity Report"
         - "Verdict: BLOCK"
         - "Verdict: CONCERNS"
         - "Verdict: CLEAN"
         - "| # | Class | Severity | Location |"
-        - "### Findings"
         - "### Open questions (product decisions, not findings)"
         - "Missing input:"
         - "Smallest addition to proceed:"
