@@ -1207,12 +1207,14 @@ def validate(profile, headers, sections, rows):
             item for item in active_rows
             if item["axis"] not in minimums and label_counts[label_norm(item["candidate"])] < 2
         ]
-        overage = sum(max(0, active_counts[axis] - count) for axis, count in minimums.items())
-        duplicated_overage = sum(
-            1 for item in active_rows
-            if item["axis"] in minimums and label_counts[label_norm(item["candidate"])] > 1
+        unique_excess = any(
+            sum(
+                1 for item in active_rows
+                if item["axis"] == axis and label_counts[label_norm(item["candidate"])] == 1
+            ) > count
+            for axis, count in minimums.items()
         )
-        if unsupported or duplicated_overage < overage:
+        if unsupported or unique_excess:
             fail("report contains an unsupported active candidate set")
     validate_report_outcome(headers, sections, rows)
 

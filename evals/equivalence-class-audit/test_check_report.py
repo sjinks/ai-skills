@@ -1151,6 +1151,27 @@ class CheckerIntegrationTests(unittest.TestCase):
         )
         run_main(report, "positive-trigger-001")
 
+    def test_duplicate_overlap_does_not_mask_unique_extra_candidate(self):
+        report = profile_report("positive-trigger-001").replace(
+            "| Validation vs Normalization/Sanitization | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            "| Validation vs Normalization/Sanitization | null retry value | present | fix-now | src/retry_policy.py |",
+            1,
+        ).replace(
+            "| Opposite Bound | maxRetries upper bound | present | fix-now | config/retry.yml |",
+            "| Opposite Bound | maxRetries upper bound | present | fix-now | config/retry.yml |\n"
+            "| Opposite Bound | fabricated timeout | present | fix-now | config/retry.yml |",
+            1,
+        ).replace(
+            "Fix maxRetries upper bound,",
+            "Fix maxRetries upper bound, fabricated timeout,",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(report, "positive-trigger-001")
+        self.assertIn("report contains an unsupported active candidate set", error.getvalue())
+
     def test_edge_002_header_preserves_tenant_ownership_omission(self):
         invalid = profile_report("positive-edge-002").replace(
             " but lacks tenant ownership",
