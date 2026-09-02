@@ -240,7 +240,7 @@ def missing_marker(value):
 
 
 def missing_header_marker(value):
-    return value.strip().lower() in MISSING
+    return value.strip() in MISSING
 
 
 def mixes_latin_and_cyrillic(value):
@@ -952,7 +952,7 @@ def validate(profile, headers, sections, rows):
             item = row(rows, axis, terms, "present", "fix-now")
             if not any(token in item["evidence"].lower() for token in ("src/pagination.ts", "tests/pagination.test.ts", "triggering finding")):
                 fail(f"{axis} needs scoped evidence")
-            row(rows, "Empty/Sentinel Equivalence", ("zero",), "present", "fix-now")
+        row(rows, "Empty/Sentinel Equivalence", ("zero",), "present", "fix-now")
         omitted = " ".join(sections["Omitted axes (quick mode only)"]).lower()
         if "omitted" not in omitted or not any(term in omitted for term in ("scope", "inapplicable", "material")):
             fail("quick report needs an omitted-axis reason")
@@ -1023,6 +1023,8 @@ def validate(profile, headers, sections, rows):
         if ("doc" not in blocker or missing_metadata_fields(blocker) != {"owner", "reason"}
             or not requests(blocker)):
             fail("documentation blocker must request owner and reason")
+        if headers["Severity"] == "UNASSESSED":
+            fail("known-impact blocked profile must use an assessed severity")
     elif profile == "positive-edge-007":
         row(rows, "Opposite Bound", presence="present", disposition="fix-now",
             candidate_any=("minitems", "zero"))
@@ -1080,6 +1082,8 @@ def validate(profile, headers, sections, rows):
                for item in docs_rows
                for bullet in sections["Defects to fix now"]):
             fail("blocked docs must not appear in fix-now summary")
+        if headers["Severity"] == "UNASSESSED":
+            fail("known-impact blocked profile must use an assessed severity")
     elif profile == "positive-edge-009":
         row(rows, "Opposite Bound", ("maxretries",), "present", "fix-now")
         docs_row = row(rows, "Documentation/Spec Prose Twin", ("docs/api.md",),

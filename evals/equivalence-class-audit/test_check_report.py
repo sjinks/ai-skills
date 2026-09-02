@@ -882,6 +882,8 @@ class HeaderMarkerTests(unittest.TestCase):
                 self.assertTrue(CHECK_REPORT.missing_header_marker(value))
 
         for value in (
+            "MISSING",
+            "Not Provided",
             "Triggering finding is required.",
             "scope is not provided",
             "missing (no defect supplied)",
@@ -1111,6 +1113,16 @@ class CheckerContractTests(unittest.TestCase):
                                     CHECK_REPORT.validate_report_outcome(headers, sections, rows)
 
 class CheckerIntegrationTests(unittest.TestCase):
+    def test_known_impact_blocked_profiles_reject_unassessed(self):
+        for profile in ("positive-edge-005", "positive-edge-008"):
+            invalid = profile_report(profile).replace("Severity: MEDIUM", "Severity: UNASSESSED", 1)
+            error = io.StringIO()
+            with self.subTest(profile=profile):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, profile)
+                self.assertIn("known-impact blocked profile must use an assessed severity", error.getvalue())
+
     def test_task_supplied_incident_evidence_is_allowed(self):
         report = profile_report("positive-trigger-001").replace(
             "| Opposite Bound | maxRetries upper bound | present | fix-now | config/retry.yml |",
@@ -1729,9 +1741,8 @@ class ConfigurationTests(unittest.TestCase):
             "positive-edge-001", "positive-edge-004", "positive-edge-007",
             "positive-edge-009", "positive-trigger-001", "positive-trigger-002",
         }
-        blocked_profiles = {
-            "positive-edge-002", "positive-edge-005", "positive-edge-008",
-        }
+        blocked_profiles = {"positive-edge-002"}
+        known_impact_blocked_profiles = {"positive-edge-005", "positive-edge-008"}
         profile_ids = set()
         for task_file in task_files:
             text = task_file.read_text(encoding="utf-8")
@@ -1753,6 +1764,13 @@ class ConfigurationTests(unittest.TestCase):
                 self.assertIn("^Verdict:\\s*BLOCK\\s*$", text, task_file.name)
                 self.assertIn(
                     "^Severity:\\s*(CRITICAL|HIGH|MEDIUM|LOW|UNASSESSED)\\s*$",
+                    text,
+                    task_file.name,
+                )
+            elif profile in known_impact_blocked_profiles:
+                self.assertIn("^Verdict:\\s*BLOCK\\s*$", text, task_file.name)
+                self.assertIn(
+                    "^Severity:\\s*(CRITICAL|HIGH|MEDIUM|LOW)\\s*$",
                     text,
                     task_file.name,
                 )
