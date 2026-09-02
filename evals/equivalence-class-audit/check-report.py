@@ -55,7 +55,7 @@ PROFILES = {
 PROFILE_HEADERS = {
     "positive-edge-001": (
         ("timeoutseconds", "health"),
-        ("config/healthcheck.yml", "health check timeout section"),
+        ("config/healthcheck.yml", "health check timeout"),
     ),
     "positive-edge-002": (("delete /teams/{teamid}", "organization membership"),
                           ("src/routes/team.routes.ts", "src/controllers/team.controller.ts",
@@ -107,7 +107,19 @@ PROFILE_SCOPE_ARTIFACTS = {
     },
 }
 PROFILE_EXTRA_EVIDENCE = {
-    "positive-trigger-001": {"named:incident note"},
+    "positive-trigger-001": {"incident:inc-17"},
+}
+PROFILE_SCOPE_SECTIONS = {
+    "positive-edge-001": {"named:health check timeout section"},
+    "positive-edge-005": {"named:retry configuration section"},
+    "positive-edge-007": {"named:pagination section"},
+    "positive-edge-008": {
+        "named:retry configuration section", "named:retry operations section",
+    },
+    "positive-edge-009": {"named:retry configuration section"},
+    "positive-edge-010": {"named:pagination section"},
+    "positive-trigger-001": {"named:retry configuration section"},
+    "positive-trigger-002": {"named:project exports api section"},
 }
 PROFILE_ACTIVE_AXIS_COUNTS = {
     "positive-edge-001": {"Opposite Bound": 1, "Documentation/Spec Prose Twin": 1},
@@ -407,19 +419,6 @@ def requests_missing_input(value, missing_header):
     return names_expected and not names_other
 
 
-def valid_edge_001_scope(value):
-    value = norm(value)
-    paths = set(re.findall(r"(?:[\w.-]+/)+[\w.-]+", value))
-    if paths != {"config/healthcheck.yml"}:
-        return False
-    if "health check timeout" not in value or "section" not in value:
-        return False
-    remainder = value.replace("config/healthcheck.yml", "")
-    remainder = remainder.replace("health check timeout", "")
-    words = set(re.findall(r"[a-z]+", remainder))
-    return words <= {"only", "and", "its", "the", "docs", "documentation", "section"}
-
-
 def scope_artifacts(value):
     return {
         match.rstrip(".,;:)")
@@ -445,9 +444,11 @@ def artifact_citations(value):
         if "/" not in basename and re.fullmatch(r"\.?[a-z0-9][a-z0-9_.+-]*", basename):
             citations.add(f"basename:{basename}")
 
-    for match in re.finditer(r"\b(?:[a-z0-9_-]+\s+){1,5}section\b", normalized):
+    section_text = re.sub(r"(?:[\w.-]+/)+[\w.-]+", " ", normalized)
+    section_text = re.sub(r"[\"']", " ", section_text)
+    for match in re.finditer(r"\b(?:[a-z0-9_-]+\s+){1,6}section\b", section_text):
         words = match.group(0).split()
-        while words and words[0] in ("and", "the", "its", "only"):
+        while words and words[0] in ("and", "plus", "the", "its", "only"):
             words.pop(0)
         words = [word for word in words if word not in ("docs", "documentation")]
         citations.add("named:" + " ".join(words))
@@ -455,11 +456,13 @@ def artifact_citations(value):
     fixed = re.findall(
         r"\b(?:test (?:file|case)|(?:policy|api|json) spec|"
         r"(?:json )?schema(?: artifact)?|migration(?: file)?|"
-        r"config(?:uration)? (?:block|artifact)|(?:audit )?log(?: entry)?|"
-        r"incident(?: note)?)\b",
+        r"config(?:uration)? (?:block|artifact)|(?:audit )?log(?: entry)?)\b",
         normalized,
     )
     citations.update(f"named:{label_norm(value)}" for value in fixed)
+    for match in re.finditer(r"\bincident(?: note)?(?:\s+([a-z]+-\d+))?\b", normalized):
+        identifier = match.group(1)
+        citations.add(f"incident:{identifier}" if identifier else "named:incident note")
     return citations
 
 
@@ -894,16 +897,18 @@ def validate(profile, headers, sections, rows):
     if profile in PROFILE_HEADERS:
         for name, terms in zip(("Triggering finding", "Locked audit scope"), PROFILE_HEADERS[profile]):
             value = norm(headers[name])
-            if profile == "positive-edge-001" and name == "Locked audit scope":
-                if not valid_edge_001_scope(headers[name]):
-                    fail("Locked audit scope must preserve the supplied task input")
-                continue
             if missing_header_marker(value) or not all(norm(term) in value for term in terms):
                 fail(f"{name} must preserve the supplied task input")
     if profile in PROFILE_SCOPE_ARTIFACTS:
         if scope_artifacts(headers["Locked audit scope"]) != PROFILE_SCOPE_ARTIFACTS[profile]:
             fail("Locked audit scope must preserve the exact artifact set")
         scope_citations = artifact_citations(headers["Locked audit scope"])
+        scope_sections = {
+            citation for citation in scope_citations
+            if citation.startswith("named:") and citation.endswith(" section")
+        }
+        if scope_sections != PROFILE_SCOPE_SECTIONS.get(profile, set()):
+            fail("Locked audit scope must preserve the exact named sections")
         allowed_evidence = scope_citations | PROFILE_EXTRA_EVIDENCE.get(profile, set())
         for item in rows:
             row_citations = artifact_citations(item["evidence"])

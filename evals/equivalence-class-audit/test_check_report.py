@@ -26,27 +26,35 @@ HEADERS = {
     "positive-edge-004": (
         "maxItems zero breaks pagination", "src/pagination.ts and tests/pagination.test.ts"
     ),
-    "positive-edge-005": ("maxRetries accepts zero", "config/retry.yml and docs/operations.md"),
+    "positive-edge-005": (
+        "maxRetries accepts zero",
+        "config/retry.yml and the Retry Configuration section of docs/operations.md",
+    ),
     "positive-edge-007": (
         "minItems zero breaks pagination",
-        "src/pagination.ts, src/batch-pagination.ts, tests/pagination.test.ts, and docs/api.md",
+        "src/pagination.ts, src/batch-pagination.ts, tests/pagination.test.ts, and the Pagination section of docs/api.md",
     ),
     "positive-edge-008": (
-        "maxRetries accepts zero", "config/retry.yml, docs/api.md, and docs/operations.md"
+        "maxRetries accepts zero",
+        "config/retry.yml, the Retry Configuration section of docs/api.md, and the Retry Operations section of docs/operations.md",
     ),
-    "positive-edge-009": ("maxRetries accepts zero", "config/retry.yml and docs/api.md"),
+    "positive-edge-009": (
+        "maxRetries accepts zero",
+        "config/retry.yml and the Retry Configuration section of docs/api.md",
+    ),
     "positive-edge-010": (
-        "minItems accepts zero", "src/pagination.ts, tests/pagination.test.ts, and docs/api.md"
+        "minItems accepts zero",
+        "src/pagination.ts, tests/pagination.test.ts, and the Pagination section of docs/api.md",
     ),
     "positive-trigger-001": (
         "INC-17: maxRetries accepts zero",
-        "config/retry.yml, src/retry_policy.py, tests/test_retry_policy.py, and docs/operations.md",
+        "config/retry.yml, src/retry_policy.py, tests/test_retry_policy.py, and the Retry Configuration section of docs/operations.md",
     ),
     "positive-trigger-002": (
         "can_export is missing for Projects export",
         "routes/projects.yml, controllers/project_export.go, controllers/project_archive.go, "
         "controllers/project_report.go, policies/project_permissions.rego, "
-        "tests/project_permissions_test.go, and project exports",
+        "tests/project_permissions_test.go, and the Project exports API documentation section",
     ),
 }
 PROFILE_OUTCOMES = {
@@ -1317,12 +1325,12 @@ class CheckerIntegrationTests(unittest.TestCase):
                                     expected_missing=expected_missing,
                                 )
 
-    def test_every_profile_accepts_a_valid_json_envelope(self):
+    def test_every_profile_accepts_a_valid_raw_response(self):
         for profile in sorted(CHECK_REPORT.PROFILES):
             with self.subTest(profile=profile):
                 run_main(profile_report(profile), profile)
 
-    def test_every_profile_rejects_a_profile_specific_invalid_envelope(self):
+    def test_every_profile_rejects_a_profile_specific_invalid_raw_response(self):
         for profile in sorted(CHECK_REPORT.PROFILES):
             invalid = behavior_invalid_report(profile)
             with self.subTest(profile=profile):
@@ -1347,7 +1355,7 @@ class CheckerIntegrationTests(unittest.TestCase):
                 with contextlib.redirect_stderr(error):
                     with self.assertRaises(SystemExit):
                         run_main(invalid, "positive-edge-001")
-                self.assertIn("Locked audit scope must preserve the supplied task input", error.getvalue())
+                self.assertIn("Locked audit scope", error.getvalue())
 
     def test_edge_001_accepts_scope_preserving_paraphrase(self):
         report = profile_report("positive-edge-001").replace(
@@ -1356,6 +1364,46 @@ class CheckerIntegrationTests(unittest.TestCase):
             1,
         )
         run_main(report, "positive-edge-001")
+
+    def test_edge_001_accepts_plus_connector(self):
+        report = profile_report("positive-edge-001").replace(
+            "config/healthcheck.yml and the Health check timeout section",
+            "config/healthcheck.yml plus its Health check timeout documentation section",
+            1,
+        )
+        run_main(report, "positive-edge-001")
+
+    def test_same_file_section_drift_is_rejected(self):
+        replacements = {
+            "positive-edge-001": "Health check timeout",
+            "positive-edge-005": "Retry Configuration",
+            "positive-edge-007": "Pagination",
+            "positive-edge-008": "Retry Configuration",
+            "positive-edge-009": "Retry Configuration",
+            "positive-edge-010": "Pagination",
+            "positive-trigger-001": "Retry Configuration",
+            "positive-trigger-002": "Project exports API documentation",
+        }
+        for profile, section in replacements.items():
+            invalid = profile_report(profile).replace(section, "Unrelated", 1)
+            error = io.StringIO()
+            with self.subTest(profile=profile):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        run_main(invalid, profile)
+                self.assertIn("Locked audit scope", error.getvalue())
+
+    def test_incident_evidence_preserves_identifier(self):
+        invalid = profile_report("positive-trigger-001").replace(
+            "| Opposite Bound | maxRetries upper bound | present | fix-now | config/retry.yml |",
+            "| Opposite Bound | maxRetries upper bound | present | fix-now | config/retry.yml and incident note INC-999 |",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-trigger-001")
+        self.assertIn("table evidence citation must stay within the locked scope", error.getvalue())
 
     def test_edge_001_requires_explicit_na_reasons(self):
         for evidence in ("candidate is in scope", "config/healthcheck.yml"):
