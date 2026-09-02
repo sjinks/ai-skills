@@ -144,23 +144,17 @@ PROFILE_ACTIVE_AXIS_COUNTS = {
         "Test Mirror": 2, "Documentation/Spec Prose Twin": 2,
     },
 }
-PROFILE_ALLOWED_ACTIVE_OVERLAPS = {
-    "positive-edge-007": {
-        "async validator": {
-            "Mirror Call Site/Use Site",
-            "Async/Sync or Mode Twin",
-        },
-        "asynchronous validator": {
-            "Mirror Call Site/Use Site",
-            "Async/Sync or Mode Twin",
-        },
-    },
-    "positive-trigger-001": {
-        "null retry value": {
-            "Empty/Sentinel Equivalence",
-            "Validation vs Normalization/Sanitization",
-        },
-    },
+PROFILE_ACTIVE_CANDIDATE_COUNTS = {
+    "positive-edge-001": 2,
+    "positive-edge-002": 2,
+    "positive-edge-004": 2,
+    "positive-edge-005": 2,
+    "positive-edge-007": 6,
+    "positive-edge-008": 3,
+    "positive-edge-009": 2,
+    "positive-edge-010": 0,
+    "positive-trigger-001": 8,
+    "positive-trigger-002": 7,
 }
 
 
@@ -1361,7 +1355,8 @@ def validate(profile, headers, sections, rows):
                        "present", "defer-with-owner")
         deferred_rows = [item for item in rows
                          if item["presence"] == "present" and item["disposition"] == "defer-with-owner"]
-        if len(deferred_rows) != 1 or deferred_rows[0] is not docs_row:
+        if ({label_norm(item["candidate"]) for item in deferred_rows}
+            != {label_norm(docs_row["candidate"])}):
             fail("documentation must be the only deferred candidate")
         deferred = summary_bullet(
             [item["candidate"] for item in deferred_rows],
@@ -1436,29 +1431,25 @@ def validate(profile, headers, sections, rows):
         minimums = Counter(PROFILE_ACTIVE_AXIS_COUNTS[profile])
         if any(active_counts[axis] < count for axis, count in minimums.items()):
             fail("report is missing the required active candidate set")
-        allowed_overlaps = PROFILE_ALLOWED_ACTIVE_OVERLAPS.get(profile, {})
-        allowed_extra_count = 0
-        label_axes = {}
-        for item in active_rows:
-            label_axes.setdefault(label_norm(item["candidate"]), Counter())[item["axis"]] += 1
-        for label, axis_counts in label_axes.items():
-            if sum(axis_counts.values()) < 2:
-                continue
-            allowed_axes = allowed_overlaps.get(label)
-            if (allowed_axes is None or set(axis_counts) != allowed_axes
-                    or any(count != 1 for count in axis_counts.values())):
-                fail("report contains an unsupported active candidate overlap")
-            allowed_extra_count += len(allowed_axes - set(minimums))
+        if any(active_counts[axis] > count for axis, count in minimums.items()):
+            fail("report contains an unsupported active candidate set")
+        active_labels = {label_norm(item["candidate"]) for item in active_rows}
+        expected_candidates = PROFILE_ACTIVE_CANDIDATE_COUNTS[profile]
+        if len(active_labels) < expected_candidates:
+            fail("report is missing the required active candidate set")
+        if len(active_labels) > expected_candidates:
+            fail("report contains an unsupported active candidate set")
+        required_axis_labels = {
+            label_norm(item["candidate"])
+            for item in active_rows
+            if item["axis"] in minimums
+        }
         unsupported_unexpected = [
             item for item in active_rows
             if item["axis"] not in minimums
-            and not (
-                label_norm(item["candidate"]) in allowed_overlaps
-                and item["axis"] in allowed_overlaps[label_norm(item["candidate"])]
-            )
+            and label_norm(item["candidate"]) not in required_axis_labels
         ]
-        total_extra = len(active_rows) - sum(minimums.values())
-        if unsupported_unexpected or total_extra > allowed_extra_count:
+        if unsupported_unexpected:
             fail("report contains an unsupported active candidate set")
     validate_report_outcome(headers, sections, rows)
 

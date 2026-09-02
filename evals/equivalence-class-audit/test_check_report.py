@@ -1209,7 +1209,7 @@ class CheckerIntegrationTests(unittest.TestCase):
         with contextlib.redirect_stderr(error):
             with self.assertRaises(SystemExit):
                 run_main(report, "positive-edge-001")
-        self.assertIn("report contains an unsupported active candidate overlap", error.getvalue())
+        self.assertIn("report contains an unsupported active candidate set", error.getvalue())
 
     def test_unapproved_required_axes_cannot_collapse_to_one_label(self):
         report = profile_report("positive-trigger-002").replace(
@@ -1225,7 +1225,40 @@ class CheckerIntegrationTests(unittest.TestCase):
         with contextlib.redirect_stderr(error):
             with self.assertRaises(SystemExit):
                 run_main(report, "positive-trigger-002")
-        self.assertIn("unsupported active candidate overlap", error.getvalue())
+        self.assertIn("missing the required active candidate set", error.getvalue())
+
+    def test_consistent_candidate_label_may_span_any_relevant_axes(self):
+        report = profile_report("positive-edge-009").replace(
+            "| Contract Symmetry | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            "| Contract Symmetry | docs/api.md documentation defect | present | defer-with-owner | docs/api.md |",
+            1,
+        )
+        run_main(report, "positive-edge-009")
+
+    def test_candidate_collapse_cannot_offset_required_axis_fabrication(self):
+        report = profile_report("positive-edge-001").replace(
+            "| Opposite Bound | timeoutSeconds bound | present | fix-now | config/healthcheck.yml |",
+            "| Opposite Bound | timeoutSeconds docs health guidance | present | fix-now | config/healthcheck.yml |\n"
+            "| Contract Symmetry | fabricated timeout | present | fix-now | config/healthcheck.yml |",
+            1,
+        ).replace(
+            "| Documentation/Spec Prose Twin | docs health guidance | present | fix-now | Health check timeout section |",
+            "| Documentation/Spec Prose Twin | timeoutSeconds docs health guidance | present | fix-now | Health check timeout section |",
+            1,
+        ).replace(
+            "Fix timeoutSeconds bound and docs health guidance.",
+            "Fix timeoutSeconds docs health guidance and fabricated timeout.",
+            1,
+        ).replace(
+            "Update docs health guidance.",
+            "Update timeoutSeconds docs health guidance.",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(report, "positive-edge-001")
+        self.assertIn("report contains an unsupported active candidate set", error.getvalue())
 
     def test_hidden_html_cannot_supply_required_header_terms(self):
         cases = [
