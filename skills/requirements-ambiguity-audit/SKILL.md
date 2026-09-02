@@ -68,6 +68,8 @@ The table and `### Findings` must have exactly the same cardinality. For each ta
 - Readings: <reading A> / <reading B>
 - Proposed rewrite: <unambiguous replacement, unknowns as open questions>
 
+Each field value occupies one physical line. In `Quote:`, normalize each source line break and its adjacent indentation to one ASCII space; preserve all other source wording and punctuation. For `conflicting-requirements`, preserve both statements' terminal punctuation and, ignoring optional quote or Markdown wrappers, separate them with either one ASCII space or ` and `.
+
 ### Open questions (product decisions, not findings)
 
 - <question, who can answer it>
