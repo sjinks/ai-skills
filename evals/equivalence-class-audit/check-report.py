@@ -427,14 +427,17 @@ def requests_missing_input(value, missing_header):
         requests_other = bool(re.search(
             r"\b(?:and|then|also)\s+(?:list|provide|specify|identify|include)\s+"
             r"(?:the\s+)?(?:scope|files|modules|artifacts|specs|tests|endpoints|routes|"
-            r"api surfaces|resources)\b",
+            r"api surfaces|resources)\b|"
+            r"\b(?:and|then|also)\s+(?:the\s+)?(?:scope|files|modules|artifacts|"
+            r"specs|tests|endpoints|routes|api surfaces|resources)\b",
             value,
             flags=re.I,
         ))
     else:
         requests_other = bool(re.search(
             r"\b(?:and|then|also)\s+(?:provide|specify|identify|name)\s+"
-            r"(?:the\s+)?(?:finding|defect|trigger|incident|bug report)\b",
+            r"(?:the\s+)?(?:finding|defect|trigger|incident|bug report)\b|"
+            r"\b(?:and|then|also)\s+(?:the\s+)?(?:finding|defect|trigger|incident|bug report)\b",
             value,
             flags=re.I,
         ))
@@ -935,6 +938,11 @@ def validate(profile, headers, sections, rows):
         if scope_sections != PROFILE_SCOPE_SECTIONS.get(profile, set()):
             fail("Locked audit scope must preserve the exact named sections")
         allowed_evidence = scope_citations | PROFILE_EXTRA_EVIDENCE.get(profile, set())
+        basenames = [path.rsplit("/", 1)[-1] for path in PROFILE_SCOPE_ARTIFACTS[profile]]
+        allowed_evidence.update(
+            f"basename:{basename}" for basename in basenames
+            if basenames.count(basename) == 1
+        )
         for item in rows:
             row_citations = artifact_citations(item["evidence"])
             if row_citations and not row_citations <= allowed_evidence:
@@ -1188,11 +1196,23 @@ def validate(profile, headers, sections, rows):
             if "named:project exports api section" not in artifact_citations(docs_row["evidence"]):
                 fail(f"{term} documentation row must cite the Project exports API section")
     if profile in PROFILE_ACTIVE_AXIS_COUNTS:
-        active_counts = Counter(
-            item["axis"] for item in rows
-            if item["presence"] == "present" or item["disposition"] == "blocked"
+        active_rows = [item for item in rows
+                       if item["presence"] == "present" or item["disposition"] == "blocked"]
+        active_counts = Counter(item["axis"] for item in active_rows)
+        minimums = Counter(PROFILE_ACTIVE_AXIS_COUNTS[profile])
+        if any(active_counts[axis] < count for axis, count in minimums.items()):
+            fail("report is missing the required active candidate set")
+        label_counts = Counter(label_norm(item["candidate"]) for item in active_rows)
+        unsupported = [
+            item for item in active_rows
+            if item["axis"] not in minimums and label_counts[label_norm(item["candidate"])] < 2
+        ]
+        overage = sum(max(0, active_counts[axis] - count) for axis, count in minimums.items())
+        duplicated_overage = sum(
+            1 for item in active_rows
+            if item["axis"] in minimums and label_counts[label_norm(item["candidate"])] > 1
         )
-        if active_counts != Counter(PROFILE_ACTIVE_AXIS_COUNTS[profile]):
+        if unsupported or duplicated_overage < overage:
             fail("report contains an unsupported active candidate set")
     validate_report_outcome(headers, sections, rows)
 

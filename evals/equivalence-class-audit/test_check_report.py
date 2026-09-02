@@ -1031,6 +1031,8 @@ class CheckerContractTests(unittest.TestCase):
             "Provide the Triggering finding and list the files.",
             "Provide the Triggering finding and list the endpoints.",
             "Provide the Triggering finding and identify the API surfaces.",
+            "Provide the Triggering finding and scope.",
+            "Provide the Locked audit scope and finding.",
             "Provide no Triggering finding.",
             "Need no Locked audit scope.",
             "What defect should be used as the trigger?",
@@ -1133,6 +1135,22 @@ class CheckerContractTests(unittest.TestCase):
                                     CHECK_REPORT.validate_report_outcome(headers, sections, rows)
 
 class CheckerIntegrationTests(unittest.TestCase):
+    def test_unique_scoped_basename_is_valid_evidence(self):
+        report = profile_report("positive-trigger-002").replace(
+            "policies/project_permissions.rego can_export",
+            "`project_permissions.rego` can_export",
+            1,
+        )
+        run_main(report, "positive-trigger-002")
+
+    def test_same_candidate_may_span_multiple_supported_axes(self):
+        report = profile_report("positive-trigger-001").replace(
+            "| Validation vs Normalization/Sanitization | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            "| Validation vs Normalization/Sanitization | null retry value | present | fix-now | src/retry_policy.py |",
+            1,
+        )
+        run_main(report, "positive-trigger-001")
+
     def test_edge_002_header_preserves_tenant_ownership_omission(self):
         invalid = profile_report("positive-edge-002").replace(
             " but lacks tenant ownership",
