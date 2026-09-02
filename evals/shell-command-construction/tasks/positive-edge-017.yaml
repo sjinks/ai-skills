@@ -5,4 +5,4 @@ expected: { should_trigger: true }
 graders:
   - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
   - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
-  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: REWRITE\nConstruction assessment: [^\n]+\nCandidate: tool "\$label"\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: Have shell-portability review this exact candidate before any cross-target compatibility claim\.\z'], not_contains: ['compatible', 'works in POSIX sh', 'macOS'] } }
+  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: REWRITE\nConstruction assessment: [^\n]+\nCandidate: tool "\$label"\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: Have a separate portability review of this exact candidate before any cross-target compatibility claim\.\z'], not_contains: ['compatible', 'works in POSIX sh', 'macOS'] } }

@@ -25,7 +25,7 @@ The goal is shell code that runs identically on its declared targets: no bashism
 - Pure bash feature questions where bash is the only declared target and portability is not required.
 - Performance tuning, general scripting style, or non-shell languages (Python, Perl, PowerShell) where shell portability does not apply.
 
-For a request that combines construction correctness and portability, do not attempt construction here. First request a separate `shell-command-construction` result. If it is `BLOCKED`, require its resolution before portability review. Otherwise review the exact construction candidate and make no construction claim.
+For a request that combines construction correctness and portability, do not attempt construction here. First request a separate shell command construction result. If it is `BLOCKED`, require its resolution before portability review. Otherwise review the exact construction candidate and make no construction claim.
 
 ## Required Context
 

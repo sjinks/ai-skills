@@ -12,6 +12,6 @@ Read this map when checking provenance, source confidence, or the boundary of th
 
 ## Ownership boundary
 
-This package is the normative owner for construction dispositions, required construction facts, boundary-preserving actions, and no-drift constraints. Its `Safety projection` field is always `not assessed by this skill`.
+This package is the normative owner for construction dispositions, required construction facts, boundary-preserving actions, and no-drift constraints. The catalog records include a `Safety projection` metadata field only; it is not part of the user-facing output contract. Its value always states that execution concerns are not assessed by this skill.
 
-Construction output does not assess execution safety, authorization, target validity, destructive effects, or permission to run. Portability-only requests are excluded; mixed requests require `shell-portability` review before a compatibility conclusion.
+Construction output does not assess execution safety, authorization, target validity, destructive effects, or permission to run. Portability-only requests are excluded; mixed requests require a separate portability review before a compatibility conclusion.

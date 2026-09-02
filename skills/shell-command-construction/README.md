@@ -6,7 +6,7 @@ This skill returns a construction result only. Execution safety, authorization, 
 
 It helps an assistant preserve confirmed argument boundaries, literal-versus-expansion intent, operand order, input transport, and multiline payloads. It blocks rather than guessing a shell, quote boundary, scalar/list intent, glob binding, downstream grammar, empty/unset behavior, or secret-safe transport.
 
-Portability-only analysis does not activate this skill and belongs to `shell-portability`. For mixed requests, SCC produces its five-field construction response first. Its `Next step` requires `shell-portability` review of the exact SCC candidate before any cross-target compatibility conclusion. Resolve a `BLOCKED` construction result before that review. SCC does not construct a portability candidate or make a compatibility claim.
+Portability-only analysis does not activate this skill and belongs to a separate portability review. For mixed requests, SCC produces its five-field construction response first. Its `Next step` requires a separate portability review of the exact SCC candidate before any cross-target compatibility conclusion. Resolve a `BLOCKED` construction result before that review. SCC does not construct a portability candidate or make a compatibility claim.
 
 ## Evidence status
 

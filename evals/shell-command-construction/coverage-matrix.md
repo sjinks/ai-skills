@@ -20,11 +20,11 @@ This matrix maps each synthetic fixture to its discriminating construction behav
 | positive-edge-014 | 8 | AC-4, EDGE-10 | Missing secret transport | yes | BLOCKED | not assessed | representative raw, fragment, explicit lowercase, Base64, URL-encoded, hex, reversed, escaped, and split sentinel forms absent; generic source request | no |
 | positive-edge-015 | 9 | AC-5, EDGE-11 | Remote transport facts absent | yes | BLOCKED | not assessed | asks first for remote parser; transport contract remains a later required fact | no |
 | positive-edge-016 | 10 | AC-3, EDGE-9 | Unbound external glob result set | yes | BLOCKED | not assessed | exact ordered operands required; no wildcard retention, rediscovery, or invented matches | no |
-| positive-edge-017 | 11 | AC-7 | Mixed construction/portability | yes | REWRITE | `shell-portability` review required | exact candidate must be reviewed by the named owner before any compatibility claim | no |
+| positive-edge-017 | 11 | AC-7 | Mixed construction/portability | yes | REWRITE | separate portability review required | exact candidate must be reviewed before any compatibility claim | no |
 | positive-substance-001 | 9 | AC-2, EDGE-6 | Multiline commit message | yes | REWRITE | not assessed | `-F` file transport | yes |
 | negative-trigger-001 | 12 | AC-7 | Generic tutoring | no | exclusion | n/a | all markers absent | no |
 | negative-trigger-002 | 12 | AC-7 | Non-shell task | no | exclusion | n/a | all markers absent | no |
-| negative-close-001 | 11 | AC-7 | Portability-only review | no | exclusion | `shell-portability` | named owner present; all SCC markers absent | no |
+| negative-close-001 | 11 | AC-7 | Portability-only review | no | exclusion | portability-only exclusion | portability topic present; all SCC markers absent | no |
 | negative-close-002 | 12 | AC-7 | Prose-only drafting | no | exclusion | n/a | all markers absent | no |
 | negative-close-003 | 12 | AC-3/7 | Underspecified bypass framing | no | exclusion | n/a | all markers absent | no |
 

@@ -15,7 +15,7 @@ Use this skill only for a concrete shell construction target whose correct parsi
 
 This skill assesses construction only: shell parsing, argv boundaries, literal data, and selected input/output transport. Execution safety, authorization, target validity, destructive-effect review, and permission to run are outside scope and not assessed. Never execute a command or recommend execution.
 
-Do not activate for generic shell tutoring, prose-only drafting without a shell invocation, non-shell work, or portability-only analysis; route portability-only work to `shell-portability`. For a mixed construction-and-portability request, produce the construction result first and make `shell-portability` review of the exact candidate the only next step; make no cross-target compatibility claim. If construction is `BLOCKED`, resolve that first.
+Do not activate for generic shell tutoring, prose-only drafting without a shell invocation, non-shell work, or portability-only analysis; treat portability-only work as outside this skill's scope. For a mixed construction-and-portability request, produce the construction result first and require a separate portability review of the exact candidate as the only next step; make no cross-target compatibility claim. If construction is `BLOCKED`, resolve that first.
 
 ## DO NOT USE FOR:
 
@@ -46,7 +46,7 @@ If a required fact is absent or conflicts, return `BLOCKED`; do not guess.
 3. Identify literal/expansion, scalar/list, operand, and transport intent.
 4. Select the applicable canonical rule in [construction-rules.md](references/construction-rules.md); read [quoting-rules.md](references/quoting-rules.md) only for semantic detail.
 5. Produce the smallest candidate that preserves the confirmed construction intent, or block on the smallest missing fact.
-6. Serialize the exact output contract below. For a mixed request, make `shell-portability` review of the exact SCC candidate the single next step. If construction is `BLOCKED`, request its smallest missing fact instead.
+6. Serialize the exact output contract below. For a mixed request, require a separate portability review of the exact construction candidate as the single next step. If construction is `BLOCKED`, request its smallest missing fact instead.
 
 The Required facts list and canonical catalog are the gating source of truth.
 
@@ -69,7 +69,7 @@ Construction result: VALID | REWRITE | BLOCKED
 Construction assessment: <one non-empty line describing parsing/boundary status only>
 Candidate: <one-line candidate | Not provided | multiline block>
 Execution authority: NOT ASSESSED BY THIS SKILL
-Next step: <one construction action, smallest clarification, or shell-portability handoff>
+Next step: <one construction action, smallest clarification, or portability handoff>
 ```
 
 - `BLOCKED` always uses `Candidate: Not provided`.

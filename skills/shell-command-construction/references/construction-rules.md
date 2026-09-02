@@ -2,7 +2,7 @@ Read this catalog when selecting a construction disposition; it is the sole norm
 
 # Construction Rules
 
-All records use this fixed shape. `Safety projection` never assesses execution concerns.
+All records use this fixed shape. The catalog-only `Safety projection` field is metadata; it never assesses execution concerns and is not part of the user-facing output contract.
 
 ### SCC-Q1 — Literal scalar text
 
@@ -13,9 +13,9 @@ Disposition: VALID or REWRITE.
 Construction-preserving action: For declared POSIX-like `sh`, Bash, ksh, or zsh, single-quote literal scalar text. Within that representation, replace each embedded apostrophe with the exact close-single-quote, double-quoted-apostrophe, reopen-single-quote sequence `'"'"'`. For example, literal `O'Reilly $HOME *` is `'O'"'"'Reilly $HOME *'`; adjacent quoted segments with no unquoted whitespace form one shell word. Use a quoted heredoc for literal multiline text. If the shell is undeclared or unsupported and the syntax materially differs, return BLOCKED.
 No-drift constraints: Preserve command name, fixed operands, option order, one-argument boundary, and literal bytes/characters.
 Effectful marker: none.
-Portability handoff: `shell-portability` review required before a cross-target claim.
+Portability handoff: separate portability review required before a cross-target claim.
 Provenance: POSIX Shell Command Language; Bash manual; high.
-Safety projection: not assessed by this skill.
+Safety projection: catalog metadata only; execution concerns not assessed by this skill.
 
 ### SCC-Q2 — Expansion and quote ambiguity
 
@@ -26,9 +26,9 @@ Disposition: BLOCKED.
 Construction-preserving action: Request the one missing literal/expansion or quote-boundary fact.
 No-drift constraints: Do not assume a shell or reinterpret downstream syntax.
 Effectful marker: none.
-Portability handoff: `shell-portability` review required before a cross-target claim.
+Portability handoff: separate portability review required before a cross-target claim.
 Provenance: POSIX Shell Command Language; Bash manual; high.
-Safety projection: not assessed by this skill.
+Safety projection: catalog metadata only; execution concerns not assessed by this skill.
 
 ### SCC-A1 — Scalar and structured argv
 
@@ -39,9 +39,9 @@ Disposition: REWRITE or BLOCKED.
 Construction-preserving action: Quote a confirmed single scalar; use a declared-shell structured argv form only for confirmed multiple entries; otherwise request scalar/list intent.
 No-drift constraints: Preserve argument count, order, positions, command name, and fixed operands.
 Effectful marker: none.
-Portability handoff: `shell-portability` review required before a cross-target claim.
+Portability handoff: separate portability review required before a cross-target claim.
 Provenance: POSIX Shell Command Language; Bash manual; high.
-Safety projection: not assessed by this skill.
+Safety projection: catalog metadata only; execution concerns not assessed by this skill.
 
 ### SCC-O1 — Paths and leading-dash operands
 
@@ -52,9 +52,9 @@ Disposition: REWRITE or BLOCKED.
 Construction-preserving action: Preserve the path as one operand and use the target's confirmed option-termination form; otherwise request supported operand syntax.
 No-drift constraints: Preserve options and their order, operand position/count, and path text.
 Effectful marker: outside construction scope.
-Portability handoff: `shell-portability` review required before a cross-target claim.
+Portability handoff: separate portability review required before a cross-target claim.
 Provenance: POSIX Utility Syntax Guidelines; high.
-Safety projection: not assessed by this skill.
+Safety projection: catalog metadata only; execution concerns not assessed by this skill.
 
 ### SCC-M1 — Multiline stdin, file, and heredoc payloads
 
@@ -65,9 +65,9 @@ Disposition: VALID, REWRITE, or BLOCKED.
 Construction-preserving action: Retain the supplied transport; use a quoted heredoc delimiter when literal body text requires it; block if choosing stdin versus file would be invented.
 No-drift constraints: Preserve line boundaries, empty lines, payload-owned indentation and characters, transport, command name, fixed operands, and redirection placement. The two-space response serialization prefix is not payload data.
 Effectful marker: outside construction scope.
-Portability handoff: `shell-portability` review required before a cross-target claim.
+Portability handoff: separate portability review required before a cross-target claim.
 Provenance: POSIX Shell Command Language; Git documentation; high.
-Safety projection: not assessed by this skill.
+Safety projection: catalog metadata only; execution concerns not assessed by this skill.
 
 ### SCC-R1 — Redirections and pipelines
 
@@ -78,9 +78,9 @@ Disposition: VALID, REWRITE, or BLOCKED.
 Construction-preserving action: Use the stated ordering only when it realizes the confirmed stream routing; request routing intent when absent.
 No-drift constraints: Preserve command order, stream destinations, fixed operands, and selected transport.
 Effectful marker: outside construction scope.
-Portability handoff: `shell-portability` review required before a cross-target claim.
+Portability handoff: separate portability review required before a cross-target claim.
 Provenance: POSIX Shell Command Language; high.
-Safety projection: not assessed by this skill.
+Safety projection: catalog metadata only; execution concerns not assessed by this skill.
 
 ### SCC-RX1 — Remote command boundary
 
@@ -91,9 +91,9 @@ Disposition: BLOCKED by default; VALID or REWRITE only when every required fact 
 Construction-preserving action: Do not offer a generic remote candidate. Request the remote interpreter/parser and confirmed boundary-preserving transport/serialization contract when either is absent.
 No-drift constraints: Preserve confirmed local and remote argument boundaries, command order, and selected transport; do not infer remote quoting semantics from local quoting.
 Effectful marker: outside construction scope.
-Portability handoff: `shell-portability` review required before a cross-target claim.
+Portability handoff: separate portability review required before a cross-target claim.
 Provenance: OpenSSH `ssh(1)` command invocation behavior; POSIX Shell Command Language; high.
-Safety projection: not assessed by this skill.
+Safety projection: catalog metadata only; execution concerns not assessed by this skill.
 
 ### SCC-G1 — External glob binding
 
@@ -104,9 +104,9 @@ Disposition: VALID, REWRITE, or BLOCKED.
 Construction-preserving action: Preserve a confirmed literal pattern as literal; preserve a confirmed in-shell expansion; block rather than discover or broaden an external operand set.
 No-drift constraints: Preserve the explicit selection scope, operand count/order, command name, and fixed operands.
 Effectful marker: outside construction scope.
-Portability handoff: `shell-portability` review required before a cross-target claim.
+Portability handoff: separate portability review required before a cross-target claim.
 Provenance: POSIX Shell Command Language; high.
-Safety projection: not assessed by this skill.
+Safety projection: catalog metadata only; execution concerns not assessed by this skill.
 
 ### SCC-E1 — Empty, unset, and secret-safe sources
 
@@ -117,6 +117,6 @@ Disposition: VALID, REWRITE, or BLOCKED.
 Construction-preserving action: Preserve a supplied non-secret source expression or transport abstraction; otherwise request the empty/unset intent or return `BLOCKED` for unavailable secret-safe representation.
 No-drift constraints: Never render raw, partial, split, escaped, encoded, transformed, or diagnostic copies of a secret; preserve supplied transport, argument boundaries, and command structure.
 Effectful marker: outside construction scope.
-Portability handoff: `shell-portability` review required before a cross-target claim.
+Portability handoff: separate portability review required before a cross-target claim.
 Provenance: POSIX Shell Command Language; OWASP Secrets Management Cheat Sheet; medium.
-Safety projection: not assessed by this skill.
+Safety projection: catalog metadata only; execution concerns not assessed by this skill.
