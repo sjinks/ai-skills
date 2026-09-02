@@ -12,7 +12,7 @@ It helps an assistant:
 - catch behavioral hazards: `echo` escapes/flags, unquoted word-splitting, locale-dependent `sort`/`tr`, non-POSIX `trap`/`set` options
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with target, interpreter, findings, checklist status, verification path, and an insufficient-context template
 
-It is **not** for concrete shell command construction correctness where literal data, argv boundaries, heredocs, redirection, or transport preservation are primary; it is also not for pure bash-only feature questions or non-shell languages. Direct portability code follows the normal path. For raw mixed requests, construction or an excluded domain-specific interface workflow supplies the exact candidate first. SCC handoffs are validated and decoded using [`references/construction-handoff.md`](references/construction-handoff.md); malformed, inconsistent, and `BLOCKED` handoffs use reduced `BLOCK`.
+It is **not** for concrete shell command construction correctness where literal data, argv boundaries, heredocs, redirection, or transport preservation are primary; it is also not for pure bash-only feature questions or non-shell languages. Direct portability code follows the normal path. For raw mixed requests, construction or an excluded domain-specific interface workflow supplies the exact candidate first. Shell-command-construction (SCC) handoffs are validated and decoded using [`references/construction-handoff.md`](references/construction-handoff.md); malformed, inconsistent, and `BLOCKED` handoffs use reduced `BLOCK`.
 
 ## Files
 

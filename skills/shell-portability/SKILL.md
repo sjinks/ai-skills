@@ -27,7 +27,7 @@ The goal is shell code that runs identically on its declared targets: no bashism
 
 ## Construction handoff routing
 
-1. Direct portability-only code follows the normal review path without an SCC result.
+1. Direct portability-only code follows the normal review path without a shell-command-construction (SCC) result.
 2. For a raw mixed request, construction review owns catalogued shell construction. An excluded domain-specific interface workflow owns its interface correction first and must supply an exact command, which then follows the direct portability path.
 3. If no concrete target exists, request a command, executable, fragment, or payload interface.
 4. For an SCC handoff, apply [construction-handoff.md](references/construction-handoff.md). Any malformed, inconsistent, or `BLOCKED` handoff uses reduced `BLOCK`; otherwise review only the exact decoded candidate and make no construction claim.

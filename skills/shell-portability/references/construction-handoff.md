@@ -1,6 +1,6 @@
 # Construction Handoff Validation
 
-Use this reference only when portability follows a mixed request or a completed construction workflow. Direct portability-only code reviews do not require an SCC result.
+Use this reference only when portability follows a mixed request or a completed shell-command-construction (SCC) workflow. Direct portability-only code reviews do not require an SCC result.
 
 ## Routing
 
@@ -18,6 +18,8 @@ Require exactly one complete result with these top-level fields in order:
 3. `Candidate: <value>`
 4. `Execution authority: NOT ASSESSED BY THIS SKILL`
 5. `Next step: <nonblank one-line value>`
+
+The handoff starts with `Construction result:` as its first line and ends immediately after the `Next step:` line, with zero or one terminal newline. Preambles, code fences, trailing prose, blank or free-form lines between top-level fields, and any other extra unprefixed line make it malformed. Multiline candidate payload is the only allowed intervening block and follows the rules below.
 
 Missing, unknown, reordered, duplicated, or blank fields make the handoff malformed.
 
