@@ -2,7 +2,7 @@
 
 This matrix maps each synthetic fixture to its discriminating construction behavior. Original planning traces that required execution-safety handling are superseded by the user override: SCC assesses no execution concerns and always uses `Execution authority: NOT ASSESSED BY THIS SKILL`.
 
-The SCC suite contains 29 fixtures; the separate shell-portability suite contains 18 fixtures.
+The SCC suite contains 29 fixtures; the separate shell-portability suite contains 19 fixtures.
 
 | Fixture | SCC-TC | Source trace | Behavioral discriminator | Trigger | Result/exclusion | Authority or handoff | Deterministic focus | Substance |
 |---|---|---|---|---|---|---|---|---|

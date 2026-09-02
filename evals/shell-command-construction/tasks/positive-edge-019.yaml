@@ -5,9 +5,11 @@ inputs:
   prompt: |
     In Bash, construct the exact remote invocation for the two remote argv
     entries `tool` and `alpha beta`. Local Bash parses the pipeline. The
-    external `remote-argv` contract accepts a JSON array on stdin, uses the
-    confirmed remote JSON-array parser, maps each array element one-to-one to
-    remote argv, and performs no shell reparsing. Use host example.invalid.
+    external `remote-argv` CLI signature is
+    `remote-argv --host HOST --stdin-json`: `--host` requires the next argv entry
+    as its host and `--stdin-json` selects JSON-array stdin. Its confirmed parser
+    maps each array element one-to-one to remote argv and performs no shell
+    reparsing. Use host `example.invalid`.
 expected:
   should_trigger: true
 graders:
@@ -27,7 +29,8 @@ graders:
       prompt: |
         Grade whether the candidate sends a JSON array containing exactly the two
         elements `tool` and `alpha beta` on stdin to `remote-argv` for host
-        `example.invalid`, and whether the assessment relies on the supplied
+        `example.invalid` using `--host example.invalid` and `--stdin-json`, and
+        whether the assessment relies on the supplied
         one-to-one JSON-array-to-argv mapping with no remote shell reparsing.
         Accept boundary-equivalent local Bash spellings, option order, and JSON
         producers; do not require `printf` or one exact command spelling.
