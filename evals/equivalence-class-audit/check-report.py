@@ -329,23 +329,33 @@ def requests(value):
 def requests_missing_input(value, missing_header):
     if not requests(value):
         return False
-    value = label_norm(value)
-    expected = label_norm(missing_header)
-    if expected == "triggering finding":
-        names_other = bool(re.search(
-            r"\b(?:scope|files?|modules?|artifacts?|specs?|tests?)\b",
-            value,
-        ))
-    else:
-        names_other = bool(re.search(
-            r"\b(?:finding|defect|trigger|incident|bug(?: report)?|test failure|review finding)\b",
-            value,
-        ))
+    other_header = (
+        "Locked audit scope"
+        if missing_header == "Triggering finding"
+        else "Triggering finding"
+    )
     names_expected = bool(re.search(
-        rf"(?<![\w]){re.escape(expected)}(?![\w])",
+        rf"(?<![\w]){re.escape(missing_header)}(?![\w])",
+        value,
+    ))
+    names_other = bool(re.search(
+        rf"(?<![\w]){re.escape(other_header)}(?![\w])",
         value,
     ))
     return names_expected and not names_other
+
+
+def valid_edge_001_scope(value):
+    value = norm(value)
+    paths = set(re.findall(r"(?:[\w.-]+/)+[\w.-]+", value))
+    if paths != {"config/healthcheck.yml"}:
+        return False
+    if "health check timeout" not in value or "section" not in value:
+        return False
+    remainder = value.replace("config/healthcheck.yml", "")
+    remainder = remainder.replace("health check timeout", "")
+    words = set(re.findall(r"[a-z]+", remainder))
+    return words <= {"only", "and", "its", "the", "docs", "documentation", "section"}
 
 
 def missing_metadata_fields(value):
@@ -431,6 +441,8 @@ def parse_report(output):
         fail("report Verdict has an invalid value")
     if headers["Severity"] not in SEVERITIES:
         fail("report Severity has an invalid value")
+    if headers["Output depth"] not in ("quick", "standard", "exhaustive"):
+        fail("Output depth must use a canonical lowercase value")
 
     heading_entries = [(index, line[4:].strip()) for index, line in enumerate(lines)
                        if line.startswith("### ")]
@@ -785,11 +797,7 @@ def validate(profile, headers, sections, rows):
         for name, terms in zip(("Triggering finding", "Locked audit scope"), PROFILE_HEADERS[profile]):
             value = norm(headers[name])
             if profile == "positive-edge-001" and name == "Locked audit scope":
-                allowed = {
-                    norm('only `config/healthcheck.yml` and its "Health check timeout" docs section.'),
-                    norm("config/healthcheck.yml and the Health check timeout section"),
-                }
-                if value not in allowed:
+                if not valid_edge_001_scope(headers[name]):
                     fail("Locked audit scope must preserve the supplied task input")
                 continue
             if missing_header_marker(value) or not all(norm(term) in value for term in terms):

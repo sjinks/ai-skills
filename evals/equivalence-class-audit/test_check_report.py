@@ -993,31 +993,25 @@ class CheckerContractTests(unittest.TestCase):
         self.assertTrue(CHECK_REPORT.requests_missing_input(
             "Provide the Locked audit scope.", "Locked audit scope"
         ))
+        self.assertTrue(CHECK_REPORT.requests_missing_input(
+            "Provide the Locked audit scope for the bug report.", "Locked audit scope"
+        ))
+        self.assertTrue(CHECK_REPORT.requests_missing_input(
+            "Provide the Triggering finding and list the files.", "Triggering finding"
+        ))
         for value in (
             "What defect should be used as the trigger?",
             "Provide the triggering defect.",
+            "Provide the triggering finding.",
+            "Provide the locked audit scope.",
             "Which finding should the audit use?",
             "Which files and modules should the audit inspect?",
             "Provide the audit scope.",
             "Which artifacts should the audit include?",
             "Which defect files should the audit inspect?",
             "Provide the triggering defect and audit scope.",
-            "Provide the triggering finding; then specify the audit scope.",
-            "Provide the triggering finding. Specify the audit scope.",
-            "Provide the triggering finding; subsequently provide the audit scope.",
-            "Provide the triggering finding, then the locked audit scope.",
-            "Provide the triggering finding, followed by the locked audit scope.",
-            "Provide the triggering finding, the locked audit scope.",
-            "Provide the locked audit scope, then the triggering finding.",
-            "Provide the triggering finding before providing the locked audit scope.",
-            "Provide the locked audit scope after supplying the triggering finding.",
-            "Provide the triggering finding before you specify the audit scope.",
-            "Provide the audit scope after you provide the triggering finding.",
-            "Provide the Triggering finding and list the files.",
-            "Provide the Triggering finding after selecting modules and artifacts.",
-            "Provide the Locked audit scope after the incident.",
-            "Provide the Locked audit scope for the bug report.",
-            "Provide the Locked audit scope after the test failure.",
+            "Provide the Triggering finding and Locked audit scope.",
+            "Provide the Triggering finding; then provide the Locked audit scope.",
             "Provide the Unlocked audit scope.",
             "Provide the Locked audit scopeish.",
             "Provide the NotTriggering finding.",
@@ -1026,6 +1020,20 @@ class CheckerContractTests(unittest.TestCase):
             with self.subTest(value=value):
                 self.assertFalse(CHECK_REPORT.requests_missing_input(value, "Triggering finding"))
                 self.assertFalse(CHECK_REPORT.requests_missing_input(value, "Locked audit scope"))
+
+    def test_output_depth_requires_canonical_lowercase(self):
+        for depth in ("STANDARD", "Standard", "Quick", "EXHAUSTIVE"):
+            invalid = profile_report("positive-edge-010").replace(
+                "Output depth: standard",
+                f"Output depth: {depth}",
+                1,
+            )
+            error = io.StringIO()
+            with self.subTest(depth=depth):
+                with contextlib.redirect_stderr(error):
+                    with self.assertRaises(SystemExit):
+                        CHECK_REPORT.parse_report(invalid)
+                self.assertIn("Output depth must use a canonical lowercase value", error.getvalue())
 
     def test_verdict_severity_state_matrix(self):
         section_none = {name: ["None"] for name in CHECK_REPORT.SECTIONS}
@@ -1185,6 +1193,14 @@ class CheckerIntegrationTests(unittest.TestCase):
                     with self.assertRaises(SystemExit):
                         run_main(invalid, "positive-edge-001")
                 self.assertIn("Locked audit scope must preserve the supplied task input", error.getvalue())
+
+    def test_edge_001_accepts_scope_preserving_paraphrase(self):
+        report = profile_report("positive-edge-001").replace(
+            "config/healthcheck.yml and the Health check timeout section",
+            "config/healthcheck.yml and its Health check timeout documentation section",
+            1,
+        )
+        run_main(report, "positive-edge-001")
 
     def test_quick_omitted_axes_requires_an_actual_missing_declaration(self):
         for explanation in (
