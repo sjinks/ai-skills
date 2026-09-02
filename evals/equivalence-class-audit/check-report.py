@@ -69,7 +69,7 @@ PROFILE_HEADERS = {
     "positive-edge-008": (("maxretries", "zero"),
                           ("config/retry.yml", "docs/api.md", "docs/operations.md")),
     "positive-edge-009": (("maxretries", "zero"), ("config/retry.yml", "docs/api.md")),
-    "positive-edge-010": (("minitems", "zero"),
+    "positive-edge-010": (("minitems", "zero", "fixed"),
                           ("src/pagination.ts", "tests/pagination.test.ts", "docs/api.md")),
     "positive-trigger-001": (("maxretries", "zero", "inc-17"),
                              ("config/retry.yml", "src/retry_policy.py", "tests/test_retry_policy.py",
@@ -712,13 +712,13 @@ def summary_assignments(candidates, bullets, section, one_to_one=False):
                         rf"(?<![a-z0-9_./-]){re.escape(norm(candidate))}(?![a-z0-9_/-]|\.[a-z0-9_])",
                         " ", action,
                     )
-            if re.search(r"\b(?:do not fix|don't fix|need not fix|not fix|no action|skip)\b", action):
+            if re.search(r"\b(?:do not fix|don't fix|need not fix|not fix|never fix|no action|skip)\b", action):
                 fail(f"{section} cannot contain a negated action")
     elif section == "Deferred follow-ups":
         for bullet in bullets:
             action = norm(bullet)
             if re.search(
-                r"\b(?:(?:do not|don't|never|not)\s+defer|"
+                r"\b(?:(?:do not|don't|never|not)\s+defer|no reason to defer|"
                 r"(?:skip|cancel)\s+(?:the\s+)?deferral)\b",
                 action,
             ):

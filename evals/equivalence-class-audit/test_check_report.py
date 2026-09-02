@@ -43,7 +43,7 @@ HEADERS = {
         "config/retry.yml and the Retry Configuration section of docs/api.md",
     ),
     "positive-edge-010": (
-        "minItems accepts zero",
+        "fixed minItems zero pagination defect previously crashed requests",
         "src/pagination.ts, tests/pagination.test.ts, and the Pagination section of docs/api.md",
     ),
     "positive-trigger-001": (
@@ -1122,6 +1122,42 @@ class CheckerContractTests(unittest.TestCase):
                                     CHECK_REPORT.validate_report_outcome(headers, sections, rows)
 
 class CheckerIntegrationTests(unittest.TestCase):
+    def test_clean_profile_rejects_current_defect_finding(self):
+        invalid = profile_report("positive-edge-010").replace(
+            "fixed minItems zero pagination defect previously crashed requests",
+            "minItems zero still crashes pagination",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-010")
+        self.assertIn("Triggering finding must preserve the supplied task input", error.getvalue())
+
+    def test_deferred_reason_cannot_negate_deferral(self):
+        invalid = profile_report("positive-edge-009").replace(
+            "reason: documentation is owned outside this change",
+            "reason: no reason to defer",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-009")
+        self.assertIn("Deferred follow-ups cannot negate deferral", error.getvalue())
+
+    def test_fix_now_summary_rejects_never_fix(self):
+        invalid = profile_report("positive-edge-009").replace(
+            "Fix maxRetries zero bound.",
+            "Never fix maxRetries zero bound.",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-009")
+        self.assertIn("Defects to fix now cannot contain a negated action", error.getvalue())
+
     def test_complete_report_rejects_standalone_blocking_question(self):
         rows = [{
             "axis": "Opposite Bound", "candidate": "checked candidate",
