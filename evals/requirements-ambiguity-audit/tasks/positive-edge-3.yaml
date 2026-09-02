@@ -55,8 +55,7 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?im)^[ \t]*##[ \t]+Requirements Ambiguity Report[ \t]*\r?$'
-        - '(?im)^[ \t]*[*_]*Verdict:[*_ \t]*CLEAN[*_]*\.?[*_]*[ \t]*\r?\n[ \t]*[*_]*All eight ambiguity classes were swept; no findings\.[*_]*[ \t]*\r?$'
+        - '(?im)\A[ \t]*##[ \t]+Requirements Ambiguity Report[ \t]*\r?\n(?:[ \t]*\r?\n)*[ \t]*[*_]*Verdict:[*_ \t]*CLEAN[*_]*\.?[*_]*[ \t]*\r?\n[ \t]*[*_]*All eight ambiguity classes were swept; no findings\.[*_]*[ \t]*\r?$'
         - '(?im)^[ \t]*\|[ \t]*#[ \t]*\|[ \t]*Class[ \t]*\|[ \t]*Severity[ \t]*\|[ \t]*Location[ \t]*\|[ \t]*\r?$\r?\n^[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*### Findings[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*[*_]*None[*_.]*[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*[*_]*None[*_.]*(?:[ \t]*\r?\n)*[ \t]*\z'
       regex_not_match:
         - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:'

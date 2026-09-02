@@ -63,7 +63,7 @@ Verdict: BLOCK | CONCERNS | CLEAN
 
 ### Findings
 
-The table and `### Findings` must have exactly the same cardinality. For each table row, emit exactly one `Finding N:` body where `N` matches the row number; emit no other finding bodies. Each body contains exactly three fields, in this order, with no additional fields. The second field uses `Readings:` unless the finding class requires the replacement defined below:
+The table and `### Findings` must have exactly the same cardinality. Number rows with unique, contiguous integers starting at 1, and emit the corresponding `Finding N:` bodies in ascending numeric order. For each table row, emit exactly one body where `N` matches the row number; emit no other finding bodies. Each body contains exactly three fields, in this order, with no additional fields. The second field uses `Readings:` unless the finding class requires the replacement defined below:
 - Quote: <exact text; for `conflicting-requirements`, both statements>
 - Readings: <reading A> / <reading B>
 - Proposed rewrite: <unambiguous replacement, unknowns as open questions>
