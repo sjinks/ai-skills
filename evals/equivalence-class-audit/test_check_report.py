@@ -151,7 +151,7 @@ def reduced_report(profile, quick=False):
         "## Equivalence-Class Audit Report\n"
         f"Triggering finding: {finding}\n"
         f"Locked audit scope: {scope}\n"
-        f"Output depth: {'quick' if quick else 'standard'}\n"
+        f"Output depth: {'quick' if quick else ('exhaustive' if profile == 'positive-edge-011' else 'standard')}\n"
         "Verdict: BLOCK\n"
         "Severity: UNASSESSED\n"
         + "\n".join(
@@ -1172,6 +1172,51 @@ class CheckerIntegrationTests(unittest.TestCase):
                 run_main(report, "positive-trigger-001")
         self.assertIn("report contains an unsupported active candidate set", error.getvalue())
 
+    def test_required_axes_cannot_reuse_an_unapproved_candidate_label(self):
+        report = profile_report("positive-edge-007").replace(
+            "| Async/Sync or Mode Twin | async validator mode |",
+            "| Async/Sync or Mode Twin | async validator |",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(report, "positive-edge-007")
+        self.assertIn("unsupported active candidate overlap", error.getvalue())
+
+    def test_approved_overlap_allows_only_one_row_per_axis(self):
+        report = profile_report("positive-trigger-001").replace(
+            "| Validation vs Normalization/Sanitization | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            "| Validation vs Normalization/Sanitization | null retry value | present | fix-now | src/retry_policy.py |\n"
+            "| Validation vs Normalization/Sanitization | null retry value | present | fix-now | config/retry.yml |",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(report, "positive-trigger-001")
+        self.assertIn("duplicate normalized axis/candidate pair", error.getvalue())
+
+    def test_duplicated_fabricated_candidate_is_not_an_allowed_overlap(self):
+        report = profile_report("positive-edge-001").replace(
+            "| Mirror Call Site/Use Site | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            "| Mirror Call Site/Use Site | fabricated leak | present | fix-now | config/healthcheck.yml |",
+            1,
+        ).replace(
+            "| Contract Symmetry | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            "| Contract Symmetry | fabricated leak | present | fix-now | config/healthcheck.yml |",
+            1,
+        ).replace(
+            "Fix timeoutSeconds bound and docs health guidance.",
+            "Fix timeoutSeconds bound, docs health guidance, and fabricated leak.",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(report, "positive-edge-001")
+        self.assertIn("report contains an unsupported active candidate overlap", error.getvalue())
+
     def test_edge_002_header_preserves_tenant_ownership_omission(self):
         invalid = profile_report("positive-edge-002").replace(
             " but lacks tenant ownership",
@@ -1934,6 +1979,13 @@ class CheckerIntegrationTests(unittest.TestCase):
 
 
 class ConfigurationTests(unittest.TestCase):
+    def test_edge_011_exercises_exhaustive_missing_input_collision(self):
+        root = pathlib.Path(__file__).parent / "tasks"
+        text = (root / "positive-edge-11.yaml").read_text(encoding="utf-8")
+        self.assertIn("Return the exhaustive audit response", text)
+        self.assertIn("^Output depth:\\s*exhaustive\\s*$", text)
+        self.assertIn("- 'Output depth: standard'", text)
+
     def test_edge_002_valid_fixture_satisfies_text_grader(self):
         root = pathlib.Path(__file__).parent
         task = yaml.safe_load((root / "tasks" / "positive-edge-2.yaml").read_text())

@@ -12,7 +12,7 @@ inputs:
     Apply equivalence-class-audit.
 
     I have not supplied a triggering finding or locked audit scope yet.
-    Return the standard audit response without inventing either input.
+    Return the exhaustive audit response without inventing either input.
 expected:
   should_trigger: true
 graders:
@@ -35,7 +35,7 @@ graders:
         - '(?i)Equivalence-Class Audit Report'
         - '(?im)^Triggering finding:[ \t]+(missing|not provided|not supplied|required|needed)[ \t]*$'
         - '(?im)^Locked audit scope:[ \t]+(missing|not provided|not supplied|required|needed)[ \t]*$'
-        - '(?im)^Output depth:\s*standard\s*$'
+        - '(?im)^Output depth:\s*exhaustive\s*$'
         - '(?im)^Verdict:\s*BLOCK\s*$'
         - '(?im)^Severity:\s*UNASSESSED\s*$'
         - '(?is)### Defects to fix now\s*\n- None\s*### Deferred follow-ups\s*\n- None\s*### Out-of-scope candidates discovered\s*\n- None\s*### Blocking questions\s*\n- [^\n]*(triggering finding|finding)[^\n]*\s*### Test/doc implications\s*\n- None'
@@ -43,7 +43,7 @@ graders:
         - '| Axis |'
         - '### Omitted axes (quick mode only)'
         - 'Output depth: quick'
-        - 'Output depth: exhaustive'
+        - 'Output depth: standard'
         - 'Gate decision:'
         - 'Adversarial tests:'
   - type: program

@@ -144,6 +144,14 @@ PROFILE_ACTIVE_AXIS_COUNTS = {
         "Test Mirror": 2, "Documentation/Spec Prose Twin": 2,
     },
 }
+PROFILE_ALLOWED_ACTIVE_OVERLAPS = {
+    "positive-trigger-001": {
+        "null retry value": {
+            "Empty/Sentinel Equivalence",
+            "Validation vs Normalization/Sanitization",
+        },
+    },
+}
 
 
 def fail(message):
@@ -978,8 +986,8 @@ def validate(profile, headers, sections, rows):
         ):
             fail("missing-finding report must preserve the supplied locked scope")
     elif profile == "positive-edge-011":
-        if headers["Output depth"].lower() != "standard":
-            fail("expected standard output depth")
+        if headers["Output depth"] != "exhaustive":
+            fail("expected exhaustive output depth")
         reduced(
             headers, sections, rows, "Triggering finding",
             expected_missing={"Triggering finding", "Locked audit scope"},
@@ -1202,19 +1210,29 @@ def validate(profile, headers, sections, rows):
         minimums = Counter(PROFILE_ACTIVE_AXIS_COUNTS[profile])
         if any(active_counts[axis] < count for axis, count in minimums.items()):
             fail("report is missing the required active candidate set")
-        label_counts = Counter(label_norm(item["candidate"]) for item in active_rows)
-        unsupported = [
+        allowed_overlaps = PROFILE_ALLOWED_ACTIVE_OVERLAPS.get(profile, {})
+        allowed_extra_count = 0
+        label_axes = {}
+        for item in active_rows:
+            label_axes.setdefault(label_norm(item["candidate"]), Counter())[item["axis"]] += 1
+        for label, axis_counts in label_axes.items():
+            if sum(axis_counts.values()) < 2:
+                continue
+            allowed_axes = allowed_overlaps.get(label)
+            if (allowed_axes is None or set(axis_counts) != allowed_axes
+                    or any(count != 1 for count in axis_counts.values())):
+                fail("report contains an unsupported active candidate overlap")
+            allowed_extra_count += len(allowed_axes) - 1
+        unsupported_unexpected = [
             item for item in active_rows
-            if item["axis"] not in minimums and label_counts[label_norm(item["candidate"])] < 2
+            if item["axis"] not in minimums
+            and not (
+                label_norm(item["candidate"]) in allowed_overlaps
+                and item["axis"] in allowed_overlaps[label_norm(item["candidate"])]
+            )
         ]
-        unique_excess = any(
-            sum(
-                1 for item in active_rows
-                if item["axis"] == axis and label_counts[label_norm(item["candidate"])] == 1
-            ) > count
-            for axis, count in minimums.items()
-        )
-        if unsupported or unique_excess:
+        total_extra = len(active_rows) - sum(minimums.values())
+        if unsupported_unexpected or total_extra > allowed_extra_count:
             fail("report contains an unsupported active candidate set")
     validate_report_outcome(headers, sections, rows)
 
