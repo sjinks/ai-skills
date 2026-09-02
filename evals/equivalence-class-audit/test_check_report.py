@@ -1677,6 +1677,8 @@ class ConfigurationTests(unittest.TestCase):
             self.assertNotIn('- "defer-with-owner"', not_contains, name)
         edge_007 = (root / "positive-edge-7.yaml").read_text(encoding="utf-8")
         self.assertIn("`maxItems` already rejects zero", edge_007)
+        trigger_001 = (root / "positive-trigger-1.yaml").read_text(encoding="utf-8")
+        self.assertNotIn('- "Verdict: BLOCK"', trigger_001.split("not_contains:", 1)[1])
 
     def test_reduced_task_missing_markers_match_checker_vocabulary(self):
         root = pathlib.Path(__file__).parent / "tasks"

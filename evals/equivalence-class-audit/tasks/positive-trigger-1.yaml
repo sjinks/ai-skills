@@ -65,7 +65,6 @@ graders:
         - "Output depth: quick"
         - "Output depth: exhaustive"
         - "Gate decision:"
-        - "Verdict: BLOCK"
         - "Adversarial tests:"
         - "Egress policy:"
         - "Trusted root:"
