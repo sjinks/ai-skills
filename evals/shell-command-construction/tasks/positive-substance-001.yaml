@@ -1,0 +1,15 @@
+id: positive-substance-001
+name: Multiline commit message transport
+inputs: { prompt: "In Bash, repair `git commit -m \"Subject\nBody with $literal\"`; the exact multiline bytes are already in /tmp/scc-fixture/message.md and `-F` is the required transport. Assess construction only." }
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: REWRITE\nConstruction assessment: [^\n]+\nCandidate: git commit -F /tmp/scc-fixture/message\.md\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: No further construction change is required\.\z'] } }
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response preserves the specified `git commit -F` multiline file transport, avoids interpreting `$literal`, and makes only a construction assessment. Explain in one sentence.
+        On the final line write only 1.0, 0.5, or 0.0.
+      mode: independent

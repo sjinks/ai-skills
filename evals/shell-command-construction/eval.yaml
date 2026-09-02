@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
+name: shell-command-construction-eval
+description: |
+  Evaluates concrete shell construction requests: literal data, argv boundaries,
+  multiline transport, fail-closed ambiguity, and construction-only output.
+skill: shell-command-construction
+version: "1.0"
+config:
+  trials_per_task: 2
+  timeout_seconds: 300
+  parallel: true
+  workers: 4
+  executor: copilot-sdk
+  model: claude-sonnet-4.6
+  max_attempts: 2
+metrics:
+  - name: trigger_accuracy
+    weight: 0.30
+    threshold: 0.8
+    description: Prompt intent matches concrete construction activation or exclusion.
+  - name: skill_invocation
+    weight: 0.15
+    threshold: 0.9
+    description: The skill is invoked on positive construction tasks.
+  - name: task_completion
+    weight: 0.20
+    threshold: 0.8
+    description: Activated SCC output has the exact construction-only fields and required semantics.
+  - name: task_completion_substance
+    weight: 0.10
+    threshold: 0.7
+    description: Selected representative tasks preserve requested construction semantics.
+  - name: output_contract
+    weight: 0.10
+    threshold: 1.0
+    description: SCC-shaped output, including normalized distinctive SCC labels, satisfies the exact five-field serialization and construction-only contract; ordinary markerless negative prose remains valid for intentional non-activation tasks.
+  - name: efficiency
+    weight: 0.15
+    threshold: 0.7
+    description: Response stays within tool-call and total-token budgets.
+graders:
+  - type: code
+    name: output_contract
+    config:
+      language: python
+      assertions:
+        # Ordinary markerless prose remains valid for negative non-activation tasks.
+        # A case-insensitive near-form of any reserved top-level label activates validation.
+        # Remove only payload lines inside an exact Candidate: | block before label detection;
+        # two-space-prefixed labels elsewhere remain visible and fail the exact serializer.
+        - '(not __import__("re").search(r"(?im)^[ \t]*(?:construction[ _-]+result|construction[ _-]+assessment|candidate|execution[ _-]+authority|next[ _-]+step)[ \t]*:", __import__("re").sub(r"(?m)^Candidate: \|\n(?:  [^\n]*(?:\n|$))+", "Candidate: |\n", output)) or __import__("re").fullmatch(r"Construction result: (VALID|REWRITE|BLOCKED)\nConstruction assessment: [^\n]+\nCandidate: (?:[^|\n][^\n]*\n|\|\n(?:  [^\n]*\n)+)Execution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+", output) is not None)'
+        - '(not __import__("re").search(r"(?im)^[ \t]*(?:construction[ _-]+result|construction[ _-]+assessment|candidate|execution[ _-]+authority|next[ _-]+step)[ \t]*:", __import__("re").sub(r"(?m)^Candidate: \|\n(?:  [^\n]*(?:\n|$))+", "Candidate: |\n", output)) or ((output.startswith("Construction result: BLOCKED\n") and "\nCandidate: Not provided\n" in output) or (not output.startswith("Construction result: BLOCKED\n") and "\nCandidate: Not provided\n" not in output)))'
+        # Do not inspect Candidate payload: literal command data may validly contain words
+        # such as "safe" or "run". Only assessment and next-step claims are in scope.
+        - '(not __import__("re").search(r"(?im)^[ \t]*(?:construction[ _-]+result|construction[ _-]+assessment|candidate|execution[ _-]+authority|next[ _-]+step)[ \t]*:", __import__("re").sub(r"(?m)^Candidate: \|\n(?:  [^\n]*(?:\n|$))+", "Candidate: |\n", output)) or __import__("re").search(r"(?i)(?:\b(?:candidate|command|execution|operation)\b[^\n]*\b(?:safe|authorized|approved|executable)\b|\b(?:safe|authorized|approved|executable)\b[^\n]*\b(?:candidate|command|execution|operation)\b|\b(?:permission|authorization|approval|clearance)\b|\bgreen\s+light\b|\bgranted\b|\bdeploy(?:ment|ed)?\b|\breleas(?:e|ed)\b|\bship(?:ped)?\b|\bsafe to run\b|\bproceed\b|\b(?:may|can|should)\s+(?:now\s+)?(?:use|execute|run|apply|invoke|launch)\b|\b(?:execute|run|apply|invoke|launch)\b)", "\n".join(__import__("re").findall(r"(?im)^(?:Construction assessment|Next step):[^\n]*$", output))) is None)'
+  - type: behavior
+    name: efficiency
+    config:
+      max_tool_calls: 10
+      max_tokens: 8000
+tasks:
+  - "tasks/*.yaml"

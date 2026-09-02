@@ -1,0 +1,8 @@
+id: positive-edge-003
+name: Leading-dash operand
+inputs: { prompt: "In Bash, rewrite `tool --mode scan -input file` so the final name is one operand. `tool` supports `--`; preserve option order." }
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: REWRITE\nConstruction assessment: [^\n]+\nCandidate: tool --mode scan -- ''-input file''\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: No further construction change is required\.\z'] } }

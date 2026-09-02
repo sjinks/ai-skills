@@ -1,0 +1,8 @@
+id: positive-edge-008
+name: Supplied file interface
+inputs: { prompt: "In Bash, validate `git commit -F /tmp/scc-fixture/message.md`; that supplied file is the required multiline message transport. Assess construction only." }
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: VALID\nConstruction assessment: [^\n]+\nCandidate: git commit -F /tmp/scc-fixture/message\.md\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: No further construction change is required\.\z'] } }

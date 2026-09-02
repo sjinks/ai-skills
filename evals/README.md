@@ -104,6 +104,7 @@ metric → grader weighting takes effect.
   - `vip-dev-env`: 0.45
   - `gh-cli`: 0.45
   - `shell-portability`: 0.45
+  - `shell-command-construction`: 0.45
   - `flaky-test-diagnosis`: 0.45
   - `test-quality-review`: 0.45
   - `perf-measurement`: 0.45
@@ -130,6 +131,11 @@ metric → grader weighting takes effect.
   words echoed from the prompt. Positive tasks also `not_contains`
   the structured-output markers of unrelated skills so cross-skill
   leakage fails the task.
+- `output_contract` (`shell-command-construction` only, eval-level `code`) —
+  validates any SCC-shaped activated output against the exact five-field
+  serializer while allowing ordinary markerless prose for intentional negative
+  non-activation tasks. Candidate payload lines are excluded from near-label
+  detection only when they occur inside an exact multiline candidate block.
 - `report_contract` (`adversarial-review` tasks only, `program`) — reads the raw
   agent output that Waza passes on stdin and validates complete top-level order,
   marker uniqueness, verdict branches, every numbered finding, and report
@@ -155,6 +161,7 @@ metric → grader weighting takes effect.
   multi-turn re-sends;
   `handoff-note` is explicitly budgeted at 8 000; `spock-voice` uses
   4 000.
+  `shell-command-construction` uses 8 000 tokens and 10 tool calls.
 
 ## Skill-body injection
 
@@ -220,6 +227,8 @@ waza check skills/<skill>
 
 `waza check` does not execute a model and is the default validation path for
 frontmatter, token budget, and eval presence checks.
+
+Static checks validate only artifact structure and deterministic assertions; they do not prove any model's behavior. GPT-5.4 mini and Claude Haiku 4.5 are compatibility-floor evaluation goals, not proven outcomes. Live evidence is specific to the model, runtime, and settings, and each live evaluation remains explicitly approval-gated.
 
 Model evals are optional and require local Copilot authentication or a
 user-scoped GitHub Copilot PAT. The waza CLI's `copilot-sdk` executor rejects

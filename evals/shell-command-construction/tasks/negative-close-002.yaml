@@ -1,0 +1,7 @@
+id: negative-close-002
+name: Prose-only commit drafting
+inputs: { prompt: "Draft a concise commit message with a subject and explanatory body for a parser fix. Do not show a shell command." }
+expected: { should_trigger: false }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: negative, threshold: 0.45 } }
+  - { type: text, name: task_completion, config: { not_contains: ['Construction result:', 'Construction assessment:', 'Candidate:', 'Execution authority:', 'Next step:'] } }

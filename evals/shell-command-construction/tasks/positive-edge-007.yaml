@@ -1,0 +1,8 @@
+id: positive-edge-007
+name: JSON stdin and ordered output redirections
+inputs: { prompt: "In POSIX sh, validate `tool --json < payload.json > result.json 2>&1`; `payload.json` is the supplied literal JSON input, stdout must go to `result.json`, and stderr must follow that stdout destination. Preserve the exact stdin transport and redirection order." }
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: VALID\nConstruction assessment: [^\n]+\nCandidate: tool --json < payload\.json > result\.json 2>&1\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: No further construction change is required\.\z'] } }

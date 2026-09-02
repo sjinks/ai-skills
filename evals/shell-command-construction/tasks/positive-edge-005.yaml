@@ -1,0 +1,8 @@
+id: positive-edge-005
+name: Known scalar or empty argument
+inputs: { prompt: "In POSIX sh, repair `tool $label`; `label` is confirmed set and is exactly one argument that may be empty or contain spaces. Preserve the command, argument position, and a set empty value as one empty argument." }
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: REWRITE\nConstruction assessment: [^\n]+\nCandidate: tool "\$label"\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: No further construction change is required\.\z'] } }

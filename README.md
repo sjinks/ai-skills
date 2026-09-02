@@ -116,6 +116,7 @@ The repository currently contains the following skills, grouped by area. Each li
 ### Platform & Tooling
 
 - [`gh-cli`](skills/gh-cli/README.md) — Running GitHub CLI (`gh`) commands correctly: `gh api` `-f` vs `-F` field flags, posting/editing PR/issue comments and review-thread replies, multi-line/special-character bodies via stdin or `--body-file`, pagination, and jq filtering, avoiding silent wrong-output from quoting or stdin mistakes.
+- [`shell-command-construction`](skills/shell-command-construction/README.md) — Constructing, repairing, or validating concrete shell command syntax while preserving literal text, argv boundaries, multiline data, and transport; it assesses construction only, not execution safety, authorization, target validity, destructive effects, or permission to run.
 - [`shell-portability`](skills/shell-portability/README.md) — Writing, reviewing, or fixing shell scripts that must run across multiple shells and OSes (POSIX sh vs bash/ksh/zsh, dash/busybox, GNU vs BSD/macOS coreutils), catching bashisms, non-portable utility flags, shebang mismatches, and locale/word-splitting hazards with portable replacements.
 - [`vip-dev-env`](skills/vip-dev-env/README.md) — WordPress VIP Local Development Environment (LDE) workflows using `vip dev-env`, including creating and updating local environments, loading app code, inspecting services and logs, slug-first and message-driven troubleshooting of startup and HTTP 500 failures, Docker triage and escalation, and the local-repo-vs-container code boundary.
 

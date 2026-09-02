@@ -1,0 +1,8 @@
+id: positive-edge-010
+name: Unknown expansion intent
+inputs: { prompt: "In Bash, fix `tool $name $(date) ! *.log`; I have not said which characters are literal data and which should expand." }
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: BLOCKED\nConstruction assessment: [^\n]+\nCandidate: Not provided\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: Clarify which characters are literal and which expand\.\z'] } }

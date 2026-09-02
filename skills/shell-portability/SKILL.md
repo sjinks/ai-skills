@@ -21,9 +21,11 @@ The goal is shell code that runs identically on its declared targets: no bashism
 
 ## DO NOT USE FOR:
 
-- Shell command *safety* (destructive `rm`/`git reset`/force-push, secret leakage) — that is a different concern from cross-platform portability. (Quoting is in scope here only for its word-splitting/globbing portability effects, not as data-loss-prevention review.)
+- Shell command construction correctness when portability is not the requested outcome — concrete literal-data, argv-boundary, heredoc, redirection, and transport preservation is outside this skill. (Quoting is in scope here only for its word-splitting/globbing portability effects, not as data-loss-prevention review.)
 - Pure bash feature questions where bash is the only declared target and portability is not required.
 - Performance tuning, general scripting style, or non-shell languages (Python, Perl, PowerShell) where shell portability does not apply.
+
+For a request that combines construction correctness and portability, do not attempt construction here. First request a separate `shell-command-construction` result. If it is `BLOCKED`, require its resolution before portability review. Otherwise review the exact construction candidate and make no construction claim.
 
 ## Required Context
 

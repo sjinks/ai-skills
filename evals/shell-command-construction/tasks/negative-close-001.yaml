@@ -1,0 +1,7 @@
+id: negative-close-001
+name: Portability-only review
+inputs: { prompt: "Will this #!/bin/sh script work on macOS and Alpine, or does it have bashisms and GNU utility flags?" }
+expected: { should_trigger: false }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: negative, threshold: 0.45 } }
+  - { type: text, name: task_completion, config: { regex_match: ['(?i)shell-portability'], not_contains: ['Construction result:', 'Construction assessment:', 'Candidate:', 'Execution authority:', 'Next step:'] } }

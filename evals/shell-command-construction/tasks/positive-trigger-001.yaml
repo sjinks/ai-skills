@@ -1,0 +1,28 @@
+id: positive-trigger-001
+name: Literal special-character scalar
+inputs:
+  prompt: |
+    In Bash, construct `tool` with exactly one literal scalar argument. The exact
+    scalar is the line between these markers; the markers are not part of it:
+    BEGIN
+    O''Reilly "C:\tmp" `tick` ! ? $ * space
+    END
+    Every scalar character is literal; this is not an execution request.
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - |-
+          (?s)\AConstruction result: REWRITE\nConstruction assessment: [^\n]+\nCandidate: tool 'O'"'"''"'"'Reilly "C:\\tmp" `tick` ! \? \$ \* space'\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: No further construction change is required\.\z
+      not_contains: ['SAFE', 'AUTHORIZED', 'NEEDS-CONFIRMATION', 'safe to run', 'run this']
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the candidate passes the exact one literal Bash argument, including repeated apostrophes, double quotes, backslashes, backticks, `!`, `?`, `$`, `*`, and spaces, without expansion or splitting and uses the five-field contract. Explain in one sentence.
+        On the final line write only 1.0, 0.5, or 0.0.
+      mode: independent
