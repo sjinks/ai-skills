@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-019
+name: Confirmed remote JSON argv transport
+inputs:
+  prompt: |
+    In Bash, construct the exact remote invocation for the two remote argv
+    entries `tool` and `alpha beta`. Local Bash parses the pipeline. The
+    external `remote-argv` CLI signature is
+    `remote-argv --host HOST --stdin-json`: `--host` requires the next argv entry
+    as its host and `--stdin-json` selects JSON-array stdin. Its confirmed parser
+    maps each array element one-to-one to remote argv and performs no shell
+    reparsing. Use host `example.invalid`.
+expected:
+  should_trigger: true
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?s)\AConstruction result: REWRITE\nConstruction assessment: [^\n]+\nCandidate: (?:[^\n]+\n|\|\n(?:  [^\n]*\n)+)Execution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z'
+        - '(?im)^Construction assessment:[^\n]*(?i:json)[^\n]*$'
+        - '(?im)^Construction assessment:[^\n]*(?i:argv)[^\n]*$'
+        - '(?im)^Construction assessment:[^\n]*(?i:boundar|one-to-one|mapping)[^\n]*$'
+        - '(?im)^Next step:[^\n]*(?i:preserv|review|verify|validate|check)[^\n]*$'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the candidate sends a JSON array containing exactly the two
+        elements `tool` and `alpha beta` on stdin to `remote-argv` for host
+        `example.invalid` using `--host example.invalid` and `--stdin-json`, and
+        whether the assessment relies on the supplied
+        one-to-one JSON-array-to-argv mapping with no remote shell reparsing.
+        Accept boundary-equivalent local Bash spellings, option order, and JSON
+        producers; do not require `printf` or one exact command spelling.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+      mode: independent

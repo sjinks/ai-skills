@@ -1,0 +1,8 @@
+id: positive-edge-012
+name: Empty versus unset behavior
+inputs: { prompt: "In Bash, construct `tool \"$prefix\"`; I have not specified whether an unset prefix should be rejected or passed as one empty argument." }
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: BLOCKED\nConstruction assessment: [^\n]+\nCandidate: Not provided\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z', '(?im)^Construction assessment:[^\n]*(?i:unset)[^\n]*$', '(?im)^Construction assessment:[^\n]*(?i:empty)[^\n]*$', '(?im)^Construction assessment:[^\n]*(?i:one empty argument|reject)[^\n]*$', '(?im)^Next step:[^\n]*(?i:unset)[^\n]*$', '(?im)^Next step:[^\n]*(?i:empty)[^\n]*$', '(?im)^Next step:[^\n]*(?i:one empty argument|reject)[^\n]*$'] } }

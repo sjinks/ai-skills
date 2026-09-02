@@ -1,18 +1,15 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
-id: negative-trigger-001
-name: Non-shell Python portability question
-description: Python portability language without shell code must not activate the shell-portability skill.
+id: negative-close-003
+name: Bash-only command boundary repair
+description: |
+  A concrete single-shell quoting repair with no portability objective must not
+  activate the portability skill.
 tags:
-  - negative-trigger
+  - negative-close
 inputs:
   prompt: |
-    Will this Python 3.11 script behave the same on Ubuntu and macOS, and what
-    portability changes should I make?
-
-    ```python
-    from pathlib import Path
-    print(Path.cwd())
-    ```
+    In Bash only, repair `tool $label` so `label` remains exactly one argument
+    when it contains spaces. Do not perform a portability review.
 expected:
   should_trigger: false
 graders:
@@ -27,8 +24,8 @@ graders:
     config:
       not_contains:
         - "Verdict:"
+        - "Target:"
+        - "Interpreter:"
         - "Findings:"
         - "Checklist status:"
-        - "Interpreter:"
-        - "Target:"
         - "Residual risk:"

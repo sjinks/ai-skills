@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Mixed request after construction result
+description: |
+  A mixed request with an already-supplied construction result must activate
+  portability only to review that exact candidate, without making a construction claim.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    A separate construction review is complete:
+    Construction result: REWRITE
+    Construction assessment: The supplied label remains one argument boundary.
+    Candidate: tool run "$label"
+    Execution authority: NOT ASSESSED BY THIS SKILL
+    Next step: Request a separate portability review of the exact candidate.
+
+    The external `tool` and its `run` interface are available identically on
+    both targets; review only the shell syntax of that exact candidate for
+    POSIX sh on Ubuntu and macOS. Do not redo construction or make a
+    construction claim. Return the verdict, target, interpreter, findings,
+    checklist status, and residual risk.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-portability/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-portability
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?im)^Verdict:\s*CLEAN\s*$'
+        - '(?i)Target:.*POSIX sh.*Ubuntu.*macOS'
+        - '(?im)^Interpreter:\s*[^\r\n]+$'
+        - '(?im)^Findings:\s*None\s*$'
+        - '(?im)^Checklist status:\s*$'
+        - '(?im)^- Interpreter and shebang:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Bashisms:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Utilities and flags:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Output and behavior:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Verification:\s*(?:covered|n/a)\s*$'
+        - '(?im)^Residual risk:\s*[^\r\n]+$'
+      regex_not_match:
+        - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response reviews only the supplied exact candidate
+        `tool run "$label"` for POSIX sh on Ubuntu and macOS, uses the shell-portability
+        structured output, and neither redoes construction nor makes a shell-command-construction claim.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+      mode: independent

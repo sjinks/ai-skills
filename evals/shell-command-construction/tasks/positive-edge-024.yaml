@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-024
+name: Missing stderr routing intent
+inputs:
+  prompt: |
+    In POSIX sh, repair the proposed command `tool > result.log 2>&1`. Standard
+    output must go to `result.log`, but I have not specified whether standard
+    error should join that file, remain on its original destination, or go to a
+    separate destination. Do not guess the stderr routing.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-command-construction/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-command-construction
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?s)\AConstruction result: BLOCKED\nConstruction assessment: [^\n]+\nCandidate: Not provided\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z'
+        - '(?im)^Construction assessment:[^\n]*(?i:stderr|standard error)[^\n]*$'
+        - '(?im)^Construction assessment:[^\n]*(?i:rout|destination|disposition|join|separate)[^\n]*$'
+        - '(?im)^Construction assessment:[^\n]*(?i:missing|unspecified|unknown|not specified|undecided|unresolved|not decided)[^\n]*$'
+        - '(?im)^Next step:[^\n]*(?i:stderr|standard error)[^\n]*$'
+        - '(?im)^Next step:[^\n]*(?i:specify|clarify|provide|confirm|where|whether|which)[^\n]*$'
+        - '(?im)^Next step:[^\n]*(?i:join|stdout|result\.log|original|separate|destination|disposition|routing|\bgo\b)[^\n]*$'
+      regex_not_match:
+        - '(?im)^Candidate:[^\n]*(?:2>&1|2>|>&)[^\n]*$'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response blocks instead of guessing redirection order,
+        preserves the confirmed stdout destination as context, and asks only for
+        the missing stderr-routing choice: join stdout, retain its original
+        destination, or use a separate destination.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+      mode: independent

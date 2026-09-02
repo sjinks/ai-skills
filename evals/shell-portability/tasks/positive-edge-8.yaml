@@ -1,0 +1,63 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-008
+name: Malformed multiline construction candidate blocks review
+description: |
+  A multiline construction result with a payload line missing its two-space
+  serialization prefix must block portability analysis.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    A separate construction review supplied this result:
+    Construction result: REWRITE
+    Construction assessment: A quoted heredoc should preserve the payload.
+    Candidate: |
+      tool --body-stdin <<'EOF'
+    $literal
+      EOF
+    Execution authority: NOT ASSESSED BY THIS SKILL
+    Next step: Request a portability review.
+
+    Determine whether the serialized candidate is well-formed, then follow the
+    portability skill's construction-result handling for POSIX sh on Ubuntu and
+    macOS.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-portability/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-portability
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?is)\AVerdict:\s*BLOCK\s*\r?\nTarget:\s*[^\r\n]+\r?\n\r?\nFindings:\s*\r?\n1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*LOW\s*\r?\n[ \t]+Classification:\s*Open question\s*\r?\n[ \t]+Evidence:\s*[^\r\n]+\r?\n[ \t]+Rule:\s*(?:interpreter-shebang|bashisms|utilities-flags|output-behavior|verification)\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*N/A\s*\r?\n?\z'
+        - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?:missing|lacks|without)[^\r\n]*(?:two-space|2-space|serialization)[^\r\n]*prefix[^\r\n]*$'
+        - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*(?:correct|provide|supply)[^\r\n]*$'
+        - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*construction result[^\r\n]*$'
+      regex_not_match:
+        - '(?i)Verdict:\s*(?:CLEAN|CONCERNS)'
+        - '(?im)^(?:Interpreter|Checklist status|Residual risk):'
+        - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response detects the missing two-space serialization
+        prefix, returns the reduced BLOCK form, requests a corrected construction
+        result, and performs no portability analysis of the altered heredoc.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+      mode: independent

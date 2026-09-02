@@ -1,0 +1,80 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-007
+name: Multiline construction candidate decoded before review
+description: |
+  A serialized multiline construction candidate must have exactly its two-space
+  per-line prefix removed while preserving payload indentation and blank lines,
+  and decoding must stop at the next unprefixed result field.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    A separate construction review supplied this complete result:
+    Construction result: REWRITE
+    Construction assessment: A quoted heredoc preserves the literal payload.
+    Candidate: |
+      tool --body-stdin <<'EOF'
+        indented $literal
+      
+      EOF
+    Execution authority: NOT ASSESSED BY THIS SKILL
+    Next step: Request a separate portability review of the exact candidate.
+
+    Decode the candidate according to the supplied construction-result format.
+    The external `tool` and its stdin interface are available on every target.
+    Review only the decoded candidate for POSIX sh on Ubuntu and macOS; do not
+    redo construction.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-portability/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-portability
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?im)^Verdict:\s*CLEAN\s*$'
+        - '(?i)Target:.*POSIX sh.*Ubuntu.*macOS'
+        - '(?im)^Interpreter:\s*[^\r\n]+$'
+        - '(?im)^Findings:\s*None\s*$'
+        - '(?im)^Checklist status:\s*$'
+        - '(?im)^- Interpreter and shebang:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Bashisms:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Utilities and flags:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Output and behavior:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Verification:\s*(?:covered|n/a)\s*$'
+        - '(?im)^Residual risk:\s*[^\r\n]+$'
+      regex_not_match:
+        - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response removes exactly the two-space serialization
+        prefix from each candidate line, reviews this decoded command:
+
+        tool --body-stdin <<'EOF'
+          indented $literal
+
+        EOF
+
+        preserves the payload-owned two-space indentation and blank line, stops
+        before the unprefixed `Execution authority` result field, recognizes the
+        quoted heredoc as POSIX-sh syntax for Ubuntu and macOS, returns CLEAN,
+        and does not redo construction.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+      mode: independent

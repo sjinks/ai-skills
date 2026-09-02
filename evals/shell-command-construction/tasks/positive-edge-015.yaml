@@ -1,0 +1,8 @@
+id: positive-edge-015
+name: Remote payload construction
+inputs: { prompt: "In Bash, repair `ssh example.invalid tool $label`; label is exactly one argument and may contain spaces. Preserve the remote command argv construction only." }
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: BLOCKED\nConstruction assessment: [^\n]+\nCandidate: Not provided\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: (?i:(?:request|provide|specify|identify|clarify)\s+(?:only\s+)?(?:the\s+)?remote\s+(?:parser|interpreter)(?:\s+(?:first|only))?\.?)\n?\z', '(?im)^Construction assessment:[^\n]*(?i:remote)[^\n]*$', '(?im)^Construction assessment:[^\n]*(?i:parser|interpreter)[^\n]*$', '(?im)^Construction assessment:[^\n]*(?i:boundary)[^\n]*$'] } }

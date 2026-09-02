@@ -17,7 +17,12 @@ inputs:
     files=$(find . -printf '%f\n')
     ```
 
-    Give me the verdict, findings, checklist status, and how to verify.
+    macOS is an explicitly named required target, and each shown command has
+    been demonstrated to fail there because the GNU-only option is unavailable
+    or incompatible.
+
+    Give me the verdict, findings, checklist status, and how to verify. List the
+    findings in this order: 1. `sed -i`, 2. `grep -P`, 3. `find -printf`.
 expected:
   should_trigger: true
 graders:
@@ -37,11 +42,26 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?i)Verdict:\s*(BLOCK|CONCERNS)'
+        - '(?im)^Verdict:\s*BLOCK\s*$'
+        - '(?im)^Target:\s*[^\r\n]*Ubuntu[^\r\n]*macOS[^\r\n]*$'
+        - '(?im)^Interpreter:\s*[^\r\n]+$'
+        - '(?im)^Findings:\s*$'
+        - '(?ims)^1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*CRITICAL\s*\r?\n[ \t]+Classification:\s*Confirmed issue\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*sed -i[^\r\n]*\r?\n[ \t]+Rule:\s*utilities-flags\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*[^\r\n]+\r?$'
+        - '(?ims)^2\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*CRITICAL\s*\r?\n[ \t]+Classification:\s*Confirmed issue\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*grep -P[^\r\n]*\r?\n[ \t]+Rule:\s*utilities-flags\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?:grep -E|ERE|awk)[^\r\n]*\r?\n[ \t]+Verification:\s*[^\r\n]+\r?$'
+        - '(?ims)^3\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*CRITICAL\s*\r?\n[ \t]+Classification:\s*Confirmed issue\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*find[^\r\n]*-printf[^\r\n]*\r?\n[ \t]+Rule:\s*utilities-flags\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?:-exec|-print)[^\r\n]*\r?\n[ \t]+Verification:\s*[^\r\n]+$'
+        - '(?ims)^2\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:grep -E|ERE|awk)[^\r\n]*(?:\[0-9\]\{3\}|\[\[:digit:\]\]\{3\}|\[0-9\]\[0-9\]\[0-9\])[^\r\n]*$'
+        - '(?ims)^3\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:-exec[^\r\n]*basename|basename[^\r\n]*-exec)[^\r\n]*$'
+        - '(?ims)^1\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:branch|case|detect|probe|\bif\b)[^\r\n]*$'
         - '(?i)sed -i'
         - '(?i)(grep -P|PCRE|grep -E|ERE)'
         - '(?i)(printf|-exec|find -printf|GNU)'
         - '(?i)Checklist status:'
+        - '(?im)^- Interpreter and shebang:\s*(?:covered|missing|n/a)\s*$'
+        - '(?im)^- Bashisms:\s*(?:covered|missing|n/a)\s*$'
+        - '(?im)^- Utilities and flags:\s*(?:covered|missing|n/a)\s*$'
+        - '(?im)^- Output and behavior:\s*(?:covered|missing|n/a)\s*$'
+        - '(?im)^- Verification:\s*(?:covered|missing|n/a)\s*$'
+        - '(?im)^Residual risk:\s*[^\r\n]+$'
       not_contains:
         - "Compatibility promise:"
         - "Dependency policy:"
@@ -51,11 +71,19 @@ graders:
       prompt: |
         Grade whether the response identifies these issues:
         - `sed -i` differs between GNU (no backup arg) and BSD/macOS
-          (requires `-i ''`); the portable fix is a temp file + mv.
+          (requires `-i ''`). To preserve the requested in-place behavior and
+          avoid cross-filesystem, metadata, and cleanup drift, require an explicit
+          target-named or feature-detected GNU/BSD behavior branch using the
+          appropriate form; reject generic temp+`mv` fixes. Accept equivalent
+          branch wording regardless of whether vendor names are written.
         - `grep -P` (PCRE) is GNU-only and must be rewritten with `grep -E`
-          (ERE) or awk.
-        - `find -printf` is GNU-only; the portable form uses `-exec`/`-print`.
-        A correct response uses the skill's structured sections.
+          (ERE) or awk while replacing `\d{3}` semantics with `[0-9]{3}` or
+          equivalent.
+        - `find -printf` is GNU-only; preserve basename output with `find ...
+          -exec basename ...`, not bare `-print`.
+        Because macOS is an explicitly named required target, all three complete
+        findings are CRITICAL Confirmed issues. A correct response uses the
+        skill's structured sections.
 
         Output format (strict):
         - Write one sentence of reasoning on its own line.

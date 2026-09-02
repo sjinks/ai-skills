@@ -1,0 +1,12 @@
+id: positive-trigger-002
+name: Confirmed in-shell pathname expansion
+inputs:
+  prompt: "In Bash, construct `tool /tmp/scc-fixture/*.log`. The pathname expansion over that explicit synthetic scope is confirmed to occur in the shell; preserve the unquoted pattern exactly, do not rediscover files externally, and do not invent a result list. This request assesses construction only."
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - type: text
+    name: task_completion
+    config:
+      regex_match: ['(?s)\AConstruction result: VALID\nConstruction assessment: [^\n]+\nCandidate: tool /tmp/scc-fixture/\*\.log\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z', '(?im)^Construction assessment:[^\n]*(?i:confirmed|explicit|in-shell)[^\n]*$', '(?im)^Construction assessment:[^\n]*(?i:glob|pathname|expand)[^\n]*$', '(?im)^Next step:[^\n]*(?i:(?:preserv|retain|keep|review|verify|check)[a-z]*[^\n]*(?:candidate|construction|boundary|transport|quote|argument|command|form|result))[^\n]*$']

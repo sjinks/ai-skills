@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-018
+name: Fixed heredoc delimiter collision
+inputs:
+  prompt: |
+    In Bash, construct a literal heredoc for `tool --stdin` using the required
+    fixed delimiter `EOF`. The literal body is exactly:
+    first line
+    EOF
+    last line
+    No alternate delimiter or transport is allowed.
+expected:
+  should_trigger: true
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?s)\AConstruction result: BLOCKED\nConstruction assessment: [^\n]*(?i:delimiter|collision|truncation)[^\n]*\nCandidate: Not provided\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]*(?i:delimiter|transport)[^\n]*\n?\z'
+        - '(?im)^Construction assessment:[^\n]*(?i:EOF)[^\n]*$'
+        - '(?im)^Construction assessment:[^\n]*(?i:alone|line|body)[^\n]*$'
+        - '(?im)^Construction assessment:[^\n]*(?i:collision)[^\n]*$'
+        - '(?im)^Construction assessment:[^\n]*(?i:truncat)[^\n]*$'
+        - '(?im)^Next step:[^\n]*(?i:request|provide|allow|confirm)[^\n]*$'
+        - '(?im)^Next step:[^\n]*(?i:different|alternate|collision-free)[^\n]*$'
+      regex_not_match:
+        - '(?im)^Construction assessment:[^\n]*(?i:safe|authorized|approved)[^\n]*$'

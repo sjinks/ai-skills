@@ -1,0 +1,51 @@
+# shell-command-construction coverage matrix
+
+This matrix maps each synthetic fixture to its discriminating construction behavior. Original planning traces that required execution-safety handling are superseded by the user override: SCC assesses no execution concerns and always uses `Execution authority: NOT ASSESSED BY THIS SKILL`.
+
+The SCC suite contains 32 fixtures; the separate shell-portability suite contains 25 fixtures.
+
+| Fixture | SCC-TC | Source trace | Behavioral discriminator | Trigger | Result/exclusion | Authority or handoff | Deterministic focus | Substance |
+|---|---|---|---|---|---|---|---|---|
+| positive-trigger-001 | 4 | AC-1, EDGE-1/2 | Literal multiline one-argv scalar with repeated apostrophes, double quotes, backslashes, shell metacharacters, textual escape forms, and authority-looking literal words | yes | REWRITE | not assessed | exact one-word POSIX-like single-quote composition using `'"'"'` per apostrophe; assessment identifies the literal multiline scalar; next step remains construction-relevant; the embedded newline remains in the one argv scalar, and textual `\0`, `\x00`, and `\u0000` remain literal data rather than U+0000 NUL | yes |
+| positive-trigger-002 | 9 | AC-5, EDGE-11 | Confirmed in-shell pathname expansion | yes | VALID | not assessed | exact unquoted `/tmp/scc-fixture/*.log`; no literalization, scope change, external rediscovery, or invented results | no |
+| positive-edge-003 | 5 | AC-2, EDGE-4 | Leading-dash operand | yes | REWRITE | not assessed | option termination and operand position; prompt requires POSIX single-quote representation; next step is construction-relevant | no |
+| positive-edge-004 | 5 | AC-2, EDGE-3/9 | Already-bound glob-derived Bash argv with a confirmed empty third operand | yes | REWRITE | not assessed | exact ordered file operands plus empty third argv entry; array boundaries; no wildcard rediscovery | yes |
+| positive-edge-005 | 5 | AC-2, EDGE-5 | Confirmed one-argument parameter expansion with downstream semantics intentionally unrequested | yes | REWRITE | not assessed | SCC-A1 quotes the confirmed scalar expansion as `"$query"`; representative positive and negative downstream semantic judgments rejected | no |
+| positive-edge-006 | 6 | AC-1, EDGE-7 | Literal multiline heredoc with terminal newline and no caller-fixed delimiter | yes | REWRITE | not assessed | select collision-free `SCC_BODY`; preserve terminal newline, removable two-space prefix, payload indentation, and empty line | yes |
+| positive-edge-007 | 6 | AC-2, EDGE-6 | Reversed JSON stdin plus stdout/stderr routing | yes | REWRITE | not assessed | stdin retained; repair `2>&1 > result.json` to `> result.json 2>&1`; positive and negative downstream JSON semantic judgments rejected | no |
+| positive-edge-008 | 6 | AC-2, EDGE-8 | Proposed heredoc for a byte-exact payload without terminal newline, with supplied byte-preserving file interface | yes | REWRITE | not assessed | replace the heredoc-incompatible branch with the exact supplied file transport | no |
+| positive-edge-009 | 7 | AC-3, EDGE-3 | Unknown scalar/list | yes | BLOCKED | not assessed | assessment and next step each distinguish scalar/one value from multiple/list/argv intent; no candidate | no |
+| positive-edge-010 | 7 | AC-3, EDGE-2 | Unknown literal/expansion | yes | BLOCKED | not assessed | assessment and next step each state literal and expansion intent; no candidate | no |
+| positive-edge-011 | 7 | AC-3 | Byte-exact alpha + U+0000 NUL + beta payload where only argv or heredoc are available | yes | BLOCKED | not assessed | one representability defect covers argv and heredoc; exact non-argv NUL-capable transport/interface request | no |
+| positive-edge-012 | 7 | AC-3, EDGE-9 | Empty versus unset behavior only | yes | BLOCKED | not assessed | assessment and next step require the unset/empty decision: reject or pass one empty argument | no |
+| positive-edge-013 | 8 | AC-4, EDGE-10 | Supplied non-secret transport | yes | VALID | not assessed | supplied non-secret transport abstraction retained; no stale sentinel assertion | no |
+| positive-edge-014 | 8 | AC-4, EDGE-10 | Synthetic secret supplied as an agent-readable evaluator resource; no confirmed target-tool source/transport | yes | BLOCKED | not assessed | raw, boundary-terminated `SCC_TEST_SE`/`ENDER_7c4f` fragments and distinctive normalized secret windows, Base64, URL-encoded, and hex sentinel forms absent from the response; generic non-secret source/transport request | no |
+| positive-edge-015 | 9 | AC-5, EDGE-11 | Remote transport facts absent | yes | BLOCKED | not assessed | asks first for remote parser; transport contract remains a later required fact | no |
+| positive-edge-016 | 10 | AC-3, EDGE-9 | Unbound external glob result set | yes | BLOCKED | not assessed | exact ordered operands required; no wildcard retention, rediscovery, or invented matches | no |
+| positive-edge-017 | 11 | AC-7 | Mixed construction/portability with neutral domain wording | yes | REWRITE | separate portability review required | assessment identifies the `tool run` label boundary; next step hands only the exact candidate to a separate portability review; neutral `run`, deployment, and release words accepted; representative active, passive, and bare standalone authority/safety claims rejected | no |
+| positive-edge-018 | 6 | AC-2, EDGE-4 | Fixed heredoc delimiter collides with literal payload line | yes | BLOCKED | not assessed | exact `EOF` body line collides with the caller-required delimiter; no alternate delimiter or transport is invented | no |
+| positive-edge-019 | 9 | AC-3, EDGE-3 | Confirmed remote JSON argv transport constructed from intent | yes | REWRITE | not assessed | exact stdin JSON-array candidate; remote JSON parser, one-to-one argv mapping, and no shell reparsing preserve two remote argv entries | no |
+| positive-edge-020 | 9 | AC-3, EDGE-3 | Confirmed local Bash and remote POSIX sh parsers plus two remote argv entries, but no boundary-preserving transport/serialization contract | yes | BLOCKED | not assessed | assessment identifies the remote parser, argv boundaries, and missing transport/serialization contract; next step requests only that contract, not a parser | no |
+| positive-edge-021 | 4 | AC-1, EDGE-1 | Already-correct direct literal scalar representation | yes | VALID | not assessed | preserve exact supplied `tool "hello world"` representation as one argv entry; SCC-Q1 does not rewrite an already-correct representation to single quotes | no |
+| positive-edge-022 | 9 | AC-2, EDGE-6 | Multiline commit message | yes | REWRITE | not assessed | `-F` file transport | yes |
+| positive-edge-023 | 7 | AC-3, EDGE-6 | Leading whitespace plus a bare pipe with no downstream command | yes | BLOCKED | not assessed | no malformed one-line `Candidate:  | `; request the missing command text after the pipe | no |
+| positive-edge-024 | 7 | AC-3, EDGE-6 | Proposed stdout/stderr redirection with unspecified stderr routing intent | yes | BLOCKED | not assessed | no guessed redirection order; request whether stderr joins stdout, retains its original destination, or uses a separate destination | no |
+| negative-trigger-001 | 12 | AC-7 | Generic tutoring | no | exclusion | n/a | all markers absent | no |
+| negative-trigger-002 | 12 | AC-7 | Non-shell task | no | exclusion | n/a | all markers absent | no |
+| negative-close-001 | 11 | AC-7 | Portability-only review | no | exclusion | portability-only exclusion | all SCC markers absent | no |
+| negative-close-002 | 12 | AC-7 | Prose-only drafting | no | exclusion | n/a | all markers absent | no |
+| negative-close-003 | 12 | AC-7 | Concrete command with execution-safety/authorization-only request | no | exclusion | n/a | all construction markers absent | no |
+| negative-close-004 | 12 | AC-7 | Generic shell goal with no command, executable, path, syntax, or payload interface | no | exclusion | n/a | all construction markers absent | no |
+| negative-close-005 | 11 | AC-7 | GitHub CLI body/field/stdin repair owned by the dedicated GitHub CLI workflow | no | exclusion | GitHub CLI ownership | all SCC markers absent; gh-specific workflow remains eligible | no |
+| negative-close-006 | 12 | AC-7 | General shell grammar defect outside the canonical construction catalog | no | exclusion | n/a | all construction markers absent | no |
+
+## Portability malformed-handoff additions
+
+| Fixture | Invalid branch | Expected behavior |
+|---|---|---|
+| positive-edge-015 | Missing `Construction assessment` | Reduced `BLOCK`; request a complete corrected SCC result; no portability conclusion |
+| positive-edge-016 | Reordered `Candidate` and `Construction assessment` | Reduced `BLOCK`; request ordered SCC fields; no portability conclusion |
+| positive-edge-017 | Duplicate `Candidate` field | Reduced `BLOCK`; request one complete SCC result; no portability conclusion |
+| positive-edge-018 | Blank `Next step` | Reduced `BLOCK`; request a nonblank complete SCC result; no portability conclusion |
+
+All fixture data is synthetic. The disclosure sentinel appears only in an agent-readable evaluator fixture resource and a forbidden-output assertion, never in the prompt; the target tool has no confirmed interface for that resource. Other secret fixtures use non-secret transport names. Positive serializers permit zero or one terminal newline after a nonblank `Next step`, but reject extra blank lines or trailing prose. The global output contract rejects positive and negative downstream semantic judgments in the assessment and next-step fields while allowing boundary-only construction statements. Separate RE2-compatible semantic assertions cover representative required construction concepts per fixture; assertion 3 intentionally retains finite structural coverage for field order, result, candidate, and authority rather than exhaustive synonym matching. SCC-Q1 keeps a multiline scalar as one argv word; SCC-M1 exclusively covers supplied stdin, file, and heredoc payload transport. Superseded planning traces that assigned safety, execution, or cross-target authority to SCC do not describe these fixtures; SCC uses only its construction contract.

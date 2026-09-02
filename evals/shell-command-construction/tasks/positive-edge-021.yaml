@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-021
+name: Already-correct direct literal scalar
+inputs:
+  prompt: |
+    In POSIX sh, validate the already supplied exact command `tool "hello world"`.
+    The directly supplied literal text `hello world` is exactly one argv entry,
+    and the existing double-quoted representation already preserves that boundary.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-command-construction/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-command-construction
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?s)\AConstruction result: VALID\nConstruction assessment: [^\n]+\nCandidate: tool "hello world"\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z'
+        - '(?im)^Construction assessment:[^\n]*(?i:one|single)[^\n]*(?i:argument|argv|word|boundary)[^\n]*$'
+        - '(?im)^Construction assessment:[^\n]*(?i:already|supplied|existing|preserv)[^\n]*$'
+        - '(?im)^Next step:[^\n]*(?i:(?:preserv|retain|keep|review|verify|check)[a-z]*[^\n]*(?:candidate|construction|boundary|quote|argument|command|form|result))[^\n]*$'
+      regex_not_match:
+        - '(?im)^Candidate: tool ''hello world''$'

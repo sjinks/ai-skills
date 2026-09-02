@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-004
+name: Portability deferred after blocked construction
+description: |
+  A complete blocked construction result must stop portability review until the
+  smallest construction fact is resolved; no candidate portability conclusion is possible.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    A separate construction review is complete:
+    Construction result: BLOCKED
+    Construction assessment: Scalar versus multiple argv entries is not specified.
+    Candidate: Not provided
+    Execution authority: NOT ASSESSED BY THIS SKILL
+    Next step: Specify whether items is one scalar or a list of argv entries.
+
+    Review its portability for POSIX sh on Ubuntu and macOS.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-portability/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-portability
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?is)\AVerdict:\s*BLOCK\s*\r?\nTarget:\s*[^\r\n]+\r?\n\r?\nFindings:\s*\r?\n1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*LOW\s*\r?\n[ \t]+Classification:\s*Open question\s*\r?\n[ \t]+Evidence:\s*[^\r\n]+\r?\n[ \t]+Rule:\s*(?:interpreter-shebang|bashisms|utilities-flags|output-behavior|verification)\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?:resolve|complete|supply|provide)[^\r\n]*construction[^\r\n]*\r?\n[ \t]+Verification:\s*N/A\s*\r?\n?\z'
+      regex_not_match:
+        - '(?i)Verdict:\s*(?:CLEAN|CONCERNS)'
+        - '(?im)^(?:Interpreter|Checklist status|Residual risk):'
+        - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response uses shell-portability's reduced insufficient-context
+        BLOCK template because construction is BLOCKED and no candidate exists, explicitly
+        requires construction to be resolved first, makes no portability judgement about a
+        candidate, and makes no shell-command-construction claim.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+      mode: independent

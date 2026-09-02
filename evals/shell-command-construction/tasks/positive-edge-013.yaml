@@ -1,0 +1,8 @@
+id: positive-edge-013
+name: Supplied non-secret transport
+inputs: { prompt: "In Bash, validate `tool --credential-source api-credential-helper`; the helper name is a supplied non-secret transport abstraction and no credential value may be rendered." }
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - { type: text, name: task_completion, config: { regex_match: ['(?s)\AConstruction result: VALID\nConstruction assessment: [^\n]+\nCandidate: tool --credential-source api-credential-helper\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z', '(?im)^Construction assessment:[^\n]*(?i:supplied)[^\n]*$', '(?im)^Construction assessment:[^\n]*(?i:non-secret)[^\n]*$', '(?im)^Construction assessment:[^\n]*(?i:helper|source|transport|abstraction)[^\n]*$', '(?im)^Construction assessment:[^\n]*(?i:retain|preserv)[^\n]*$', '(?im)^Next step:[^\n]*(?i:(?:preserv|retain|keep|review|verify|check)[a-z]*[^\n]*(?:candidate|construction|boundary|transport|quote|argument|command|form|result))[^\n]*$'] } }
