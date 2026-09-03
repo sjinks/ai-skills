@@ -49,7 +49,7 @@ def main(arguments: Optional[list[str]] = None) -> int:
             cwd=runner,
             check=False,
         )
-    except FileNotFoundError as error:
+    except OSError as error:
         print(f"unable to run {options.go}: {error}", file=sys.stderr)
         return 1
     return completed.returncode

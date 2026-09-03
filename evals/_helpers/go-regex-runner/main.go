@@ -50,13 +50,13 @@ type contrastiveFile struct {
 }
 
 type contrastiveCase struct {
-	Name         string   `json:"name"`
-	Task         string   `json:"task"`
-	Grader       string   `json:"grader"`
-	List         string   `json:"list"`
-	Index        *int     `json:"index"`
-	Matches      []string `json:"matches"`
-	DoesNotMatch []string `json:"does_not_match"`
+	Name         string    `json:"name"`
+	Task         string    `json:"task"`
+	Grader       string    `json:"grader"`
+	List         string    `json:"list"`
+	Index        *int      `json:"index"`
+	Matches      []*string `json:"matches"`
+	DoesNotMatch []*string `json:"does_not_match"`
 }
 
 func taskPaths(root string) ([]string, error) {
@@ -152,7 +152,7 @@ func normalizeTaskPath(value string) string {
 	return pathpkg.Clean(strings.ReplaceAll(value, `\`, "/"))
 }
 
-func validateCases(path string, refs []regexRef) (int, error) {
+func validateCases(path, displayPath string, refs []regexRef) (int, error) {
 	if path == "" {
 		return 0, nil
 	}
@@ -164,13 +164,13 @@ func validateCases(path string, refs []regexRef) (int, error) {
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&cases); err != nil {
-		return 0, fmt.Errorf("%s: decode contrastive cases: %w", path, err)
+		return 0, fmt.Errorf("%s: decode contrastive cases: %w", displayPath, err)
 	}
 	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
-		return 0, fmt.Errorf("%s: decode contrastive cases: expected one JSON document", path)
+		return 0, fmt.Errorf("%s: decode contrastive cases: expected one JSON document", displayPath)
 	}
 	if len(cases.Cases) == 0 {
-		return 0, fmt.Errorf("%s: cases must contain at least one contrastive case", path)
+		return 0, fmt.Errorf("%s: cases must contain at least one contrastive case", displayPath)
 	}
 	index := make(map[string]regexRef, len(refs))
 	for _, ref := range refs {
@@ -186,28 +186,34 @@ func validateCases(path string, refs []regexRef) (int, error) {
 			name = fmt.Sprintf("case %d", caseIndex)
 		}
 		if item.List != "regex_match" && item.List != "regex_not_match" {
-			return 0, fmt.Errorf("%s: %s: list must be regex_match or regex_not_match", path, name)
+			return 0, fmt.Errorf("%s: %s: list must be regex_match or regex_not_match", displayPath, name)
 		}
 		if item.Index == nil {
-			return 0, fmt.Errorf("%s: %s: index is required", path, name)
+			return 0, fmt.Errorf("%s: %s: index is required", displayPath, name)
 		}
 		if len(item.Matches) == 0 || len(item.DoesNotMatch) == 0 {
-			return 0, fmt.Errorf("%s: %s: matches and does_not_match must each contain at least one input", path, name)
+			return 0, fmt.Errorf("%s: %s: matches and does_not_match must each contain at least one input", displayPath, name)
 		}
 		taskPath := normalizeTaskPath(item.Task)
 		selector := fmt.Sprintf("task %s grader %s %s[%d]", taskPath, item.Grader, item.List, *item.Index)
 		ref, ok := index[refKey(taskPath, item.Grader, item.List, *item.Index)]
 		if !ok {
-			return 0, fmt.Errorf("%s: %s: regex selector not found: %s", path, name, selector)
+			return 0, fmt.Errorf("%s: %s: regex selector not found: %s", displayPath, name, selector)
 		}
 		for inputIndex, input := range item.Matches {
-			if !ref.Regex.MatchString(input) {
-				return 0, fmt.Errorf("%s: %s: matches[%d] did not match %s (task id %s, file %s)", path, name, inputIndex, selector, ref.TaskID, ref.TaskPath)
+			if input == nil {
+				return 0, fmt.Errorf("%s: %s: matches[%d] must be a JSON string, not null", displayPath, name, inputIndex)
+			}
+			if !ref.Regex.MatchString(*input) {
+				return 0, fmt.Errorf("%s: %s: matches[%d] did not match %s (task id %s, file %s)", displayPath, name, inputIndex, selector, ref.TaskID, ref.TaskPath)
 			}
 		}
 		for inputIndex, input := range item.DoesNotMatch {
-			if ref.Regex.MatchString(input) {
-				return 0, fmt.Errorf("%s: %s: does_not_match[%d] matched %s (task id %s, file %s)", path, name, inputIndex, selector, ref.TaskID, ref.TaskPath)
+			if input == nil {
+				return 0, fmt.Errorf("%s: %s: does_not_match[%d] must be a JSON string, not null", displayPath, name, inputIndex)
+			}
+			if ref.Regex.MatchString(*input) {
+				return 0, fmt.Errorf("%s: %s: does_not_match[%d] matched %s (task id %s, file %s)", displayPath, name, inputIndex, selector, ref.TaskID, ref.TaskPath)
 			}
 		}
 	}
@@ -229,7 +235,15 @@ func run(arguments []string, stdout, stderr io.Writer) error {
 	if err != nil {
 		return err
 	}
-	caseCount, err := validateCases(*cases, refs)
+	caseDisplayPath := ""
+	if *cases != "" {
+		caseDisplayPath, err = filepath.Rel(*root, *cases)
+		if err != nil {
+			caseDisplayPath = filepath.Base(*cases)
+		}
+		caseDisplayPath = filepath.ToSlash(caseDisplayPath)
+	}
+	caseCount, err := validateCases(*cases, caseDisplayPath, refs)
 	if err != nil {
 		return err
 	}

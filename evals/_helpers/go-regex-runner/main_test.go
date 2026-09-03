@@ -143,7 +143,7 @@ func TestValidateCases(t *testing.T) {
 	if err := os.WriteFile(casePath, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	count, err := validateCases(casePath, refs)
+	count, err := validateCases(casePath, "cases.json", refs)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,7 +162,7 @@ func TestValidateCasesNormalizesTaskPath(t *testing.T) {
 	casePath := filepath.Join(root, "cases.json")
 	content := `{"cases":[{"name":"dot path","task":"./sample/tasks/task.yaml","grader":"task_completion","list":"regex_match","index":0,"matches":["ok"],"does_not_match":["no"]},{"name":"Windows path","task":"sample\\tasks\\task.yaml","grader":"task_completion","list":"regex_match","index":0,"matches":["ok"],"does_not_match":["no"]}]}`
 	writeFile(t, casePath, content)
-	count, err := validateCases(casePath, refs)
+	count, err := validateCases(casePath, "cases.json", refs)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -183,8 +183,8 @@ func TestValidateCasesReportsMismatch(t *testing.T) {
 	if err := os.WriteFile(casePath, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	_, err = validateCases(casePath, refs)
-	if err == nil || !strings.Contains(err.Error(), "matches[0] did not match") || !strings.Contains(err.Error(), "sample/tasks/task.yaml") || !strings.Contains(err.Error(), "task_completion regex_match[0]") {
+	_, err = validateCases(casePath, "cases.json", refs)
+	if err == nil || !strings.Contains(err.Error(), "matches[0] did not match") || !strings.Contains(err.Error(), "sample/tasks/task.yaml") || !strings.Contains(err.Error(), "task_completion regex_match[0]") || strings.Contains(err.Error(), root) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
@@ -211,12 +211,14 @@ func TestValidateCasesRejectsInvalidContracts(t *testing.T) {
 		{name: "vacuous", content: `{"cases":[{"name":"bad","task":"sample/tasks/task.yaml","grader":"task_completion","list":"regex_match","index":0}]}`, want: "must each contain"},
 		{name: "missing selector", content: `{"cases":[{"name":"bad","task":"missing/tasks/task.yaml","grader":"task_completion","list":"regex_match","index":0,"matches":["ok"],"does_not_match":["no"]}]}`, want: "missing/tasks/task.yaml"},
 		{name: "negative mismatch", content: `{"cases":[{"name":"bad","task":"sample/tasks/task.yaml","grader":"task_completion","list":"regex_match","index":0,"matches":["ok"],"does_not_match":["ok"]}]}`, want: "does_not_match[0]"},
+		{name: "null match", content: `{"cases":[{"name":"bad","task":"sample/tasks/task.yaml","grader":"task_completion","list":"regex_match","index":0,"matches":[null],"does_not_match":["no"]}]}`, want: "matches[0] must be a JSON string"},
+		{name: "null non-match", content: `{"cases":[{"name":"bad","task":"sample/tasks/task.yaml","grader":"task_completion","list":"regex_match","index":0,"matches":["ok"],"does_not_match":[null]}]}`, want: "does_not_match[0] must be a JSON string"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			path := filepath.Join(root, strings.ReplaceAll(test.name, " ", "_")+".json")
 			writeFile(t, path, test.content)
-			_, err := validateCases(path, refs)
+			_, err := validateCases(path, filepath.Base(path), refs)
 			if err == nil || !strings.Contains(err.Error(), test.want) {
 				t.Fatalf("error %v does not contain %q", err, test.want)
 			}
@@ -234,7 +236,7 @@ func TestValidateCasesRejectsDuplicateSelectors(t *testing.T) {
 	}
 	casePath := filepath.Join(root, "cases.json")
 	writeFile(t, casePath, `{"cases":[{"task":"sample/tasks/task.yaml","grader":"duplicate","list":"regex_match","index":0,"matches":["one"],"does_not_match":["no"]}]}`)
-	_, err = validateCases(casePath, refs)
+	_, err = validateCases(casePath, "cases.json", refs)
 	if err == nil || !strings.Contains(err.Error(), "duplicate regex selector") {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -249,7 +251,7 @@ func TestValidateCasesTargetsRegexNotMatch(t *testing.T) {
 	}
 	path := filepath.Join(root, "cases.json")
 	writeFile(t, path, `{"cases":[{"task":"sample/tasks/task.yaml","grader":"task_completion","list":"regex_not_match","index":0,"matches":["forbidden"],"does_not_match":["allowed"]}]}`)
-	if _, err := validateCases(path, refs); err != nil {
+	if _, err := validateCases(path, "cases.json", refs); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -289,5 +291,17 @@ func TestRunRequiresRootAndReportsCounts(t *testing.T) {
 	}
 	if stdout.String() != "validated 2 regexes across 1 task files and 1 contrastive cases\n" {
 		t.Fatalf("unexpected cases output: %q", stdout.String())
+	}
+}
+
+func TestRunReportsCasesPathRelativeToRoot(t *testing.T) {
+	root := t.TempDir()
+	writeTask(t, root, `^ok$`)
+	casePath := filepath.Join(root, "contracts", "cases.json")
+	writeFile(t, casePath, `{"cases":[{"name":"bad","task":"sample/tasks/task.yaml","grader":"task_completion","list":"regex_match","index":0,"matches":["no"],"does_not_match":["other"]}]}`)
+	var stdout, stderr bytes.Buffer
+	err := run([]string{"--root", root, "--cases", casePath}, &stdout, &stderr)
+	if err == nil || !strings.Contains(err.Error(), "contracts/cases.json") || strings.Contains(err.Error(), root) {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }

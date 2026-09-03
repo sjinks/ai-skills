@@ -52,13 +52,13 @@ class CheckEvalRegexesTest(unittest.TestCase):
             ["--cases", str(Path("cases.json").resolve())],
         )
 
-    @mock.patch.object(MODULE.subprocess, "run", side_effect=FileNotFoundError("missing"))
+    @mock.patch.object(MODULE.subprocess, "run", side_effect=PermissionError("denied"))
     def test_main_reports_missing_go(self, run: mock.Mock) -> None:
         stderr = io.StringIO()
         with redirect_stderr(stderr):
             self.assertEqual(MODULE.main(["--go", "/missing"]), 1)
         self.assertIn("unable to run /missing", stderr.getvalue())
-        self.assertIn("missing", stderr.getvalue())
+        self.assertIn("denied", stderr.getvalue())
 
 
 if __name__ == "__main__":
