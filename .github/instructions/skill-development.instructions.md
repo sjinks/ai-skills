@@ -61,6 +61,7 @@ Run through this list before opening or updating a skill PR; each item is a recu
 ## Validation
 
 - Run `waza check skills/<name>` and `git diff --check` after changes. Eval schema and all task files must validate.
+- When task YAML or grader contracts change, run `python3 evals/_helpers/check-eval-regexes.py --root evals/<name>`. The validator decodes YAML and compiles every `regex_match` and `regex_not_match` with Go `regexp`; its decoded count is authoritative. Use `--cases <file.json>` for contract-specific positive/negative examples.
 - Ignore these `waza` complaints per AGENTS.md: the 500-token hard limit and the `argument-hint`/`user-invocable` frontmatter-field warnings. Everything else should be green.
 
 ## Documentation
