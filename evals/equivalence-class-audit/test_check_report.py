@@ -1020,6 +1020,7 @@ class CheckerContractTests(unittest.TestCase):
                 self.assertEqual(code, CHECK_REPORT.visible_text(code))
                 escaped = f"&lt;{element}&gt;visible&lt;/{element}&gt;"
                 self.assertEqual(f"<{element}>visible</{element}>", CHECK_REPORT.visible_text(escaped))
+            self.assertFalse(CHECK_REPORT.visible("___"))
             self.assertFalse(CHECK_REPORT.visible("visible <!-- unclosed"))
             self.assertFalse(CHECK_REPORT.visible("<span hidden>hidden</span>"))
             self.assertFalse(CHECK_REPORT.visible("owner: <span hidden"))
@@ -1882,14 +1883,9 @@ class CheckerIntegrationTests(unittest.TestCase):
     def test_fix_and_deferral_summaries_reject_avoidance_wording(self):
         cases = (
             ("Fix maxRetries zero bound.", "Avoid fixing maxRetries zero bound."),
-            ("Fix maxRetries zero bound.", "Defer maxRetries zero bound."),
             (
                 "Do not fix this now; defer docs/api.md documentation defect;",
                 "Do not fix this now; avoid deferring docs/api.md documentation defect;",
-            ),
-            (
-                "Do not fix this now; defer docs/api.md documentation defect;",
-                "Fix docs/api.md documentation defect now;",
             ),
             (
                 "Fix maxRetries zero bound.",
@@ -1920,6 +1916,18 @@ class CheckerIntegrationTests(unittest.TestCase):
                             profile_report("positive-edge-009").replace(original, replacement, 1),
                             "positive-edge-009",
                         )
+
+    def test_fix_and_deferral_summaries_accept_named_candidates_without_verbs(self):
+        report = profile_report("positive-edge-009").replace(
+            "Fix maxRetries zero bound.",
+            "maxRetries zero bound.",
+            1,
+        ).replace(
+            "Do not fix this now; defer docs/api.md documentation defect; owner: Platform Docs; reason: documentation is owned outside this change",
+            "docs/api.md documentation defect; owner: Platform Docs; reason: documentation is owned outside this change",
+            1,
+        )
+        run_main(report, "positive-edge-009")
 
     def test_blocker_rejects_trailing_clarification_reversal(self):
         invalid = profile_report("positive-edge-005").replace(
@@ -2181,6 +2189,18 @@ class CheckerIntegrationTests(unittest.TestCase):
         )
         run_main(report, "positive-trigger-001")
 
+    def test_optional_axis_rejects_wrong_overlap_source_axis(self):
+        invalid = profile_report("positive-trigger-001").replace(
+            "| Validation vs Normalization/Sanitization | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            "| Validation vs Normalization/Sanitization | upper bound test | present | fix-now | tests/test_retry_policy.py |",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-trigger-001")
+        self.assertIn("report contains an unsupported active candidate set", error.getvalue())
+
     def test_edge_007_rejects_unsupported_extra_active_candidate(self):
         invalid = profile_report("positive-edge-007").replace(
             "| Resource Cleanup | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
@@ -2267,6 +2287,21 @@ class CheckerIntegrationTests(unittest.TestCase):
                 run_main(invalid, "positive-edge-007")
         self.assertIn("missing required Sibling Parameter/Field row", error.getvalue())
 
+    def test_edge_007_rejects_async_zero_alias_for_distinct_test_candidate(self):
+        invalid = profile_report("positive-edge-007").replace(
+            "| Test Mirror | async validator test | present | fix-now | tests/pagination.test.ts |",
+            "| Test Mirror | async minItems=0 test | present | fix-now | tests/pagination.test.ts |",
+            1,
+        ).replace(
+            "async validator test",
+            "async minItems=0 test",
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(invalid, "positive-edge-007")
+        self.assertIn("zero and async Test Mirror candidates must be distinct", error.getvalue())
+
     def test_default_rows_are_anonymous_na_with_scope_reason(self):
         report = profile_report("positive-edge-010")
         self.assertNotIn("tests/example.md", report)
@@ -2291,6 +2326,16 @@ class CheckerIntegrationTests(unittest.TestCase):
                     with self.assertRaises(SystemExit):
                         run_main("\n".join(lines), profile)
                 self.assertIn("Locked audit scope", error.getvalue())
+
+    def test_edge_008_identifies_docs_rows_from_evidence_paths(self):
+        report = profile_report("positive-edge-008").replace(
+            "docs/api.md documentation defect",
+            "API documentation defect",
+        ).replace(
+            "docs/operations.md documentation defect",
+            "Operations documentation defect",
+        )
+        run_main(report, "positive-edge-008")
 
     def test_missing_input_and_depth_matrix(self):
         missing_cases = (

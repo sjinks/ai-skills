@@ -160,6 +160,14 @@ PROFILE_OPTIONAL_ACTIVE_AXES = {
     "positive-edge-009": {"Contract Symmetry"},
     "positive-trigger-001": {"Validation vs Normalization/Sanitization"},
 }
+PROFILE_OPTIONAL_ACTIVE_AXIS_SOURCES = {
+    "positive-edge-009": {
+        "Contract Symmetry": {"Documentation/Spec Prose Twin"},
+    },
+    "positive-trigger-001": {
+        "Validation vs Normalization/Sanitization": {"Empty/Sentinel Equivalence"},
+    },
+}
 
 
 def fail(message):
@@ -205,7 +213,7 @@ def norm(value):
 
 
 def visible(value):
-    return bool(re.search(r"\w", visible_text(value), flags=re.UNICODE))
+    return any(character.isalnum() for character in visible_text(value))
 
 
 def visible_text(value):
@@ -1004,34 +1012,20 @@ def summary_assignments(candidates, bullets, section, one_to_one=False):
     if section == "Defects to fix now":
         for bullet in bullets:
             action = norm(bullet)
-            for candidate in candidates:
-                if candidate_named(candidate, bullet):
-                    action = re.sub(
-                        rf"(?<![a-z0-9_./-]){re.escape(norm(candidate))}(?![a-z0-9_/-]|\.[a-z0-9_])",
-                        " ", action,
-                    )
-            if not re.match(
-                r"^(?:fix|correct|repair|update|add|remove|change|align|enforce|implement)\b",
-                action,
-            ):
-                fail(f"{section} cannot contain a negated action")
             if re.search(
                 r"\b(?:do not fix|don't fix|need not fix|not fix|never[ -]fix|"
-                r"no action|skip it|skip this)\b|\bleave\b[^.;]{0,40}\bunchanged\b",
+                r"won't fix|cannot fix|can't fix|no fix planned|"
+                r"no action|skip it|skip this|avoid fixing)\b|"
+                r"\bleave\b[^.;]{0,40}\bunchanged\b",
                 action,
             ):
                 fail(f"{section} cannot contain a negated action")
     elif section == "Deferred follow-ups":
         for bullet in bullets:
             action = norm(bullet)
-            if not re.search(
-                r"(?:^|[;.!]\s*)(?:defer|postpone|schedule|track|follow up)\b",
-                action,
-            ):
-                fail(f"{section} cannot negate deferral")
             if re.search(
                 r"\b(?:(?:do not|don't|never|not)\s+defer|no[ -]reason[ -]to[ -]defer|"
-                r"(?:skip|cancel)\s+(?:the\s+)?deferral)\b",
+                r"(?:skip|cancel)\s+(?:the\s+)?deferral|avoid\s+deferr(?:ing|al))\b",
                 action,
             ):
                 fail(f"{section} cannot negate deferral")
@@ -1395,7 +1389,7 @@ def validate(profile, headers, sections, rows):
         if len(async_tests) != 1:
             fail("exhaustive report needs one async Test Mirror candidate")
         async_row = async_tests[0]
-        if has_mode_term(zero["candidate"], "async") or "zero" in async_row["candidate"].lower():
+        if has_mode_term(zero["candidate"], "async") or "zero" in norm(async_row["candidate"]):
             fail("zero and async Test Mirror candidates must be distinct")
         row(rows, "Documentation/Spec Prose Twin", ("zero",), "present", "fix-now")
     elif profile == "positive-edge-008":
@@ -1403,9 +1397,32 @@ def validate(profile, headers, sections, rows):
         docs_rows = [item for item in rows if norm(item["axis"]) == norm("Documentation/Spec Prose Twin")]
         if len(docs_rows) != 2:
             fail("expected separate API and operations documentation candidates")
+
+        def cites_document(item, document):
+            candidate_paths = scope_artifacts(item["candidate"])
+            if candidate_paths and document not in candidate_paths:
+                return False
+            basename = label_norm(document.rsplit("/", 1)[-1])
+            citations = artifact_citations(item["evidence"])
+            return (
+                document in candidate_paths
+                or norm(document) in norm(item["candidate"])
+                or f"path:{document}" in citations
+                or f"basename:{basename}" in citations
+            )
+
         for document, need in (("docs/api.md", "reason"), ("docs/operations.md", "owner")):
             other = "docs/operations.md" if document == "docs/api.md" else "docs/api.md"
-            document_row = row(rows, "Documentation/Spec Prose Twin", (document,), "present", "blocked", (other,))
+            matching = [
+                item for item in docs_rows
+                if item["presence"] == "present"
+                and item["disposition"] == "blocked"
+                and cites_document(item, document)
+                and not cites_document(item, other)
+            ]
+            if len(matching) != 1:
+                fail("missing required Documentation/Spec Prose Twin row")
+            document_row = matching[0]
             blocked_rows = [item for item in rows if item["disposition"] == "blocked"]
             document_index = next(index for index, item in enumerate(blocked_rows)
                                   if item is document_row)
@@ -1516,17 +1533,20 @@ def validate(profile, headers, sections, rows):
         active_labels = {label_norm(item["candidate"]) for item in active_rows}
         if len(active_labels) > PROFILE_MAX_ACTIVE_CANDIDATES[profile]:
             fail("report contains an unsupported active candidate set")
-        required_axis_labels = {
-            label_norm(item["candidate"])
-            for item in active_rows
-            if item["axis"] in minimums
-        }
+        labels_by_axis = {}
+        for item in active_rows:
+            labels_by_axis.setdefault(norm(item["axis"]), set()).add(label_norm(item["candidate"]))
+        optional_sources = PROFILE_OPTIONAL_ACTIVE_AXIS_SOURCES.get(profile, {})
         unsupported_unexpected = [
             item for item in active_rows
             if item["axis"] not in minimums
             and (
                 item["axis"] not in PROFILE_OPTIONAL_ACTIVE_AXES.get(profile, set())
-                or label_norm(item["candidate"]) not in required_axis_labels
+                or label_norm(item["candidate"]) not in {
+                    label
+                    for source_axis in optional_sources.get(item["axis"], set())
+                    for label in labels_by_axis.get(norm(source_axis), set())
+                }
             )
         ]
         if unsupported_unexpected:
