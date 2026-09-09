@@ -104,6 +104,10 @@ func collect(root string) ([]regexRef, int, error) {
 		displayPath := filepath.ToSlash(relativePath)
 		data, readErr := os.ReadFile(path)
 		if readErr != nil {
+			var pathError *os.PathError
+			if errors.As(readErr, &pathError) {
+				readErr = pathError.Err
+			}
 			return nil, 0, fmt.Errorf("%s: read task: %w", displayPath, readErr)
 		}
 		var value task
