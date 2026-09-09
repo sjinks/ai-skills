@@ -160,9 +160,13 @@ func validateCases(path, displayPath string, refs []regexRef) (int, error) {
 	if path == "" {
 		return 0, nil
 	}
-	data, err := os.ReadFile(path)
+data, err := os.ReadFile(path)
 	if err != nil {
-		return 0, err
+		var pathError *os.PathError
+		if errors.As(err, &pathError) {
+			err = pathError.Err
+		}
+		return 0, fmt.Errorf("%s: read contrastive cases: %w", displayPath, err)
 	}
 	var cases contrastiveFile
 	decoder := json.NewDecoder(bytes.NewReader(data))
