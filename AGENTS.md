@@ -3,6 +3,13 @@
 - NEVER run `waza run` (or any command that issues live model/API calls) without explicit per-run approval from the user. A full eval suite costs roughly 200-270 premium Copilot requests; even a single `--task ... --trials 1` probe costs about 9-18. Before running, state the expected scope and cost, prefer the smallest scope that answers the question, and do not re-run to "confirm" a result that existing measurements already establish.
 - `waza check`, schema validation, `cmp`, `git`, `gh`, and file reads/searches are free and do not need approval.
 
+## Pre-review execution discipline
+
+- Before requesting review for a contract or eval change, record a compact contract matrix covering canonical markers, order, requiredness, value domains, cardinality, positive examples, negative examples, and each eval projection.
+- When multiple worktrees exist, run repository commands as `git -C <absolute-worktree> ...`; do not rely on the terminal's current directory.
+- Bind every delegated audit/review to a recorded tree or diff hash. Reviewer agents are read-only: they must not edit, stage, commit, or otherwise mutate the audited worktree.
+- For task-regex changes, run `python3 evals/_helpers/check-eval-regexes.py --root evals/<skill-name>`. Treat its decoded-YAML count as authoritative; never infer the regex inventory from grep or YAML quoting style.
+
 When creating or materially updating skills:
 
 - When creating a new skill, use cross-model-instruction-authoring to keep the instruction portable across target models.
