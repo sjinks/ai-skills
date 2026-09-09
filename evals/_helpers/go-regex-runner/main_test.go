@@ -51,8 +51,9 @@ func TestCollectCompilesDecodedRegexes(t *testing.T) {
 }
 
 func TestCollectRejectsEmptyRoot(t *testing.T) {
-	_, _, err := collect(t.TempDir())
-	if err == nil || !strings.Contains(err.Error(), "no task YAML files") {
+	root := t.TempDir()
+	_, _, err := collect(root)
+	if err == nil || !strings.Contains(err.Error(), "no task YAML files found under --root") || strings.Contains(err.Error(), root) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
@@ -302,6 +303,15 @@ func TestRunReportsCasesPathRelativeToRoot(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	err := run([]string{"--root", root, "--cases", casePath}, &stdout, &stderr)
 	if err == nil || !strings.Contains(err.Error(), "contracts/cases.json") || strings.Contains(err.Error(), root) {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestRunReportsMissingRootWithoutAbsolutePath(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "missing")
+	var stdout, stderr bytes.Buffer
+	err := run([]string{"--root", root}, &stdout, &stderr)
+	if err == nil || !strings.Contains(err.Error(), "--root: walk task files") || strings.Contains(err.Error(), root) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

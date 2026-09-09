@@ -59,6 +59,17 @@ type contrastiveCase struct {
 	DoesNotMatch []*string `json:"does_not_match"`
 }
 
+func displayPathFromRoot(root, path string) string {
+	if path == "" || path == root {
+		return "--root"
+	}
+	relativePath, err := filepath.Rel(root, path)
+	if err == nil && relativePath != "." && relativePath != ".." && !strings.HasPrefix(relativePath, ".."+string(filepath.Separator)) {
+		return filepath.ToSlash(relativePath)
+	}
+	return filepath.ToSlash(path)
+}
+
 func taskPaths(root string) ([]string, error) {
 	var paths []string
 	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, walkErr error) error {
@@ -79,6 +90,10 @@ func taskPaths(root string) ([]string, error) {
 		return nil
 	})
 	if err != nil {
+		var pathError *os.PathError
+		if errors.As(err, &pathError) {
+			return nil, fmt.Errorf("%s: walk task files: %w", displayPathFromRoot(root, pathError.Path), pathError.Err)
+		}
 		return nil, err
 	}
 	sort.Strings(paths)
@@ -91,7 +106,7 @@ func collect(root string) ([]regexRef, int, error) {
 		return nil, 0, err
 	}
 	if len(paths) == 0 {
-		return nil, 0, fmt.Errorf("no task YAML files found under %s", root)
+		return nil, 0, fmt.Errorf("no task YAML files found under %s", displayPathFromRoot(root, root))
 	}
 
 	var refs []regexRef
@@ -160,7 +175,7 @@ func validateCases(path, displayPath string, refs []regexRef) (int, error) {
 	if path == "" {
 		return 0, nil
 	}
-data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		var pathError *os.PathError
 		if errors.As(err, &pathError) {
