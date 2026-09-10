@@ -1302,6 +1302,14 @@ class CheckerIntegrationTests(unittest.TestCase):
         )
         run_main(report, "positive-edge-009")
 
+    def test_edge_007_documentation_candidate_may_overlap_contract_symmetry(self):
+        report = profile_report("positive-edge-007").replace(
+            "| Contract Symmetry | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            "| Contract Symmetry | zero docs defect | present | fix-now | docs/api.md |",
+            1,
+        )
+        run_main(report, "positive-edge-007")
+
     def test_candidate_collapse_cannot_offset_required_axis_fabrication(self):
         report = profile_report("positive-edge-001").replace(
             "| Opposite Bound | timeoutSeconds bound | present | fix-now | config/healthcheck.yml |",
@@ -2508,6 +2516,27 @@ class CheckerIntegrationTests(unittest.TestCase):
                     "n/a row evidence must include an explicit absence or inapplicability reason",
                     error.getvalue(),
                 )
+
+    def test_explicit_na_reason_accepts_worked_example_phrases(self):
+        for evidence in (
+            "no inverse operation in scope",
+            "no schema artifacts are included in the locked scope",
+            "not shared mutable state",
+        ):
+            with self.subTest(evidence=evidence):
+                self.assertTrue(CHECK_REPORT.explicit_na_reason(evidence))
+
+    def test_documented_na_reasons_pass_end_to_end(self):
+        report = profile_report("positive-edge-007").replace(
+            "| Inverse Operation | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            "| Inverse Operation | Disable pagination mode | n/a — structurally inapplicable | n/a | src/pagination.ts; no inverse operation in scope |",
+            1,
+        ).replace(
+            "| Race/Shared-State Twin | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            "| Race/Shared-State Twin | Shared pagination state | n/a — structurally inapplicable | n/a | tests/pagination.test.ts; not shared mutable state |",
+            1,
+        )
+        run_main(report, "positive-edge-007")
 
     def test_quick_omitted_axes_requires_an_actual_missing_declaration(self):
         for explanation in (

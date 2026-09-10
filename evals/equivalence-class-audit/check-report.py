@@ -157,10 +157,14 @@ PROFILE_MAX_ACTIVE_CANDIDATES = {
     "positive-trigger-002": 7,
 }
 PROFILE_OPTIONAL_ACTIVE_AXES = {
+    "positive-edge-007": {"Contract Symmetry"},
     "positive-edge-009": {"Contract Symmetry"},
     "positive-trigger-001": {"Validation vs Normalization/Sanitization"},
 }
 PROFILE_OPTIONAL_ACTIVE_AXIS_SOURCES = {
+    "positive-edge-007": {
+        "Contract Symmetry": {"Documentation/Spec Prose Twin"},
+    },
     "positive-edge-009": {
         "Contract Symmetry": {"Documentation/Spec Prose Twin"},
     },
@@ -784,7 +788,10 @@ def explicit_na_reason(value):
     value = norm(value)
     return bool(re.search(
         r"\b(?:no candidates?|structurally inapplicable|"
-        r"not applicable|cannot apply)\b",
+        r"not applicable|cannot apply|"
+        r"no [a-z0-9][a-z0-9 ,/_-]*"
+        r"(?:in scope|(?:is|are) included in (?:the )?locked scope)|"
+        r"not shared mutable state)\b",
         value,
     ))
 
