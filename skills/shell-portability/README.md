@@ -12,11 +12,11 @@ It helps an assistant:
 - catch behavioral hazards: `echo` escapes/flags, unquoted word-splitting, locale-dependent `sort`/`tr`, non-POSIX `trap`/`set` options
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with target, interpreter, findings, checklist status, verification path, and an insufficient-context template
 
-It is **not** for concrete shell command construction correctness where literal data, argv boundaries, heredocs, redirection, or transport preservation are primary; it is also not for pure bash-only feature questions or non-shell languages. Direct portability code follows the normal path. For raw mixed requests, construction or an excluded domain-specific interface workflow supplies the exact candidate first. Shell-command-construction (SCC) handoffs are validated and decoded using [`references/construction-handoff.md`](references/construction-handoff.md); malformed, inconsistent, and `BLOCKED` handoffs use reduced `BLOCK`.
+It is **not** for concrete shell command construction correctness where literal data, argv boundaries, heredocs, redirection, or transport preservation are primary; it is also not for pure bash-only feature questions or non-shell languages. Direct portability code follows the normal path. For raw mixed requests, a preceding construction review or an excluded domain-specific interface workflow supplies the exact candidate first. Construction handoffs are validated and decoded using [`references/construction-handoff.md`](references/construction-handoff.md); malformed, inconsistent, and `BLOCKED` handoffs use reduced `BLOCK`.
 
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.
 - [`references/portability-catalog.md`](references/portability-catalog.md) — bashism→POSIX table, GNU-vs-BSD utility flag matrix, behavioral hazards, and verification tooling.
-- [`references/construction-handoff.md`](references/construction-handoff.md) — mixed-request routing, SCC envelope validation, candidate consistency, and multiline decoding.
+- [`references/construction-handoff.md`](references/construction-handoff.md) — mixed-request routing, construction-handoff envelope validation, candidate consistency, and multiline decoding.
 - [`references/source-map.md`](references/source-map.md) — provenance and source-confidence notes.

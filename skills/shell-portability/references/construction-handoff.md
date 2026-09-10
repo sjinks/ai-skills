@@ -1,13 +1,13 @@
-# Construction Handoff Validation
+Read this reference when portability review begins from a mixed request or a prior construction handoff instead of direct shell code.
 
-Use this reference only when portability follows a mixed request or a completed shell-command-construction (SCC) workflow. Direct portability-only code reviews do not require an SCC result.
+# Construction Handoff Validation
 
 ## Routing
 
-1. If shell construction is within the construction skill's catalogued scope, construction review owns the first response.
-2. If correction depends on excluded domain-specific interface semantics, that interface workflow owns the first response. Review portability only after it supplies an exact corrected command; treat that command as direct code without requiring an SCC result.
+1. If shell construction is within the catalogued construction scope, construction review owns the first response.
+2. If correction depends on excluded domain-specific interface semantics, that interface workflow owns the first response. Review portability only after it supplies an exact corrected command; treat that command as direct code without requiring a prior construction result.
 3. If no concrete command, executable, fragment, or payload interface exists, request one before portability review.
-4. For a supplied SCC result, validate the envelope and candidate below before any portability analysis.
+4. For a supplied construction result, extract and validate the contiguous handoff block below before any portability analysis.
 
 ## Envelope validation
 
@@ -19,7 +19,7 @@ Require exactly one complete result with these top-level fields in order:
 4. `Execution authority: NOT ASSESSED BY THIS SKILL`
 5. `Next step: <nonblank one-line value>`
 
-The handoff starts with `Construction result:` as its first line and ends immediately after the `Next step:` line, with zero or one terminal newline. Preambles, code fences, trailing prose, blank or free-form lines between top-level fields, and any other extra unprefixed line make it malformed. Multiline candidate payload is the only allowed intervening block and follows the rules below.
+When the caller embeds a construction result inside surrounding prose, the handoff is the one contiguous block that starts at the `Construction result:` line and ends immediately after the `Next step:` line, with zero or one terminal newline inside that block. Caller prose before or after the block is outside the handoff. Inside the block, code fences, blank or free-form lines between top-level fields, trailing prose after `Next step:`, and any other extra unprefixed line make it malformed. Multiline candidate payload is the only allowed intervening block and follows the rules below.
 
 Missing, unknown, reordered, duplicated, or blank fields make the handoff malformed.
 
@@ -32,10 +32,10 @@ Missing, unknown, reordered, duplicated, or blank fields make the handoff malfor
 
 ## Multiline decoding
 
-Remove exactly the first two spaces from each payload line. Preserve additional indentation and serialized empty lines. Only unprefixed `Execution authority: NOT ASSESSED BY THIS SKILL` validly terminates payload. If another SCC field appears unprefixed first, or a payload line lacks its prefix, the handoff is malformed; do not truncate or analyze altered text.
+Remove exactly the first two spaces from each payload line. Preserve additional indentation and serialized empty lines. Only unprefixed `Execution authority: NOT ASSESSED BY THIS SKILL` validly terminates payload. If another result field appears unprefixed first, or a payload line lacks its prefix, the handoff is malformed; do not truncate or analyze altered text.
 
 ## Outcome
 
-- For any malformed or inconsistent handoff, use the reduced insufficient-context `BLOCK` template and request a corrected SCC result.
+- For any malformed or inconsistent handoff, use the reduced insufficient-context `BLOCK` template and request a corrected construction result.
 - For a consistent `BLOCKED` result, use reduced `BLOCK` and request completion of construction.
 - For a consistent `VALID` or `REWRITE` result, review only the exact decoded candidate and make no construction claim.

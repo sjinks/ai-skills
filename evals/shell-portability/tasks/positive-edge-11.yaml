@@ -8,7 +8,7 @@ tags:
   - positive-edge
 inputs:
   prompt: |
-    Inspect the supplied `construction-result.txt`. It contains a separate SCC
+    Inspect the supplied `construction-result.txt`. It contains a separate construction
     result whose Candidate line ends with one trailing ASCII space. Review its
     portability for POSIX sh on Ubuntu and macOS, following the portability
     skill's construction-result handling first.

@@ -3,7 +3,7 @@ id: negative-close-005
 name: Raw GitHub CLI interface and portability request
 description: |
   GitHub CLI-specific correction owns the first response; portability waits for
-  the exact corrected command and does not require an SCC result afterward.
+  the exact corrected command and does not require a prior construction result afterward.
 tags:
   - negative-close
 inputs:

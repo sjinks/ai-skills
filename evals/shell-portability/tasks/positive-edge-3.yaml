@@ -58,7 +58,7 @@ graders:
       prompt: |
         Grade whether the response reviews only the supplied exact candidate
         `tool run "$label"` for POSIX sh on Ubuntu and macOS, uses the shell-portability
-        structured output, and neither redoes construction nor makes a shell-command-construction claim.
+        structured output, and neither redoes construction nor makes a construction-skill claim.
 
         Output format (strict):
         - Write one sentence of reasoning on its own line.

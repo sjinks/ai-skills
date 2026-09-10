@@ -1,14 +1,14 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 id: positive-edge-014
-name: Premature SCC field blocks multiline review
+name: Premature construction field blocks multiline review
 description: |
-  An unprefixed SCC field before the exact authority terminator makes a multiline
+  An unprefixed construction-result field before the exact authority terminator makes a multiline
   handoff malformed and must not truncate candidate data silently.
 tags:
   - positive-edge
 inputs:
   prompt: |
-    A separate SCC review supplied this malformed result:
+    A separate construction review supplied this malformed result:
     Construction result: REWRITE
     Construction assessment: A multiline command was serialized.
     Candidate: |
@@ -38,7 +38,7 @@ graders:
       regex_match:
         - '(?is)\AVerdict:\s*BLOCK\s*\r?\nTarget:\s*[^\r\n]+\r?\n\r?\nFindings:\s*\r?\n1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*LOW\s*\r?\n[ \t]+Classification:\s*Open question\s*\r?\n[ \t]+Evidence:\s*[^\r\n]+\r?\n[ \t]+Rule:\s*(?:interpreter-shebang|bashisms|utilities-flags|output-behavior|verification)\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*N/A\s*\r?\n?\z'
         - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?i:Next step|premature|unprefixed|order|terminator|malformed)[^\r\n]*$'
-        - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*(?i:correct|provide|supply|replace)[^\r\n]*(?i:SCC|construction result|field|terminator)[^\r\n]*$'
+        - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*(?i:correct|provide|supply|replace)[^\r\n]*(?i:construction|handoff|construction result|field|terminator)[^\r\n]*$'
       regex_not_match:
         - '(?i)Verdict:\s*(?:CLEAN|CONCERNS)'
         - '(?im)^(?:Interpreter|Checklist status|Residual risk):'
@@ -50,7 +50,7 @@ graders:
       prompt: |
         Grade whether the response detects the premature unprefixed Next step
         field before the exact Execution authority terminator, returns reduced
-        BLOCK, requests a corrected SCC result, and performs no portability
+        BLOCK, requests a corrected construction result, and performs no portability
         analysis or target conclusion.
 
         Output format (strict):

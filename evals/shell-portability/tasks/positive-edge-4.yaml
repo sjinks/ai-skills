@@ -47,7 +47,7 @@ graders:
         Grade whether the response uses shell-portability's reduced insufficient-context
         BLOCK template because construction is BLOCKED and no candidate exists, explicitly
         requires construction to be resolved first, makes no portability judgement about a
-        candidate, and makes no shell-command-construction claim.
+        candidate, and makes no construction-skill claim.
 
         Output format (strict):
         - Write one sentence of reasoning on its own line.

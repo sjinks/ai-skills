@@ -27,10 +27,10 @@ The goal is shell code that runs identically on its declared targets: no bashism
 
 ## Construction handoff routing
 
-1. Direct portability-only code follows the normal review path without a shell-command-construction (SCC) result.
+1. Direct portability-only code follows the normal review path without a prior construction result.
 2. For a raw mixed request, construction review owns catalogued shell construction. An excluded domain-specific interface workflow owns its interface correction first and must supply an exact command, which then follows the direct portability path.
 3. If no concrete target exists, request a command, executable, fragment, or payload interface.
-4. For an SCC handoff, apply [construction-handoff.md](references/construction-handoff.md). Any malformed, inconsistent, or `BLOCKED` handoff uses reduced `BLOCK`; otherwise review only the exact decoded candidate and make no construction claim.
+4. For a supplied construction handoff, apply [construction-handoff.md](references/construction-handoff.md). Any malformed, inconsistent, or `BLOCKED` handoff uses reduced `BLOCK`; otherwise review only the exact decoded candidate and make no construction claim.
 
 ## Required Context
 
@@ -138,7 +138,7 @@ Residual risk: <remaining caveats or None>
 
 When no material issues exist, write exactly `Findings: None` (allowed only with `CLEAN`) and list assumptions under Residual risk.
 
-Insufficient-context mode: when no reviewable code or exact construction candidate is available because no code was supplied, construction was consistently `BLOCKED`, or any SCC handoff is malformed or inconsistent (including one-line, disposition, field, and multiline errors), emit exactly this reduced template and stop; do not emit interpreter or checklist status with guessed values. The `BLOCK` verdict here is triggered by unavailable trustworthy command text, not by the finding's severity:
+Insufficient-context mode: when no reviewable code or exact construction candidate is available because no code was supplied, construction was consistently `BLOCKED`, or any construction handoff is malformed or inconsistent (including one-line, disposition, field, and multiline errors), emit exactly this reduced template and stop; do not emit interpreter or checklist status with guessed values. The `BLOCK` verdict here is triggered by unavailable trustworthy command text, not by the finding's severity:
 
 ```text
 Verdict: BLOCK
