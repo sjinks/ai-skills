@@ -1,11 +1,13 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 id: positive-edge-021
-name: Already-correct direct literal scalar
+name: Already-correct direct literal scalar without interpreter-specific syntax
 inputs:
   prompt: |
-    In POSIX sh, validate the already supplied exact command `tool "hello world"`.
+    Validate the already supplied exact command `tool "hello world"`.
     The directly supplied literal text `hello world` is exactly one argv entry,
-    and the existing double-quoted representation already preserves that boundary.
+    the existing double-quoted representation already preserves that boundary,
+    and no interpreter was specified because no shell-specific syntax choice is
+    needed for this already supplied form.
 expected:
   should_trigger: true
 graders:
@@ -31,3 +33,4 @@ graders:
         - '(?im)^Next step:[^\n]*(?i:(?:preserv|retain|keep|review|verify|check)[a-z]*[^\n]*(?:candidate|construction|boundary|quote|argument|command|form|result))[^\n]*$'
       regex_not_match:
         - '(?im)^Candidate: tool ''hello world''$'
+        - '(?im)^(?:Construction assessment|Next step):[^\n]*(?i:(?:provide|specify|clarify|confirm|identify|declare|supply|choose|state)[a-z]*)[^\n]*(?i:interpreter|shell|parser)[^\n]*$'
