@@ -1453,6 +1453,16 @@ class CheckerIntegrationTests(unittest.TestCase):
                 )
                 run_main(report, profile)
 
+    def test_max_retries_consequence_paraphrase_satisfies_profile_meaning(self):
+        for profile in ("positive-edge-005", "positive-edge-008", "positive-edge-009", "positive-trigger-001"):
+            with self.subTest(profile=profile):
+                report = profile_report(profile).replace(
+                    "maxRetries accepts zero",
+                    "maxRetries=0 disables retries",
+                    1,
+                )
+                run_main(report, profile)
+
     def test_visible_header_markup_is_canonicalized_before_validation(self):
         report = profile_report("positive-edge-001").replace(
             "Triggering finding: timeoutSeconds breaks health checks",
@@ -2540,6 +2550,7 @@ class CheckerIntegrationTests(unittest.TestCase):
 
     def test_quick_omitted_axes_requires_an_actual_missing_declaration(self):
         for explanation in (
+            "Required input isn't missing; no axes were enumerated.",
             "Triggering finding was supplied; no axes were enumerated.",
             "No required input is missing; no axes were enumerated.",
             "Neither required input is missing; no axes were enumerated.",
@@ -2559,6 +2570,14 @@ class CheckerIntegrationTests(unittest.TestCase):
                     with self.assertRaises(SystemExit):
                         run_main(invalid, "positive-edge-006")
                 self.assertIn("quick reduced report needs a local omitted-axes explanation", error.getvalue())
+
+    def test_quick_omitted_axes_accepts_affirmative_missing_input_restatement(self):
+        report = profile_report("positive-edge-006").replace(
+            "Required input is missing, so no axes were enumerated.",
+            "Triggering finding was not supplied, so no axes were enumerated.",
+            1,
+        )
+        run_main(report, "positive-edge-006")
 
     def test_reduced_profiles_reject_noncanonical_blocker_aliases(self):
         cases = (
@@ -2628,7 +2647,13 @@ class CheckerIntegrationTests(unittest.TestCase):
                         )
                 self.assertIn(expected_error, error.getvalue())
 
-    def test_edge_002_policy_provenance_uses_supplied_facts(self):
+    def test_edge_002_policy_provenance_uses_supplied_prompt_evidence(self):
+        valid = profile_report("positive-edge-002").replace(
+            "tenantGuard candidate; provenance: supplied Known facts",
+            "tenantGuard candidate; provenance: task prompt",
+            1,
+        )
+        run_main(valid, "positive-edge-002")
         cases = (
             ("tenantGuard candidate", "src/routes/team.routes.ts", "tenantguard"),
             ("tenant ownership policy spec", "policies/team.rego", "policy"),
@@ -2645,7 +2670,7 @@ class CheckerIntegrationTests(unittest.TestCase):
                     with self.assertRaises(SystemExit):
                         run_main(invalid, "positive-edge-002")
                 self.assertIn(
-                    f"{label} provenance must cite the supplied Known facts",
+                    f"{label} provenance must cite the supplied prompt evidence",
                     error.getvalue(),
                 )
 

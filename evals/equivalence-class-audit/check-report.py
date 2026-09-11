@@ -309,16 +309,20 @@ def contains(value, *terms):
 
 def missing_marker(value):
     value = norm(value)
-    if (re.search(r"\b(?:no|neither)\b[^.]{0,80}\b(?:missing|required|needed)\b", value)
-            or re.search(
-                r"\b(?:is|are|was|were)\s+not\s+(?:missing|required|needed)\b",
-                value,
-            )):
-        return False
     if value in MISSING:
         return True
-    return bool(re.search(r"\b(?:missing|not provided|not supplied)\b", value)
-                or re.search(r"\b(?:is|are|remains?)\s+(?:required|needed)\b", value))
+    subjects = r"(?:required input|triggering finding|locked audit scope|input)"
+    if any(affirmative_relation(value, pattern) for pattern in (
+        rf"\b{subjects}\b[^.;]{{0,40}}\b(?P<verb>is|are|was|were|remains?)\s+"
+        r"(?:missing|required|needed)\b",
+        rf"\b(?:missing|required|needed)\b[^.;]{{0,20}}\b(?P<verb>blocks?|prevents?)\b",
+    )):
+        return True
+    for match in re.finditer(rf"\b{subjects}\b[^.;]{{0,40}}\bnot\s+(?:provided|supplied)\b", value):
+        prefix = value[max(0, match.start() - 20):match.start()]
+        if not re.search(r"\b(?:no|neither)\s+$", prefix):
+            return True
+    return False
 
 
 def missing_header_marker(value):
@@ -331,12 +335,21 @@ def affirmative_relation(value, pattern):
         verb_start = match.start("verb")
         prefix = value[max(0, verb_start - 45):verb_start]
         if not re.search(
-            r"\b(?:not|never|no longer|cannot|can't|fails? to|unable to|stopped|nowhere)"
+            r"\b(?:no|not|never|no longer|cannot|can't|fails? to|unable to|stopped|nowhere|neither)"
             r"(?:\s+\w+){0,3}\s+$",
             prefix,
         ):
             return True
     return False
+
+
+def cites_supplied_prompt_evidence(value):
+    value = norm(visible_text(value))
+    return bool(
+        re.search(r"\btask\s+prompt\b", value)
+        or re.search(r"\bknown\s+facts?\b", value)
+        or re.search(r"\bsupplied\s+(?:known\s+)?(?:facts?|evidence|inputs?)\b", value)
+    )
 
 
 def finding_preserves_meaning(profile, value):
@@ -373,6 +386,8 @@ def finding_preserves_meaning(profile, value):
         return any(affirmative_relation(value, pattern) for pattern in (
             r"\bmaxretries\b.{0,80}\b(?P<verb>accepts?|allows?|permits?)\b.{0,20}\bzero\b",
             r"\bzero\b.{0,30}\b(?:is\s+)?(?P<verb>accepted|allowed|permitted)\b.{0,20}\bby\s+maxretries\b",
+            r"\bmaxretries\b.{0,20}\b(?:=|equals?|set to)\s*(?:0|zero)\b.{0,30}\b(?P<verb>disables?)\b.{0,20}\bretries\b",
+            r"\bmaxretries\b.{0,50}\b(?:0|zero)\b.{0,15}\b(?P<verb>disables?)\b.{0,20}\bretries\b",
         ))
     if profile in ("positive-edge-002", "positive-edge-003"):
         normalized = norm(value)
@@ -1339,8 +1354,8 @@ def validate(profile, headers, sections, rows):
             matching = [bullet for bullet in out_of_scope if term in bullet.lower()]
             if len(matching) != 1 or "provenance" not in matching[0].lower():
                 fail(f"out-of-scope section must report {term} with provenance")
-            if "supplied known facts" not in matching[0].lower():
-                fail(f"{term} provenance must cite the supplied Known facts")
+            if not cites_supplied_prompt_evidence(matching[0]):
+                fail(f"{term} provenance must cite the supplied prompt evidence")
     elif profile == "positive-edge-005":
         docs_rows = [item for item in rows if norm(item["axis"]) == norm("Documentation/Spec Prose Twin")]
         if len(docs_rows) != 1:
