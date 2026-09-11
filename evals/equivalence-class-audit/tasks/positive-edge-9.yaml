@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-009
+name: Complete deferral metadata permits deferral
+description: |
+  An explicit deferral with both a named owner and a reason must use the
+  defer-with-owner disposition and appear in deferred follow-ups.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Apply equivalence-class-audit.
+
+    Triggering finding: `maxRetries` accepts `0`, which disables retries.
+
+    Locked audit scope: `config/retry.yml` and the Retry Configuration section
+    of `docs/api.md`.
+
+    Required disposition boundary:
+    - Fix the configuration defect now.
+    - Defer the documentation defect to owner Platform Docs because that team
+      owns the public API reference outside this change.
+
+    Return the standard audit with the complete documentation deferral.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/equivalence-class-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - equivalence-class-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Equivalence-Class Audit Report'
+        - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
+        - '(?im)^Output depth:\s*standard\s*$'
+        - '(?im)^Verdict:\s*(BLOCK|CONCERNS)\s*$'
+        - '(?im)^Severity:\s*(CRITICAL|HIGH|MEDIUM|LOW)\s*$'
+        - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
+        - '(?i)\|\s*Opposite Bound\s*\|[^\n|]*maxRetries[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
+        - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|[^\n|]*(?:doc|api\.md|api reference)[^\n|]*\|\s*present\s*\|\s*defer-with-owner\s*\|[^\n|]*(?:docs/)?api\.md[^\n|]*\|'
+      not_contains:
+        - "### Omitted axes (quick mode only)"
+        - "Output depth: quick"
+        - "Output depth: exhaustive"
+        - "Gate decision:"
+        - "Adversarial tests:"
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/equivalence-class-audit/check-report.py
+        - positive-edge-009
+      timeout: 60

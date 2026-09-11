@@ -1,32 +1,29 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
-id: positive-edge-001
-name: No candidate axes must be explicit n/a rows
+id: positive-edge-007
+name: Exhaustive output depth is explicit
 description: |
-  Even when an axis has no candidates or cannot structurally apply, the report
-  must record that fact instead of omitting the axis.
+  Exhaustive mode must identify its selected depth and expand every reasonably
+  discoverable candidate inside the locked scope.
 tags:
   - positive-trigger
   - positive-edge
 inputs:
   prompt: |
-    Use equivalence-class-audit.
+    Apply equivalence-class-audit in exhaustive mode.
 
-    Triggering finding: bug BUG-221 found that the `timeoutSeconds` field in a
-    single-file YAML configuration accepted `0` and made the health checker
-    spin.
+    Triggering finding: `minItems` accepts zero and crashes pagination.
 
-    Locked audit scope: only `config/healthcheck.yml` and its "Health check
-    timeout" docs section.
+    Locked audit scope: `src/pagination.ts`, `src/batch-pagination.ts`,
+    `tests/pagination.test.ts`, and the Pagination section of `docs/api.md`.
 
     Known facts:
-    - This artifact has no inverse operation, no async/sync variants, no cache
-      or projection, no allocated resource, and no authorization surface.
-    - There is only one field in the locked scope.
-    - The docs still mention `0` as allowed.
+    - `maxItems` and `minItems` are sibling fields; `maxItems` already rejects zero.
+    - Both synchronous and asynchronous pagination use the same validator.
+    - Tests cover negative values but not zero or the asynchronous path.
+    - The docs say zero is valid.
 
-    Return the audit. Do not omit axes just because there are no candidates;
-    every catalogue axis must appear at least once, either with one row per
-    candidate or with an explicit n/a row and reason.
+    Expand every reasonably discoverable candidate in scope and represent all
+    catalogue axes, using explicit n/a rows where necessary.
 expected:
   should_trigger: true
 graders:
@@ -48,15 +45,12 @@ graders:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
         - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
-        - '(?im)^Output depth:\s*standard\s*$'
+        - '(?im)^Output depth:\s*exhaustive\s*$'
         - '(?im)^Verdict:\s*(BLOCK|CONCERNS)\s*$'
         - '(?im)^Severity:\s*(CRITICAL|HIGH|MEDIUM|LOW)\s*$'
         - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
-        - '(?i)Presence'
-        - '(?i)Disposition'
-        - '(?i)Evidence'
-        - '(?i)\|\s*Opposite Bound\s*\|'
-        - '(?i)\|\s*Sibling Parameter/Field\s*\|'
+        - '(?i)\|\s*Opposite Bound\s*\|[^\n|]*(minItems|zero)[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
+        - '(?i)\|\s*Sibling Parameter/Field\s*\|[^\n|]*maxItems[^\n|]*\|'
         - '(?i)\|\s*Mirror Call Site/Use Site\s*\|'
         - '(?i)\|\s*Inverse Operation\s*\|'
         - '(?i)\|\s*Type/Schema Narrowing\s*\|'
@@ -68,25 +62,21 @@ graders:
         - '(?i)\|\s*Resource Cleanup\s*\|'
         - '(?i)\|\s*Contract Symmetry\s*\|'
         - '(?i)\|\s*Equivalence by Naming\s*\|'
-        - '(?i)\|\s*Test Mirror\s*\|'
+        - '(?i)\|\s*Async/Sync or Mode Twin\s*\|[^\n|]*(async|asynchronous)[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
         - '(?i)\|\s*Empty/Sentinel Equivalence\s*\|'
-        - '(?i)\|\s*Async/Sync or Mode Twin\s*\|'
-        - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|[^\n]*\|\s*present\s*\|'
+        - '(?i)\|\s*Documentation/Spec Prose Twin\s*\|[^\n|]*zero[^\n|]*\|\s*present\s*\|\s*fix-now\s*\|'
         - '(?i)\|\s*Cache/Projection/Source-of-Truth Twin\s*\|'
       not_contains:
         - "### Omitted axes (quick mode only)"
         - "Output depth: quick"
-        - "Output depth: exhaustive"
+        - "Output depth: standard"
         - "Gate decision:"
-        - "Checklist evidence"
-        - "Egress policy:"
         - "Adversarial tests:"
-        - "PLAN-READY"
   - type: program
     name: report_contract
     config:
       command: python3
       args:
         - evals/equivalence-class-audit/check-report.py
-        - positive-edge-001
+        - positive-edge-007
       timeout: 60

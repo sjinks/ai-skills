@@ -47,7 +47,11 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
-        - '(?i)\|\s*Axis\s*\|\s*Candidate\s*\|\s*Presence\s*\|\s*Disposition\s*\|\s*Evidence\s*\|'
+        - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
+        - '(?im)^Output depth:\s*standard\s*$'
+        - '(?im)^Verdict:\s*BLOCK\s*$'
+        - '(?im)^Severity:\s*HIGH\s*$'
+        - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
         - '(?i)Presence'
         - '(?i)Disposition'
         - '(?i)Evidence'
@@ -59,9 +63,20 @@ graders:
         - '(?i)Documentation/Spec Prose Twin'
         - '(?i)(defer-with-owner|fix-now|blocked)'
       not_contains:
+        - "### Omitted axes (quick mode only)"
+        - "Output depth: quick"
+        - "Output depth: exhaustive"
         - "Gate decision:"
         - "Lenses applied:"
         - "Adversarial tests:"
         - "Egress policy:"
         - "Trusted root:"
         - "PLAN-PARTIAL"
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/equivalence-class-audit/check-report.py
+        - positive-trigger-002
+      timeout: 60

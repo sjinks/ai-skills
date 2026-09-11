@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Reads waza grader output JSON on stdin and checks that any TypeScript code
-# fences embedded in the agent output parse syntactically. Each extracted
+# Reads the raw Waza agent response on stdin and checks that any TypeScript code
+# fences parse syntactically. Each extracted
 # snippet is prefixed with `// @ts-nocheck` and compiled with
 # `tsc --noEmit --noResolve` so import resolution and type errors do not
 # masquerade as parse failures; only true syntax errors fail the grader.
@@ -10,21 +10,12 @@
 
 set -euo pipefail
 
-if ! command -v jq > /dev/null 2>&1; then
-    echo "jq not on PATH; install jq to run this grader" >&2
-    exit 1
-fi
-
-INPUT=$(cat)
+OUTPUT=$(cat)
 WORKDIR=$(mktemp -d)
 trap 'rm -rf "$WORKDIR"' EXIT
 
-# Extract `output` field (waza passes a JSON envelope with fields output,
-# outcome, transcript, tool_calls, errors, duration_ms).
-OUTPUT=$(echo "$INPUT" | jq -r '.output // empty')
-
 if [ -z "$OUTPUT" ]; then
-    echo "no output field" >&2
+    echo "empty agent response" >&2
     exit 1
 fi
 

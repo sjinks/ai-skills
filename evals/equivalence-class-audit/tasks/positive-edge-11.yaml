@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-011
+name: Both missing inputs request the finding first
+description: |
+  An explicit invocation with neither required input must return one reduced
+  report and request the triggering finding before the locked scope.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Apply equivalence-class-audit.
+
+    I have not supplied a triggering finding or locked audit scope yet.
+    Return the exhaustive audit response without inventing either input.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/equivalence-class-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - equivalence-class-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Equivalence-Class Audit Report'
+        - '(?m)^Triggering finding:[ \t]+(missing|not provided|not supplied|required|needed)[ \t]*$'
+        - '(?m)^Locked audit scope:[ \t]+(missing|not provided|not supplied|required|needed)[ \t]*$'
+        - '(?im)^Output depth:\s*exhaustive\s*$'
+        - '(?im)^Verdict:\s*BLOCK\s*$'
+        - '(?im)^Severity:\s*UNASSESSED\s*$'
+        - '(?is)### Defects to fix now\s*\n- None\s*### Deferred follow-ups\s*\n- None\s*### Out-of-scope candidates discovered\s*\n- None\s*### Blocking questions\s*\n- [^\n]*(triggering finding|finding)[^\n]*\s*### Test/doc implications\s*\n- None'
+      not_contains:
+        - '| Axis |'
+        - '### Omitted axes (quick mode only)'
+        - 'Output depth: quick'
+        - 'Output depth: standard'
+        - 'Gate decision:'
+        - 'Adversarial tests:'
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/equivalence-class-audit/check-report.py
+        - positive-edge-011
+      timeout: 60
