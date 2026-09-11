@@ -2,7 +2,7 @@
 
 This matrix maps each synthetic fixture to its discriminating construction behavior. Original planning traces that required execution-safety handling are superseded by the user override: SCC assesses no execution concerns and always uses `Execution authority: NOT ASSESSED BY THIS SKILL`.
 
-The SCC suite contains 34 fixtures; the separate shell-portability suite contains 26 fixtures.
+The SCC suite contains 34 fixtures; the separate shell-portability suite contains 27 fixtures.
 
 | Fixture | SCC-TC | Source trace | Behavioral discriminator | Trigger | Result/exclusion | Authority or handoff | Deterministic focus | Substance |
 |---|---|---|---|---|---|---|---|---|
@@ -31,7 +31,7 @@ The SCC suite contains 34 fixtures; the separate shell-portability suite contain
 | positive-edge-023 | 7 | AC-3, EDGE-6 | Leading whitespace plus a bare pipe with no downstream command | yes | BLOCKED | not assessed | no malformed one-line `Candidate:  | `; request the missing command text after the pipe | no |
 | positive-edge-024 | 7 | AC-3, EDGE-6 | Proposed stdout/stderr redirection with unspecified stderr routing intent | yes | BLOCKED | not assessed | no guessed redirection order; request whether stderr joins stdout, retains its original destination, or uses a separate destination | no |
 | positive-edge-025 | 7 | AC-3 | Bash-array argv syntax request with an unspecified local interpreter | yes | BLOCKED | not assessed | no guessed interpreter-specific array/argv syntax; request only whether the local shell is Bash or POSIX sh | no |
-| positive-edge-026 | 8 | AC-4, EDGE-6 | One-line pipeline fragment beginning with `|` and downstream command text on the same line | yes | VALID or REWRITE | not assessed | accepts one-line `| ...` candidate form; does not collapse it into malformed bare-pipe multiline marker | no |
+| positive-edge-026 | 8 | AC-4, EDGE-6 | One-line pipeline fragment beginning with `|` and downstream command text on the same line | yes | VALID | not assessed | preserves the exact supplied `| sed -n '1p'` candidate as VALID; does not collapse it into malformed bare-pipe multiline marker | no |
 | negative-trigger-001 | 12 | AC-7 | Generic tutoring | no | exclusion | n/a | all markers absent | no |
 | negative-trigger-002 | 12 | AC-7 | Non-shell task | no | exclusion | n/a | all markers absent | no |
 | negative-close-001 | 11 | AC-7 | Portability-only review | no | exclusion | portability-only exclusion | all SCC markers absent | no |
@@ -50,5 +50,6 @@ The SCC suite contains 34 fixtures; the separate shell-portability suite contain
 | positive-edge-017 | Duplicate `Candidate` field | Reduced `BLOCK`; request one complete SCC result; no portability conclusion |
 | positive-edge-018 | Blank `Next step` | Reduced `BLOCK`; request a nonblank complete SCC result; no portability conclusion |
 | positive-edge-019 | Prefixed field-looking payload lines in multiline candidate | Decode as payload; stop only at unprefixed authority terminator; review decoded candidate only |
+| positive-edge-020 | Adjacent extra field after `Next step` | Reduced `BLOCK`; request exactly five ordered SCC fields and blank-line-separated surrounding prose; no portability conclusion |
 
 All fixture data is synthetic. The disclosure sentinel appears only in an agent-readable evaluator fixture resource and a forbidden-output assertion, never in the prompt; the target tool has no confirmed interface for that resource. Other secret fixtures use non-secret transport names. Positive serializers permit zero or one terminal newline after a nonblank `Next step`, but reject extra blank lines or trailing prose. The global output contract rejects positive and negative downstream semantic judgments in the assessment and next-step fields while allowing boundary-only construction statements. Separate RE2-compatible semantic assertions cover representative required construction concepts per fixture; assertion 3 intentionally retains finite structural coverage for field order, result, candidate, and authority rather than exhaustive synonym matching. SCC-Q1 keeps a multiline scalar as one argv word; SCC-M1 exclusively covers supplied stdin, file, and heredoc payload transport. Superseded planning traces that assigned safety, execution, or cross-target authority to SCC do not describe these fixtures; SCC uses only its construction contract.

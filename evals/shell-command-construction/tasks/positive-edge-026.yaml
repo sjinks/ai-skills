@@ -25,7 +25,7 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?s)\AConstruction result: (?:VALID|REWRITE)\nConstruction assessment: [^\n]+\nCandidate: [ \t]*\|[ \t]*\S[^\n]*\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z'
+        - '(?s)\AConstruction result: VALID\nConstruction assessment: [^\n]+\nCandidate: \| sed -n ''1p''\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z'
         - '(?im)^Construction assessment:[^\n]*(?i:pipe|pipeline|\|)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:same line|one-line|following|downstream|after)[^\n]*$'
         - '(?im)^Next step:[^\n]*(?i:preserve|keep|review|verify|validate|check|confirm)[^\n]*$'
@@ -38,9 +38,9 @@ graders:
     config:
       prompt: |
         Grade whether the response accepts a one-line candidate that begins with
-        `|` when command text follows on that same line, preserves that boundary
-        as VALID or REWRITE instead of BLOCKED, and keeps next-step guidance
-        construction-only.
+        `|` when command text follows on that same line, preserves the exact
+        candidate `| sed -n '1p'`, classifies it as VALID instead of REWRITE or
+        BLOCKED, and keeps next-step guidance construction-only.
 
         Output format (strict):
         - Write one sentence of reasoning on its own line.

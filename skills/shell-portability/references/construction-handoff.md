@@ -19,7 +19,7 @@ Require exactly one complete result with these top-level fields in order:
 4. `Execution authority: NOT ASSESSED BY THIS SKILL`
 5. `Next step: <nonblank one-line value>`
 
-When the caller embeds a construction result inside surrounding prose, the handoff is the one contiguous block that starts at the `Construction result:` line and ends immediately after the `Next step:` line, with zero or one terminal newline inside that block. Caller prose before or after the block is outside the handoff. Inside the block, code fences, blank or free-form lines between top-level fields, trailing prose after `Next step:`, and any other extra unprefixed line make it malformed. Multiline candidate payload is the only allowed intervening block and follows the rules below.
+When the caller embeds a construction result inside surrounding prose, that surrounding prose is outside the handoff only when at least one blank line separates it from the construction block. The handoff is the contiguous nonblank block that starts at the `Construction result:` line and ends immediately after the `Next step:` line, with zero or one terminal newline inside that block. A nonblank line immediately before `Construction result:` or immediately after `Next step:` is adjacent handoff content, not surrounding prose. Inside or adjacent to the block, code fences, blank or free-form lines between top-level fields, trailing prose after `Next step:`, and any other extra unprefixed line make it malformed. Multiline candidate payload is the only allowed intervening block and follows the rules below.
 
 Missing, unknown, reordered, duplicated, or blank fields make the handoff malformed.
 
