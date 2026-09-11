@@ -2,7 +2,7 @@ Read this catalog when selecting a construction disposition; it is the sole norm
 
 ## Composition and precedence
 
-Select every applicable canonical rule, not one rule by preference. Representability and fail-closed constraints always apply. Transport- and boundary-specific rules constrain the candidate. SCC-A1 owns scalar/list intent and confirmed parameter-expansion argv boundaries; SCC-Q1 applies only to directly supplied literal scalar data, never an expansion source. Combine nonconflicting no-drift constraints. If applicable actions conflict after this precedence, or a required fact is missing, return `BLOCKED`.
+Select every applicable canonical rule, not one rule by preference. Representability and fail-closed constraints always apply. Transport- and boundary-specific rules constrain the candidate. SCC-A1 owns scalar/list intent and confirmed expansion-source argv boundaries (including parameter and command substitution); SCC-Q1 applies only to directly supplied literal scalar data, never an expansion source. Combine nonconflicting no-drift constraints. If applicable actions conflict after this precedence, or a required fact is missing, return `BLOCKED`.
 
 # Construction Rules
 
@@ -40,7 +40,7 @@ Trigger: Input may be one scalar operand or multiple operands.
 Construction risk: Word splitting or quoting collapses or expands argument count.
 Required facts: Interpreter when syntax materially differs; scalar/list intent; each intended argument boundary; when byte-level input indicates NUL may be present, whether any intended argv entry contains NUL.
 Disposition: VALID, REWRITE, or BLOCKED.
-Construction-preserving action: Validate an already-correct confirmed scalar expansion or structured argv form. For a confirmed one-argument parameter expansion, quote it (for example, `"$query"`); for confirmed multiple NUL-free Bash entries, preserve the structured argv form (for example, `"${items[@]}"`). Rewrite a defective form to the applicable representation. Block only when scalar/list or entry-boundary intent is absent, conflicts, or an intended argv entry contains U+0000 NUL.
+Construction-preserving action: Validate an already-correct confirmed scalar expansion or structured argv form. For a confirmed one-argument expansion source, preserve one argument boundary (for example, `"$query"` or `"$(date)"` when command substitution is intentional and one argument is required); for confirmed multiple NUL-free Bash entries, preserve the structured argv form (for example, `"${items[@]}"`). Rewrite a defective form to the applicable representation. Block only when scalar/list or entry-boundary intent is absent, conflicts, or an intended argv entry contains U+0000 NUL.
 No-drift constraints: Preserve argument count, order, positions, command name, and fixed operands.
 Effectful marker: none.
 Portability handoff: separate portability review required before a cross-target claim.

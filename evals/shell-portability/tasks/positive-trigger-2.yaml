@@ -71,11 +71,11 @@ graders:
       prompt: |
         Grade whether the response identifies these issues:
         - `sed -i` differs between GNU (no backup arg) and BSD/macOS
-          (requires `-i ''`). To preserve the requested in-place behavior and
-          avoid cross-filesystem, metadata, and cleanup drift, require an explicit
-          target-named or feature-detected GNU/BSD behavior branch using the
-          appropriate form; reject generic temp+`mv` fixes. Accept equivalent
-          branch wording regardless of whether vendor names are written.
+          (requires `-i ''`). Require an explicit target-named or
+          feature-detected GNU/BSD behavior branch using the appropriate form
+          for syntax compatibility; reject generic temp+`mv` fixes. Do not
+          treat this branch as a metadata, hard-link, or atomicity guarantee
+          unless those exact invariants are explicitly required and verified.
         - `grep -P` (PCRE) is GNU-only and must be rewritten with `grep -E`
           (ERE) or awk while replacing `\d{3}` semantics with `[0-9]{3}` or
           equivalent.

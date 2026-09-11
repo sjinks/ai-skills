@@ -79,6 +79,11 @@ Next step: <one line with at least one non-whitespace character: one constructio
 ```
 
 - `BLOCKED` always uses `Candidate: Not provided`.
+- For `VALID` or `REWRITE`, the one-line placeholder form `Candidate: Not provided` is reserved and forbidden. If the exact one-line candidate text is `Not provided`, serialize it with multiline form:
+  ```text
+  Candidate: |
+    Not provided
+  ```
 - A one-line `VALID` or `REWRITE` candidate has at least one non-whitespace character. A one-line command fragment may begin with `|` only when non-whitespace fragment text follows it on the same line; bare `Candidate: |` followed by a newline starts the multiline form. For a multiline candidate, add a two-space serialization prefix to every physical payload line (including an empty line), and include at least one payload line with a non-whitespace character after that removable prefix. Remove only that prefix when interpreting the candidate; any spaces after it are literal payload indentation. Treat prefixed field-looking text as payload, not a top-level field.
 - For `VALID` or `REWRITE`, `Next step` names an affirmative construction preservation, review, or verification action. A status-only value such as `No further construction action is required` is not an action.
 - `Construction assessment` describes parsing and boundaries only; it does not assess safety, authorization, targets, effects, or permission.

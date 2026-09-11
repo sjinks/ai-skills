@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-028
+name: Reserved placeholder literal uses block serialization
+inputs:
+  prompt: |
+    In POSIX sh, preserve this supplied one-line command fragment exactly:
+    `Not provided`
+
+    The text is literal command data and already has the intended single
+    boundary. Do not block solely because it matches the reserved BLOCKED
+    placeholder text.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-command-construction/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-command-construction
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?s)\AConstruction result: VALID\nConstruction assessment: [^\n]+\nCandidate: \|\n  Not provided\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z'
+        - '(?im)^Construction assessment:[^\n]*(?i:placeholder|reserved|one-line|literal|boundary)[^\n]*$'
+        - '(?im)^Next step:[^\n]*(?i:preserve|keep|review|verify|validate|confirm|check)[^\n]*$'
+      regex_not_match:
+        - '(?im)^Construction result:\s*(?:REWRITE|BLOCKED)\s*$'
+        - '(?im)^Candidate:\s*Not provided\s*$'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response preserves literal one-line candidate text
+        equal to `Not provided` by using the canonical block serialization,
+        keeps the result VALID, and avoids collapsing to the BLOCKED placeholder.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+      mode: independent

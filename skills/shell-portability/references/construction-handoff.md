@@ -13,7 +13,7 @@ Read this reference when portability review begins from a mixed request or a pri
 
 Require exactly one complete result with these top-level fields in order:
 
-1. `Construction result: BLOCKED | VALID | REWRITE`
+1. `Construction result: VALID | REWRITE | BLOCKED`
 2. `Construction assessment: <nonblank one-line value>`
 3. `Candidate: <value>`
 4. `Execution authority: NOT ASSESSED BY THIS SKILL`
@@ -26,7 +26,12 @@ Missing, unknown, reordered, duplicated, or blank fields make the handoff malfor
 ## Candidate consistency
 
 - `BLOCKED` requires exact `Candidate: Not provided`.
-- `VALID` and `REWRITE` forbid that placeholder, including trailing-whitespace variants.
+- `VALID` and `REWRITE` forbid that inline placeholder, including trailing-whitespace variants.
+- If the exact one-line candidate text is `Not provided` for `VALID` or `REWRITE`, canonical serialization is block form:
+  ```text
+  Candidate: |
+    Not provided
+  ```
 - A one-line candidate must be nonblank. If its first non-whitespace character is `|`, later non-whitespace text must occur on the same line.
 - Only exact `Candidate: |` with no trailing whitespace opens multiline form. Every payload line must have the two-space serialization prefix, and at least one decoded payload line must contain non-whitespace text.
 
