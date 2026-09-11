@@ -29,8 +29,10 @@ inputs:
       mismatch coverage.
     - GET members tests include tenant mismatch coverage.
 
-    Produce the audit and mark the unresolved critical authorization row blocked
-    rather than guessing whether tenantGuard or the policy applies to DELETE.
+    Produce the audit, cite the supplied prompt evidence as provenance for
+    out-of-scope candidates, and mark the unresolved critical authorization row
+    blocked rather than guessing whether tenantGuard or the policy applies to
+    DELETE.
 expected:
   should_trigger: true
 graders:
