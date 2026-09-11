@@ -349,20 +349,24 @@ def cites_supplied_prompt_evidence(value):
         return False
     provenance = unicodedata.normalize("NFKC", norm(visible_text(match[1])))
     sources = (
-        r"\btask\s+prompt\b",
+        r"\b(?:task|supplied|provided)\s+prompt\b",
         r"\bknown\s+facts?\b",
-        r"\bsupplied\s+(?:known\s+)?(?:facts?|evidence|inputs?)\b",
+        r"\b(?:supplied|provided)\s+(?:known\s+)?(?:facts?|evidence|inputs?)\b",
+        r"\bprompt\s+(?:statements?|facts?|evidence|inputs?|details?|context|instructions?|notes?)\b",
+        r"\b(?:statements?|facts?|evidence|inputs?|details?|context|instructions?|notes?)\s+"
+        r"(?:from|in)\s+(?:the\s+)?prompt\b",
     )
     for pattern in sources:
         for source in re.finditer(pattern, provenance):
             prefix = provenance[max(0, source.start() - 40):source.start()]
-            if not re.search(
+            if re.search(
                 r"\b(?:no|not|never|without|outside|unrelated(?:\s+to)?|"
                 r"rather\s+than|instead\s+of|other\s+than|except)\b"
                 r"(?:\s+\w+){0,4}\s+$",
                 prefix,
             ):
-                return True
+                continue
+            return True
     return False
 
 

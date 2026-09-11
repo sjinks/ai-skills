@@ -2654,6 +2654,12 @@ class CheckerIntegrationTests(unittest.TestCase):
             1,
         )
         run_main(valid, "positive-edge-002")
+        equivalent = profile_report("positive-edge-002").replace(
+            "tenantGuard candidate; provenance: supplied Known facts",
+            "tenantGuard candidate; provenance: prompt statement that tenantGuard is out of scope",
+            1,
+        )
+        run_main(equivalent, "positive-edge-002")
         cases = (
             ("tenantGuard candidate", "src/routes/team.routes.ts", "tenantguard"),
             ("tenant ownership policy spec", "policies/team.rego", "policy"),
