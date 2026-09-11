@@ -2660,6 +2660,12 @@ class CheckerIntegrationTests(unittest.TestCase):
             1,
         )
         run_main(equivalent, "positive-edge-002")
+        fullwidth = profile_report("positive-edge-002").replace(
+            "tenantGuard candidate; provenance: supplied Known facts",
+            "tenantGuard candidate; provenance： task prompt",
+            1,
+        )
+        run_main(fullwidth, "positive-edge-002")
         cases = (
             ("tenantGuard candidate", "src/routes/team.routes.ts", "tenantguard"),
             ("tenant ownership policy spec", "policies/team.rego", "policy"),
@@ -2688,6 +2694,32 @@ class CheckerIntegrationTests(unittest.TestCase):
         with contextlib.redirect_stderr(error):
             with self.assertRaises(SystemExit):
                 run_main(negated, "positive-edge-002")
+        self.assertIn(
+            "tenantguard provenance must cite the supplied prompt evidence",
+            error.getvalue(),
+        )
+        fabricated = profile_report("positive-edge-002").replace(
+            "tenantGuard candidate; provenance: supplied Known facts",
+            "tenantGuard candidate; provenance: fabricated to resemble the task prompt",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(fabricated, "positive-edge-002")
+        self.assertIn(
+            "tenantguard provenance must cite the supplied prompt evidence",
+            error.getvalue(),
+        )
+        unrelated = profile_report("positive-edge-002").replace(
+            "tenantGuard candidate; provenance: supplied Known facts",
+            "tenantGuard candidate; provenance: task prompt was ignored",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(unrelated, "positive-edge-002")
         self.assertIn(
             "tenantguard provenance must cite the supplied prompt evidence",
             error.getvalue(),

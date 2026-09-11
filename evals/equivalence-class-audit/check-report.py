@@ -343,31 +343,33 @@ def affirmative_relation(value, pattern):
     return False
 
 
-def cites_supplied_prompt_evidence(value):
-    match = re.search(r"\bprovenance:\s*(.+)$", value, flags=re.I)
-    if not match:
-        return False
-    provenance = unicodedata.normalize("NFKC", norm(visible_text(match[1])))
-    sources = (
-        r"\b(?:task|supplied|provided)\s+prompt\b",
-        r"\bknown\s+facts?\b",
-        r"\b(?:supplied|provided)\s+(?:known\s+)?(?:facts?|evidence|inputs?)\b",
-        r"\bprompt\s+(?:statements?|facts?|evidence|inputs?|details?|context|instructions?|notes?)\b",
-        r"\b(?:statements?|facts?|evidence|inputs?|details?|context|instructions?|notes?)\s+"
-        r"(?:from|in)\s+(?:the\s+)?prompt\b",
+def provenance_metadata(value):
+    match = re.search(
+        r"\bprovenance\s*:\s*(.+)$",
+        canonical_unicode(visible_text(value)),
+        flags=re.I,
     )
-    for pattern in sources:
-        for source in re.finditer(pattern, provenance):
-            prefix = provenance[max(0, source.start() - 40):source.start()]
-            if re.search(
-                r"\b(?:no|not|never|without|outside|unrelated(?:\s+to)?|"
-                r"rather\s+than|instead\s+of|other\s+than|except)\b"
-                r"(?:\s+\w+){0,4}\s+$",
-                prefix,
-            ):
-                continue
-            return True
-    return False
+    return match[1] if match else None
+
+
+def cites_supplied_prompt_evidence(value):
+    provenance = provenance_metadata(value)
+    if provenance is None:
+        return False
+    return bool(re.fullmatch(
+        r"(?:"
+        r"(?:task|supplied|provided)\s+prompt"
+        r"(?:\s+(?:statements?|facts?|evidence|inputs?|details?|context|instructions?|notes?))?"
+        r"|known\s+facts?"
+        r"|(?:supplied|provided)\s+(?:known\s+)?(?:facts?|evidence|inputs?)"
+        r"|prompt\s+(?:statements?|facts?|evidence|inputs?|details?|context|instructions?|notes?)"
+        r"|(?:statements?|facts?|evidence|inputs?|details?|context|instructions?|notes?)\s+"
+        r"(?:from|in|per)\s+(?:the\s+)?prompt"
+        r")"
+        r"(?:\s*(?::|[-—–,]|\()\s*.*|\s+(?:line|lines|bullet|bullets|item|items|section|sections|"
+        r"entry|entries|that|about|showing|stating|noting)\b.*)?",
+        norm(provenance),
+    ))
 
 
 def finding_preserves_meaning(profile, value):
@@ -926,9 +928,9 @@ def parse_report(output):
             fail(f"{heading} bullets must contain visible text")
         if heading == "Out-of-scope candidates discovered" and payload != ["None"]:
             for bullet in payload:
-                match = re.search(r"\bprovenance:\s*(.+)$", bullet, flags=re.I)
-                if (not match or not populated_metadata(match[1])
-                    or non_populated_metadata(match[1], "provenance")):
+                provenance = provenance_metadata(bullet)
+                if (provenance is None or not populated_metadata(provenance)
+                    or non_populated_metadata(provenance, "provenance")):
                     fail("out-of-scope bullets need populated provenance metadata")
         sections[heading] = payload
 
