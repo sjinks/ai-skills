@@ -2673,6 +2673,19 @@ class CheckerIntegrationTests(unittest.TestCase):
                     f"{label} provenance must cite the supplied prompt evidence",
                     error.getvalue(),
                 )
+        negated = profile_report("positive-edge-002").replace(
+            "tenantGuard candidate; provenance: supplied Known facts",
+            "tenantGuard candidate; provenance: not from the task prompt",
+            1,
+        )
+        error = io.StringIO()
+        with contextlib.redirect_stderr(error):
+            with self.assertRaises(SystemExit):
+                run_main(negated, "positive-edge-002")
+        self.assertIn(
+            "tenantguard provenance must cite the supplied prompt evidence",
+            error.getvalue(),
+        )
 
     def test_complete_reports_reject_embedded_invalid_metadata_suffixes(self):
         cases = (

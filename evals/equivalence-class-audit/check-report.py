@@ -344,12 +344,26 @@ def affirmative_relation(value, pattern):
 
 
 def cites_supplied_prompt_evidence(value):
-    value = norm(visible_text(value))
-    return bool(
-        re.search(r"\btask\s+prompt\b", value)
-        or re.search(r"\bknown\s+facts?\b", value)
-        or re.search(r"\bsupplied\s+(?:known\s+)?(?:facts?|evidence|inputs?)\b", value)
+    match = re.search(r"\bprovenance:\s*(.+)$", value, flags=re.I)
+    if not match:
+        return False
+    provenance = unicodedata.normalize("NFKC", norm(visible_text(match[1])))
+    sources = (
+        r"\btask\s+prompt\b",
+        r"\bknown\s+facts?\b",
+        r"\bsupplied\s+(?:known\s+)?(?:facts?|evidence|inputs?)\b",
     )
+    for pattern in sources:
+        for source in re.finditer(pattern, provenance):
+            prefix = provenance[max(0, source.start() - 40):source.start()]
+            if not re.search(
+                r"\b(?:no|not|never|without|outside|unrelated(?:\s+to)?|"
+                r"rather\s+than|instead\s+of|other\s+than|except)\b"
+                r"(?:\s+\w+){0,4}\s+$",
+                prefix,
+            ):
+                return True
+    return False
 
 
 def finding_preserves_meaning(profile, value):
