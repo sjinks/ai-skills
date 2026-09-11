@@ -1,12 +1,13 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 id: positive-edge-025
-name: Missing interpreter for shell-specific quoting
+name: Missing interpreter for array-expansion argv syntax
 inputs:
   prompt: |
-    Repair the proposed command `printf '%q\n' "$value"` so the emitted text can
-    be reused as one shell argument later. I have not specified whether the local
-    shell is Bash or POSIX sh, and that choice changes the available quoting
-    syntax. Do not guess the interpreter.
+    Repair the proposed command `printf '%s\n' ${items[@]}` so each list entry in
+    `items` is preserved as its own argument boundary and no extra splitting occurs.
+    I have not specified whether the local shell is Bash or POSIX sh, and that
+    choice materially changes whether `${items[@]}` is valid syntax. Do not guess
+    the interpreter.
 expected:
   should_trigger: true
 graders:
@@ -29,18 +30,18 @@ graders:
         - '(?s)\AConstruction result: BLOCKED\nConstruction assessment: [^\n]+\nCandidate: Not provided\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z'
         - '(?im)^Construction assessment:[^\n]*(?i:interpreter|shell)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:missing|unspecified|unknown|not specified|not supplied)[^\n]*$'
-        - '(?im)^Construction assessment:[^\n]*(?i:%q|quoting|quote)[^\n]*$'
+        - '(?im)^Construction assessment:[^\n]*(?i:\$\{items\[@\]\}|array|argv|argument)[^\n]*$'
         - '(?im)^Next step:[^\n]*(?i:provide|specify|clarify|confirm)[^\n]*(?i:interpreter|shell)[^\n]*$'
       regex_not_match:
-        - '(?im)^Candidate:[^\n]*(?:printf|%q|\$value)[^\n]*$'
+        - '(?im)^Candidate:[^\n]*(?:printf|\$\{items\[@\]\}|\$items)[^\n]*$'
   - type: prompt
     name: task_completion_substance
     config:
       prompt: |
         Grade whether the response blocks because the local interpreter is the
-        only missing construction fact, explains that `%q` or equivalent quoting
-        choices depend on that interpreter, emits no candidate, and requests only
-        the missing interpreter.
+        only missing construction fact, explains that `${items[@]}`/array argv
+        preservation depends on that interpreter, emits no candidate, and requests
+        only the missing interpreter.
 
         Output format (strict):
         - Write one sentence of reasoning on its own line.

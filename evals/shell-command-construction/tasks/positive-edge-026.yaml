@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-026
+name: One-line leading-pipe fragment with command text
+inputs:
+  prompt: |
+    In Bash, preserve this supplied one-line pipeline fragment exactly:
+    `| sed -n '1p'`.
+    The downstream command text after `|` is complete and intentional.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-command-construction/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-command-construction
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?s)\AConstruction result: (?:VALID|REWRITE)\nConstruction assessment: [^\n]+\nCandidate: [ \t]*\|[ \t]*\S[^\n]*\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z'
+        - '(?im)^Construction assessment:[^\n]*(?i:pipe|pipeline|\|)[^\n]*$'
+        - '(?im)^Construction assessment:[^\n]*(?i:same line|one-line|following|downstream|after)[^\n]*$'
+        - '(?im)^Next step:[^\n]*(?i:preserve|keep|review|verify|validate|check|confirm)[^\n]*$'
+      regex_not_match:
+        - '(?im)^Construction result:\s*BLOCKED\s*$'
+        - '(?im)^Candidate:\s*Not provided\s*$'
+        - '(?im)^Candidate:[ \t]*\|[ \t]*$'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response accepts a one-line candidate that begins with
+        `|` when command text follows on that same line, preserves that boundary
+        as VALID or REWRITE instead of BLOCKED, and keeps next-step guidance
+        construction-only.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+      mode: independent
