@@ -2,7 +2,7 @@
 
 This matrix maps each synthetic fixture to its discriminating construction behavior. Original planning traces that required execution-safety handling are superseded by the user override: SCC assesses no execution concerns and always uses `Execution authority: NOT ASSESSED BY THIS SKILL`.
 
-The SCC suite contains 34 fixtures; the separate shell-portability suite contains 27 fixtures.
+The SCC suite contains 34 fixtures; the separate shell-portability suite contains 28 fixtures.
 
 | Fixture | SCC-TC | Source trace | Behavioral discriminator | Trigger | Result/exclusion | Authority or handoff | Deterministic focus | Substance |
 |---|---|---|---|---|---|---|---|---|
@@ -51,5 +51,6 @@ The SCC suite contains 34 fixtures; the separate shell-portability suite contain
 | positive-edge-018 | Blank `Next step` | Reduced `BLOCK`; request a nonblank complete SCC result; no portability conclusion |
 | positive-edge-019 | Prefixed field-looking payload lines in multiline candidate | Decode as payload; stop only at unprefixed authority terminator; review decoded candidate only |
 | positive-edge-020 | Adjacent extra field after `Next step` | Reduced `BLOCK`; request exactly five ordered SCC fields and blank-line-separated surrounding prose; no portability conclusion |
+| positive-edge-021 | Two individually complete construction results | Reduced `BLOCK`; request exactly one complete SCC result; no portability conclusion |
 
 All fixture data is synthetic. The disclosure sentinel appears only in an agent-readable evaluator fixture resource and a forbidden-output assertion, never in the prompt; the target tool has no confirmed interface for that resource. Other secret fixtures use non-secret transport names. Positive serializers permit zero or one terminal newline after a nonblank `Next step`, but reject extra blank lines or trailing prose. The global output contract rejects positive and negative downstream semantic judgments in the assessment and next-step fields while allowing boundary-only construction statements. Separate RE2-compatible semantic assertions cover representative required construction concepts per fixture; assertion 3 intentionally retains finite structural coverage for field order, result, candidate, and authority rather than exhaustive synonym matching. SCC-Q1 keeps a multiline scalar as one argv word; SCC-M1 exclusively covers supplied stdin, file, and heredoc payload transport. Superseded planning traces that assigned safety, execution, or cross-target authority to SCC do not describe these fixtures; SCC uses only its construction contract.

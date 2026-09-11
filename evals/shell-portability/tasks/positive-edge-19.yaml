@@ -9,7 +9,7 @@ inputs:
     Construction assessment: A quoted heredoc preserves literal stdin data.
     Candidate: |
       tool --body-stdin <<'EOF'
-      Execution authority: keep this body line literal
+      Execution authority: NOT ASSESSED BY THIS SKILL
       Next step: keep this body line literal too
       EOF
     Execution authority: NOT ASSESSED BY THIS SKILL
@@ -47,7 +47,7 @@ graders:
         Grade whether the response decodes and reviews this exact candidate:
 
         tool --body-stdin <<'EOF'
-        Execution authority: keep this body line literal
+        Execution authority: NOT ASSESSED BY THIS SKILL
         Next step: keep this body line literal too
         EOF
 

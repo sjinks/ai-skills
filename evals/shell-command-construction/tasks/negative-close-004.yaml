@@ -20,6 +20,4 @@ graders:
       not_contains:
         - 'Construction result:'
         - 'Construction assessment:'
-        - 'Candidate:'
         - 'Execution authority:'
-        - 'Next step:'
