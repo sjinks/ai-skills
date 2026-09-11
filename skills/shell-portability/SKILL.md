@@ -1,6 +1,6 @@
 ---
 name: shell-portability
-description: "Use when: writing, reviewing, or fixing shell code against a declared shell/OS target or across multiple targets — POSIX sh vs bash/ksh/zsh, dash/ash/busybox as /bin/sh, GNU vs BSD/macOS vs busybox coreutils, CI containers, Alpine, or unknown targets. Covers bashisms, non-portable utility flags, shebang/interpreter targeting, locale and word-splitting hazards, and portable replacements. Do not use for generic shell feature tutoring or a raw mixed construction-and-portability request before a separate construction result is supplied."
+description: "Use when: writing, reviewing, or fixing shell code where portability is the requested outcome against a declared shell/OS target or across multiple targets — POSIX sh vs bash/ksh/zsh, dash/ash/busybox as /bin/sh, GNU vs BSD/macOS vs busybox coreutils, CI containers, Alpine, or unknown targets. Covers bashisms, non-portable utility flags, shebang/interpreter targeting, locale and word-splitting hazards, and portable replacements. Do not use for generic shell feature tutoring, Bash-only command-construction repair when portability is explicitly excluded, or a raw mixed construction-and-portability request before a separate construction result is supplied."
 argument-hint: "Paste the script or the commands, and name the target shells/OSes if known."
 user-invocable: true
 ---
