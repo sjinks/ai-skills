@@ -28,10 +28,19 @@ graders:
     name: task_completion
     config:
       not_contains:
-        - "Smallest addition to proceed"
+        - "Requirements Ambiguity Report"
         - "Verdict: BLOCK"
         - "Verdict: CONCERNS"
         - "Verdict: CLEAN"
-        - "Requirements Ambiguity Report"
-        - "conflicting-requirements"
-        - "unspecified-path"
+        - "| # | Class | Severity | Location |"
+        - "### Open questions (product decisions, not findings)"
+        - "Missing input:"
+        - "Smallest addition to proceed:"
+        - "| vague-quantifier |"
+        - "| undefined-term |"
+        - "| missing-actor |"
+        - "| conflicting-requirements |"
+        - "| placeholder |"
+        - "| unspecified-path |"
+        - "| ambiguous-reference |"
+        - "| untestable-wording |"

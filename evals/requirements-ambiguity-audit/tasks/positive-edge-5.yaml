@@ -1,0 +1,81 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-005
+name: Unspecified rejection path is found
+description: |
+  A requirement set naming a validation behavior without stating its
+  rejection outcome must yield an unspecified-path finding as a table
+  row with readings and a rewrite.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Audit these requirements for ambiguity. Route open questions to the product
+    owner:
+
+    Requirements:
+    - R1: The import service validates that each uploaded CSV row has exactly
+      two non-empty fields named email and name, and that email contains one
+      "@" character.
+
+    For this audit, use `reject the entire upload / skip the invalid row` as
+    the representative readings for the unspecified outcome. This is grading
+    guidance, not an acknowledged product decision.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/requirements-ambiguity-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - requirements-ambiguity-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?im)\A[ \t]*##[ \t]+Requirements Ambiguity Report[ \t]*\r?\n(?:[ \t]*\r?\n)*[ \t]*[*_]*Verdict:[*_ \t]*BLOCK[*_]*\.?[*_]*[ \t]*\r?$'
+        - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Severity\s*\|\s*Location\s*\|'
+        - '(?im)^[ \t]*\|[ \t]*#[ \t]*\|[ \t]*Class[ \t]*\|[ \t]*Severity[ \t]*\|[ \t]*Location[ \t]*\|[ \t]*\r?$\r?\n^[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*\r?$\r?\n^[ \t]*\|[ \t]*[`*_]*1[`*_]*[ \t]*\|[ \t]*[^|\r\n]*\S[^|\r\n]*[ \t]*\|[ \t]*[^|\r\n]*\S[^|\r\n]*[ \t]*\|[ \t]*[^|\r\n]*\S[^|\r\n]*[ \t]*\|[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*### Findings[ \t]*\r?$'
+        - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|\s*[`*_]*unspecified-path[`*_]*\s*\|\s*[`*_]*blocker[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
+        - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|[^\r\n]*\|[^\r\n]*\bR1\b[^\r\n]*\|\s*$'
+        - '(?m)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*(validates that each uploaded CSV row|exactly two non-empty fields named email and name|The import service validates that each uploaded CSV row has exactly two non-empty fields named email and name, and that email contains one "@" character\.?)["`*_]*[ \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*((reject|fail)[^\r\n]*/[^\r\n]*(skip|discard)|(skip|discard)[^\r\n]*/[^\r\n]*(reject|fail))[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\[\r\n]*\bimport\b[^\[\r\n]*\[OPEN QUESTION:[ \t]+[^\r\n\]]*\b(reject|rejects|rejection|skip|skips|outcome|handling)\b[^\r\n\]]*—[ \t]+product owner[ \t]+to decide\][^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*\brow\b[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*\bupload(ed|ing)?\b[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*\bCSV\b[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*\bvalidat(e|es|ed|ing|ion)\b[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*((exactly|only)[ \t]+(two|2)[ \t]+[^\r\n]*(fields|columns)|(two|2)[ \t]+[^\r\n]*(fields|columns)[^\r\n]*(only|and no others)|a[ \t]+pair[ \t]+of[ \t]+[^\r\n]*(fields|columns))[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*(non[- ]?empty|populated|not[ \t]+blank)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*(\bemail\b[^\r\n]*\bname\b|\bname\b[^\r\n]*\bemail\b)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*(exactly[ \t]+one|only[ \t]+one|one[ \t]+and[ \t]+only[ \t]+one|single)[^\r\n]*["`*_]*@["`*_]*[^\r\n]*\r?$'
+        - '(?im)^### Findings[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+1[*_]*:[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*(?-i:(validates that each uploaded CSV row|exactly two non-empty fields named email and name|The import service validates that each uploaded CSV row has exactly two non-empty fields named email and name, and that email contains one "@" character\.?))["`*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Readings:[*_]*[ \t]*[^\r\n]*\S[ \t]+/[ \t]+\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*(?:[^\[\]\r\n]|\[[^\[\]:\r\n]*\])*(\[OPEN QUESTION:[ \t]+[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\](?:[^\[\]\r\n]|\[[^\[\]:\r\n]*\])*)+\r?$\r?\n([ \t]*\r?\n)*### Open questions \(product decisions, not findings\)[ \t]*\r?$'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*((reject|skip|rejection|handling)[^\r\n]*product owner|product owner[^\r\n]*(reject|skip|rejection|handling))'
+      regex_not_match:
+        - '(?im)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Finding[ \t]+\d+[^0-9\s:*_][^:\r\n]*:[^\r\n]*\r?$'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*-[ \t]*[*_]*(Quote|Readings|Conflict|Missing|Untestable because|Proposed rewrite):[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*-[ \t]*[*_]*Quote:[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*-[ \t]*[*_]*Proposed rewrite:[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[ \t]*OPEN QUESTION:'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[ \t]*\[OPEN QUESTION:'
+        - '(?ims)^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*[^\[]OPEN QUESTION:'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*\[OPEN QUESTION\b[^\r\n:]'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*\b(two|2)\b[ \t]+or[ \t]+more[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*\bpair\b[^\r\n]*\b(fields|columns)\b[ \t]+or[ \t]+more[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*\[OPEN QUESTION:[^\r\n]*\][^\r\n]*\[OPEN QUESTION:'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$[\s\S]*?^[ \t]*-[ \t]*[*_]*(Quote|Readings|Conflict|Missing|Untestable because|Proposed rewrite):'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:'
+        - '(?ims)^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[^\r\n]*\r?$'
+      not_contains:
+        - "Finding Quality Report"
+        - "Verdict: CONCERNS"
+        - "Verdict: CLEAN"

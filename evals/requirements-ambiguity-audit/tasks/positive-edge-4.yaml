@@ -1,0 +1,87 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-004
+name: Missing actor and ambiguous reference are found
+description: |
+  A requirement set containing an agentless passive requirement and a
+  pronoun with two plausible referents must yield missing-actor and
+  ambiguous-reference findings as table rows with readings and
+  rewrites.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Audit these requirements for ambiguity before we estimate the work. Route
+    open questions to the product owner and number findings in requirement
+    order:
+
+    Requirements:
+    - R1: Deactivated accounts are deleted 90 days after deactivation.
+    - R2: The gateway forwards each alert to the primary endpoint and
+      the fallback endpoint; if it is unavailable, the alert is queued
+      for retry.
+
+    Context:
+    - The only plausible deletion actors are the account service and an admin
+      operator.
+    - If an account-deletion attempt fails, the same actor retries it 24 hours
+      later until it succeeds.
+    - Queuing for retry is the gateway's complete failure outcome regardless
+      of which endpoint "it" denotes; either reading preserves the same
+      implementation shape, and neither reading is preferred by this context.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/requirements-ambiguity-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - requirements-ambiguity-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?im)\A[ \t]*##[ \t]+Requirements Ambiguity Report[ \t]*\r?\n(?:[ \t]*\r?\n)*[ \t]*[*_]*Verdict:[*_ \t]*BLOCK[*_]*\.?[*_]*[ \t]*\r?$'
+        - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Severity\s*\|\s*Location\s*\|'
+        - '(?im)^[ \t]*\|[ \t]*#[ \t]*\|[ \t]*Class[ \t]*\|[ \t]*Severity[ \t]*\|[ \t]*Location[ \t]*\|[ \t]*\r?$\r?\n^[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*\r?$\r?\n^[ \t]*\|[ \t]*[`*_]*1[`*_]*[ \t]*\|[ \t]*[^|\r\n]*\S[^|\r\n]*[ \t]*\|[ \t]*[^|\r\n]*\S[^|\r\n]*[ \t]*\|[ \t]*[^|\r\n]*\S[^|\r\n]*[ \t]*\|[ \t]*\r?$\r?\n^[ \t]*\|[ \t]*[`*_]*2[`*_]*[ \t]*\|[ \t]*[^|\r\n]*\S[^|\r\n]*[ \t]*\|[ \t]*[^|\r\n]*\S[^|\r\n]*[ \t]*\|[ \t]*[^|\r\n]*\S[^|\r\n]*[ \t]*\|[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*### Findings[ \t]*\r?$'
+        - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|\s*[`*_]*missing-actor[`*_]*\s*\|\s*[`*_]*blocker[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
+        - '(?im)^\s*\|\s*[`*_]*2[`*_]*\s*\|\s*[`*_]*ambiguous-reference[`*_]*\s*\|\s*[`*_]*suggestion[`*_]*\s*\|(?:\\\||[^|\\\r\n])*[^|\s\\][ \t]*\|[ \t\r]*$'
+        - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|[^\r\n]*\|[^\r\n]*\bR1\b[^\r\n]*\|\s*$'
+        - '(?im)^\s*\|\s*[`*_]*2[`*_]*\s*\|[^\r\n]*\|[^\r\n]*\bR2\b[^\r\n]*\|\s*$'
+        - '(?m)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*(Deactivated accounts are deleted|Deactivated accounts are deleted 90 days after deactivation\.?)["`*_]*[ \t]*\r?$'
+        - '(?m)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*(it|if it is unavailable|The gateway forwards each alert to the primary endpoint and the fallback endpoint; if it is unavailable, the alert is queued for retry\.?)["`*_]*[ \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(service|system|operator|admin|actor)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(primary|fallback)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(account service[^\r\n]*/[^\r\n]*admin operator|admin operator[^\r\n]*/[^\r\n]*account service)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(primary[^\r\n]*/[^\r\n]*fallback|fallback[^\r\n]*/[^\r\n]*primary)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*(account|deactivat)[^\r\n]*delet[^\r\n]*\[OPEN QUESTION:[ \t]+[^\r\n\]]*(actor|service|operator|who)[^\r\n\]]*—[ \t]+product owner[ \t]+to decide\][^\r\n]*(90 days|deactivation)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*gateway[^\r\n]*(primary|fallback)[^\r\n]*\[OPEN QUESTION:[ \t]+[^\r\n\]]*(endpoint|referent|unavailable)[^\r\n\]]*—[ \t]+product owner[ \t]+to decide\][^\r\n]*(queue|retry)[^\r\n]*\r?$'
+        - '(?im)^### Findings[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+1[*_]*:[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*(?-i:(Deactivated accounts are deleted|Deactivated accounts are deleted 90 days after deactivation\.?))["`*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(service|system|operator|admin|actor)[^\r\n]*\S[ \t]+/[ \t]+\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*(?:[^\[\]\r\n]|\[[^\[\]:\r\n]*\])*(account|delet)(?:[^\[\]\r\n]|\[[^\[\]:\r\n]*\])*(\[OPEN QUESTION:[ \t]+[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\](?:[^\[\]\r\n]|\[[^\[\]:\r\n]*\])*)+\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+2[*_]*:[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*(?-i:(it|if it is unavailable|The gateway forwards each alert to the primary endpoint and the fallback endpoint; if it is unavailable, the alert is queued for retry\.?))["`*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(primary|fallback)[^\r\n]*\S[ \t]+/[ \t]+\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*(?:[^\[\]\r\n]|\[[^\[\]:\r\n]*\])*(gateway|queue|endpoint)(?:[^\[\]\r\n]|\[[^\[\]:\r\n]*\])*(\[OPEN QUESTION:[ \t]+[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\](?:[^\[\]\r\n]|\[[^\[\]:\r\n]*\])*)+\r?$\r?\n([ \t]*\r?\n)*### Open questions \(product decisions, not findings\)[ \t]*\r?$'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:[ \t]*\r?\n)*[ \t]*-[^\r\n]*product owner'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$[\s\S]*?^[ \t]*-[^\r\n]*((actor|delet)[^\r\n]*product owner|product owner[^\r\n]*(actor|delet))'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$[\s\S]*?^[ \t]*-[^\r\n]*((primary|fallback|referent|endpoint)[^\r\n]*product owner|product owner[^\r\n]*(primary|fallback|referent|endpoint))'
+      regex_not_match:
+        - '(?im)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Finding[ \t]+\d+[^0-9\s:*_][^:\r\n]*:[^\r\n]*\r?$'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*-[ \t]*[*_]*(Quote|Readings|Conflict|Missing|Untestable because|Proposed rewrite):[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*-[ \t]*[*_]*Quote:[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*-[ \t]*[*_]*Proposed rewrite:[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[ \t]*OPEN QUESTION:'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[ \t]*\[OPEN QUESTION:'
+        - '(?ims)^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*[^\[]OPEN QUESTION:'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*\[OPEN QUESTION\b[^\r\n:]'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:'
+        - '(?ims)^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[ \t]*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*[ \t]*\|'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[^\r\n]*\r?$'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$[\s\S]*?^[ \t]*-[ \t]*[*_]*(Quote|Readings|Conflict|Missing|Untestable because|Proposed rewrite):'
+      not_contains:
+        - "Finding Quality Report"
+        - "Verdict: CONCERNS"
+        - "Verdict: CLEAN"

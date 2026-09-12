@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-009
+name: Product decision is an open question only
+description: |
+  An explicit unresolved product choice must be routed to Open Questions,
+  not reported as a finding, while a separate timing ambiguity remains the
+  sole finding.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Audit these requirements for ambiguity. Route open questions to the product
+    owner.
+
+    Requirement R1: Before implementation, the product owner must choose whether
+    the launch banner is blue or green. Both choices are valid, and no supplied
+    requirement selects one. When launch completes, the web app begins displaying
+    the selected banner for a short duration.
+
+    Context:
+    - launch banner: the non-interactive announcement displayed at the top of
+      the web app after launch.
+    - The banner duration affects no API, persisted state, authorization,
+      workflow transition, accessibility announcement, or safety control.
+    - No plausible duration is preferred by the supplied context.
+    - Every plausible duration preserves the same implementation shape.
+    - The two plausible duration readings are one second and one minute.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/requirements-ambiguity-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - requirements-ambiguity-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?im)\A[ \t]*##[ \t]+Requirements Ambiguity Report[ \t]*\r?\n(?:[ \t]*\r?\n)*[ \t]*[*_]*Verdict:[*_ \t]*CONCERNS[*_]*\.?[*_]*[ \t]*\r?$'
+        - '(?i)\|\s*#\s*\|\s*Class\s*\|\s*Severity\s*\|\s*Location\s*\|'
+        - '(?im)^[ \t]*\|[ \t]*#[ \t]*\|[ \t]*Class[ \t]*\|[ \t]*Severity[ \t]*\|[ \t]*Location[ \t]*\|[ \t]*\r?$\r?\n^[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*\r?$\r?\n^[ \t]*\|[ \t]*[`*_]*1[`*_]*[ \t]*\|[ \t]*[^|\r\n]*\S[^|\r\n]*[ \t]*\|[ \t]*[^|\r\n]*\S[^|\r\n]*[ \t]*\|[ \t]*[^|\r\n]*\S[^|\r\n]*[ \t]*\|[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*### Findings[ \t]*\r?$'
+        - '(?im)^\s*\|\s*[`*_]*1[`*_]*\s*\|\s*[`*_]*vague-quantifier[`*_]*\s*\|\s*[`*_]*suggestion[`*_]*\s*\|[^\r\n]*\bR1\b[^\r\n]*\|\s*$'
+        - '(?m)^[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*(short duration|When launch completes, the web app begins displaying the selected banner for a short duration\.?)["`*_]*[ \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*(second|minute|hour)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*((one|1)[ \t]+second[^\r\n]*/[^\r\n]*(one|1)[ \t]+minute|(one|1)[ \t]+minute[^\r\n]*/[^\r\n]*(one|1)[ \t]+second)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*launch[^\r\n]*(banner|display)[^\r\n]*\[OPEN QUESTION:[ \t]+[^\r\n\]]*duration[^\r\n\]]*—[ \t]+product owner[ \t]+to decide\][^\r\n]*\r?$'
+        - '(?im)^### Findings[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*(#{1,6}[ \t]*)?[*_]*Finding[ \t]+1[*_]*:[*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Quote:[*_]*[ \t]*["`*_]*(?-i:(short duration|When launch completes, the web app begins displaying the selected banner for a short duration\.?))["`*_]*[ \t]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Readings:[*_]*[ \t]*[^\r\n]*\S[ \t]+/[ \t]+\S[^\r\n]*\r?$\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*(?:[^\[\]\r\n]|\[[^\[\]:\r\n]*\])*(\[OPEN QUESTION:[ \t]+[^\[\]\r\n]*\S[ \t]+—[ \t]+product owner[ \t]+to decide\](?:[^\[\]\r\n]|\[[^\[\]:\r\n]*\])*)+\r?$\r?\n([ \t]*\r?\n)*### Open questions \(product decisions, not findings\)[ \t]*\r?$'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$[\s\S]*?^[ \t]*-[^\r\n]*((blue[^\r\n]*green|green[^\r\n]*blue)[^\r\n]*product owner|product owner[^\r\n]*(blue[^\r\n]*green|green[^\r\n]*blue))'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$[\s\S]*?^[ \t]*-[^\r\n]*product owner'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$[\s\S]*?^[ \t]*-[^\r\n]*(duration[^\r\n]*product owner|product owner[^\r\n]*duration)'
+      regex_not_match:
+        - '(?im)^[ \t]*-[ \t]*[*_]*Readings:[*_]*[^\r\n]*\b(blue|green)\b[^\r\n]*\r?$'
+        - '(?im)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Finding[ \t]+\d+[^0-9\s:*_][^:\r\n]*:[^\r\n]*\r?$'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*-[ \t]*[*_]*(Quote|Readings|Conflict|Missing|Untestable because|Proposed rewrite):[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*-[ \t]*[*_]*Quote:[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*-[ \t]*[*_]*Proposed rewrite:[^\r\n]*\r?$[\s\S]*?^### Findings[ \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[ \t]*OPEN QUESTION:'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[ \t]*\[OPEN QUESTION:'
+        - '(?ims)^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|[^\r\n]*\r?$[\s\S]*?^[ \t]*\|[ \t]*[`*_]*\d+[`*_]*[ \t]*\|'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*[^\[]OPEN QUESTION:'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Proposed rewrite:[*_]*[^\r\n]*\[OPEN QUESTION\b[^\r\n:]'
+        - '(?ims)^### Open questions \(product decisions, not findings\)[ \t]*\r?$[\s\S]*?^[ \t]*-[ \t]*[*_]*(Quote|Readings|Conflict|Missing|Untestable because|Proposed rewrite):'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*[^\r\n]*\r?$'
+      not_contains:
+        - "Verdict: BLOCK"
+        - "Verdict: CLEAN"
+        - "Finding Quality Report"

@@ -63,6 +63,7 @@ Run through this list before opening or updating a skill PR; each item is a recu
 
 - Run `waza check skills/<name>` and `git diff --check` after changes. Eval schema and all task files must validate.
 - For coupled `shell-command-construction`/`shell-portability` changes, run `python3 evals/_helpers/check-shell-contract-projections.py`; it checks delimiter-owned candidate bytes, the custom-label deployment-completion regression across two label maps, and the leading-pipe portability handoff without adding or running model tasks.
+- When task YAML or grader contracts change, run `python3 evals/_helpers/check-eval-regexes.py --root evals/<name>`. The validator decodes YAML and compiles every `regex_match` and `regex_not_match` with Go `regexp`; its decoded count is authoritative. Use `--cases <file.json>` for contract-specific positive/negative examples.
 - Ignore these `waza` complaints per AGENTS.md: the 500-token hard limit and the `argument-hint`/`user-invocable` frontmatter-field warnings. Everything else should be green.
 
 ## Documentation

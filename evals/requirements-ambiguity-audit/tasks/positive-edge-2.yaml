@@ -31,10 +31,32 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?i)Requirements Ambiguity Report'
-        - '(?i)Verdict:\s*BLOCK'
-        - '(?i)Missing input'
-        - '(?i)Smallest addition to proceed'
+        - '(?is)\A[ \t]*##[ \t]+Requirements Ambiguity Report[ \t]*\r?\n([ \t]*\r?\n)*[ \t]*[*_]*Verdict:[*_ \t]*BLOCK[*_]*\.?[*_]*[ \t]*\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Missing input:[*_]*[ \t]*\S[^\r\n]*\r?\n([ \t]*\r?\n)*[ \t]*-[ \t]*[*_]*Smallest addition to proceed:[*_]*[ \t]*\S[^\r\n]*(?:[ \t]*\r?\n)*[ \t]*\z'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Missing input:[*_]*[^\r\n]*(not[ \t]+(provided|supplied|pasted)|no[ \t]+(spec|specification|requirement)[^\r\n]*text|missing|absent)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Smallest addition to proceed:[*_]*[ \t]*((please[ \t]+)?(provide|paste|send|supply|attach|upload)[^\r\n]*(spec|specification|requirements?|text)|[^\r\n]*(spec|specification|requirements?|text)[^\r\n]*please[ \t]+(provide|paste|send|supply|attach|upload)([ \t]+it)?|[^\r\n]*please[ \t]+(provide|paste|send|supply|attach|upload)[^\r\n]*(spec|specification|requirements?|text))[^\r\n]*\r?$'
+      regex_not_match:
+        - '(?im)^[ \t]*-[ \t]*[*_]*(Missing input|Smallest addition to proceed):[*_]*[^\r\n]*(Missing input|Smallest addition to proceed):'
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:'
+        - '(?im)^[ \t]*\|[^\r\n]*\|[^\r\n]*(?:vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[^\r\n]*\|[ \t]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Missing input:[*_]*[^\r\n]*(unreadable|corrupt|garbl|cannot be (read|recovered))[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Smallest addition to proceed:[*_]*[^\r\n]*(do not|don''t|cannot|can''t|never|no need to|must not|should not)[ \t]+(provide|paste|send|supply|attach|upload)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Smallest addition to proceed:[*_]*[^\r\n]*(provide|paste|send|supply|attach|upload)[^\r\n]*(no[ \t]+(spec|specification|requirements?|text)|without[ \t]+(spec|specification|requirements?|text)|(none|nothing)[ \t]*[.!?]?[ \t]*$)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Smallest addition to proceed:[*_]*[^\r\n]*\b(I|we)([ \t]+(will|plan|intend|expect)|[''’](ll|d))[ \t]+(provide|paste|send|supply|attach|upload)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Smallest addition to proceed:[*_]*[^\r\n]*(provide|paste|send|supply|attach|upload)[^\r\n]*(but[ \t]+)?not([ \t]+now|[ \t]+yet|[ \t]+until|[ \t]*$)[^\r\n]*\r?$'
+        - '(?im)^[ \t]*-[ \t]*[*_]*Smallest addition to proceed:[*_]*[^\r\n]*(summary|overview|description|guess|placeholder)[^\r\n]*instead of[^\r\n]*(spec|specification|requirements?|text)[^\r\n]*\r?$'
       not_contains:
         - "Readings:"
         - "Proposed rewrite:"
+        - "Quote:"
+        - "Conflict:"
+        - "Missing:"
+        - "Untestable because:"
+        - "| # | Class | Severity | Location |"
+        - "| vague-quantifier |"
+        - "| undefined-term |"
+        - "| missing-actor |"
+        - "| conflicting-requirements |"
+        - "| placeholder |"
+        - "| unspecified-path |"
+        - "| ambiguous-reference |"
+        - "| untestable-wording |"
