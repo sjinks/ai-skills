@@ -38,11 +38,19 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?im)^Verdict:\s*BLOCK\s*$'
-        - '(?im)^Target:\s*[^\r\n]*FreeBSD[ \t]*14[^\r\n]*$'
-        - '(?im)^Findings:\s*$'
+        - '(?im)^Portability verdict:\s*BLOCK\s*$'
+        - '(?im)^Portability target:\s*[^\r\n]*FreeBSD[ \t]*14[^\r\n]*$'
+        - '(?im)^Portability interpreter:\s*[^\r\n]+$'
+        - '(?im)^Portability findings:\s*$'
         - '(?ims)^1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*CRITICAL\s*\r?\n[ \t]+Classification:\s*Confirmed issue\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*(?i:readlink[ \t]+-m)[^\r\n]*\r?\n[ \t]+Rule:\s*utilities-flags\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*[^\r\n]+$'
         - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*(?i:matching|missing.component|target.branch|reduced)[^\r\n]*$'
+        - '(?im)^Portability checklist status:\s*$'
+        - '(?im)^- Interpreter and shebang:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Bashisms:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Utilities and flags:\s*missing\s*$'
+        - '(?im)^- Output and behavior:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Verification:\s*(?:covered|n/a)\s*$'
+        - '(?im)^Portability residual risk:\s*[^\r\n]+$'
       regex_not_match:
         - '(?im)^[ \t]+Portable fix:\s*readlink[ \t]+-f\b'
   - type: prompt

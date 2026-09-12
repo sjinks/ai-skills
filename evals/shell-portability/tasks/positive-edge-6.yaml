@@ -40,10 +40,10 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?im)^Verdict:\s*BLOCK\s*$'
-        - '(?i)Target:.*default baseline.*POSIX sh.*(?:dash|busybox).*GNU.*(?:BSD|macOS).*busybox'
-        - '(?im)^Interpreter:\s*#!/bin/sh\s*$'
-        - '(?im)^Findings:\s*$'
+        - '(?im)^Portability verdict:\s*BLOCK\s*$'
+        - '(?i)Portability target:.*default baseline.*POSIX sh.*(?:dash|busybox).*GNU.*(?:BSD|macOS).*busybox'
+        - '(?im)^Portability interpreter:\s*#!/bin/sh\s*$'
+        - '(?im)^Portability findings:\s*$'
         - '(?im)^1\.\s+[^\r\n]+$'
         - '(?im)^[ \t]+Severity:\s*(?:CRITICAL|HIGH|MEDIUM|LOW)\s*$'
         - '(?im)^[ \t]+Classification:\s*(?:Confirmed issue|Likely risk|Open question|Accepted tradeoff)\s*$'
@@ -56,13 +56,13 @@ graders:
         - '(?ims)^2\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*HIGH\s*\r?\n[ \t]+Classification:\s*Confirmed issue\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*echo -e[^\r\n]*\r?\n[ \t]+Rule:\s*output-behavior\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]*printf[^\r\n]*\r?\n[ \t]+Verification:\s*[^\r\n]+$'
         - '(?i)(?:\[\[|bashism|not.*POSIX)'
         - '(?i)(?:echo -e|printf)'
-        - '(?im)^Checklist status:\s*$'
+        - '(?im)^Portability checklist status:\s*$'
         - '(?im)^- Interpreter and shebang:\s*(?:covered|missing|n/a)\s*$'
         - '(?im)^- Bashisms:\s*(?:covered|missing|n/a)\s*$'
         - '(?im)^- Utilities and flags:\s*(?:covered|missing|n/a)\s*$'
         - '(?im)^- Output and behavior:\s*(?:covered|missing|n/a)\s*$'
         - '(?im)^- Verification:\s*(?:covered|missing|n/a)\s*$'
-        - '(?im)^Residual risk:\s*[^\r\n]+$'
+        - '(?im)^Portability residual risk:\s*[^\r\n]+$'
       not_contains:
         - 'Construction result:'
         - 'Construction assessment:'

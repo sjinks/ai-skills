@@ -25,4 +25,4 @@ graders:
     name: task_completion
     config:
       regex_not_match:
-        - '(?im)^(?:Verdict|Target|Interpreter|Findings|Checklist status|Residual risk):'
+        - '(?im)^(?:Portability verdict|Portability target|Portability interpreter|Portability findings|Portability checklist status|Portability residual risk):'

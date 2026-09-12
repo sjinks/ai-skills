@@ -2,7 +2,7 @@
 
 This matrix maps each synthetic fixture to its discriminating construction behavior. Original planning traces that required execution-safety handling are superseded by the user override: SCC assesses no execution concerns and always uses `Execution authority: NOT ASSESSED BY THIS SKILL`.
 
-The SCC suite contains 36 fixtures; the separate shell-portability suite contains 32 fixtures.
+The SCC suite contains 37 fixtures; the separate shell-portability suite contains 35 fixtures.
 
 | Fixture | SCC-TC | Source trace | Behavioral discriminator | Trigger | Result/exclusion | Authority or handoff | Deterministic focus | Substance |
 |---|---|---|---|---|---|---|---|---|
@@ -34,7 +34,7 @@ The SCC suite contains 36 fixtures; the separate shell-portability suite contain
 | positive-edge-026 | 8 | AC-4, EDGE-6 | One-line pipeline fragment beginning with `|` and downstream command text on the same line | yes | VALID | not assessed | preserves the exact supplied `| sed -n '1p'` candidate as VALID; does not collapse it into malformed bare-pipe multiline marker | no |
 | positive-edge-027 | 8 | AC-4, EDGE-6 | Confirmed one-argument command substitution | yes | VALID | not assessed | preserves exact supplied `tool "$(date)"` candidate with confirmed intentional command substitution and one-argument boundary under SCC-A1 | no |
 | positive-edge-028 | 8 | AC-4, EDGE-6 | Supplied one-line candidate text equals reserved placeholder `Not provided` | yes | VALID | not assessed | preserves exact literal payload by canonical multiline `Construction candidate: |` serialization; does not collapse into BLOCKED inline placeholder | no |
-| negative-trigger-001 | 12 | AC-7 | Generic tutoring | no | exclusion | n/a | all markers absent | no |
+| negative-trigger-001 | 12 | AC-7 | Non-shell TypeScript implementation task | no | exclusion | n/a | all markers absent | no |
 | negative-trigger-002 | 12 | AC-7 | Non-shell task | no | exclusion | n/a | all markers absent | no |
 | negative-close-001 | 11 | AC-7 | Portability-only review | no | exclusion | portability-only exclusion | all SCC markers absent | no |
 | negative-close-002 | 12 | AC-7 | Prose-only drafting | no | exclusion | n/a | all markers absent | no |
@@ -42,6 +42,7 @@ The SCC suite contains 36 fixtures; the separate shell-portability suite contain
 | negative-close-004 | 12 | AC-7 | Generic shell goal with no command, executable, path, syntax, or payload interface | no | exclusion | n/a | all construction markers absent | no |
 | negative-close-005 | 11 | AC-7 | GitHub CLI body/field/stdin repair owned by the dedicated GitHub CLI workflow | no | exclusion | GitHub CLI ownership | all SCC markers absent; gh-specific workflow remains eligible | no |
 | negative-close-006 | 12 | AC-7 | General shell grammar defect outside the canonical construction catalog | no | exclusion | n/a | all construction markers absent | no |
+| negative-close-007 | 12 | AC-7 | Generic shell-quoting tutoring | no | exclusion | n/a | all construction markers absent | no |
 
 ## Portability malformed-handoff additions
 
@@ -56,5 +57,20 @@ The SCC suite contains 36 fixtures; the separate shell-portability suite contain
 | positive-edge-021 | Two individually complete construction results | Reduced `BLOCK`; request exactly one complete SCC result; no portability conclusion |
 | positive-edge-022 | Altered `Execution authority` value | Reduced `BLOCK`; request corrected authority literal in a complete SCC result; no portability conclusion |
 | positive-edge-023 | Multiline payload containing `Not provided` for `VALID`/`REWRITE` | Decode as literal candidate payload; perform normal portability review; no malformed-handoff block |
+| positive-edge-026 | Leading `Construction assessment` before `Construction result` | Reduced `BLOCK`; request one corrected complete SCC result; no portability conclusion |
+
+## Portability target-specific utility additions
+
+| Fixture | Target branch | Expected behavior |
+|---|---|---|
+| positive-edge-024 | Confirmed native FreeBSD 14 `readlink -f` semantics | Preserve native command; `CLEAN`; no `realpath` rewrite |
+| positive-edge-025 | FreeBSD 14 `readlink -m` with missing-component requirement | `BLOCK`; do not infer `-m` support from native `-f` |
+| positive-edge-027 | Confirmed native macOS 12.3 `readlink -f` semantics | Preserve native command; `CLEAN`; no `realpath` rewrite |
+
+## Portability routing additions
+
+| Fixture | Boundary | Expected behavior |
+|---|---|---|
+| negative-close-006 | Cross-target Python portability question | Exclude shell-portability output while retaining close-domain routing coverage |
 
 All fixture data is synthetic. The disclosure sentinel appears only in an agent-readable evaluator fixture resource and a forbidden-output assertion, never in the prompt; the target tool has no confirmed interface for that resource. Other secret fixtures use non-secret transport names. Positive serializers permit zero or one terminal newline after a nonblank `Construction next step`, but reject extra blank lines or trailing prose. The global output contract rejects positive and negative downstream semantic judgments in the assessment and next-step fields while allowing boundary-only construction statements. Separate RE2-compatible semantic assertions cover representative required construction concepts per fixture; assertion 3 intentionally retains finite structural coverage for field order, result, candidate, and authority rather than exhaustive synonym matching. SCC-Q1 keeps a multiline scalar as one argv word; SCC-M1 exclusively covers supplied stdin, file, and heredoc payload transport. Superseded planning traces that assigned safety, execution, or cross-target authority to SCC do not describe these fixtures; SCC uses only its construction contract.

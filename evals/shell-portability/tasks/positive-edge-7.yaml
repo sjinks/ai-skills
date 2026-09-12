@@ -43,17 +43,17 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?im)^Verdict:\s*CLEAN\s*$'
-        - '(?i)Target:.*POSIX sh.*Ubuntu.*macOS'
-        - '(?im)^Interpreter:\s*[^\r\n]+$'
-        - '(?im)^Findings:\s*None\s*$'
-        - '(?im)^Checklist status:\s*$'
+        - '(?im)^Portability verdict:\s*CLEAN\s*$'
+        - '(?i)Portability target:.*POSIX sh.*Ubuntu.*macOS'
+        - '(?im)^Portability interpreter:\s*[^\r\n]+$'
+        - '(?im)^Portability findings:\s*None\s*$'
+        - '(?im)^Portability checklist status:\s*$'
         - '(?im)^- Interpreter and shebang:\s*(?:covered|n/a)\s*$'
         - '(?im)^- Bashisms:\s*(?:covered|n/a)\s*$'
         - '(?im)^- Utilities and flags:\s*(?:covered|n/a)\s*$'
         - '(?im)^- Output and behavior:\s*(?:covered|n/a)\s*$'
         - '(?im)^- Verification:\s*(?:covered|n/a)\s*$'
-        - '(?im)^Residual risk:\s*[^\r\n]+$'
+        - '(?im)^Portability residual risk:\s*[^\r\n]+$'
       regex_not_match:
         - '(?im)^(?:Construction result|Construction assessment|Construction candidate|Execution authority|Construction next step):'
   - type: prompt

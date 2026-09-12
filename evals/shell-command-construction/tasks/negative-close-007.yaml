@@ -1,6 +1,6 @@
-id: negative-trigger-001
-name: Non-shell TypeScript implementation task
-inputs: { prompt: "Write a TypeScript function that parses CSV rows into records." }
+id: negative-close-007
+name: Generic shell quoting tutoring
+inputs: { prompt: "Explain the difference between single quotes and double quotes in a shell." }
 expected: { should_trigger: false }
 graders:
   - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: negative, threshold: 0.45 } }

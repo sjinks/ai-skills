@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-006
+name: Non-shell Python portability question
+description: A cross-target Python question is close to portability but outside this shell skill.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Will this Python 3.11 script behave the same on Ubuntu and macOS, and what
+    portability changes should I make?
+
+    ```python
+    from pathlib import Path
+    print(Path.cwd())
+    ```
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-portability/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - 'Portability verdict:'
+        - 'Portability findings:'
+        - 'Portability checklist status:'
+        - 'Portability interpreter:'
+        - 'Portability target:'
+        - 'Portability residual risk:'

@@ -31,15 +31,15 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?is)\AVerdict:\s*BLOCK\s*\r?\nTarget:\s*[^\r\n]+\r?\n\r?\nFindings:\s*\r?\n1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*LOW\s*\r?\n[ \t]+Classification:\s*Open question\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*(?:no script|no code|not supplied|no commands)[^\r\n]*\r?\n[ \t]+Rule:\s*(?:interpreter-shebang|bashisms|utilities-flags|output-behavior|verification)\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?:provide|paste|supply)[^\r\n]*(?:script|code|commands)[^\r\n]*\r?\n[ \t]+Verification:\s*N/A\s*\r?\n?\z'
+        - '(?is)\APortability verdict:\s*BLOCK\s*\r?\nPortability target:\s*[^\r\n]+\r?\n\r?\nPortability findings:\s*\r?\n1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*LOW\s*\r?\n[ \t]+Classification:\s*Open question\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*(?:no script|no code|not supplied|no commands)[^\r\n]*\r?\n[ \t]+Rule:\s*(?:interpreter-shebang|bashisms|utilities-flags|output-behavior|verification)\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?:provide|paste|supply)[^\r\n]*(?:script|code|commands)[^\r\n]*\r?\n[ \t]+Verification:\s*N/A\s*\r?\n?\z'
       not_contains:
-        - "Checklist status:"
+        - "Portability checklist status:"
   - type: prompt
     name: task_completion_substance
     config:
       prompt: |
         Grade whether the response correctly recognizes that no script or
-        commands were supplied, returns `Verdict: BLOCK`, asks for the code
+        commands were supplied, returns `Portability verdict: BLOCK`, asks for the code
         (and ideally the target shells/OSes), and does NOT fabricate a script
         to review or emit a full checklist status.
 

@@ -20,12 +20,12 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?is)\AVerdict:\s*BLOCK\s*\r?\nTarget:\s*[^\r\n]+\r?\n\r?\nFindings:\s*\r?\n1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*LOW\s*\r?\n[ \t]+Classification:\s*Open question\s*\r?\n[ \t]+Evidence:\s*[^\r\n]+\r?\n[ \t]+Rule:\s*(?:interpreter-shebang|bashisms|utilities-flags|output-behavior|verification)\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*N/A\s*\r?\n?\z'
+        - '(?is)\APortability verdict:\s*BLOCK\s*\r?\nPortability target:\s*[^\r\n]+\r?\n\r?\nPortability findings:\s*\r?\n1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*LOW\s*\r?\n[ \t]+Classification:\s*Open question\s*\r?\n[ \t]+Evidence:\s*[^\r\n]+\r?\n[ \t]+Rule:\s*(?:interpreter-shebang|bashisms|utilities-flags|output-behavior|verification)\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*N/A\s*\r?\n?\z'
         - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?i:execution authority|NOT ASSESSED BY THIS SKILL|APPROVED|malformed|invalid)[^\r\n]*$'
         - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*(?i:provide|supply|correct|replace)[^\r\n]*(?i:construction|handoff|Execution authority|NOT ASSESSED BY THIS SKILL)[^\r\n]*$'
       regex_not_match:
-        - '(?i)Verdict:\s*(?:CLEAN|CONCERNS)'
-        - '(?im)^(?:Interpreter|Checklist status|Residual risk):'
+        - '(?i)Portability verdict:\s*(?:CLEAN|CONCERNS)'
+        - '(?im)^(?:Portability interpreter|Portability checklist status|Portability residual risk):'
         - '(?i)(?:\A|[:.!?][ \t]+)(?:(?:the[ \t]+)?(?:candidate|command|it|this)[ \t]+(?:is[ \t]+(?:portable|compatible|valid|suitable|supported)|conforms?|works?|runs?)[^\r\n]*(?:POSIX|Ubuntu|macOS)|(?:POSIX|Ubuntu|macOS)[^\r\n]{0,80}(?:portability|compatibility)[ \t]+(?:is|was|has[ \t]+been)[ \t]+(?:confirmed|verified|established))'
   - type: prompt
     name: task_completion_substance

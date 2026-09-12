@@ -1,18 +1,12 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 id: negative-trigger-001
-name: Non-shell Python portability question
-description: Python portability language without shell code must not activate the shell-portability skill.
+name: Off-topic developer task
+description: An unrelated developer task must not activate the shell-portability skill.
 tags:
   - negative-trigger
 inputs:
   prompt: |
-    Will this Python 3.11 script behave the same on Ubuntu and macOS, and what
-    portability changes should I make?
-
-    ```python
-    from pathlib import Path
-    print(Path.cwd())
-    ```
+    Write a SQL query that finds duplicate email addresses in a `users` table.
 expected:
   should_trigger: false
 graders:
@@ -26,9 +20,9 @@ graders:
     name: task_completion
     config:
       not_contains:
-        - "Verdict:"
-        - "Findings:"
-        - "Checklist status:"
-        - "Interpreter:"
-        - "Target:"
-        - "Residual risk:"
+        - "Portability verdict:"
+        - "Portability findings:"
+        - "Portability checklist status:"
+        - "Portability interpreter:"
+        - "Portability target:"
+        - "Portability residual risk:"

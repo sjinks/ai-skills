@@ -23,9 +23,9 @@ graders:
     name: task_completion
     config:
       not_contains:
-        - "Verdict:"
-        - "Target:"
-        - "Interpreter:"
-        - "Findings:"
-        - "Checklist status:"
-        - "Residual risk:"
+        - "Portability verdict:"
+        - "Portability target:"
+        - "Portability interpreter:"
+        - "Portability findings:"
+        - "Portability checklist status:"
+        - "Portability residual risk:"

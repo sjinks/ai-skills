@@ -40,7 +40,7 @@ Establish or infer before judging:
 - The portability target: which shells (`POSIX sh`, `bash`, `ksh`, `zsh`, `dash`/`ash`/`busybox`), which OSes/coreutils (GNU/Linux, BSD/macOS, busybox/Alpine), and any version floors (e.g. bash 3.2 for macOS).
 - The interpreter: the shebang line, or how the script is invoked (`sh script`, `bash script`, sourced).
 
-If no code is supplied, return `Verdict: BLOCK` with one open question; do not invent a script. If code is supplied but the target is unstated, **default to the broadest baseline** — `POSIX sh` (POSIX.1-2017 Shell & Utilities) running under `dash`/`busybox ash`, with utilities that may be GNU **or** BSD/macOS **or** busybox — state that assumption on a `Target:` line, and judge against it. Only narrow the baseline when the user names specific targets.
+If no code is supplied, return `Portability verdict: BLOCK` with one open question; do not invent a script. If code is supplied but the target is unstated, **default to the broadest baseline** — `POSIX sh` (POSIX.1-2017 Shell & Utilities) running under `dash`/`busybox ash`, with utilities that may be GNU **or** BSD/macOS **or** busybox — state that assumption on a `Portability target:` line, and judge against it. Only narrow the baseline when the user names specific targets.
 
 ## Workflow
 
@@ -110,11 +110,11 @@ Verdicts:
 ## Output Format
 
 ```text
-Verdict: BLOCK | CONCERNS | CLEAN
-Target: <declared shells/OSes, or "default baseline: POSIX sh under dash/busybox ash + GNU/BSD/macOS/busybox utilities">
-Interpreter: <shebang / how invoked, or undeclared>
+Portability verdict: BLOCK | CONCERNS | CLEAN
+Portability target: <declared shells/OSes, or "default baseline: POSIX sh under dash/busybox ash + GNU/BSD/macOS/busybox utilities">
+Portability interpreter: <shebang / how invoked, or undeclared>
 
-Findings:
+Portability findings:
 1. <short title>
   Severity: CRITICAL | HIGH | MEDIUM | LOW
   Classification: Confirmed issue | Likely risk | Open question | Accepted tradeoff
@@ -124,27 +124,27 @@ Findings:
   Portable fix: <POSIX replacement or target-conditional branch>
   Verification: <shellcheck -s sh | checkbashisms | run under dash/busybox | BSD/macOS run | N/A>
 
-Checklist status:
+Portability checklist status:
 - Interpreter and shebang: covered | missing | n/a
 - Bashisms: covered | missing | n/a
 - Utilities and flags: covered | missing | n/a
 - Output and behavior: covered | missing | n/a
 - Verification: covered | missing | n/a
 
-Residual risk: <remaining caveats or None>
+Portability residual risk: <remaining caveats or None>
 ```
 
 `Rule:` values map to checklist sections: `interpreter-shebang` -> Interpreter And Shebang; `bashisms` -> Bashisms; `utilities-flags` -> Utilities And Flags; `output-behavior` -> Output And Behavior; `verification` -> Verification.
 
-When no material issues exist, write exactly `Findings: None` (allowed only with `CLEAN`) and list assumptions under Residual risk.
+When no material issues exist, write exactly `Portability findings: None` (allowed only with `CLEAN`) and list assumptions under `Portability residual risk`.
 
 Insufficient-context mode: when no reviewable code or exact construction candidate is available because no code was supplied, construction was consistently `BLOCKED`, or any construction handoff is malformed or inconsistent (including one-line, disposition, field, and multiline errors), emit exactly this reduced template and stop; do not emit interpreter or checklist status with guessed values. The `BLOCK` verdict here is triggered by unavailable trustworthy command text, not by the finding's severity:
 
 ```text
-Verdict: BLOCK
-Target: <declared or default baseline>
+Portability verdict: BLOCK
+Portability target: <declared or default baseline>
 
-Findings:
+Portability findings:
 1. <missing-context short title>
   Severity: LOW
   Classification: Open question
@@ -157,7 +157,7 @@ Findings:
 
 ## Examples
 
-- `readlink -f "$path"` is non-POSIX: it fails on macOS, but a declared target may provide it natively. Preserve the native form only when its final-component, existence, and error semantics are confirmed to match; otherwise require an available `realpath` implementation with matching semantics. GNU `realpath`/`grealpath` are examples. A `cd`/`pwd -P` plus basename fallback does not resolve a final-component symlink and is only a documented reduced-semantics alternative.
+- `readlink -f "$path"` is non-POSIX and target-dependent: FreeBSD and macOS 12.3+ provide it, while older macOS targets may not. Preserve the native form only when its final-component, existence, and error semantics are confirmed to match; otherwise require an available `realpath` implementation with matching semantics. GNU `realpath`/`grealpath` are examples. A `cd`/`pwd -P` plus basename fallback does not resolve a final-component symlink and is only a documented reduced-semantics alternative.
 - `#!/bin/sh` script using `if [[ "$x" == y* ]]; then`: under dash/busybox this is a syntax error. Portable fix: `case "$x" in y*) ... ;; esac`, or `[ "$x" = "y" ]` for exact match.
 - `sed -i 's/a/b/' f` differs: GNU takes `-i`, BSD/macOS needs `-i ''`. This branch addresses flag compatibility only: GNU uses `sed -i 's/a/b/' f`; BSD/macOS uses `sed -i '' 's/a/b/' f`. If metadata, hard-link identity, or atomicity invariants are required, require target-specific verified behavior and document trade-offs.
 - `echo -n "$msg"` is unspecified: whether `-n` is treated as a flag or printed, and whether escapes are interpreted, varies by shell/implementation and options (`xpg_echo`, `-e`/`-E`). Portable fix: `printf '%s' "$msg"`.

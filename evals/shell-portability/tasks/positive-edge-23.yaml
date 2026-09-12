@@ -22,12 +22,19 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?im)^Verdict:\s*(?:CLEAN|CONCERNS)\s*$'
-        - '(?i)Target:.*POSIX sh.*Ubuntu.*macOS'
-        - '(?im)^Interpreter:\s*[^\r\n]+$'
-        - '(?im)^Checklist status:\s*$'
+        - '(?im)^Portability verdict:\s*CLEAN\s*$'
+        - '(?i)Portability target:.*POSIX sh.*Ubuntu.*macOS'
+        - '(?im)^Portability interpreter:\s*[^\r\n]+$'
+        - '(?im)^Portability findings:\s*None\s*$'
+        - '(?im)^Portability checklist status:\s*$'
+        - '(?im)^- Interpreter and shebang:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Bashisms:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Utilities and flags:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Output and behavior:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Verification:\s*(?:covered|n/a)\s*$'
+        - '(?im)^Portability residual risk:\s*[^\r\n]+$'
       regex_not_match:
-        - '(?im)^Verdict:\s*BLOCK\s*$'
+        - '(?im)^Portability verdict:\s*(?:BLOCK|CONCERNS)\s*$'
         - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?i:malformed|invalid|Construction candidate: Not provided|placeholder|construction result).*'
         - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*(?i:corrected construction|supply construction|construction handoff|construction result).*'
         - '(?im)^(?:Construction result|Construction assessment|Construction candidate|Execution authority|Construction next step):'
@@ -36,9 +43,8 @@ graders:
     config:
       prompt: |
         Grade whether the response accepts the block-encoded one-line candidate
-        text `Not provided` as valid handoff payload, performs a normal
-        portability review (not reduced malformed-handoff BLOCK), and avoids
-        redoing construction.
+        text `Not provided` as valid handoff payload, returns CLEAN with no
+        findings for the declared targets, and avoids redoing construction.
 
         Output format (strict):
         - Write one sentence of reasoning on its own line.

@@ -3,13 +3,13 @@ id: positive-trigger-001
 name: Bashisms in a /bin/sh script
 description: |
   Review must activate on bash-only constructs in a POSIX sh script and on a
-  non-POSIX utility flag that is unavailable on macOS.
+  non-POSIX utility flag that is unavailable on the declared macOS 12.2 target.
 tags:
   - positive-trigger
 inputs:
   prompt: |
     This script has #!/bin/sh but our CI runs it on both Alpine (busybox)
-    and macOS. Is it portable?
+    and macOS 12.2. Is it portable?
 
     ```sh
     #!/bin/sh
@@ -20,7 +20,8 @@ inputs:
     fi
     ```
 
-    No divergent `echo -n` output has been demonstrated on the named current
+    The macOS 12.2 native `readlink` explicitly lacks `-f`. No divergent
+    `echo -n` output has been demonstrated on the named
     targets. Exact `readlink -f` canonicalization, including final-component
     symlink resolution and matching existence/error behavior, must be preserved.
     A `realpath` implementation with those semantics is confirmed available on
@@ -48,10 +49,10 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?im)^Verdict:\s*BLOCK\s*$'
-        - '(?im)^Target:\s*[^\r\n]+$'
-        - '(?im)^Interpreter:\s*#!/bin/sh\s*$'
-        - '(?im)^Findings:\s*$'
+        - '(?im)^Portability verdict:\s*BLOCK\s*$'
+        - '(?im)^Portability target:\s*[^\r\n]+$'
+        - '(?im)^Portability interpreter:\s*#!/bin/sh\s*$'
+        - '(?im)^Portability findings:\s*$'
         - '(?ims)^1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*CRITICAL\s*\r?\n[ \t]+Classification:\s*Confirmed issue\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*(?:\[\[|bashism)[^\r\n]*\r?\n[ \t]+Rule:\s*bashisms\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*[^\r\n]+\r?$'
         - '(?ims)^2\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*CRITICAL\s*\r?\n[ \t]+Classification:\s*Confirmed issue\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*readlink -f[^\r\n]*\r?\n[ \t]+Rule:\s*utilities-flags\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*[^\r\n]+\r?$'
         - '(?ims)^3\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*MEDIUM\s*\r?\n[ \t]+Classification:\s*Likely risk\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*echo -n[^\r\n]*\r?\n[ \t]+Rule:\s*output-behavior\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]*printf[^\r\n]*\r?\n[ \t]+Verification:\s*[^\r\n]+$'
@@ -62,13 +63,13 @@ graders:
         - '(?i)(\[\[|bashism|not POSIX|case)'
         - '(?i)readlink'
         - '(?i)(printf|echo -n)'
-        - '(?i)Checklist status:'
+        - '(?i)Portability checklist status:'
         - '(?im)^- Interpreter and shebang:\s*(?:covered|missing|n/a)\s*$'
         - '(?im)^- Bashisms:\s*(?:covered|missing|n/a)\s*$'
         - '(?im)^- Utilities and flags:\s*(?:covered|missing|n/a)\s*$'
         - '(?im)^- Output and behavior:\s*(?:covered|missing|n/a)\s*$'
         - '(?im)^- Verification:\s*(?:covered|missing|n/a)\s*$'
-        - '(?im)^Residual risk:\s*[^\r\n]+$'
+        - '(?im)^Portability residual risk:\s*[^\r\n]+$'
       not_contains:
         - "Compatibility promise:"
         - "Dependency policy:"
@@ -80,7 +81,7 @@ graders:
         - `[[ ... == start* ]]` is a bashism that fails under busybox/dash;
           it should be a POSIX `case` statement preserving the `start*` prefix match.
         - `readlink -f` is non-POSIX and unavailable on the declared macOS
-          target. Exact canonicalization includes final-component symlink
+          12.2 target. Exact canonicalization includes final-component symlink
           resolution and matching existence/error behavior, so use the
           confirmed available `realpath "$2"`; a `cd`/`pwd -P` plus basename
           function is not equivalent.
