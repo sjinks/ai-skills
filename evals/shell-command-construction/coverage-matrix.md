@@ -65,7 +65,7 @@ The SCC suite contains 43 fixtures, explicitly approved by the user on 2026-09-1
 | positive-edge-023 | Multiline payload containing `Not provided` for `VALID`/`REWRITE` | Decode as literal candidate payload; perform normal portability review; no malformed-handoff block |
 | positive-edge-026 | Leading `Construction assessment` before `Construction result` | Reduced `BLOCK`; request one corrected complete SCC result; no portability conclusion |
 | positive-edge-028 | Custom-labeled direct construction response | Reduced `BLOCK`; request canonical handoff fields or separately supplied direct code; no portability conclusion |
-| positive-edge-029 | Terminal two-space-only multiline payload line | Decode as the candidate's terminal newline; normal `CLEAN` review; no malformed-handoff block |
+| positive-edge-029 | Terminal two-space-only multiline payload line after a standalone trailing backslash | Decode as the candidate's terminal newline, completing the POSIX line continuation; normal `CLEAN` review; dropped newline makes dash treat the backslash as a command |
 
 ## Portability target-specific utility additions
 
