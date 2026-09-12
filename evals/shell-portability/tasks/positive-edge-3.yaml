@@ -1,25 +1,27 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 id: positive-edge-003
-name: Mixed request after construction result
+name: Leading-pipe construction handoff remains a one-line candidate
 description: |
-  A mixed request with an already-supplied construction result must activate
-  portability only to review that exact candidate, without making a construction claim.
+  A one-line candidate beginning with a pipe is not the multiline marker when
+  text follows on the same line. Portability must review that exact fragment
+  without making a construction claim.
 tags:
   - positive-edge
 inputs:
   prompt: |
-    A separate construction review is complete:
+    A separate construction review is complete for a pipeline fragment whose
+    preceding command is supplied by its containing script:
     Construction result: REWRITE
-    Construction assessment: The supplied label remains one argument boundary.
-    Construction candidate: tool run "$label"
+    Construction assessment: The supplied pipe remains a one-line shell fragment.
+    Construction candidate: | sed -n '1p'
     Execution authority: NOT ASSESSED BY THIS SKILL
     Construction next step: Request a separate portability review of the exact candidate.
 
-    The external `tool` and its `run` interface are available identically on
-    both targets; review only the shell syntax of that exact candidate for
-    POSIX sh on Ubuntu and macOS. Do not redo construction or make a
-    construction claim. Return the verdict, target, interpreter, findings,
-    checklist status, and residual risk.
+    The surrounding pipeline and `sed -n '1p'` are available identically on
+    both targets; review only that exact fragment's POSIX sh portability on
+    Ubuntu and macOS. Do not redo construction or make a construction claim.
+    Return the verdict, target, interpreter, findings, checklist status, and
+    residual risk.
 expected:
   should_trigger: true
 graders:
@@ -56,9 +58,10 @@ graders:
     name: task_completion_substance
     config:
       prompt: |
-        Grade whether the response reviews only the supplied exact candidate
-        `tool run "$label"` for POSIX sh on Ubuntu and macOS, uses the shell-portability
-        structured output, and neither redoes construction nor makes a construction-skill claim.
+        Grade whether the response decodes and reviews only the supplied exact
+        fragment `| sed -n '1p'` for POSIX sh on Ubuntu and macOS, uses the
+        shell-portability structured output, and neither redoes construction
+        nor makes a construction-skill claim.
 
         Output format (strict):
         - Write one sentence of reasoning on its own line.

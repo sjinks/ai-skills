@@ -8,9 +8,13 @@ description: |
 tags: [positive-edge]
 inputs:
   prompt: |
-    In POSIX sh, preserve this already-correct literal command exactly:
+    In POSIX sh, preserve the bytes between `BEGIN CANDIDATE` and `END
+    CANDIDATE` exactly; the delimiter lines and the newline immediately before
+    `END CANDIDATE` are framing, not candidate data:
 
-      tool "hello world"
+    BEGIN CANDIDATE
+    tool "hello world"
+    END CANDIDATE
 
     Use exactly these five labels, in this order, with no preamble or trailing
     prose: Result, Boundary assessment, Shell candidate, Authority, and Next

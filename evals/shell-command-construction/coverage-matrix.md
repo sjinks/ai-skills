@@ -68,6 +68,7 @@ The SCC suite contains 44 fixtures. The user explicitly approved its expansion f
 | positive-edge-026 | Leading `Construction assessment` before `Construction result` | Reduced `BLOCK`; request one corrected complete SCC result; no portability conclusion |
 | positive-edge-028 | Custom-labeled direct construction response | Reduced `BLOCK`; request canonical handoff fields or separately supplied direct code; no portability conclusion |
 | positive-edge-029 | Terminal two-space-only multiline payload line after a standalone trailing backslash | Decode as the candidate's terminal newline, completing the POSIX line continuation; normal `CLEAN` review; dropped newline makes dash treat the backslash as a command |
+| positive-edge-003 | One-line handoff candidate beginning with `|` and later text on the same line | Decode as the exact one-line fragment `| sed -n '1p'`, not as a multiline marker; perform the normal portability review |
 
 ## Portability target-specific utility additions
 

@@ -4,11 +4,15 @@ name: Multiline candidate terminal newline has an explicit payload line
 tags: [positive-edge]
 inputs:
   prompt: |
-    In POSIX sh, preserve this literal candidate with its terminal newline:
+    In POSIX sh, preserve the bytes between `BEGIN CANDIDATE` and `END
+    CANDIDATE` exactly. The newline immediately before `END CANDIDATE` belongs
+    to the candidate:
 
-      tool 'first
-      second
-      '
+    BEGIN CANDIDATE
+    tool 'first
+    second
+    '
+    END CANDIDATE
 
     Use the canonical construction fields and preserve the exact candidate.
 expected: { should_trigger: true }
