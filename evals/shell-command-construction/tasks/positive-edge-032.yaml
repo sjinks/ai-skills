@@ -1,14 +1,13 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 id: positive-edge-032
-name: Unsafe or canonical-colliding labels fall back to canonical fields
+name: Colon-containing replacement label falls back to canonical fields
 tags: [positive-edge]
 inputs:
   prompt: |
     In POSIX sh, preserve `tool "hello world"` exactly. Use these requested
-    replacement labels: `Result: injected`, `Construction result`, `Shell
+    replacement labels: `Result: injected`, `Boundary assessment`, `Shell
     candidate`, `Authority`, and `Next construction action`. Do not emit a
-    label containing a colon or a canonical field label; use the safe default
-    field labels instead.
+    label containing a colon; use the safe default field labels instead.
 expected: { should_trigger: true }
 graders:
   - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }

@@ -13,8 +13,8 @@ inputs:
       second'
 
     Use exactly these five labels, in this order, with no preamble or trailing
-    prose: Result, Boundary assessment, Shell candidate, Authority, and Next
-    construction action. Do not use the default labels. The next action must
+    prose: Outcome, Boundary statement, Command form, Construction authority,
+    and Follow up action. Do not use the default labels. The next action must
     preserve, review, or verify the candidate boundary.
 expected: { should_trigger: true }
 graders:
@@ -24,11 +24,11 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?s)\AResult:\s*VALID\nBoundary assessment:\s*[^\n]*\S[^\n]*\nShell candidate:\s*\|\n  tool ''first\n  second''\nAuthority:\s*NOT ASSESSED BY THIS SKILL\nNext construction action:\s*[^\n]*\S[^\n]*\n?\z'
-        - '(?im)^Next construction action:[^\n]*(?i:preserve|retain|keep|review|verify|validate|check|confirm)[^\n]*(?i:candidate|boundary|argument|command|form)[^\n]*$'
+        - '(?s)\AOutcome:\s*VALID\nBoundary statement:\s*[^\n]*\S[^\n]*\nCommand form:\s*\|\n  tool ''first\n  second''\nConstruction authority:\s*NOT ASSESSED BY THIS SKILL\nFollow up action:\s*[^\n]*\S[^\n]*\n?\z'
+        - '(?im)^Follow up action:[^\n]*(?i:preserve|retain|keep|review|verify|validate|check|confirm)[^\n]*(?i:candidate|boundary|argument|command|form)[^\n]*$'
       regex_not_match:
-        - '(?im)^Next construction action:[^\n]*(?:\b(?:later|eventually|subsequently|tomorrow|tonight)\b|\bas\s+soon\s+as\b|\bat\s+(?:your\s+convenience|the\s+(?:earliest|next)\s+(?:opportunity|time|date)|(?:a\s+)?(?:later|future)\s+(?:time|date))\b|\bin\s+due\s+course\b|\b(?:when|once|after|until|upon|pending|following|during)\s+(?:(?:the|a|an)\s+)?(?:approval|approved|authorization|authorized|clearance|cleared|confirmation|confirmed|completion|complete|release|review|window|cycle|iteration|feasibility|availability|readiness|ready|feasible|practicable|possible|(?:circumstances|conditions)\s+(?:permit|allow)|(?:the\s+)?change\s+window\s+opens|(?:the\s+)?next\s+(?:release|review|window|cycle|iteration|week|month))\b)'
-        - '(?im)^(?:Boundary assessment|Next construction action):[^\n]*(?:\b(?:safe|unsafe|authoriz(?:ed|ation)?|approv(?:ed|al)?|unapproved|allow(?:ed)?|permit(?:ted)?|portable|compatible|run|execut(?:e|ed|ing)|invok(?:e|ed|ing)|launch(?:ed|ing)|deploy(?:ed|ing)?|releas(?:e|ed|ing)|ship(?:ped|ping))\b|\b(?:works?|runs?)\b[^\n]{0,40}\b(?:on|under|across|with|for|in)\b|\b(?:candidate|command|operation)\s+(?:was|is|has\s+been)\s+(?:run|executed|invoked|launched|deployed|released|shipped)\b)'
+        - '(?im)^Follow up action:[^\n]*(?:\b(?:later|eventually|subsequently|tomorrow|tonight)\b|\bas\s+soon\s+as\b|\bat\s+(?:your\s+convenience|the\s+(?:earliest|next)\s+(?:opportunity|time|date)|(?:a\s+)?(?:later|future)\s+(?:time|date))\b|\bin\s+due\s+course\b|\b(?:when|once|after|until|upon|pending|following|during)\s+(?:(?:the|a|an)\s+)?(?:approval|approved|authorization|authorized|clearance|cleared|confirmation|confirmed|completion|complete|release|review|window|cycle|iteration|feasibility|availability|readiness|ready|feasible|practicable|possible|(?:circumstances|conditions)\s+(?:permit|allow)|(?:the\s+)?change\s+window\s+opens|(?:the\s+)?next\s+(?:release|review|window|cycle|iteration|week|month))\b)'
+        - '(?im)^(?:Boundary statement|Follow up action):[^\n]*(?:\b(?:safe|unsafe|authoriz(?:ed|ation)?|approv(?:ed|al)?|unapproved|allow(?:ed)?|permit(?:ted)?|portable|compatible|run|execut(?:e|ed|ing)|invok(?:e|ed|ing)|launch(?:ed|ing)|deploy(?:ed|ing)?|releas(?:e|ed|ing)|ship(?:ped|ping))\b|\b(?:works?|runs?)\b[^\n]{0,40}\b(?:on|under|across|with|for|in)\b|\b(?:candidate|command|operation)\s+(?:was|is|has\s+been)\s+(?:run|executed|invoked|launched|deployed|released|shipped)\b)'
       not_contains:
         - 'Construction result:'
         - 'Construction assessment:'

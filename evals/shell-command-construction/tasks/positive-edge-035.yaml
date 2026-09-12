@@ -1,13 +1,13 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
-id: positive-edge-033
-name: Case-insensitively duplicate labels fall back to canonical fields
+id: positive-edge-035
+name: Canonical-colliding replacement label falls back to canonical fields
 tags: [positive-edge]
 inputs:
   prompt: |
-    In POSIX sh, preserve `tool "hello world"` exactly. The requested five
-    labels are Result, result, Shell candidate, Authority, and Next
-    construction action. Because the set is duplicate case-insensitively and
-    ambiguous, use safe canonical fields instead.
+    In POSIX sh, preserve `tool "hello world"` exactly. Use these requested
+    replacement labels: `Outcome`, `Construction result`, `Command form`,
+    `Authority`, and `Follow up action`. Do not emit a canonical field label
+    as a replacement label; use the safe default field labels instead.
 expected: { should_trigger: true }
 graders:
   - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
@@ -17,3 +17,5 @@ graders:
     config:
       regex_match:
         - '(?s)\AConstruction result:\s*VALID\nConstruction assessment:\s*[^\n]*\S[^\n]*\nConstruction candidate:\s*tool "hello world"\nExecution authority:\s*NOT ASSESSED BY THIS SKILL\nConstruction next step:\s*[^\n]*\S[^\n]*\n?\z'
+      not_contains:
+        - 'Outcome:'
