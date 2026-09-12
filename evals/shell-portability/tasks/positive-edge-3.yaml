@@ -11,9 +11,9 @@ inputs:
     A separate construction review is complete:
     Construction result: REWRITE
     Construction assessment: The supplied label remains one argument boundary.
-    Candidate: tool run "$label"
+    Construction candidate: tool run "$label"
     Execution authority: NOT ASSESSED BY THIS SKILL
-    Next step: Request a separate portability review of the exact candidate.
+    Construction next step: Request a separate portability review of the exact candidate.
 
     The external `tool` and its `run` interface are available identically on
     both targets; review only the shell syntax of that exact candidate for
@@ -51,7 +51,7 @@ graders:
         - '(?im)^- Verification:\s*(?:covered|n/a)\s*$'
         - '(?im)^Residual risk:\s*[^\r\n]+$'
       regex_not_match:
-        - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
+        - '(?im)^(?:Construction result|Construction assessment|Construction candidate|Execution authority|Construction next step):'
   - type: prompt
     name: task_completion_substance
     config:

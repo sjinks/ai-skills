@@ -11,9 +11,9 @@ inputs:
     A separate construction review supplied this result:
     Construction result: BLOCKED
     Construction assessment: A required construction fact is unresolved.
-    Candidate: printf '%s\n' hello
+    Construction candidate: printf '%s\n' hello
     Execution authority: NOT ASSESSED BY THIS SKILL
-    Next step: Request a portability review.
+    Construction next step: Request a portability review.
 
     Review its portability for POSIX sh on Ubuntu and macOS.
 expected:
@@ -42,7 +42,7 @@ graders:
       regex_not_match:
         - '(?i)Verdict:\s*(?:CLEAN|CONCERNS)'
         - '(?im)^(?:Interpreter|Checklist status|Residual risk):'
-        - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
+        - '(?im)^(?:Construction result|Construction assessment|Construction candidate|Execution authority|Construction next step):'
         - '(?i)(?:\A|[:.!?][ \t]+)(?:(?:the[ \t]+)?(?:candidate|command|it|this)[ \t]+(?:is[ \t]+(?:portable|compatible|valid|suitable|supported)|conforms?|works?|runs?)[^\r\n]*(?:POSIX|Ubuntu|macOS)|(?:POSIX|Ubuntu|macOS)[^\r\n]{0,80}(?:portability|compatibility)[ \t]+(?:is|was|has[ \t]+been)[ \t]+(?:confirmed|verified|established))'
   - type: prompt
     name: task_completion_substance

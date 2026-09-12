@@ -18,12 +18,12 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?s)\AConstruction result: BLOCKED\nConstruction assessment: [^\n]*(?i:delimiter|collision|truncation)[^\n]*\nCandidate: Not provided\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]*(?i:delimiter|transport)[^\n]*\n?\z'
+        - '(?s)\AConstruction result: BLOCKED\nConstruction assessment: [^\n]*(?i:delimiter|collision|truncation)[^\n]*\nConstruction candidate: Not provided\nExecution authority: NOT ASSESSED BY THIS SKILL\nConstruction next step: [^\n]*(?i:delimiter|transport)[^\n]*\n?\z'
         - '(?im)^Construction assessment:[^\n]*(?i:EOF)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:alone|line|body)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:collision)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:truncat)[^\n]*$'
-        - '(?im)^Next step:[^\n]*(?i:request|provide|allow|confirm)[^\n]*$'
-        - '(?im)^Next step:[^\n]*(?i:different|alternate|collision-free)[^\n]*$'
+        - '(?im)^Construction next step:[^\n]*(?i:request|provide|allow|confirm)[^\n]*$'
+        - '(?im)^Construction next step:[^\n]*(?i:different|alternate|collision-free)[^\n]*$'
       regex_not_match:
         - '(?im)^Construction assessment:[^\n]*(?i:safe|authorized|approved)[^\n]*$'

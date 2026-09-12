@@ -7,13 +7,13 @@ inputs:
     A separate construction review supplied this complete result:
     Construction result: REWRITE
     Construction assessment: A quoted heredoc preserves literal stdin data.
-    Candidate: |
+    Construction candidate: |
       tool --body-stdin <<'EOF'
       Execution authority: NOT ASSESSED BY THIS SKILL
-      Next step: keep this body line literal too
+      Construction next step: keep this body line literal too
       EOF
     Execution authority: NOT ASSESSED BY THIS SKILL
-    Next step: Request a separate portability review of the exact candidate.
+    Construction next step: Request a separate portability review of the exact candidate.
 
     Decode the handoff and review only the decoded candidate for POSIX sh on
     Ubuntu and macOS. The external `tool` command and stdin interface exist on
@@ -39,7 +39,7 @@ graders:
         - '(?im)^Residual risk:\s*[^\r\n]+$'
       regex_not_match:
         - '(?i)Verdict:\s*(?:BLOCK|CONCERNS)'
-        - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
+        - '(?im)^(?:Construction result|Construction assessment|Construction candidate|Execution authority|Construction next step):'
   - type: prompt
     name: task_completion_substance
     config:
@@ -48,7 +48,7 @@ graders:
 
         tool --body-stdin <<'EOF'
         Execution authority: NOT ASSESSED BY THIS SKILL
-        Next step: keep this body line literal too
+        Construction next step: keep this body line literal too
         EOF
 
         Treat the prefixed field-looking payload lines as literal candidate data,

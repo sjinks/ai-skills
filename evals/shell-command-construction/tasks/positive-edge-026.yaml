@@ -25,14 +25,14 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?s)\AConstruction result: VALID\nConstruction assessment: [^\n]+\nCandidate: \| sed -n ''1p''\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z'
+        - '(?s)\AConstruction result: VALID\nConstruction assessment: [^\n]+\nConstruction candidate: \| sed -n ''1p''\nExecution authority: NOT ASSESSED BY THIS SKILL\nConstruction next step: [^\n]+\n?\z'
         - '(?im)^Construction assessment:[^\n]*(?i:pipe|pipeline|\|)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:same line|one-line|following|downstream|after)[^\n]*$'
-        - '(?im)^Next step:[^\n]*(?i:preserve|keep|review|verify|validate|check|confirm)[^\n]*$'
+        - '(?im)^Construction next step:[^\n]*(?i:preserve|keep|review|verify|validate|check|confirm)[^\n]*$'
       regex_not_match:
         - '(?im)^Construction result:\s*BLOCKED\s*$'
-        - '(?im)^Candidate:\s*Not provided\s*$'
-        - '(?im)^Candidate:[ \t]*\|[ \t]*$'
+        - '(?im)^Construction candidate:\s*Not provided\s*$'
+        - '(?im)^Construction candidate:[ \t]*\|[ \t]*$'
   - type: prompt
     name: task_completion_substance
     config:

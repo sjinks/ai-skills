@@ -11,9 +11,9 @@ inputs:
     A separate construction review supplied this malformed result:
     Construction result: REWRITE
     Construction assessment: A multiline command was serialized.
-    Candidate: |
+    Construction candidate: |
       printf '%s\n' hello
-    Next step: This field appears before execution authority.
+    Construction next step: This field appears before execution authority.
     Execution authority: NOT ASSESSED BY THIS SKILL
 
     Review its portability for POSIX sh on Ubuntu and macOS.
@@ -37,18 +37,18 @@ graders:
     config:
       regex_match:
         - '(?is)\AVerdict:\s*BLOCK\s*\r?\nTarget:\s*[^\r\n]+\r?\n\r?\nFindings:\s*\r?\n1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*LOW\s*\r?\n[ \t]+Classification:\s*Open question\s*\r?\n[ \t]+Evidence:\s*[^\r\n]+\r?\n[ \t]+Rule:\s*(?:interpreter-shebang|bashisms|utilities-flags|output-behavior|verification)\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*N/A\s*\r?\n?\z'
-        - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?i:Next step|premature|unprefixed|order|terminator|malformed)[^\r\n]*$'
+        - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?i:Construction next step|premature|unprefixed|order|terminator|malformed)[^\r\n]*$'
         - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*(?i:correct|provide|supply|replace)[^\r\n]*(?i:construction|handoff|construction result|field|terminator)[^\r\n]*$'
       regex_not_match:
         - '(?i)Verdict:\s*(?:CLEAN|CONCERNS)'
         - '(?im)^(?:Interpreter|Checklist status|Residual risk):'
-        - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
+        - '(?im)^(?:Construction result|Construction assessment|Construction candidate|Execution authority|Construction next step):'
         - '(?i)(?:\A|[:.!?][ \t]+)(?:(?:the[ \t]+)?(?:candidate|command|it|this)[ \t]+(?:is[ \t]+(?:portable|compatible|valid|suitable|supported)|conforms?|works?|runs?)[^\r\n]*(?:POSIX|Ubuntu|macOS)|(?:POSIX|Ubuntu|macOS)[^\r\n]{0,80}(?:portability|compatibility)[ \t]+(?:is|was|has[ \t]+been)[ \t]+(?:confirmed|verified|established))'
   - type: prompt
     name: task_completion_substance
     config:
       prompt: |
-        Grade whether the response detects the premature unprefixed Next step
+        Grade whether the response detects the premature unprefixed Construction next step
         field before the exact Execution authority terminator, returns reduced
         BLOCK, requests a corrected construction result, and performs no portability
         analysis or target conclusion.

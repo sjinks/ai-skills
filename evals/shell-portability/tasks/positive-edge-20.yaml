@@ -2,18 +2,18 @@
 id: positive-edge-020
 name: Adjacent extra field after next step blocks review
 description: |
-  A nonblank line immediately after `Next step` is adjacent handoff content, not
+  A nonblank line immediately after `Construction next step` is adjacent handoff content, not
   surrounding prose, so an extra sixth field makes the construction handoff malformed.
 tags:
   - positive-edge
 inputs:
   prompt: |
-    A mixed-request handoff supplied this adjacent extra field after `Next step`:
+    A mixed-request handoff supplied this adjacent extra field after `Construction next step`:
     Construction result: REWRITE
     Construction assessment: One command boundary was reviewed.
-    Candidate: echo hello
+    Construction candidate: echo hello
     Execution authority: NOT ASSESSED BY THIS SKILL
-    Next step: Request portability review.
+    Construction next step: Request portability review.
     Portability note: Also review macOS quoting.
 
     Review it for POSIX sh on Ubuntu and macOS.
@@ -37,19 +37,19 @@ graders:
     config:
       regex_match:
         - '(?is)\AVerdict:\s*BLOCK\s*\r?\nTarget:\s*[^\r\n]+\r?\n\r?\nFindings:\s*\r?\n1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*LOW\s*\r?\n[ \t]+Classification:\s*Open question\s*\r?\n[ \t]+Evidence:\s*[^\r\n]+\r?\n[ \t]+Rule:\s*(?:interpreter-shebang|bashisms|utilities-flags|output-behavior|verification)\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*N/A\s*\r?\n?\z'
-        - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?i:adjacent|after|Next step|extra|sixth|field|malformed)[^\r\n]*$'
+        - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?i:adjacent|after|Construction next step|extra|sixth|field|malformed)[^\r\n]*$'
         - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*(?i:provide|supply|correct|replace)[^\r\n]*(?i:construction|handoff|construction result|exactly five|field)[^\r\n]*$'
       regex_not_match:
         - '(?i)Verdict:\s*(?:CLEAN|CONCERNS)'
         - '(?im)^(?:Interpreter|Checklist status|Residual risk):'
-        - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
+        - '(?im)^(?:Construction result|Construction assessment|Construction candidate|Execution authority|Construction next step):'
         - '(?i)(?:\A|[:.!?][ \t]+)(?:(?:the[ \t]+)?(?:candidate|command|it|this)[ \t]+(?:is[ \t]+(?:portable|compatible|valid|suitable|supported)|conforms?|works?|runs?)[^\r\n]*(?:POSIX|Ubuntu|macOS)|(?:POSIX|Ubuntu|macOS)[^\r\n]{0,80}(?:portability|compatibility)[ \t]+(?:is|was|has[ \t]+been)[ \t]+(?:confirmed|verified|established))'
   - type: prompt
     name: task_completion_substance
     config:
       prompt: |
         Grade whether the response detects the adjacent extra field after
-        `Next step`, returns reduced BLOCK, requests a corrected construction
+        `Construction next step`, returns reduced BLOCK, requests a corrected construction
         result with only the ordered SCC handoff fields, and performs no
         portability analysis or target conclusion.
 

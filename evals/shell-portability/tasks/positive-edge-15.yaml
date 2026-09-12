@@ -6,9 +6,9 @@ inputs:
   prompt: |
     A mixed-request handoff supplied this incomplete construction result:
     Construction result: REWRITE
-    Candidate: echo hello
+    Construction candidate: echo hello
     Execution authority: NOT ASSESSED BY THIS SKILL
-    Next step: Request portability review.
+    Construction next step: Request portability review.
 
     Review it for POSIX sh on Ubuntu and macOS.
 expected: { should_trigger: true }

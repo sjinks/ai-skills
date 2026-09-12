@@ -7,9 +7,9 @@ inputs:
     A mixed-request handoff supplied this construction result:
     Construction result: REWRITE
     Construction assessment: One command boundary was reviewed.
-    Candidate: echo hello
+    Construction candidate: echo hello
     Execution authority: APPROVED
-    Next step: Request portability review of the exact candidate.
+    Construction next step: Request portability review of the exact candidate.
 
     Review it for POSIX sh on Ubuntu and macOS.
 expected: { should_trigger: true }

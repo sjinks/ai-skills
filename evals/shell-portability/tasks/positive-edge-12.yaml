@@ -8,13 +8,13 @@ tags:
   - positive-edge
 inputs:
   prompt: |
-    Inspect the supplied `construction-result.txt`. Its Candidate line contains
+    Inspect the supplied `construction-result.txt`. Its Construction candidate line contains
     a bare pipe followed by one trailing ASCII space, then a prefixed payload.
     Review its portability for POSIX sh on Ubuntu and macOS, following the
     portability skill's construction-result handling first.
   files:
     - path: construction-result.txt
-      content: "Construction result: REWRITE\nConstruction assessment: A command fragment was serialized.\nCandidate: | \n  printf '%s\\n' hello\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: Request a portability review.\n"
+      content: "Construction result: REWRITE\nConstruction assessment: A command fragment was serialized.\nConstruction candidate: | \n  printf '%s\\n' hello\nExecution authority: NOT ASSESSED BY THIS SKILL\nConstruction next step: Request a portability review.\n"
 expected:
   should_trigger: true
 graders:
@@ -40,13 +40,13 @@ graders:
       regex_not_match:
         - '(?i)Verdict:\s*(?:CLEAN|CONCERNS)'
         - '(?im)^(?:Interpreter|Checklist status|Residual risk):'
-        - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
+        - '(?im)^(?:Construction result|Construction assessment|Construction candidate|Execution authority|Construction next step):'
         - '(?i)(?:\A|[:.!?][ \t]+)(?:(?:the[ \t]+)?(?:candidate|command|it|this)[ \t]+(?:is[ \t]+(?:portable|compatible|valid|suitable|supported)|conforms?|works?|runs?)[^\r\n]*(?:POSIX|Ubuntu|macOS)|(?:POSIX|Ubuntu|macOS)[^\r\n]{0,80}(?:portability|compatibility)[ \t]+(?:is|was|has[ \t]+been)[ \t]+(?:confirmed|verified|established))'
   - type: prompt
     name: task_completion_substance
     config:
       prompt: |
-        Grade whether the response detects that `Candidate: | ` is malformed even
+        Grade whether the response detects that `Construction candidate: | ` is malformed even
         though prefixed payload follows, returns reduced BLOCK, requests a corrected
         exact multiline marker or construction result, and performs no portability
         analysis or target conclusion.

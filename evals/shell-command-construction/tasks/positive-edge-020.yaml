@@ -15,15 +15,15 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?s)\AConstruction result: BLOCKED\nConstruction assessment: [^\n]*(?i:remote)[^\n]*\nCandidate: Not provided\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]*(?i:(?:request|provide|specify|clarify))[^\n]*(?i:transport|serialization)[^\n]*\n?\z'
+        - '(?s)\AConstruction result: BLOCKED\nConstruction assessment: [^\n]*(?i:remote)[^\n]*\nConstruction candidate: Not provided\nExecution authority: NOT ASSESSED BY THIS SKILL\nConstruction next step: [^\n]*(?i:(?:request|provide|specify|clarify))[^\n]*(?i:transport|serialization)[^\n]*\n?\z'
         - '(?im)^Construction assessment:[^\n]*(?i:remote)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:posix|sh|parser)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:argv)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:boundar)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:transport|serializ)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:missing|absent|unavailable|unknown|not (?:provided|supplied|confirmed)|no (?:confirmed )?(?:transport|serialization))[^\n]*$'
-        - '(?im)^Next step:[^\n]*(?i:transport|serializ)[^\n]*$'
-        - '(?im)^Next step:\s*(?i:(?:request|provide|specify|clarify)\s+(?:only\s+)?(?:the\s+)?(?:remote\s+)?(?:boundary-preserving\s+)?(?:transport|serialization)(?:\s*/\s*(?:transport|serialization))?\s+contract\.?)\s*$'
+        - '(?im)^Construction next step:[^\n]*(?i:transport|serializ)[^\n]*$'
+        - '(?im)^Construction next step:\s*(?i:(?:request|provide|specify|clarify)\s+(?:only\s+)?(?:the\s+)?(?:remote\s+)?(?:boundary-preserving\s+)?(?:transport|serialization)(?:\s*/\s*(?:transport|serialization))?\s+contract\.?)\s*$'
       regex_not_match:
-        - '(?im)^Next step:[^\n]*(?i:parser|interpreter)[^\n]*$'
+        - '(?im)^Construction next step:[^\n]*(?i:parser|interpreter)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*\b(?i:not|isn''t)\s+(?i:missing|absent|unavailable|unknown)\b[^\n]*$'

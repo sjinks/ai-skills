@@ -26,3 +26,5 @@ graders:
         - 'Construction result:'
         - 'Construction assessment:'
         - 'Execution authority:'
+        - 'Construction candidate:'
+        - 'Construction next step:'

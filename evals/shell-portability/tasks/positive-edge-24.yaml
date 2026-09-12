@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-024
+name: Preserve confirmed native FreeBSD readlink -f
+description: |
+  A declared FreeBSD-only target with confirmed matching native `readlink -f`
+  semantics must preserve that invocation instead of unnecessarily replacing it
+  with `realpath`.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    Review this FreeBSD 14-only shell fragment for portability:
+
+    ```sh
+    target=$(readlink -f "$2")
+    ```
+
+    FreeBSD 14's native `readlink -f` is confirmed available here, and its
+    final-component symlink, existence, and error behavior matches the required
+    canonicalization semantics. Preserve this command rather than replacing it
+    with `realpath`. Return the normal portability report.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-portability/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-portability
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?im)^Verdict:\s*CLEAN\s*$'
+        - '(?im)^Target:\s*[^\r\n]*FreeBSD[ \t]*14[^\r\n]*$'
+        - '(?im)^Findings:\s*None\s*$'
+        - '(?im)^Residual risk:\s*[^\r\n]*(?i:readlink[ \t]+-f)[^\r\n]*(?i:confirmed|native|semantics)[^\r\n]*$'
+      not_contains:
+        - 'Portable fix:'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response preserves the confirmed native FreeBSD
+        `readlink -f` invocation, reaches CLEAN, and does not propose a
+        `realpath` rewrite. End with only 1.0, 0.5, or 0.0 on the last line.
+      mode: independent

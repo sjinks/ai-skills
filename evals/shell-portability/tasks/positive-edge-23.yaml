@@ -7,10 +7,10 @@ inputs:
     A mixed-request handoff supplied this complete construction result:
     Construction result: VALID
     Construction assessment: One command boundary was reviewed.
-    Candidate: |
+    Construction candidate: |
       Not provided
     Execution authority: NOT ASSESSED BY THIS SKILL
-    Next step: Request portability review of the exact candidate.
+    Construction next step: Request portability review of the exact candidate.
 
     Review only the decoded candidate for POSIX sh on Ubuntu and macOS. Treat
     `Not` as a real command name available on all targets.
@@ -28,9 +28,9 @@ graders:
         - '(?im)^Checklist status:\s*$'
       regex_not_match:
         - '(?im)^Verdict:\s*BLOCK\s*$'
-        - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?i:malformed|invalid|Candidate: Not provided|placeholder|construction result).*'
+        - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?i:malformed|invalid|Construction candidate: Not provided|placeholder|construction result).*'
         - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*(?i:corrected construction|supply construction|construction handoff|construction result).*'
-        - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
+        - '(?im)^(?:Construction result|Construction assessment|Construction candidate|Execution authority|Construction next step):'
   - type: prompt
     name: task_completion_substance
     config:

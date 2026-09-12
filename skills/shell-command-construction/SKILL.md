@@ -58,37 +58,37 @@ The Required facts list and canonical catalog are the gating source of truth.
 
 ## Dispositions
 
-| Result | Use when | Candidate rule |
+| Result | Use when | Construction candidate rule |
 |---|---|---|
 | `VALID` | A supplied, already-correct form preserves confirmed construction intent. | Preserve it exactly. |
 | `REWRITE` | A minimum boundary-preserving correction to a supplied defective form is deterministic, or a candidate can be constructed from confirmed intent when no candidate was supplied. | Preserve command name, fixed operands, option order, argument positions and count, transport, literal/expansion intent, and explicit glob scope. Preserve the original transport unless an applicable canonical rule approves a caller-supplied alternative because the original cannot preserve required bytes or boundaries, or the caller explicitly requires another supplied transport. |
-| `BLOCKED` | A required construction fact is absent or conflicting, or the requested boundary/data cannot be represented. | Use `Candidate: Not provided` and request one smallest missing fact or alternative. |
+| `BLOCKED` | A required construction fact is absent or conflicting, or the requested boundary/data cannot be represented. | Use `Construction candidate: Not provided` and request one smallest missing fact or alternative. |
 
 Never render a secret. Do not reveal raw, partial, split, escaped, encoded, transformed, or diagnostic copies of a secret. Represent only a user-supplied non-secret source expression or transport abstraction; otherwise use `BLOCKED`.
 
 ## Output
 
-For every activated request, output exactly these five top-level fields once, in this order, with no preamble or trailing prose. Zero or one terminal newline after `Next step` is allowed.
+For every activated request, output exactly these five top-level fields once, in this order, with no preamble or trailing prose. Zero or one terminal newline after `Construction next step` is allowed.
 
 ```text
 Construction result: VALID | REWRITE | BLOCKED
 Construction assessment: <one line with at least one non-whitespace character, describing parsing/boundary status only>
-Candidate: <one-line candidate | Not provided | multiline block>
+Construction candidate: <one-line candidate | Not provided | multiline block>
 Execution authority: NOT ASSESSED BY THIS SKILL
-Next step: <one line with at least one non-whitespace character: one construction action, smallest clarification, or portability handoff>
+Construction next step: <one line with at least one non-whitespace character: one construction action, smallest clarification, or portability handoff>
 ```
 
-- `BLOCKED` always uses `Candidate: Not provided`.
-- For `VALID` or `REWRITE`, the one-line placeholder form `Candidate: Not provided` is reserved and forbidden. If the exact one-line candidate text is `Not provided`, serialize it with multiline form:
+- `BLOCKED` always uses `Construction candidate: Not provided`.
+- For `VALID` or `REWRITE`, the one-line placeholder form `Construction candidate: Not provided` is reserved and forbidden. If the exact one-line candidate text is `Not provided`, serialize it with multiline form:
   ```text
-  Candidate: |
+  Construction candidate: |
     Not provided
   ```
-- A one-line `VALID` or `REWRITE` candidate has at least one non-whitespace character. A one-line command fragment may begin with `|` only when non-whitespace fragment text follows it on the same line; bare `Candidate: |` followed by a newline starts the multiline form. For a multiline candidate, add a two-space serialization prefix to every physical payload line (including an empty line), and include at least one payload line with a non-whitespace character after that removable prefix. Remove only that prefix when interpreting the candidate; any spaces after it are literal payload indentation. Treat prefixed field-looking text as payload, not a top-level field.
-- For `VALID` or `REWRITE`, `Next step` names an affirmative construction preservation, review, or verification action. A status-only value such as `No further construction action is required` is not an action.
+- A one-line `VALID` or `REWRITE` candidate has at least one non-whitespace character. A one-line command fragment may begin with `|` only when non-whitespace fragment text follows it on the same line; bare `Construction candidate: |` followed by a newline starts the multiline form. For a multiline candidate, add a two-space serialization prefix to every physical payload line (including an empty line), and include at least one payload line with a non-whitespace character after that removable prefix. Remove only that prefix when interpreting the candidate; any spaces after it are literal payload indentation. Treat prefixed field-looking text as payload, not a top-level field.
+- For `VALID` or `REWRITE`, `Construction next step` names an affirmative construction preservation, review, or verification action. A status-only value such as `No further construction action is required` is not an action.
 - `Construction assessment` describes parsing and boundaries only; it does not assess safety, authorization, targets, effects, or permission.
 - Every candidate, including an effectful-looking one, uses exactly `Execution authority: NOT ASSESSED BY THIS SKILL`.
-- Do not make safety, authorization, approval, or execution claims in `Construction assessment` or `Next step`. `Candidate` is confirmed literal command data: it may contain words such as `safe`, `approved`, `run this`, `deploy`, `release`, or `ship`; never alter or block a candidate solely for those words. Execution authority remains exactly `NOT ASSESSED BY THIS SKILL`.
+- Do not make safety, authorization, approval, or execution claims in `Construction assessment` or `Construction next step`. `Construction candidate` is confirmed literal command data: it may contain words such as `safe`, `approved`, `run this`, `deploy`, `release`, or `ship`; never alter or block a candidate solely for those words. Execution authority remains exactly `NOT ASSESSED BY THIS SKILL`.
 
 ## Definition of done
 

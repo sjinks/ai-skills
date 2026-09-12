@@ -7,14 +7,14 @@ inputs:
     A mixed-request handoff supplied two complete construction results:
     Construction result: REWRITE
     Construction assessment: One command boundary was reviewed.
-    Candidate: echo first
+    Construction candidate: echo first
     Execution authority: NOT ASSESSED BY THIS SKILL
-    Next step: Request portability review of the exact candidate.
+    Construction next step: Request portability review of the exact candidate.
     Construction result: VALID
     Construction assessment: The second candidate preserves the same boundary.
-    Candidate: echo second
+    Construction candidate: echo second
     Execution authority: NOT ASSESSED BY THIS SKILL
-    Next step: Request portability review of the second candidate.
+    Construction next step: Request portability review of the second candidate.
 
     Review it for POSIX sh on Ubuntu and macOS.
 expected: { should_trigger: true }

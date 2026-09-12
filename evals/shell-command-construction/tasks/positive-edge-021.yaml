@@ -27,10 +27,10 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?s)\AConstruction result: VALID\nConstruction assessment: [^\n]+\nCandidate: tool "hello world"\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z'
+        - '(?s)\AConstruction result: VALID\nConstruction assessment: [^\n]+\nConstruction candidate: tool "hello world"\nExecution authority: NOT ASSESSED BY THIS SKILL\nConstruction next step: [^\n]+\n?\z'
         - '(?im)^Construction assessment:[^\n]*(?i:one|single)[^\n]*(?i:argument|argv|word|boundary)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:already|supplied|existing|preserv)[^\n]*$'
-        - '(?im)^Next step:[^\n]*(?i:(?:preserv|retain|keep|review|verify|check)[a-z]*[^\n]*(?:candidate|construction|boundary|quote|argument|command|form|result))[^\n]*$'
+        - '(?im)^Construction next step:[^\n]*(?i:(?:preserv|retain|keep|review|verify|check)[a-z]*[^\n]*(?:candidate|construction|boundary|quote|argument|command|form|result))[^\n]*$'
       regex_not_match:
-        - '(?im)^Candidate: tool ''hello world''$'
-        - '(?im)^(?:Construction assessment|Next step):[^\n]*(?i:(?:provide|specify|clarify|confirm|identify|declare|supply|choose|state)[a-z]*)[^\n]*(?i:interpreter|shell|parser)[^\n]*$'
+        - '(?im)^Construction candidate: tool ''hello world''$'
+        - '(?im)^(?:Construction assessment|Construction next step):[^\n]*(?i:(?:provide|specify|clarify|confirm|identify|declare|supply|choose|state)[a-z]*)[^\n]*(?i:interpreter|shell|parser)[^\n]*$'

@@ -9,12 +9,12 @@ tags:
 inputs:
   prompt: |
     Inspect the supplied `construction-result.txt`. It contains a separate construction
-    result whose Candidate line ends with one trailing ASCII space. Review its
+    result whose Construction candidate line ends with one trailing ASCII space. Review its
     portability for POSIX sh on Ubuntu and macOS, following the portability
     skill's construction-result handling first.
   files:
     - path: construction-result.txt
-      content: "Construction result: REWRITE\nConstruction assessment: One argument boundary needs repair.\nCandidate: Not provided \nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: Request a portability review.\n"
+      content: "Construction result: REWRITE\nConstruction assessment: One argument boundary needs repair.\nConstruction candidate: Not provided \nExecution authority: NOT ASSESSED BY THIS SKILL\nConstruction next step: Request a portability review.\n"
 expected:
   should_trigger: true
 graders:
@@ -41,7 +41,7 @@ graders:
       regex_not_match:
         - '(?i)Verdict:\s*(?:CLEAN|CONCERNS)'
         - '(?im)^(?:Interpreter|Checklist status|Residual risk):'
-        - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
+        - '(?im)^(?:Construction result|Construction assessment|Construction candidate|Execution authority|Construction next step):'
         - '(?i)(?:\A|[:.!?][ \t]+)(?:(?:the[ \t]+)?(?:candidate|command|it|this)[ \t]+(?:is[ \t]+(?:portable|compatible|valid|suitable|supported)|conforms?|works?|runs?)[^\r\n]*(?:POSIX|Ubuntu|macOS)|(?:POSIX|Ubuntu|macOS)[^\r\n]{0,80}(?:portability|compatibility)[ \t]+(?:is|was|has[ \t]+been)[ \t]+(?:confirmed|verified|established))'
   - type: prompt
     name: task_completion_substance

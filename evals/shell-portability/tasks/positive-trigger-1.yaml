@@ -3,7 +3,7 @@ id: positive-trigger-001
 name: Bashisms in a /bin/sh script
 description: |
   Review must activate on bash-only constructs in a POSIX sh script and on a
-  GNU-only utility flag.
+  non-POSIX utility flag that is unavailable on macOS.
 tags:
   - positive-trigger
 inputs:
@@ -79,10 +79,11 @@ graders:
         Grade whether the response identifies these issues:
         - `[[ ... == start* ]]` is a bashism that fails under busybox/dash;
           it should be a POSIX `case` statement preserving the `start*` prefix match.
-        - `readlink -f` is GNU-only; macOS/BSD readlink lacks `-f`. Exact
-          canonicalization includes final-component symlink resolution and
-          matching existence/error behavior, so use the confirmed available
-          `realpath "$2"`; a `cd`/`pwd -P` plus basename function is not equivalent.
+        - `readlink -f` is non-POSIX and unavailable on the declared macOS
+          target. Exact canonicalization includes final-component symlink
+          resolution and matching existence/error behavior, so use the
+          confirmed available `realpath "$2"`; a `cd`/`pwd -P` plus basename
+          function is not equivalent.
         - `echo -n` is unspecified across shells; because no divergent output
           is demonstrated on the named current targets, it is a MEDIUM Likely
           risk, and `printf` is the portable form.

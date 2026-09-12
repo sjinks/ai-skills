@@ -26,15 +26,15 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?s)\AConstruction result: BLOCKED\nConstruction assessment: [^\n]+\nCandidate: Not provided\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z'
+        - '(?s)\AConstruction result: BLOCKED\nConstruction assessment: [^\n]+\nConstruction candidate: Not provided\nExecution authority: NOT ASSESSED BY THIS SKILL\nConstruction next step: [^\n]+\n?\z'
         - '(?im)^Construction assessment:[^\n]*(?i:stderr|standard error)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:rout|destination|disposition|join|separate)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:missing|unspecified|unknown|not specified|undecided|unresolved|not decided)[^\n]*$'
-        - '(?im)^Next step:[^\n]*(?i:stderr|standard error)[^\n]*$'
-        - '(?im)^Next step:[^\n]*(?i:specify|clarify|provide|confirm|where|whether|which)[^\n]*$'
-        - '(?im)^Next step:[^\n]*(?i:join|stdout|result\.log|original|separate|destination|disposition|routing|\bgo\b)[^\n]*$'
+        - '(?im)^Construction next step:[^\n]*(?i:stderr|standard error)[^\n]*$'
+        - '(?im)^Construction next step:[^\n]*(?i:specify|clarify|provide|confirm|where|whether|which)[^\n]*$'
+        - '(?im)^Construction next step:[^\n]*(?i:join|stdout|result\.log|original|separate|destination|disposition|routing|\bgo\b)[^\n]*$'
       regex_not_match:
-        - '(?im)^Candidate:[^\n]*(?:2>&1|2>|>&)[^\n]*$'
+        - '(?im)^Construction candidate:[^\n]*(?:2>&1|2>|>&)[^\n]*$'
   - type: prompt
     name: task_completion_substance
     config:

@@ -7,7 +7,8 @@ description: |
   shebang targeting; stays silent on shell command safety and non-shell
   languages; and emits the skill's verdict, target, interpreter, findings,
   checklist status, and residual risk when a normal candidate is available;
-  reduced `BLOCK` output omits those normal-only fields.
+  reduced `BLOCK` output retains `Verdict`, `Target`, and `Findings`, while
+  omitting the normal-only `Interpreter`, `Checklist status`, and `Residual risk` fields.
 skill: shell-portability
 version: "1.0"
 config:

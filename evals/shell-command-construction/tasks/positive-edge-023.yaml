@@ -25,12 +25,12 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?s)\AConstruction result: BLOCKED\nConstruction assessment: [^\n]+\nCandidate: Not provided\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z'
+        - '(?s)\AConstruction result: BLOCKED\nConstruction assessment: [^\n]+\nConstruction candidate: Not provided\nExecution authority: NOT ASSESSED BY THIS SKILL\nConstruction next step: [^\n]+\n?\z'
         - '(?im)^Construction assessment:[^\n]*(?i:pipe|pipeline|\|)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:missing|absent|not supplied|incomplete)[^\n]*$'
-        - '(?im)^Next step:[^\n]*(?i:provide|supply|specify)[^\n]*(?i:command|fragment|text)[^\n]*$'
+        - '(?im)^Construction next step:[^\n]*(?i:provide|supply|specify)[^\n]*(?i:command|fragment|text)[^\n]*$'
       regex_not_match:
-        - '(?im)^Candidate:[ \t]*\|[ \t]*$'
+        - '(?im)^Construction candidate:[ \t]*\|[ \t]*$'
   - type: prompt
     name: task_completion_substance
     config:

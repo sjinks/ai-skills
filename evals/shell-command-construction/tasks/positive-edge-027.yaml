@@ -28,13 +28,13 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?s)\AConstruction result: VALID\nConstruction assessment: [^\n]+\nCandidate: tool "\$\(date\)"\nExecution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z'
+        - '(?s)\AConstruction result: VALID\nConstruction assessment: [^\n]+\nConstruction candidate: tool "\$\(date\)"\nExecution authority: NOT ASSESSED BY THIS SKILL\nConstruction next step: [^\n]+\n?\z'
         - '(?im)^Construction assessment:[^\n]*(?i:command substitution|\$\(date\)|expansion)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:one argument|one argv|single argument|single argv)[^\n]*$'
-        - '(?im)^Next step:[^\n]*(?i:preserve|keep|review|verify|validate|confirm|check)[^\n]*$'
+        - '(?im)^Construction next step:[^\n]*(?i:preserve|keep|review|verify|validate|confirm|check)[^\n]*$'
       regex_not_match:
         - '(?im)^Construction result:\s*(?:REWRITE|BLOCKED)\s*$'
-        - '(?im)^Candidate:\s*Not provided\s*$'
+        - '(?im)^Construction candidate:\s*Not provided\s*$'
   - type: prompt
     name: task_completion_substance
     config:

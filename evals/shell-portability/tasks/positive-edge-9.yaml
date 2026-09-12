@@ -2,7 +2,7 @@
 id: positive-edge-009
 name: VALID construction result without candidate blocks review
 description: |
-  A VALID construction disposition cannot use Candidate: Not provided; the
+  A VALID construction disposition cannot use Construction candidate: Not provided; the
   inconsistent handoff must block portability analysis.
 tags:
   - positive-edge
@@ -11,9 +11,9 @@ inputs:
     A separate construction review supplied this result:
     Construction result: VALID
     Construction assessment: The supplied command preserves one argv boundary.
-    Candidate: Not provided
+    Construction candidate: Not provided
     Execution authority: NOT ASSESSED BY THIS SKILL
-    Next step: Request a portability review.
+    Construction next step: Request a portability review.
 
     Review its portability for POSIX sh on Ubuntu and macOS.
 expected:
@@ -37,18 +37,18 @@ graders:
       regex_match:
         - '(?is)\AVerdict:\s*BLOCK\s*\r?\nTarget:\s*[^\r\n]+\r?\n\r?\nFindings:\s*\r?\n1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*LOW\s*\r?\n[ \t]+Classification:\s*Open question\s*\r?\n[ \t]+Evidence:\s*[^\r\n]+\r?\n[ \t]+Rule:\s*(?:interpreter-shebang|bashisms|utilities-flags|output-behavior|verification)\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*N/A\s*\r?\n?\z'
         - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?i:VALID)[^\r\n]*$'
-        - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?i:Candidate|candidate)[^\r\n]*(?i:Not provided|missing|required|inconsistent|invalid)[^\r\n]*$'
+        - '(?im)^[ \t]+Evidence:\s*[^\r\n]*(?i:Construction candidate|candidate)[^\r\n]*(?i:Not provided|missing|required|inconsistent|invalid)[^\r\n]*$'
         - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*(?i:correct|provide|supply|remove|replace)[^\r\n]*(?i:construction result|candidate)[^\r\n]*$'
       regex_not_match:
         - '(?i)Verdict:\s*(?:CLEAN|CONCERNS)'
         - '(?im)^(?:Interpreter|Checklist status|Residual risk):'
-        - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
+        - '(?im)^(?:Construction result|Construction assessment|Construction candidate|Execution authority|Construction next step):'
         - '(?i)(?:\A|[:.!?][ \t]+)(?:(?:the[ \t]+)?(?:candidate|command|it|this)[ \t]+(?:is[ \t]+(?:portable|compatible|valid|suitable|supported)|conforms?|works?|runs?)[^\r\n]*(?:POSIX|Ubuntu|macOS)|(?:POSIX|Ubuntu|macOS)[^\r\n]{0,80}(?:portability|compatibility)[ \t]+(?:is|was|has[ \t]+been)[ \t]+(?:confirmed|verified|established))'
   - type: prompt
     name: task_completion_substance
     config:
       prompt: |
-        Grade whether the response detects that VALID cannot use Candidate: Not
+        Grade whether the response detects that VALID cannot use Construction candidate: Not
         provided, returns the reduced BLOCK form, requests a corrected construction
         result or candidate, and performs no portability analysis or target conclusion.
 

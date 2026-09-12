@@ -12,13 +12,13 @@ inputs:
     A separate construction review supplied this complete result:
     Construction result: REWRITE
     Construction assessment: A quoted heredoc preserves the literal payload.
-    Candidate: |
+    Construction candidate: |
       tool --body-stdin <<'EOF'
         indented $literal
       
       EOF
     Execution authority: NOT ASSESSED BY THIS SKILL
-    Next step: Request a separate portability review of the exact candidate.
+    Construction next step: Request a separate portability review of the exact candidate.
 
     Decode the candidate according to the supplied construction-result format.
     The external `tool` and its stdin interface are available on every target.
@@ -55,7 +55,7 @@ graders:
         - '(?im)^- Verification:\s*(?:covered|n/a)\s*$'
         - '(?im)^Residual risk:\s*[^\r\n]+$'
       regex_not_match:
-        - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
+        - '(?im)^(?:Construction result|Construction assessment|Construction candidate|Execution authority|Construction next step):'
   - type: prompt
     name: task_completion_substance
     config:

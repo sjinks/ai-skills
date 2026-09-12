@@ -11,9 +11,9 @@ inputs:
     A separate construction review is complete:
     Construction result: BLOCKED
     Construction assessment: Scalar versus multiple argv entries is not specified.
-    Candidate: Not provided
+    Construction candidate: Not provided
     Execution authority: NOT ASSESSED BY THIS SKILL
-    Next step: Specify whether items is one scalar or a list of argv entries.
+    Construction next step: Specify whether items is one scalar or a list of argv entries.
 
     Review its portability for POSIX sh on Ubuntu and macOS.
 expected:
@@ -39,7 +39,7 @@ graders:
       regex_not_match:
         - '(?i)Verdict:\s*(?:CLEAN|CONCERNS)'
         - '(?im)^(?:Interpreter|Checklist status|Residual risk):'
-        - '(?im)^(?:Construction result|Construction assessment|Candidate|Execution authority|Next step):'
+        - '(?im)^(?:Construction result|Construction assessment|Construction candidate|Execution authority|Construction next step):'
   - type: prompt
     name: task_completion_substance
     config:

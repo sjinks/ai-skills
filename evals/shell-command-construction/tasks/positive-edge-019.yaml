@@ -19,11 +19,11 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?s)\AConstruction result: REWRITE\nConstruction assessment: [^\n]+\nCandidate: (?:[^\n]+\n|\|\n(?:  [^\n]*\n)+)Execution authority: NOT ASSESSED BY THIS SKILL\nNext step: [^\n]+\n?\z'
+        - '(?s)\AConstruction result: REWRITE\nConstruction assessment: [^\n]+\nConstruction candidate: (?:[^\n]+\n|\|\n(?:  [^\n]*\n)+)Execution authority: NOT ASSESSED BY THIS SKILL\nConstruction next step: [^\n]+\n?\z'
         - '(?im)^Construction assessment:[^\n]*(?i:json)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:argv)[^\n]*$'
         - '(?im)^Construction assessment:[^\n]*(?i:boundar|one-to-one|mapping)[^\n]*$'
-        - '(?im)^Next step:[^\n]*(?i:preserv|review|verify|validate|check)[^\n]*$'
+        - '(?im)^Construction next step:[^\n]*(?i:preserv|review|verify|validate|check)[^\n]*$'
   - type: prompt
     name: task_completion_substance
     config:
