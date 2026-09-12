@@ -19,7 +19,7 @@ config:
   parallel: true
   workers: 4
   executor: copilot-sdk
-  model: claude-sonnet-5
+  model: claude-sonnet-4.6
   max_attempts: 2
 metrics:
   - name: trigger_accuracy

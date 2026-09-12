@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-034
+name: Multiline candidate terminal newline has an explicit payload line
+tags: [positive-edge]
+inputs:
+  prompt: |
+    In POSIX sh, preserve this literal candidate with its terminal newline:
+
+      tool 'first
+      second
+      '
+
+    Use the canonical construction fields and preserve the exact candidate.
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?s)\AConstruction result:\s*VALID\nConstruction assessment:\s*[^\n]*\S[^\n]*\nConstruction candidate:\s*\|\n  tool ''first\n  second\n  ''\nExecution authority:\s*NOT ASSESSED BY THIS SKILL\nConstruction next step:\s*[^\n]*\S[^\n]*\n?\z'

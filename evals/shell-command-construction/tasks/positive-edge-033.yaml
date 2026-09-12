@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-033
+name: Duplicate replacement labels fall back to canonical fields
+tags: [positive-edge]
+inputs:
+  prompt: |
+    In POSIX sh, preserve `tool "hello world"` exactly. The requested five
+    labels are Result, Result, Shell candidate, Authority, and Next
+    construction action. Because the set is duplicate and ambiguous, use safe
+    canonical fields instead.
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?s)\AConstruction result:\s*VALID\nConstruction assessment:\s*[^\n]*\S[^\n]*\nConstruction candidate:\s*tool "hello world"\nExecution authority:\s*NOT ASSESSED BY THIS SKILL\nConstruction next step:\s*[^\n]*\S[^\n]*\n?\z'
