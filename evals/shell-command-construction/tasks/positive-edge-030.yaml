@@ -21,7 +21,7 @@ graders:
       regex_match:
         - '(?s)\AResult:\s*BLOCKED\nBoundary assessment:\s*[^\n]*\b(?:scalar|one|single)\b[^\n]*\b(?:list|multiple|argv)\b[^\n]*\nShell candidate:\s*Not provided\nAuthority:\s*NOT ASSESSED BY THIS SKILL\nNext construction action:\s*[^\n]*\b(?:scalar|one|single)\b[^\n]*\b(?:list|multiple|argv)\b[^\n]*\n?\z'
       regex_not_match:
-        - '(?im)^(?:Boundary assessment|Next construction action):[^\n]*\b(?:safe|unsafe|authoriz(?:ed|ation)?|approv(?:ed|al)?|unapproved|allow(?:ed)?|permit(?:ted)?|portable|compatible|run|execut(?:e|ed|ing)|invok(?:e|ed|ing)|launch(?:ed|ing)|deploy(?:ed|ing)?|releas(?:e|ed|ing)|ship(?:ped|ping))\b'
+        - '(?im)^(?:Boundary assessment|Next construction action):[^\n]*(?:\b(?:safe|unsafe|authoriz(?:ed|ation)?|approv(?:ed|al)?|unapproved|allow(?:ed)?|permit(?:ted)?|portable|compatible|run|execut(?:e|ed|ing)|invok(?:e|ed|ing)|launch(?:ed|ing)|deploy(?:ed|ing)?|releas(?:e|ed|ing)|ship(?:ped|ping))\b|\b(?:works?|runs?)\b[^\n]{0,40}\b(?:on|under|across|with|for|in)\b|\b(?:candidate|command|operation)\s+(?:was|is|has\s+been)\s+(?:run|executed|invoked|launched|deployed|released|shipped)\b)'
       not_contains:
         - 'Construction result:'
         - 'Construction assessment:'
