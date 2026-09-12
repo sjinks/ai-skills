@@ -9,6 +9,7 @@ claims, and a leading-pipe handoff.
 
 from __future__ import annotations
 
+import ast
 from dataclasses import dataclass
 from pathlib import Path
 import re
@@ -23,29 +24,6 @@ SCC_TASKS = ROOT / "evals/shell-command-construction/tasks"
 PORTABILITY_TASKS = ROOT / "evals/shell-portability/tasks"
 SCC_EVAL = ROOT / "evals/shell-command-construction/eval.yaml"
 HANDOFF_REFERENCE = ROOT / "skills/shell-portability/references/construction-handoff.md"
-CANONICAL_LABELS = {
-    "construction result",
-    "construction assessment",
-    "construction candidate",
-    "execution authority",
-    "construction next step",
-}
-CUSTOM_OUTPUT = re.compile(
-    r"(?s)\A(?P<result_label>[A-Za-z0-9](?:[A-Za-z0-9 ]*[A-Za-z0-9])?):[ \t]*"
-    r"(?P<result>VALID|REWRITE|BLOCKED)\n"
-    r"(?P<assessment_label>[A-Za-z0-9](?:[A-Za-z0-9 ]*[A-Za-z0-9])?):[ \t]*"
-    r"(?P<assessment>[^\n]*\S[^\n]*)\n"
-    r"(?P<candidate_label>[A-Za-z0-9](?:[A-Za-z0-9 ]*[A-Za-z0-9])?):[ \t]*"
-    r"(?P<candidate>[^\n]*\S[^\n]*)\n"
-    r"(?P<authority_label>[A-Za-z0-9](?:[A-Za-z0-9 ]*[A-Za-z0-9])?):[ \t]*"
-    r"(?P<authority>[^\n]+)\n"
-    r"(?P<next_label>[A-Za-z0-9](?:[A-Za-z0-9 ]*[A-Za-z0-9])?):[ \t]*"
-    r"(?P<next>[^\n]*\S[^\n]*)\n?\Z"
-)
-DEPLOYMENT_COMPLETION = re.compile(
-    r"(?i)\b(?:the\s+)?(?:deployment|rollout|release|shipping)\s+"
-    r"(?:took\s+place|has\s+(?:completed|finished)|finished(?:\s+successfully)?|went\s+live|occurred|is\s+complete|was\s+completed|is\s+live)\b"
-)
 
 
 class CheckError(Exception):
@@ -225,29 +203,6 @@ def check_leading_pipe_handoff() -> None:
             fail(f"{task_name} rejects its complete portability report")
 
 
-def custom_output_rejects_deployment_claim(output: str) -> bool:
-    custom = CUSTOM_OUTPUT.fullmatch(output)
-    if custom is None:
-        return False
-    label_names = ("result_label", "assessment_label", "candidate_label", "authority_label", "next_label")
-    labels = {custom.group(name).lower() for name in label_names}
-    if len(labels) != 5 or labels & CANONICAL_LABELS:
-        return False
-    if custom.group("authority") != "NOT ASSESSED BY THIS SKILL":
-        return False
-    if custom.group("result") == "BLOCKED":
-        return custom.group("candidate") == "Not provided"
-    if custom.group("candidate").rstrip() == "Not provided":
-        return False
-    if DEPLOYMENT_COMPLETION.search(custom.group("assessment") + "\n" + custom.group("next")):
-        return False
-    return re.search(
-        r"(?i)(?:\b(?:preserv|retain|keep|review|verify|validate|check|confirm)[a-z]*\b[^\n]*"
-        r"(?:candidate|construction|boundary|transport|quote|argument|command|form|result)\b|\bapply\b[^\n]*\brewrite\b)",
-        custom.group("next"),
-    ) is not None
-
-
 def custom_output(labels: tuple[str, str, str, str, str], next_step: str) -> str:
     result, assessment, candidate, authority, next_label = labels
     return "\n".join(
@@ -261,30 +216,61 @@ def custom_output(labels: tuple[str, str, str, str, str], next_step: str) -> str
     )
 
 
+def canonical_output(next_step: str) -> str:
+    return "\n".join(
+        (
+            "Construction result: VALID",
+            "Construction assessment: The supplied bytes preserve the requested boundary.",
+            "Construction candidate: printf '%s\\n' value",
+            "Execution authority: NOT ASSESSED BY THIS SKILL",
+            f"Construction next step: {next_step}",
+        )
+    )
+
+
+def evaluate_shared_assertion(assertion: str, output: str) -> bool:
+    tree = ast.parse(assertion, mode="eval")
+    allowed_nodes = (
+        ast.Expression,
+        ast.Lambda,
+        ast.arguments,
+        ast.arg,
+        ast.BoolOp,
+        ast.Or,
+        ast.And,
+        ast.UnaryOp,
+        ast.Not,
+        ast.Compare,
+        ast.Is,
+        ast.IsNot,
+        ast.Call,
+        ast.Attribute,
+        ast.Name,
+        ast.Load,
+        ast.Constant,
+        ast.BinOp,
+        ast.Add,
+    )
+    allowed_names = {"active", "fields", "output", "re"}
+    allowed_attributes = {"fullmatch", "group", "match", "search", "startswith"}
+    for node in ast.walk(tree):
+        if not isinstance(node, allowed_nodes):
+            fail(f"custom-label shared assertion uses unsupported syntax: {type(node).__name__}")
+        if isinstance(node, ast.Name) and node.id not in allowed_names:
+            fail(f"custom-label shared assertion uses unsupported name: {node.id}")
+        if isinstance(node, ast.Attribute) and node.attr not in allowed_attributes:
+            fail(f"custom-label shared assertion uses unsupported attribute: {node.attr}")
+    return bool(eval(compile(tree, SCC_EVAL.as_posix(), "eval"), {"__builtins__": {}, "output": output, "re": re}))
+
+
 def check_custom_label_deployment_regression() -> None:
     assertions = load_yaml(SCC_EVAL).get("graders", [{}])[0].get("config", {}).get("assertions", [])
     assertion = next(
-        (item for item in assertions if isinstance(item, str) and 'custom.group("assessment")' in item),
+        (item for item in assertions if isinstance(item, str) and 'fields.group("assessment")' in item),
         None,
     )
     if assertion is None:
-        fail("shell-command-construction output contract no longer normalizes custom labels")
-    generic_activation_and_matcher = (
-        r')(re.match(r"(?s)\A(?!(?i:construction result|construction assessment|construction candidate|execution authority|construction next step)[ \t]*:)[^\n]*:[ \t]*(?:VALID|REWRITE|BLOCKED)\b[^\n]*\n", output) is not None, '
-        r're.fullmatch(r"(?s)(?P<result_label>'
-    )
-    if generic_activation_and_matcher not in assertion:
-        fail("custom-label guard no longer links generic activation to its positional matcher")
-    required_source_fragments = (
-        'custom.group("assessment") + "\\n" + custom.group("next")',
-        'custom.group("authority") == "NOT ASSESSED BY THIS SKILL"',
-        'custom.group("candidate").rstrip() != "Not provided"',
-        "took\\s+place",
-        "(?P<result_label>",
-        "(?P<next_label>",
-    )
-    if any(fragment not in assertion for fragment in required_source_fragments):
-        fail("custom-label semantic guard no longer contains the required normalized-field checks")
+        fail("shell-command-construction output contract no longer has a shared semantic policy")
 
     label_sets = (
         ("Result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
@@ -292,11 +278,38 @@ def check_custom_label_deployment_regression() -> None:
     )
     for labels in label_sets:
         valid = custom_output(labels, "Review the candidate boundary.")
-        if not custom_output_rejects_deployment_claim(valid):
+        if not evaluate_shared_assertion(assertion, valid):
             fail(f"custom-label regression rejects the valid {labels[0]!r} label map")
-        deployment_claim = custom_output(labels, "The deployment took place.")
-        if custom_output_rejects_deployment_claim(deployment_claim):
-            fail(f"custom-label regression accepts a deployment claim for {labels[0]!r} labels")
+        for completion_claim in (
+            "Review the candidate; the rollout succeeded.",
+            "The rollout has succeeded; review the candidate boundary.",
+            "The rollout completed successfully; review the candidate boundary.",
+            "The deployment was successful; review the candidate boundary.",
+            "The rollout concluded; review the candidate boundary.",
+            "The release happened; review the candidate boundary.",
+            "The shipping proceeded successfully; review the candidate boundary.",
+            "The candidate was put into production; review the candidate boundary.",
+            "We completed the deployment; review the candidate boundary.",
+            "The operation was carried out; review the candidate boundary.",
+        ):
+            if evaluate_shared_assertion(assertion, custom_output(labels, completion_claim)):
+                fail(f"custom-label regression accepts a completion claim for {labels[0]!r} labels")
+    if not evaluate_shared_assertion(assertion, canonical_output("Review the candidate boundary.")):
+        fail("shared policy rejects the canonical valid example")
+    for completion_claim in (
+        "Review the candidate; the rollout succeeded.",
+        "The rollout has succeeded; review the candidate boundary.",
+        "The rollout completed successfully; review the candidate boundary.",
+        "The deployment was successful; review the candidate boundary.",
+        "The rollout concluded; review the candidate boundary.",
+        "The release happened; review the candidate boundary.",
+        "The shipping proceeded successfully; review the candidate boundary.",
+        "The candidate was put into production; review the candidate boundary.",
+        "We completed the deployment; review the candidate boundary.",
+        "The operation was carried out; review the candidate boundary.",
+    ):
+        if evaluate_shared_assertion(assertion, canonical_output(completion_claim)):
+            fail("shared policy accepts a canonical completion claim")
 
 
 def main() -> None:

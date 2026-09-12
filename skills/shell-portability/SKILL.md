@@ -134,6 +134,8 @@ Portability checklist status:
 Portability residual risk: <remaining caveats or None>
 ```
 
+For a normal report, emit exactly this template and stop after `Portability residual risk:`. Do not append prose outside its fields.
+
 `Rule:` values map to checklist sections: `interpreter-shebang` -> Interpreter And Shebang; `bashisms` -> Bashisms; `utilities-flags` -> Utilities And Flags; `output-behavior` -> Output And Behavior; `verification` -> Verification.
 
 When no material issues exist, write exactly `Portability findings: None` (allowed only with `CLEAN`) and list assumptions under `Portability residual risk`.
