@@ -24,7 +24,7 @@ config:
   max_attempts: 2
 metrics:
   - name: trigger_accuracy
-    weight: 0.30
+    weight: 0.25
     threshold: 0.8
     description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected mode.
   - name: skill_invocation
@@ -32,13 +32,17 @@ metrics:
     threshold: 0.9
     description: Skill is invoked on positive tasks that should activate it.
   - name: task_completion
-    weight: 0.25
+    weight: 0.20
     threshold: 0.8
     description: Output applies bashism/utility/shebang portability analysis with severity/verdict mapping and a verification path.
   - name: task_completion_substance
-    weight: 0.15
+    weight: 0.10
     threshold: 0.7
     description: LLM judge verifies representative positive tasks make the required portability judgement.
+  - name: output_contract
+    weight: 0.15
+    threshold: 1.0
+    description: Activated portability reports use only distinctive labels and terminate after the applicable report template.
   - name: efficiency
     weight: 0.15
     threshold: 0.7

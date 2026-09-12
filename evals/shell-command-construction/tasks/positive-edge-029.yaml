@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-029
+name: Caller-requested direct-response labels take precedence
+description: |
+  An explicit caller label set changes a direct construction response without
+  changing its five-field semantics. Such a response is not a canonical
+  handoff for a later review.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    In POSIX sh, preserve this already-correct literal command exactly:
+
+      tool "hello world"
+
+    Use exactly these five labels, in this order, with no preamble or trailing
+    prose: Result, Boundary assessment, Shell candidate, Authority, and Next
+    construction action. Do not use the default labels. The next action must
+    preserve, review, or verify the candidate boundary.
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?s)\AResult:\s*VALID\nBoundary assessment:\s*[^\n]*\S[^\n]*\nShell candidate:\s*tool "hello world"\nAuthority:\s*NOT ASSESSED BY THIS SKILL\nNext construction action:\s*[^\n]*\S[^\n]*\n?\z'
+        - '(?im)^Next construction action:[^\n]*(?i:preserve|retain|keep|review|verify|validate|check|confirm)[^\n]*(?i:candidate|boundary|argument|command|form)[^\n]*$'
+      regex_not_match:
+        - '(?im)^Next construction action:[^\n]*(?:\b(?:later|eventually|subsequently|tomorrow|tonight)\b|\bas\s+soon\s+as\b|\bat\s+(?:your\s+convenience|the\s+(?:earliest|next)\s+(?:opportunity|time|date)|(?:a\s+)?(?:later|future)\s+(?:time|date))\b|\bin\s+due\s+course\b|\b(?:when|once|after|until|upon|pending|following|during)\s+(?:(?:the|a|an)\s+)?(?:approval|approved|authorization|authorized|clearance|cleared|confirmation|confirmed|completion|complete|release|review|window|cycle|iteration|feasibility|availability|readiness|ready|feasible|practicable|possible|(?:circumstances|conditions)\s+(?:permit|allow)|(?:the\s+)?change\s+window\s+opens|(?:the\s+)?next\s+(?:release|review|window|cycle|iteration|week|month))\b)'
+      not_contains:
+        - 'Construction result:'
+        - 'Construction assessment:'
+        - 'Construction candidate:'
+        - 'Construction next step:'

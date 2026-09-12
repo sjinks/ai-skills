@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-030
+name: Custom labels retain the BLOCKED placeholder branch
+description: |
+  Replacement labels retain the semantic BLOCKED candidate placeholder and a
+  focused clarification next step.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    In POSIX sh, I cannot tell whether $items is one scalar value or a list of
+    separate argv values. Use exactly these five labels, in this order, with no
+    preamble or trailing prose: Result, Boundary assessment, Shell candidate,
+    Authority, and Next construction action. Do not use the default labels.
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?s)\AResult:\s*BLOCKED\nBoundary assessment:\s*[^\n]*\b(?:scalar|one|single)\b[^\n]*\b(?:list|multiple|argv)\b[^\n]*\nShell candidate:\s*Not provided\nAuthority:\s*NOT ASSESSED BY THIS SKILL\nNext construction action:\s*[^\n]*\b(?:scalar|one|single)\b[^\n]*\b(?:list|multiple|argv)\b[^\n]*\n?\z'
+      not_contains:
+        - 'Construction result:'
+        - 'Construction assessment:'
+        - 'Construction candidate:'
+        - 'Construction next step:'

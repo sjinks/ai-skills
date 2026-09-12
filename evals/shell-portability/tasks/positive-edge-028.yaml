@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-028
+name: Custom-labeled construction response is not a canonical handoff
+description: |
+  A custom-labeled direct construction response cannot be decoded as the
+  canonical five-field handoff, so portability must request canonical fields
+  or direct code and emit reduced BLOCK.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Review this supplied prior response for shell portability on POSIX sh:
+
+      Result: VALID
+      Boundary assessment: The literal remains one argument.
+      Shell candidate: tool "hello world"
+      Authority: NOT ASSESSED BY THIS SKILL
+      Next construction action: Preserve the candidate boundary.
+
+    It is a direct response whose caller explicitly requested those replacement
+    labels. No raw command is separately supplied. Do not infer a canonical
+    construction handoff.
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-portability/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-portability], mode: any_order } }
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?is)\APortability verdict:\s*BLOCK\s*\r?\nPortability target:\s*[^\r\n]+\r?\n\r?\nPortability findings:\s*\r?\n1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*LOW\s*\r?\n[ \t]+Classification:\s*Open question\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*(?i:canonical|custom|label|handoff)[^\r\n]*\r?\n[ \t]+Rule:\s*(?:interpreter-shebang|bashisms|utilities-flags|output-behavior|verification)\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:canonical|direct code|provide|supply)[^\r\n]*\r?\n[ \t]+Verification:\s*N/A\s*\r?\n?\z'
+      regex_not_match:
+        - '(?i)Portability verdict:\s*(?:CLEAN|CONCERNS)'
+        - '(?im)^(?:Portability interpreter|Portability checklist status|Portability residual risk):'

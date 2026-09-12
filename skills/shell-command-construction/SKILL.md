@@ -78,6 +78,7 @@ Execution authority: NOT ASSESSED BY THIS SKILL
 Construction next step: <one line with at least one non-whitespace character: one construction action, smallest clarification, or portability handoff>
 ```
 
+- These are the default canonical labels. For a direct response where the caller explicitly requests replacement labels, use the caller's labels for the same five ordered fields. Map those labels, in order, to result, assessment, candidate, authority, and next step; they must be distinct and unambiguous. Apply every disposition, placeholder, serialization, authority-literal, and next-step rule below to its matching semantic field. If the requested labels cannot identify all five roles, use the default labels. A custom-labeled direct response is not a canonical handoff; when a later review must consume this result, retain the default labels or provide the exact candidate as direct code.
 - `BLOCKED` always uses `Construction candidate: Not provided`.
 - For `VALID` or `REWRITE`, the one-line placeholder form `Construction candidate: Not provided` is reserved and forbidden. If the exact one-line candidate text is `Not provided`, serialize it with multiline form:
   ```text
@@ -85,14 +86,14 @@ Construction next step: <one line with at least one non-whitespace character: on
     Not provided
   ```
 - A one-line `VALID` or `REWRITE` candidate has at least one non-whitespace character. A one-line command fragment may begin with `|` only when non-whitespace fragment text follows it on the same line; bare `Construction candidate: |` followed by a newline starts the multiline form. For a multiline candidate, add a two-space serialization prefix to every physical payload line (including an empty line), and include at least one payload line with a non-whitespace character after that removable prefix. Remove only that prefix when interpreting the candidate; any spaces after it are literal payload indentation. Treat prefixed field-looking text as payload, not a top-level field.
-- For `VALID` or `REWRITE`, `Construction next step` names an affirmative construction preservation, review, or verification action. A status-only value such as `No further construction action is required` is not an action.
+- For `VALID` or `REWRITE`, `Construction next step` names an immediate, affirmative construction preservation, review, verification, or rewrite action, without deferral. A status-only value such as `No further construction action is required` is not an action.
 - `Construction assessment` describes parsing and boundaries only; it does not assess safety, authorization, targets, effects, or permission.
 - Every candidate, including an effectful-looking one, uses exactly `Execution authority: NOT ASSESSED BY THIS SKILL`.
 - Do not make safety, authorization, approval, or execution claims in `Construction assessment` or `Construction next step`. `Construction candidate` is confirmed literal command data: it may contain words such as `safe`, `approved`, `run this`, `deploy`, `release`, or `ship`; never alter or block a candidate solely for those words. Execution authority remains exactly `NOT ASSESSED BY THIS SKILL`.
 
 ## Definition of done
 
-A response is complete only when it has preserved every confirmed boundary or returned `BLOCKED`, has not rendered a secret, has made no execution or portability claim, and matches the five-field output contract exactly.
+A response is complete only when it has preserved every confirmed boundary or returned `BLOCKED`, has not rendered a secret, has made no execution or portability claim, and matches the canonical five-field contract or an explicitly caller-requested direct-label equivalent.
 
 ## Provenance
 

@@ -4,9 +4,9 @@ Evaluation suites for the skills in this repository, in
 [waza](https://github.com/microsoft/waza) format. Each suite lives in
 `evals/<skill-name>/` and contains:
 
-- `eval.yaml` — eval spec: name, skill, config, metrics, and an eval-level
-  `behavior` grader (named `efficiency`) for tool-call and total-token
-  budgets.
+- `eval.yaml` — eval spec: name, skill, config, metrics, and eval-level
+  graders such as `behavior` `efficiency` for tool-call and total-token
+  budgets and deterministic output-contract checks where a suite defines one.
 - `tasks/positive-trigger-*.yaml` — prompts that should activate the
   skill, plus content/format graders to check the skill's structured
   output.
@@ -26,8 +26,9 @@ Evaluation suites for the skills in this repository, in
 
 ## Grader Design
 
-Each task has a baseline set of task-level graders plus one eval-level
-`efficiency` grader. Positive tasks add `skill_invocation`; selected
+Each task has a baseline set of task-level graders plus an eval-level
+`efficiency` grader; suites with an eval-level output contract also define a
+matching `output_contract` metric and grader. Positive tasks add `skill_invocation`; selected
 representative positives add `task_completion_substance`;
 `spock-voice` positives add `tone_quality`; and
 `nestjs-development/positive-trigger-1.yaml` adds the `ts_parse`
@@ -131,11 +132,11 @@ metric → grader weighting takes effect.
   words echoed from the prompt. Positive tasks also `not_contains`
   the structured-output markers of unrelated skills so cross-skill
   leakage fails the task.
-- `output_contract` (`shell-command-construction` only, eval-level `code`) —
-  validates any SCC-shaped activated output against the exact five-field
-  serializer while allowing ordinary markerless prose for intentional negative
-  non-activation tasks. Candidate payload lines are excluded from near-label
-  detection only when they occur inside an exact multiline candidate block.
+- `output_contract` (eval-level `code`) — validates a suite-defined structured
+  output contract. Shell-command-construction validates canonical
+  construction-shaped output while allowing ordinary markerless prose for
+  negative non-activation tasks; shell-portability rejects legacy-label mixing
+  and trailing prose after a normal report.
 - `report_contract` (`adversarial-review` tasks only, `program`) — reads the raw
   agent output that Waza passes on stdin and validates complete top-level order,
   marker uniqueness, verdict branches, every numbered finding, and report
