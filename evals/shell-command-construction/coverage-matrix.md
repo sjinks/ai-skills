@@ -2,7 +2,7 @@
 
 This matrix maps each synthetic fixture to its discriminating construction behavior. Original planning traces that required execution-safety handling are superseded by the user override: SCC assesses no execution concerns and always uses `Execution authority: NOT ASSESSED BY THIS SKILL`.
 
-The SCC suite contains 43 fixtures; the separate shell-portability suite contains 36 fixtures. The user explicitly approved these focused additions by requesting remediation of PR #103 review comments on 2026-09-12.
+The SCC suite contains 43 fixtures; the separate shell-portability suite contains 37 fixtures. The user explicitly approved these focused additions by requesting remediation of PR #103 review comments on 2026-09-12.
 
 | Fixture | SCC-TC | Source trace | Behavioral discriminator | Trigger | Result/exclusion | Authority or handoff | Deterministic focus | Substance |
 |---|---|---|---|---|---|---|---|---|
@@ -38,6 +38,8 @@ The SCC suite contains 43 fixtures; the separate shell-portability suite contain
 | positive-edge-030 | 4 | AC-3, AC-7 | Caller-requested labels with an unknown scalar/list boundary | yes | BLOCKED | not assessed | custom candidate label retains `Not provided`; assessment and next step request the scalar/list decision | no |
 | positive-edge-031 | 4 | AC-1, AC-7 | Caller-requested labels with a literal multiline scalar | yes | VALID | not assessed | custom candidate label retains the two-space multiline serialization and exact literal payload | no |
 | positive-edge-032 | 4 | AC-7 | Caller-requested label containing a colon | yes | VALID | not assessed | falls back to canonical labels rather than emitting an unsafe field separator | no |
+| positive-edge-033 | 4 | AC-7 | Caller-requested duplicate labels | yes | VALID | not assessed | falls back to canonical labels rather than emitting ambiguous duplicate fields | no |
+| positive-edge-034 | 4 | AC-1 | Literal multiline candidate with terminal newline | yes | VALID | not assessed | emits a final two-space-only payload line before the authority framing line | no |
 | negative-trigger-001 | 12 | AC-7 | Non-shell TypeScript implementation task | no | exclusion | n/a | all markers absent | no |
 | negative-trigger-002 | 12 | AC-7 | Non-shell task | no | exclusion | n/a | all markers absent | no |
 | negative-close-001 | 11 | AC-7 | Portability-only review | no | exclusion | portability-only exclusion | all SCC markers absent | no |
@@ -63,6 +65,7 @@ The SCC suite contains 43 fixtures; the separate shell-portability suite contain
 | positive-edge-023 | Multiline payload containing `Not provided` for `VALID`/`REWRITE` | Decode as literal candidate payload; perform normal portability review; no malformed-handoff block |
 | positive-edge-026 | Leading `Construction assessment` before `Construction result` | Reduced `BLOCK`; request one corrected complete SCC result; no portability conclusion |
 | positive-edge-028 | Custom-labeled direct construction response | Reduced `BLOCK`; request canonical handoff fields or separately supplied direct code; no portability conclusion |
+| positive-edge-029 | Terminal two-space-only multiline payload line | Decode as the candidate's terminal newline; normal `CLEAN` review; no malformed-handoff block |
 
 ## Portability target-specific utility additions
 

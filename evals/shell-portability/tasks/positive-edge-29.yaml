@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-029
+name: Terminal multiline payload newline remains part of handoff candidate
+tags: [positive-edge]
+inputs:
+  prompt: |
+    A mixed-request handoff supplied this complete construction result:
+    Construction result: VALID
+    Construction assessment: A literal one-argument boundary was reviewed.
+    Construction candidate: |
+      tool 'first
+      second
+      '
+      
+    Execution authority: NOT ASSESSED BY THIS SKILL
+    Construction next step: Request portability review of the exact candidate.
+
+    Review only the decoded candidate for POSIX sh on Ubuntu and macOS. The
+    external tool exists on every target. The final two-space-only payload line
+    is a terminal newline in the literal argument, not authority framing.
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-portability/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-portability], mode: any_order } }
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?im)^Portability verdict:\s*CLEAN\s*$'
+        - '(?im)^Portability findings:\s*None\s*$'
+      regex_not_match:
+        - '(?im)^Portability verdict:\s*(?:BLOCK|CONCERNS)\s*$'
+        - '(?im)^[ \t]+Evidence:.*(?:malformed|missing|strip|drop).*$'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response decodes the final two-space-only payload line
+        as the candidate's terminal newline, not as authority framing; returns
+        CLEAN with no findings for the declared targets; and avoids redoing
+        construction.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+      mode: independent
