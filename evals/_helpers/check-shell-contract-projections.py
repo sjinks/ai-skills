@@ -4,26 +4,27 @@
 This is a static preflight. It does not call a model: it proves the fixture
 source bytes, output regexes, and portability handoff agree for three specific
 regressions: delimiter-owned newlines, custom-label deployment-completion
-claims, and a leading-pipe handoff.
+claims, a leading-pipe handoff, and byte-zero portability reports.
 """
 
 from __future__ import annotations
 
 import ast
 from dataclasses import dataclass
+import json
 from pathlib import Path
 import re
+import subprocess
 import sys
-from typing import Any
-
-import yaml
 
 
 ROOT = Path(__file__).resolve().parents[2]
 SCC_TASKS = ROOT / "evals/shell-command-construction/tasks"
 PORTABILITY_TASKS = ROOT / "evals/shell-portability/tasks"
 SCC_EVAL = ROOT / "evals/shell-command-construction/eval.yaml"
+PORTABILITY_EVAL = ROOT / "evals/shell-portability/eval.yaml"
 HANDOFF_REFERENCE = ROOT / "skills/shell-portability/references/construction-handoff.md"
+GO_REGEX_RUNNER = ROOT / "evals/_helpers/go-regex-runner"
 
 
 class CheckError(Exception):
@@ -36,6 +37,14 @@ class CandidateFixture:
     labels: tuple[str, str, str, str, str]
     payload: str
     terminal_newline_is_payload: bool
+
+
+@dataclass(frozen=True)
+class YAMLProjection:
+    prompt: str
+    regex_match: tuple[str, ...]
+    regex_not_match: tuple[str, ...]
+    assertions: tuple[str, ...]
 
 
 CANDIDATE_FIXTURES = (
@@ -70,14 +79,30 @@ def fail(message: str) -> None:
     raise CheckError(message)
 
 
-def load_yaml(path: Path) -> dict[str, Any]:
+def load_projection(path: Path) -> YAMLProjection:
     try:
-        value = yaml.safe_load(path.read_text())
-    except (OSError, yaml.YAMLError) as error:
-        fail(f"could not load {path.relative_to(ROOT)}: {error}")
-    if not isinstance(value, dict):
-        fail(f"{path.relative_to(ROOT)} must contain a mapping")
-    return value
+        completed = subprocess.run(
+            ("go", "run", ".", "--yaml-projection", str(path)),
+            cwd=GO_REGEX_RUNNER,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError as error:
+        fail(f"could not run the Go YAML projection for {path.relative_to(ROOT)}: {error}")
+    if completed.returncode:
+        fail(f"could not load {path.relative_to(ROOT)}: {completed.stderr.strip()}")
+    try:
+        value = json.loads(completed.stdout)
+        prompt = value["prompt"]
+        regex_match = value["regex_match"] or []
+        regex_not_match = value["regex_not_match"] or []
+        assertions = value["assertions"] or []
+    except (TypeError, KeyError, json.JSONDecodeError) as error:
+        fail(f"could not decode the Go YAML projection for {path.relative_to(ROOT)}: {error}")
+    if not isinstance(prompt, str) or not all(isinstance(item, str) for item in (*regex_match, *regex_not_match, *assertions)):
+        fail(f"{path.relative_to(ROOT)} has an invalid YAML projection")
+    return YAMLProjection(prompt, tuple(regex_match), tuple(regex_not_match), tuple(assertions))
 
 
 def marker_payload(prompt: str, task_name: str) -> str:
@@ -92,14 +117,12 @@ def marker_payload(prompt: str, task_name: str) -> str:
         raise AssertionError("unreachable") from error
 
 
-def text_regex(task: dict[str, Any], task_name: str) -> str:
-    for grader in task.get("graders", []):
-        if grader.get("type") == "text" and grader.get("name") == "task_completion":
-            regexes = grader.get("config", {}).get("regex_match", [])
-            if isinstance(regexes, list) and regexes and isinstance(regexes[0], str):
-                return regexes[0]
-    fail(f"{task_name} must have a task_completion text regex")
-    raise AssertionError("unreachable")
+def accepts_task_completion(task: YAMLProjection, output: str, task_name: str) -> bool:
+    if not task.regex_match:
+        fail(f"{task_name} must have a task_completion text regex")
+    return all(matches(regex, output, task_name) for regex in task.regex_match) and not any(
+        matches(regex, output, task_name) for regex in task.regex_not_match
+    )
 
 
 def serialize_candidate(label: str, payload: str) -> str:
@@ -130,10 +153,10 @@ def matches(regex: str, output: str, task_name: str) -> bool:
 def check_candidate_fixtures() -> None:
     for fixture in CANDIDATE_FIXTURES:
         path = SCC_TASKS / f"positive-edge-{fixture.number}.yaml"
-        task = load_yaml(path)
+        task = load_projection(path)
         task_name = path.relative_to(ROOT).as_posix()
-        prompt = task.get("inputs", {}).get("prompt")
-        if not isinstance(prompt, str):
+        prompt = task.prompt
+        if not prompt:
             fail(f"{task_name} must have a string prompt")
 
         raw_payload = marker_payload(prompt, task_name)
@@ -147,24 +170,23 @@ def check_candidate_fixtures() -> None:
         if ownership not in prompt:
             fail(f"{task_name} must explicitly state delimiter-newline ownership")
 
-        regex = text_regex(task, task_name)
         valid = scc_output(fixture, payload)
-        if not matches(regex, valid, task_name):
+        if not accepts_task_completion(task, valid, task_name):
             fail(f"{task_name} does not accept its declared candidate payload")
 
         corrupted = payload.replace("tool", "noop", 1)
-        if matches(regex, scc_output(fixture, corrupted), task_name):
+        if accepts_task_completion(task, scc_output(fixture, corrupted), task_name):
             fail(f"{task_name} does not reject a changed candidate payload")
-        if fixture.terminal_newline_is_payload and matches(regex, scc_output(fixture, payload[:-1]), task_name):
+        if fixture.terminal_newline_is_payload and accepts_task_completion(task, scc_output(fixture, payload[:-1]), task_name):
             fail(f"{task_name} does not reject a removed terminal payload newline")
 
 
 def check_leading_pipe_handoff() -> None:
     path = PORTABILITY_TASKS / "positive-edge-3.yaml"
-    task = load_yaml(path)
+    task = load_projection(path)
     task_name = path.relative_to(ROOT).as_posix()
-    prompt = task.get("inputs", {}).get("prompt")
-    if not isinstance(prompt, str) or "Construction candidate: | sed -n '1p'" not in prompt:
+    prompt = task.prompt
+    if "Construction candidate: | sed -n '1p'" not in prompt:
         fail(f"{task_name} must retain the one-line leading-pipe handoff")
     if "Construction candidate: |\n" in prompt:
         fail(f"{task_name} must not reinterpret the leading pipe as a multiline marker")
@@ -173,12 +195,7 @@ def check_leading_pipe_handoff() -> None:
     if one_line_pipe_rule not in handoff_reference:
         fail("construction handoff reference no longer preserves the one-line leading-pipe rule")
 
-    text_grader = next(
-        (grader for grader in task.get("graders", []) if grader.get("type") == "text" and grader.get("name") == "task_completion"),
-        None,
-    )
-    regexes = text_grader.get("config", {}).get("regex_match", []) if isinstance(text_grader, dict) else []
-    if not isinstance(regexes, list) or not regexes:
+    if not task.regex_match:
         fail(f"{task_name} must assert a complete portability report")
     output = "\n".join(
         (
@@ -195,12 +212,8 @@ def check_leading_pipe_handoff() -> None:
             "Portability residual risk: None identified.",
         )
     )
-    for regex in regexes:
-        if not isinstance(regex, str) or not matches(regex, output, task_name):
-            fail(f"{task_name} does not accept the complete leading-pipe portability report")
-    for regex in text_grader.get("config", {}).get("regex_not_match", []):
-        if isinstance(regex, str) and matches(regex, output, task_name):
-            fail(f"{task_name} rejects its complete portability report")
+    if not accepts_task_completion(task, output, task_name):
+        fail(f"{task_name} does not accept the complete leading-pipe portability report")
 
 
 def custom_output(labels: tuple[str, str, str, str, str], next_step: str) -> str:
@@ -228,7 +241,7 @@ def canonical_output(next_step: str) -> str:
     )
 
 
-def evaluate_shared_assertion(assertion: str, output: str) -> bool:
+def evaluate_assertion(assertion: str, output: str, source: Path) -> bool:
     tree = ast.parse(assertion, mode="eval")
     allowed_nodes = (
         ast.Expression,
@@ -260,11 +273,11 @@ def evaluate_shared_assertion(assertion: str, output: str) -> bool:
             fail(f"custom-label shared assertion uses unsupported name: {node.id}")
         if isinstance(node, ast.Attribute) and node.attr not in allowed_attributes:
             fail(f"custom-label shared assertion uses unsupported attribute: {node.attr}")
-    return bool(eval(compile(tree, SCC_EVAL.as_posix(), "eval"), {"__builtins__": {}, "output": output, "re": re}))
+    return bool(eval(compile(tree, source.as_posix(), "eval"), {"__builtins__": {}, "output": output, "re": re}))
 
 
 def check_custom_label_deployment_regression() -> None:
-    assertions = load_yaml(SCC_EVAL).get("graders", [{}])[0].get("config", {}).get("assertions", [])
+    assertions = load_projection(SCC_EVAL).assertions
     assertion = next(
         (item for item in assertions if isinstance(item, str) and 'fields.group("assessment")' in item),
         None,
@@ -278,7 +291,7 @@ def check_custom_label_deployment_regression() -> None:
     )
     for labels in label_sets:
         valid = custom_output(labels, "Review the candidate boundary.")
-        if not evaluate_shared_assertion(assertion, valid):
+        if not evaluate_assertion(assertion, valid, SCC_EVAL):
             fail(f"custom-label regression rejects the valid {labels[0]!r} label map")
         for completion_claim in (
             "Review the candidate; the rollout succeeded.",
@@ -292,9 +305,9 @@ def check_custom_label_deployment_regression() -> None:
             "We completed the deployment; review the candidate boundary.",
             "The operation was carried out; review the candidate boundary.",
         ):
-            if evaluate_shared_assertion(assertion, custom_output(labels, completion_claim)):
+            if evaluate_assertion(assertion, custom_output(labels, completion_claim), SCC_EVAL):
                 fail(f"custom-label regression accepts a completion claim for {labels[0]!r} labels")
-    if not evaluate_shared_assertion(assertion, canonical_output("Review the candidate boundary.")):
+    if not evaluate_assertion(assertion, canonical_output("Review the candidate boundary."), SCC_EVAL):
         fail("shared policy rejects the canonical valid example")
     for completion_claim in (
         "Review the candidate; the rollout succeeded.",
@@ -308,8 +321,33 @@ def check_custom_label_deployment_regression() -> None:
         "We completed the deployment; review the candidate boundary.",
         "The operation was carried out; review the candidate boundary.",
     ):
-        if evaluate_shared_assertion(assertion, canonical_output(completion_claim)):
+        if evaluate_assertion(assertion, canonical_output(completion_claim), SCC_EVAL):
             fail("shared policy accepts a canonical completion claim")
+
+
+def check_portability_preamble_regression() -> None:
+    assertions = load_projection(PORTABILITY_EVAL).assertions
+    assertion = next(
+        (item for item in assertions if 'output.startswith("Portability verdict:")' in item),
+        None,
+    )
+    if assertion is None:
+        fail("shell-portability output contract no longer requires a byte-zero report")
+    report = "Portability verdict: CLEAN\nPortability residual risk: None"
+    if not evaluate_assertion(assertion, report, PORTABILITY_EVAL):
+        fail("portability output contract rejects a byte-zero report")
+    if evaluate_assertion(assertion, f"Here is the review:\n{report}", PORTABILITY_EVAL):
+        fail("portability output contract accepts a preamble before its report")
+    if evaluate_assertion(assertion, f"  {report}", PORTABILITY_EVAL):
+        fail("portability output contract accepts an indented report")
+    legacy_assertion = next(
+        (item for item in assertions if '^[ \\t]*(?:Verdict|Target|Interpreter|Findings|Checklist status|Residual risk):' in item),
+        None,
+    )
+    if legacy_assertion is None:
+        fail("shell-portability output contract no longer rejects indented legacy labels")
+    if evaluate_assertion(legacy_assertion, f"{report}\n  Verdict: CLEAN", PORTABILITY_EVAL):
+        fail("portability output contract accepts an indented legacy label")
 
 
 def main() -> None:
@@ -317,6 +355,7 @@ def main() -> None:
         check_candidate_fixtures()
         check_leading_pipe_handoff()
         check_custom_label_deployment_regression()
+        check_portability_preamble_regression()
     except CheckError as error:
         print(f"shell contract projection check failed: {error}", file=sys.stderr)
         raise SystemExit(1) from error

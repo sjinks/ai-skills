@@ -53,15 +53,19 @@ graders:
     config:
       language: python
       assertions:
+        # A normal portability report is the exact template, not a prose suffix
+        # that happens to contain its first field.
+          - '(not re.search(r"(?im)^[ \t]*Portability verdict:", output) or output.startswith("Portability verdict:"))'
         # Once a portability report activates, legacy generic report labels must
         # not be mixed with the distinctive cross-skill handoff contract.
-          - '(not re.search(r"(?im)^Portability verdict:", output) or re.search(r"(?im)^(?:Verdict|Target|Interpreter|Findings|Checklist status|Residual risk):", output) is None)'
+          - '(not re.search(r"(?im)^[ \t]*Portability verdict:", output) or re.search(r"(?im)^[ \t]*(?:Verdict|Target|Interpreter|Findings|Checklist status|Residual risk):", output) is None)'
         # The normal template ends at residual risk; later prose would make the
         # report ambiguous to the handoff consumer. Reduced BLOCK output omits
         # that normal-only field and is governed by its task-specific envelope.
-          - '(not re.search(r"(?im)^Portability verdict:", output) or re.search(r"(?im)^Portability residual risk:[^\r\n]*(?:\r?\n[ \t]*)*\r?\n[ \t]*\S", output) is None)'
+          - '(not re.search(r"(?im)^[ \t]*Portability verdict:", output) or re.search(r"(?im)^Portability residual risk:[^\r\n]*(?:\r?\n[ \t]*)*\r?\n[ \t]*\S", output) is None)'
         # Regression self-tests for the two distinctive-label envelope rules.
-          - '(re.search(r"(?im)^(?:Verdict|Target|Interpreter|Findings|Checklist status|Residual risk):", "Verdict: CLEAN") is not None and re.search(r"(?im)^(?:Verdict|Target|Interpreter|Findings|Checklist status|Residual risk):", "Portability findings: None") is None)'
+          - '(not re.search(r"(?im)^[ \t]*Portability verdict:", "Here is the review:\nPortability verdict: CLEAN") and not re.search(r"(?im)^[ \t]*Portability verdict:", "  Portability verdict: CLEAN") and re.search(r"(?im)^[ \t]*Portability verdict:", "Portability verdict: CLEAN") is not None)'
+          - '(re.search(r"(?im)^[ \t]*(?:Verdict|Target|Interpreter|Findings|Checklist status|Residual risk):", "  Verdict: CLEAN") is not None and re.search(r"(?im)^[ \t]*(?:Verdict|Target|Interpreter|Findings|Checklist status|Residual risk):", "Portability findings: None") is None)'
           - '(re.search(r"(?im)^Portability residual risk:[^\r\n]*(?:\r?\n[ \t]*)*\r?\n[ \t]*\S", "Portability residual risk: None" + chr(10) + chr(10) + "  Extra prose") is not None and re.search(r"(?im)^Portability residual risk:[^\r\n]*(?:\r?\n[ \t]*)*\r?\n[ \t]*\S", "Portability residual risk: None" + chr(10)) is None)'
   - type: behavior
     name: efficiency

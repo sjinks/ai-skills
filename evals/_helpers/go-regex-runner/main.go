@@ -21,6 +21,7 @@ import (
 type graderConfig struct {
 	RegexMatch    []string `yaml:"regex_match"`
 	RegexNotMatch []string `yaml:"regex_not_match"`
+	Assertions    []string `yaml:"assertions"`
 }
 
 type grader struct {
@@ -30,8 +31,18 @@ type grader struct {
 }
 
 type task struct {
-	ID      string   `yaml:"id"`
+	ID      string `yaml:"id"`
+	Inputs  struct {
+		Prompt string `yaml:"prompt"`
+	} `yaml:"inputs"`
 	Graders []grader `yaml:"graders"`
+}
+
+type yamlProjection struct {
+	Prompt        string   `json:"prompt"`
+	RegexMatch    []string `json:"regex_match"`
+	RegexNotMatch []string `json:"regex_not_match"`
+	Assertions    []string `json:"assertions"`
 }
 
 type regexRef struct {
@@ -243,13 +254,47 @@ func validateCases(path, displayPath string, refs []regexRef) (int, error) {
 	return len(cases.Cases), nil
 }
 
+func projectYAML(path string, stdout io.Writer) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("read YAML projection: %w", err)
+	}
+	var value task
+	if err := yaml.Unmarshal(data, &value); err != nil {
+		return fmt.Errorf("decode YAML projection: %w", err)
+	}
+	projection := yamlProjection{
+		Prompt:        value.Inputs.Prompt,
+		RegexMatch:    []string{},
+		RegexNotMatch: []string{},
+		Assertions:    []string{},
+	}
+	for _, grader := range value.Graders {
+		if grader.Type == "text" && grader.Name == "task_completion" {
+			projection.RegexMatch = grader.Config.RegexMatch
+			projection.RegexNotMatch = grader.Config.RegexNotMatch
+		}
+		if grader.Type == "code" && grader.Name == "output_contract" {
+			projection.Assertions = grader.Config.Assertions
+		}
+	}
+	return json.NewEncoder(stdout).Encode(projection)
+}
+
 func run(arguments []string, stdout, stderr io.Writer) error {
 	flags := flag.NewFlagSet("go-regex-runner", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	root := flags.String("root", "", "evals or suite root containing tasks/*.yaml")
 	cases := flags.String("cases", "", "optional JSON contrastive-case file")
+	projection := flags.String("yaml-projection", "", "emit the task-completion/output-contract projection for one YAML file")
 	if err := flags.Parse(arguments); err != nil {
 		return err
+	}
+	if *projection != "" {
+		if *root != "" || *cases != "" {
+			return errors.New("--yaml-projection cannot be combined with --root or --cases")
+		}
+		return projectYAML(*projection, stdout)
 	}
 	if *root == "" {
 		return errors.New("--root is required")
