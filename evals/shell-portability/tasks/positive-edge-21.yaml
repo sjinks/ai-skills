@@ -10,6 +10,7 @@ inputs:
     Construction candidate: echo first
     Execution authority: NOT ASSESSED BY THIS SKILL
     Construction next step: Request portability review of the exact candidate.
+
     Construction result: VALID
     Construction assessment: The second candidate preserves the same boundary.
     Construction candidate: echo second

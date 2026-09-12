@@ -19,7 +19,7 @@ Require exactly one complete result with these top-level fields in order:
 4. `Execution authority: NOT ASSESSED BY THIS SKILL`
 5. `Construction next step: <nonblank one-line value>`
 
-When the caller embeds a construction result inside surrounding prose, the handoff is the contiguous envelope that starts at the `Construction result:` line and ends immediately after the `Construction next step:` line, with zero or one terminal newline inside that envelope. Nonblank prose may appear before that start marker without a blank separator, but no preamble line may start with any of the five top-level field prefixes; that is a malformed reordered or duplicate handoff. A nonblank line immediately after `Construction next step:` is adjacent handoff content, not surrounding prose. Outside an open multiline candidate, blank or free-form lines between top-level fields, code fences, trailing prose, and any other extra unprefixed line make the envelope malformed. Within an open multiline candidate, every payload line—including a two-space-only serialized empty line—remains in the envelope and is decoded under the rules below.
+When the caller embeds a construction result inside surrounding prose, the handoff is the contiguous envelope that starts at the `Construction result:` line and ends immediately after the `Construction next step:` line, with zero or one terminal newline inside that envelope. Nonblank prose may appear before that start marker without a blank separator, but no preamble line may start with any of the five top-level field prefixes; that is a malformed reordered or duplicate handoff. Any later line anywhere after the envelope that starts with one of those prefixes is also a malformed duplicate, even after blank prose. A nonblank line immediately after `Construction next step:` is adjacent handoff content, not surrounding prose. Outside an open multiline candidate, blank or free-form lines between top-level fields, code fences, trailing prose, and any other extra unprefixed line make the envelope malformed. Within an open multiline candidate, every payload line—including a two-space-only serialized empty line—remains in the envelope and is decoded under the rules below.
 
 Missing, unknown, reordered, duplicated, or blank fields make the handoff malformed.
 
@@ -37,7 +37,7 @@ Missing, unknown, reordered, duplicated, or blank fields make the handoff malfor
 
 ## Multiline decoding
 
-Remove exactly the first two spaces from each payload line. Preserve additional indentation and serialized empty lines. Only unprefixed `Execution authority: NOT ASSESSED BY THIS SKILL` validly terminates payload. If another result field appears unprefixed first, or a payload line lacks its prefix, the handoff is malformed; do not truncate or analyze altered text.
+Remove exactly the first two spaces from each payload line. Preserve additional indentation and serialized empty lines. The newline before unprefixed `Execution authority: NOT ASSESSED BY THIS SKILL` is framing, not candidate data; a final two-space-only payload line encodes a terminal candidate newline. Only that authority line validly terminates payload. If another result field appears unprefixed first, or a payload line lacks its prefix, the handoff is malformed; do not truncate or analyze altered text.
 
 ## Outcome
 
