@@ -2,7 +2,7 @@
 """Check the coupled shell-construction and portability regression contracts.
 
 This is a static preflight. It does not call a model: it proves the fixture
-source bytes, output regexes, and portability handoff agree for three specific
+source bytes, output regexes, and portability handoff agree for these
 regressions: delimiter-owned newlines, custom-label deployment-completion
 claims, custom-label fallback, a leading-pipe handoff, byte-zero and ordered
 portability reports, and negative-task marker exclusions.
@@ -34,6 +34,13 @@ PORTABILITY_MARKERS = (
     "Portability checklist status:",
     "Portability residual risk:",
 )
+SCC_MARKERS = (
+    "Construction result:",
+    "Construction assessment:",
+    "Construction candidate:",
+    "Execution authority:",
+    "Construction next step:",
+)
 
 
 class CheckError(Exception):
@@ -55,6 +62,19 @@ class YAMLProjection:
     regex_not_match: tuple[str, ...]
     not_contains: tuple[str, ...]
     assertions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class ReportContract:
+    """Stable report markers that every negative task must reject literally."""
+
+    task_directory: Path
+    markers: tuple[str, ...]
+    decorated_value: str
+
+
+SCC_REPORT = ReportContract(SCC_TASKS, SCC_MARKERS, "value")
+PORTABILITY_REPORT = ReportContract(PORTABILITY_TASKS, PORTABILITY_MARKERS, "CLEAN")
 
 
 CANDIDATE_FIXTURES = (
@@ -263,18 +283,20 @@ def check_leading_pipe_handoff() -> None:
         fail(f"{task_name} does not accept the complete leading-pipe portability report")
 
 
-def check_portability_negative_marker_exclusions() -> None:
-    for path in sorted(PORTABILITY_TASKS.glob("negative-*.yaml")):
+def check_negative_marker_exclusions(contract: ReportContract) -> None:
+    """Keep negative-task marker policy in one matrix for both shell reports."""
+
+    for path in sorted(contract.task_directory.glob("negative-*.yaml")):
         task = load_projection(path)
         task_name = path.relative_to(ROOT).as_posix()
-        if any(marker in task.prompt for marker in PORTABILITY_MARKERS):
-            fail(f"{task_name} includes a forbidden portability marker in its prompt")
-        missing = tuple(marker for marker in PORTABILITY_MARKERS if marker not in task.not_contains)
+        if any(marker in task.prompt for marker in contract.markers):
+            fail(f"{task_name} includes a forbidden report marker in its prompt")
+        missing = tuple(marker for marker in contract.markers if marker not in task.not_contains)
         if missing:
-            fail(f"{task_name} does not forbid every portability report marker: {missing!r}")
-        for marker in PORTABILITY_MARKERS:
-            if not rejects_task_completion(task, f"> {marker} CLEAN", task_name):
-                fail(f"{task_name} accepts a decorated portability marker: {marker!r}")
+            fail(f"{task_name} does not forbid every report marker: {missing!r}")
+        for marker in contract.markers:
+            if not rejects_task_completion(task, f"> {marker} {contract.decorated_value}", task_name):
+                fail(f"{task_name} accepts a decorated report marker: {marker!r}")
 
 
 def custom_output(labels: tuple[str, str, str, str, str], next_step: str) -> str:
@@ -752,7 +774,8 @@ def main() -> None:
         check_candidate_fixtures()
         check_heredoc_delimiter_fixture()
         check_leading_pipe_handoff()
-        check_portability_negative_marker_exclusions()
+        check_negative_marker_exclusions(SCC_REPORT)
+        check_negative_marker_exclusions(PORTABILITY_REPORT)
         check_negative_custom_envelopes()
         check_custom_label_deployment_regression()
         check_custom_label_contextual_claim_parity()
