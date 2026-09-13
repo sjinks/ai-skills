@@ -4,8 +4,8 @@
 This is a static preflight. It does not call a model: it proves the fixture
 source bytes, output regexes, and portability handoff agree for three specific
 regressions: delimiter-owned newlines, custom-label deployment-completion
-claims, custom-label fallback, a leading-pipe handoff, and byte-zero
-portability reports.
+claims, custom-label fallback, a leading-pipe handoff, byte-zero portability
+reports, and ordered portability report envelopes.
 """
 
 from __future__ import annotations
@@ -238,13 +238,16 @@ def check_leading_pipe_handoff() -> None:
             "Portability verdict: CLEAN",
             "Portability target: POSIX sh on Ubuntu and macOS",
             "Portability interpreter: POSIX sh",
+            "",
             "Portability findings: None",
+            "",
             "Portability checklist status:",
             "- Interpreter and shebang: covered",
             "- Bashisms: covered",
             "- Utilities and flags: covered",
             "- Output and behavior: covered",
             "- Verification: covered",
+            "",
             "Portability residual risk: None identified.",
         )
     )
@@ -617,6 +620,111 @@ def check_portability_preamble_regression() -> None:
         fail("portability output contract accepts an indented legacy label")
 
 
+def check_portability_ordered_envelopes() -> None:
+    assertions = load_projection(PORTABILITY_EVAL).assertions
+    assertion = next(
+        (item for item in assertions if isinstance(item, str) and "re.fullmatch" in item and "Portability checklist status:" in item),
+        None,
+    )
+    if assertion is None:
+        fail("shell-portability output contract no longer requires complete ordered envelopes")
+    clean_severity_assertion = next(
+        (item for item in assertions if isinstance(item, str) and "CLEAN may list LOW-only" not in item and "(?:CRITICAL|HIGH|MEDIUM)" in item and "Portability checklist status" in item),
+        None,
+    )
+    if clean_severity_assertion is None:
+        fail("shell-portability output contract no longer rejects material CLEAN findings")
+
+    normal_clean = "\n".join(
+        (
+            "Portability verdict: CLEAN",
+            "Portability target: POSIX sh on Ubuntu and macOS",
+            "Portability interpreter: POSIX sh",
+            "",
+            "Portability findings: None",
+            "",
+            "Portability checklist status:",
+            "- Interpreter and shebang: covered",
+            "- Bashisms: covered",
+            "- Utilities and flags: covered",
+            "- Output and behavior: covered",
+            "- Verification: covered",
+            "",
+            "Portability residual risk: None.",
+        )
+    )
+    normal_finding = "\n".join(
+        (
+            "Portability verdict: CONCERNS",
+            "Portability target: POSIX sh on Ubuntu and macOS",
+            "Portability interpreter: POSIX sh",
+            "",
+            "Portability findings:",
+            "1. Non-portable utility",
+            "  Severity: MEDIUM",
+            "  Classification: Likely risk",
+            "  Evidence: utility behavior varies by target",
+            "  Rule: utilities-flags",
+            "  Risk: output changes on BSD",
+            "  Portable fix: use a target branch",
+            "  Verification: run under dash",
+            "",
+            "Portability checklist status:",
+            "- Interpreter and shebang: covered",
+            "- Bashisms: covered",
+            "- Utilities and flags: missing",
+            "- Output and behavior: covered",
+            "- Verification: covered",
+            "",
+            "Portability residual risk: target branch remains required.",
+        )
+    )
+    reduced_block = "\n".join(
+        (
+            "Portability verdict: BLOCK",
+            "Portability target: default baseline",
+            "",
+            "Portability findings:",
+            "1. Missing command",
+            "  Severity: LOW",
+            "  Classification: Open question",
+            "  Evidence: no command was supplied",
+            "  Rule: interpreter-shebang",
+            "  Risk: no safe conclusion is possible",
+            "  Portable fix: supply the command",
+            "  Verification: N/A",
+        )
+    )
+    for output in (
+        normal_clean,
+        normal_finding,
+        normal_finding.replace("Portability verdict: CONCERNS", "Portability verdict: CLEAN").replace("Severity: MEDIUM", "Severity: LOW"),
+        normal_finding.replace("Portability verdict: CONCERNS", "Portability verdict: BLOCK"),
+        reduced_block,
+    ):
+        if not evaluate_assertion(assertion, output, PORTABILITY_EVAL):
+            fail("portability output contract rejects a valid ordered report envelope")
+
+    reordered = normal_clean.replace(
+        "Portability target: POSIX sh on Ubuntu and macOS\nPortability interpreter: POSIX sh",
+        "Portability interpreter: POSIX sh\nPortability target: POSIX sh on Ubuntu and macOS",
+    )
+    duplicate = normal_clean.replace(
+        "Portability interpreter: POSIX sh\n",
+        "Portability interpreter: POSIX sh\nPortability interpreter: POSIX sh\n",
+    )
+    reduced_duplicate = reduced_block.replace(
+        "\n\nPortability findings:",
+        "\nPortability target: duplicate\n\nPortability findings:",
+    )
+    for output in (reordered, duplicate, reduced_duplicate):
+        if evaluate_assertion(assertion, output, PORTABILITY_EVAL):
+            fail("portability output contract accepts a reordered or duplicate report field")
+    clean_medium = normal_finding.replace("Portability verdict: CONCERNS", "Portability verdict: CLEAN")
+    if evaluate_assertion(clean_severity_assertion, clean_medium, PORTABILITY_EVAL):
+        fail("portability output contract accepts a CLEAN report with a MEDIUM finding")
+
+
 def main() -> None:
     try:
         check_candidate_fixtures()
@@ -629,6 +737,7 @@ def main() -> None:
         check_mixed_label_handoff_precedence()
         check_terminal_newline_fixture_prompt()
         check_portability_preamble_regression()
+        check_portability_ordered_envelopes()
     except CheckError as error:
         print(f"shell contract projection check failed: {error}", file=sys.stderr)
         raise SystemExit(1) from error

@@ -72,7 +72,7 @@ For every activated request, output exactly these five top-level fields once, in
 
 ```text
 Construction result: VALID | REWRITE | BLOCKED
-Construction assessment: <one line with at least one non-whitespace character, describing parsing/boundary status only>
+Construction assessment: <one line with at least one non-whitespace character, describing parsing, boundary, and selected transport/representation status only>
 Construction candidate: <one-line candidate | Not provided | multiline block>
 Execution authority: NOT ASSESSED BY THIS SKILL
 Construction next step: <one line with at least one non-whitespace character: one construction action, smallest clarification, or portability handoff>
@@ -87,7 +87,7 @@ Construction next step: <one line with at least one non-whitespace character: on
   ```
 - A one-line `VALID` or `REWRITE` candidate has at least one non-whitespace character. A one-line command fragment may begin with `|` only when non-whitespace fragment text follows it on the same line; bare candidate-field `|` followed by a newline starts the multiline form. For a multiline candidate, add a two-space serialization prefix to every physical payload line (including an empty line), and include at least one payload line with a non-whitespace character after that removable prefix. The newline before the authority field is framing, not payload; encode a terminal candidate newline as a final two-space-only payload line. Remove only that prefix when interpreting the candidate; any spaces after it are literal payload indentation. Treat prefixed field-looking text as payload, not a top-level field.
 - For `VALID` or `REWRITE`, the next-step field names an immediate, affirmative construction preservation, review, verification, or rewrite action, without deferral. A status-only value is not an action.
-- The assessment field describes parsing and boundaries only; it does not assess safety, authorization, targets, effects, or permission.
+- The assessment field describes parsing, boundaries, and selected transport or representation status only; it does not assess safety, authorization, targets, effects, or permission.
 - Every candidate, including an effectful-looking one, uses exactly `NOT ASSESSED BY THIS SKILL` as the authority-field value.
 - Do not make safety, authorization, approval, or execution claims in the assessment or next-step field. The candidate field is confirmed literal command data: it may contain words such as `safe`, `approved`, `run this`, `deploy`, `release`, or `ship`; never alter or block a candidate solely for those words. The authority-field value remains exactly `NOT ASSESSED BY THIS SKILL`.
 
