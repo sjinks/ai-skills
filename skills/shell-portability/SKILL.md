@@ -1,13 +1,13 @@
 ---
 name: shell-portability
-description: "Use when: writing, reviewing, or fixing shell scripts that must run on more than one shell or OS — POSIX sh vs bash/ksh/zsh, dash/ash/busybox as /bin/sh, GNU vs BSD/macOS vs busybox coreutils, CI containers, Alpine, or unknown targets. Covers bashisms, non-portable utility flags (readlink -f, sed -i, grep -P, date -d), shebang and interpreter targeting, locale and word-splitting hazards, and portable replacements."
+description: "Use when: writing, reviewing, or fixing shell code where portability is the requested outcome against a declared shell/OS target or across multiple targets — POSIX sh vs bash/ksh/zsh, dash/ash/busybox as /bin/sh, GNU vs BSD/macOS vs busybox coreutils, CI containers, Alpine, or unknown targets. Covers bashisms, non-portable utility flags, shebang/interpreter targeting, locale and word-splitting hazards, and portable replacements. Do not use for generic shell feature tutoring, Bash-only command-construction repair when portability is explicitly excluded, or a raw mixed construction-and-portability request before a separate construction result is supplied."
 argument-hint: "Paste the script or the commands, and name the target shells/OSes if known."
 user-invocable: true
 ---
 
 # Shell Portability
 
-Use this skill when shell code (a script, a snippet, a `Makefile`/CI recipe, or a single command) must run correctly on more than one shell or operating system, and the question is whether every construct and utility invocation is portable across that target set.
+Use this skill when shell code (a script, snippet, `Makefile`/CI recipe, or command) must be assessed against a declared shell/OS target or across multiple targets, and the question is whether every construct and utility invocation is portable for that target set.
 
 The goal is shell code that runs identically on its declared targets: no bashisms in a `#!/bin/sh` script, no GNU-only utility flags on a BSD/macOS/busybox box, and every behavioral assumption (word-splitting, locale, `echo`, glob) made explicit and safe.
 
@@ -21,9 +21,16 @@ The goal is shell code that runs identically on its declared targets: no bashism
 
 ## DO NOT USE FOR:
 
-- Shell command *safety* (destructive `rm`/`git reset`/force-push, secret leakage) — that is a different concern from cross-platform portability. (Quoting is in scope here only for its word-splitting/globbing portability effects, not as data-loss-prevention review.)
+- Shell command construction correctness when portability is not the requested outcome — concrete literal-data, argv-boundary, heredoc, redirection, and transport preservation is outside this skill. (Quoting is in scope here only for its word-splitting/globbing portability effects, not as data-loss-prevention review.)
 - Pure bash feature questions where bash is the only declared target and portability is not required.
 - Performance tuning, general scripting style, or non-shell languages (Python, Perl, PowerShell) where shell portability does not apply.
+
+## Construction handoff routing
+
+1. Direct portability-only code follows the normal review path without a prior construction result.
+2. For a raw mixed request, construction review owns catalogued shell construction. An excluded domain-specific interface workflow owns its interface correction first and must supply an exact command, which then follows the direct portability path.
+3. If no concrete target exists, request a command, executable, fragment, or payload interface.
+4. For a supplied construction handoff, apply [construction-handoff.md](references/construction-handoff.md). Any malformed, inconsistent, or `BLOCKED` handoff uses reduced `BLOCK`; otherwise review only the exact decoded candidate and make no construction claim.
 
 ## Required Context
 
@@ -33,7 +40,7 @@ Establish or infer before judging:
 - The portability target: which shells (`POSIX sh`, `bash`, `ksh`, `zsh`, `dash`/`ash`/`busybox`), which OSes/coreutils (GNU/Linux, BSD/macOS, busybox/Alpine), and any version floors (e.g. bash 3.2 for macOS).
 - The interpreter: the shebang line, or how the script is invoked (`sh script`, `bash script`, sourced).
 
-If no code is supplied, return `Verdict: BLOCK` with one open question; do not invent a script. If code is supplied but the target is unstated, **default to the broadest baseline** — `POSIX sh` (POSIX.1-2017 Shell & Utilities) running under `dash`/`busybox ash`, with utilities that may be GNU **or** BSD/macOS **or** busybox — state that assumption on a `Target:` line, and judge against it. Only narrow the baseline when the user names specific targets.
+If no code is supplied, return `Portability verdict: BLOCK` with one open question; do not invent a script. If code is supplied but the target is unstated, **default to the broadest baseline** — `POSIX sh` (POSIX.1-2017 Shell & Utilities) running under `dash`/`busybox ash`, with utilities that may be GNU **or** BSD/macOS **or** busybox — state that assumption on a `Portability target:` line, and judge against it. Only narrow the baseline when the user names specific targets.
 
 ## Workflow
 
@@ -54,7 +61,7 @@ The Checklist below is the gating source of truth when these rules overlap; the 
 - When the target is POSIX sh, replace bashisms with POSIX equivalents: `[[ ]]`→`[ ]`/`test`, `==`→`=` in `[ ]`, arrays→positional params or whitespace-separated lists, `local`→note it is not POSIX (widely supported by dash/ash/busybox but not guaranteed; document the assumption), `function name()`→`name()`, `source`→`.`, `${var,,}`/`${var^^}`→`tr`, `+=`→`var="$var$add"`, `<()`/`>()` process substitution→temp files or pipes, `&>file`→`>file 2>&1`, `cmd1 |& cmd2`→`cmd1 2>&1 | cmd2`, `{1..10}`→a `while`-loop counter (`seq` is not POSIX), `$'...'`→`printf`, `read -a`→`read` + `IFS`/`set --`.
 - When portable output is needed, use `printf` instead of `echo`: `echo` is not portable for flags (`-n`, `-e`) or backslash escapes — escape interpretation and `-n` handling vary by implementation and by options (`xpg_echo`, `-e`/`-E`), and `echo -n` is unspecified by POSIX. `printf '%s\n' "$x"` and `printf '%s' "$x"` are the portable forms. Never pass user data as the `printf` format string; put it in a `%s` argument.
 - When `set -o pipefail` is used, note it is not POSIX (bash/ksh/zsh/busybox-ash have it; dash does not). For `#!/bin/sh` targeting dash, either drop it or guard it; do not assume it exists.
-- When a non-portable utility flag or a non-POSIX utility is used, replace it with a portable form (see the catalog): `readlink -f`→a `cd`-and-`pwd -P` shell function (the `realpath` utility is not POSIX; `readlink -f`/`-m` are GNU; macOS/BSD `readlink` lacks `-f`); `sed -i`→write to a temp file and `mv`, or split `-i ''` (BSD) vs `-i` (GNU) by target; `grep -P`→`grep -E` (ERE is POSIX) and avoid PCRE; `sed -r`/`sed -E`→rewrite to POSIX BRE (POSIX `sed` specifies neither `-r` nor `-E`; BSD/macOS and modern GNU accept `-E`, busybox often only `-r`); `find -printf`/`find -regex`→portable `-exec`/`-name`; `date -d`/`date +%s -d`→`date -v` (BSD) differs, prefer no relative-date math or a dedicated tool; `xargs -r`→GNU/busybox and macOS (older BSD) `xargs` run the utility once even on empty input; `-r` suppresses that but is GNU/busybox-only (FreeBSD accepts `-r` but already skips empty input; macOS lacks `-r`), so guard empty input explicitly (`[ -s file ]`) rather than relying on `-r`; `mktemp`→`mktemp` template forms differ, use `mktemp 2>/dev/null || mktemp -t tmp`; `stat`/`cp --parents`/`sort -h`/`tac`/`seq` similarly.
+- When a non-portable utility flag or a non-POSIX utility is used, replace it with a portable form (see the catalog): `readlink -f` is non-POSIX and target-dependent. Preserve a confirmed native `readlink -f` when its final-component, existence, and error semantics match the requirement; otherwise require a confirmed available `realpath` implementation with matching semantics. GNU `realpath`/`grealpath` are examples, not the only implementations. A `cd`/`pwd -P` plus basename fallback has reduced semantics and is valid only when that reduction is accepted; for `sed -i`, an explicit target-named or feature-detected GNU/BSD behavior branch (`-i` versus `-i ''`) resolves syntax compatibility only. Do not claim that this branch preserves metadata, hard-link identity, or atomicity; if those invariants are required, demand target-specific verified semantics and state any unavoidable trade-off. `grep -P`→`grep -E` (ERE is POSIX) and avoid PCRE; `sed -r`/`sed -E`→rewrite to POSIX BRE (POSIX `sed` specifies neither `-r` nor `-E`; BSD/macOS and modern GNU accept `-E`, busybox often only `-r`); `find -printf`/`find -regex`→portable `-exec`/`-name`; `date -d`/`date +%s -d`→`date -v` (BSD) differs, prefer no relative-date math or a dedicated tool; `xargs -r`→GNU/busybox and macOS (older BSD) `xargs` run the utility once even on empty input; `-r` suppresses that but is GNU/busybox-only (FreeBSD accepts `-r` but already skips empty input; macOS lacks `-r`), so guard empty input explicitly (`[ -s file ]`) rather than relying on `-r`; `mktemp`→`mktemp` template forms differ, use `mktemp 2>/dev/null || mktemp -t tmp`; `stat`/`cp --parents`/`sort -h`/`tac`/`seq` similarly.
 - When word-splitting or globbing matters, quote every expansion (`"$var"`, `"$@"`) unless splitting is the explicit intent, in which case set `IFS` deliberately; unquoted `$var` behaves differently with different `IFS` and filenames across shells.
 - When byte-exact text processing matters, set `LC_ALL=C` for `sort`, `sed`, `tr`, `grep` ranges; locale changes collation and character-class behavior across systems.
 - When the script uses `awk`, stick to POSIX awk features: GNU awk extensions (`gensub`, `asort`, `--`, `length(array)`, third arg of `match`) are absent in BSD/`mawk`/busybox awk.
@@ -72,7 +79,7 @@ The Checklist below is the gating source of truth when these rules overlap; the 
 
 ### Utilities And Flags
 
-- No non-portable utility flags or non-POSIX utilities on a target that includes BSD/macOS/busybox (`readlink -f`, `sed -i`/`-r`, `grep -P`, `find -printf`/`-regex`, `date -d`, `cp --parents`, `sort -h`, `xargs -r` assumed, `head -c` on busybox quirks, `stat` format strings, `seq`, `tac`, `realpath`).
+- No non-portable utility flags or non-POSIX utilities on a target that includes BSD/macOS/busybox (`readlink -f` without a confirmed native implementation and matching semantics, `sed -i`/`-r`, `grep -P`, `find -printf`/`-regex`, `date -d`, `cp --parents`, `sort -h`, `xargs -r` assumed, `head -c` on busybox quirks, `stat` format strings, `seq`, `tac`, `realpath`).
 - Each utility invocation uses POSIX-specified options, or a target-conditional branch, or a portable shell replacement.
 
 ### Output And Behavior
@@ -103,11 +110,11 @@ Verdicts:
 ## Output Format
 
 ```text
-Verdict: BLOCK | CONCERNS | CLEAN
-Target: <declared shells/OSes, or "default baseline: POSIX sh under dash/busybox ash + GNU/BSD/macOS/busybox utilities">
-Interpreter: <shebang / how invoked, or undeclared>
+Portability verdict: BLOCK | CONCERNS | CLEAN
+Portability target: <declared shells/OSes, or "default baseline: POSIX sh under dash/busybox ash + GNU/BSD/macOS/busybox utilities">
+Portability interpreter: <shebang / how invoked, or undeclared>
 
-Findings:
+Portability findings:
 1. <short title>
   Severity: CRITICAL | HIGH | MEDIUM | LOW
   Classification: Confirmed issue | Likely risk | Open question | Accepted tradeoff
@@ -117,42 +124,44 @@ Findings:
   Portable fix: <POSIX replacement or target-conditional branch>
   Verification: <shellcheck -s sh | checkbashisms | run under dash/busybox | BSD/macOS run | N/A>
 
-Checklist status:
+Portability checklist status:
 - Interpreter and shebang: covered | missing | n/a
 - Bashisms: covered | missing | n/a
 - Utilities and flags: covered | missing | n/a
 - Output and behavior: covered | missing | n/a
 - Verification: covered | missing | n/a
 
-Residual risk: <remaining caveats or None>
+Portability residual risk: <remaining caveats or None>
 ```
+
+For a normal report, emit exactly this template and stop after `Portability residual risk:`. Do not append prose outside its fields.
 
 `Rule:` values map to checklist sections: `interpreter-shebang` -> Interpreter And Shebang; `bashisms` -> Bashisms; `utilities-flags` -> Utilities And Flags; `output-behavior` -> Output And Behavior; `verification` -> Verification.
 
-When no material issues exist, write exactly `Findings: None` (allowed only with `CLEAN`) and list assumptions under Residual risk.
+When no material issues exist, write exactly `Portability findings: None` (allowed only with `CLEAN`) and list assumptions under `Portability residual risk`.
 
-Insufficient-context mode: when no code is supplied, emit exactly this reduced template and stop; do not emit interpreter or checklist status with guessed values. The `BLOCK` verdict here is triggered by the missing code, not by the finding's severity:
+Insufficient-context mode: when no reviewable code or exact construction candidate is available because no code was supplied, construction was consistently `BLOCKED`, or any construction handoff is malformed or inconsistent (including one-line, disposition, field, and multiline errors), emit exactly this reduced template and stop; do not emit interpreter or checklist status with guessed values. The `BLOCK` verdict here is triggered by unavailable trustworthy command text, not by the finding's severity:
 
 ```text
-Verdict: BLOCK
-Target: <declared or default baseline>
+Portability verdict: BLOCK
+Portability target: <declared or default baseline>
 
-Findings:
+Portability findings:
 1. <missing-context short title>
   Severity: LOW
   Classification: Open question
-  Evidence: <what is missing — no script/commands supplied>
+  Evidence: <why no reviewable command text is available>
   Rule: <interpreter-shebang | bashisms | utilities-flags | output-behavior | verification>
   Risk: <why no safe conclusion is possible>
-  Portable fix: <what must be supplied>
+  Portable fix: <the code, completed construction, or corrected serialization that must be supplied>
   Verification: N/A
 ```
 
 ## Examples
 
-- `readlink -f "$path"` under a macOS/BSD target fails: BSD `readlink` has no `-f`. Portable fix: a shell function `abspath() { cd "$(dirname "$1")" && printf '%s/%s\n' "$(pwd -P)" "$(basename "$1")"; }`, or require GNU `coreutils`/`grealpath` explicitly.
+- `readlink -f "$path"` is non-POSIX and target-dependent: FreeBSD and macOS 12.3+ provide it, while older macOS targets may not. Preserve the native form only when its final-component, existence, and error semantics are confirmed to match; otherwise require an available `realpath` implementation with matching semantics. GNU `realpath`/`grealpath` are examples. A `cd`/`pwd -P` plus basename fallback does not resolve a final-component symlink and is only a documented reduced-semantics alternative.
 - `#!/bin/sh` script using `if [[ "$x" == y* ]]; then`: under dash/busybox this is a syntax error. Portable fix: `case "$x" in y*) ... ;; esac`, or `[ "$x" = "y" ]` for exact match.
-- `sed -i 's/a/b/' f` differs: GNU takes `-i`, BSD/macOS needs `-i ''`. Portable fix: `tmp=$(mktemp); sed 's/a/b/' f > "$tmp" && mv "$tmp" f`.
+- `sed -i 's/a/b/' f` differs: GNU takes `-i`, BSD/macOS needs `-i ''`. This branch addresses flag compatibility only: GNU uses `sed -i 's/a/b/' f`; BSD/macOS uses `sed -i '' 's/a/b/' f`. If metadata, hard-link identity, or atomicity invariants are required, require target-specific verified behavior and document trade-offs.
 - `echo -n "$msg"` is unspecified: whether `-n` is treated as a flag or printed, and whether escapes are interpreted, varies by shell/implementation and options (`xpg_echo`, `-e`/`-E`). Portable fix: `printf '%s' "$msg"`.
 
 ## Provenance

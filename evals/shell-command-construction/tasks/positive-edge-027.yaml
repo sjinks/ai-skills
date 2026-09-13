@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-027
+name: Confirmed one-argument command substitution
+inputs:
+  prompt: |
+    In Bash, preserve this supplied command exactly when command substitution is
+    intentional and must remain one argument:
+    `tool "$(date)"`
+
+    The `$(date)` substitution is intentional expansion (not literal text), and
+    the result must stay one argv entry.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-command-construction/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-command-construction
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?s)\AConstruction result: VALID\nConstruction assessment: [^\n]+\nConstruction candidate: tool "\$\(date\)"\nExecution authority: NOT ASSESSED BY THIS SKILL\nConstruction next step: [^\n]+\n?\z'
+        - '(?im)^Construction assessment:[^\n]*(?i:command substitution|\$\(date\)|expansion)[^\n]*$'
+        - '(?im)^Construction assessment:[^\n]*(?i:one argument|one argv|single argument|single argv)[^\n]*$'
+        - '(?im)^Construction next step:[^\n]*(?i:preserve|keep|review|verify|validate|confirm|check)[^\n]*$'
+      regex_not_match:
+        - '(?im)^Construction result:\s*(?:REWRITE|BLOCKED)\s*$'
+        - '(?im)^Construction candidate:\s*Not provided\s*$'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response treats confirmed command substitution as a
+        resolved expansion boundary, preserves the exact candidate
+        `tool "$(date)"` as VALID, and keeps analysis construction-only.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+      mode: independent

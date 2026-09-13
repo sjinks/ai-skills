@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-027
+name: Preserve confirmed native macOS readlink -f
+description: |
+  A macOS 12.3+ target with confirmed matching native `readlink -f` semantics
+  must preserve that invocation instead of unnecessarily replacing it with
+  `realpath`.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Review this macOS 12.3-only shell fragment for portability:
+
+    ```sh
+    target=$(readlink -f "$2")
+    ```
+
+    macOS 12.3's native `readlink -f` is confirmed available here, and its
+    final-component symlink, existence, and error behavior matches the required
+    canonicalization semantics. Preserve this command rather than replacing it
+    with `realpath`. Return the normal portability report.
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-portability/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-portability], mode: any_order } }
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?im)^Portability verdict:\s*CLEAN\s*$'
+        - '(?im)^Portability target:\s*[^\r\n]*macOS[ \t]*12\.3[^\r\n]*$'
+        - '(?im)^Portability interpreter:\s*[^\r\n]+$'
+        - '(?im)^Portability findings:\s*None\s*$'
+        - '(?im)^Portability checklist status:\s*$'
+        - '(?im)^- Interpreter and shebang:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Bashisms:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Utilities and flags:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Output and behavior:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Verification:\s*(?:covered|n/a)\s*$'
+        - '(?im)^Portability residual risk:\s*[^\r\n]*(?i:readlink[ \t]+-f)[^\r\n]*(?i:confirmed|native|semantics)[^\r\n]*$'
+      not_contains:
+        - 'Portable fix:'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response preserves the confirmed native macOS 12.3
+        `readlink -f` invocation, reaches CLEAN, and does not propose a
+        `realpath` rewrite. End with only 1.0, 0.5, or 0.0 on the last line.
+      mode: independent

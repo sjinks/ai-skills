@@ -5,8 +5,13 @@ description: |
   cross-OS shell script review (POSIX sh vs bash, dash/busybox, GNU vs
   BSD/macOS utilities), bashism detection, non-portable utility flags, and
   shebang targeting; stays silent on shell command safety and non-shell
-  languages; and emits the skill's verdict, target, interpreter, findings,
-  checklist status, and residual risk.
+  languages; and emits the skill's `Portability verdict`, `Portability target`,
+  `Portability interpreter`, `Portability findings`, `Portability checklist status`,
+  and `Portability residual risk` fields when a normal candidate is available;
+  reduced `BLOCK` output retains `Portability verdict`, `Portability target`, and
+  `Portability findings`, while
+  omitting the normal-only `Portability interpreter`, `Portability checklist status`,
+  and `Portability residual risk` fields.
 skill: shell-portability
 version: "1.0"
 config:
@@ -19,7 +24,7 @@ config:
   max_attempts: 2
 metrics:
   - name: trigger_accuracy
-    weight: 0.30
+    weight: 0.25
     threshold: 0.8
     description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected mode.
   - name: skill_invocation
@@ -27,18 +32,41 @@ metrics:
     threshold: 0.9
     description: Skill is invoked on positive tasks that should activate it.
   - name: task_completion
-    weight: 0.25
+    weight: 0.20
     threshold: 0.8
     description: Output applies bashism/utility/shebang portability analysis with severity/verdict mapping and a verification path.
   - name: task_completion_substance
-    weight: 0.15
+    weight: 0.10
     threshold: 0.7
     description: LLM judge verifies representative positive tasks make the required portability judgement.
+  - name: output_contract
+    weight: 0.15
+    threshold: 1.0
+    description: Activated portability reports use only distinctive labels and terminate after the applicable report template.
   - name: efficiency
     weight: 0.15
     threshold: 0.7
     description: Stays within tool-call and total-token budgets.
 graders:
+  - type: code
+    name: output_contract
+    config:
+      language: python
+      assertions:
+        # A normal portability report is the exact template, not a prose suffix
+        # that happens to contain its first field.
+          - '(not re.search(r"(?im)^[ \t]*Portability verdict:", output) or output.startswith("Portability verdict:"))'
+        # Once a portability report activates, legacy generic report labels must
+        # not be mixed with the distinctive cross-skill handoff contract.
+          - '(not re.search(r"(?im)^[ \t]*Portability verdict:", output) or re.search(r"(?im)^[ \t]*(?:Verdict|Target|Interpreter|Findings|Checklist status|Residual risk):", output) is None)'
+        # The normal template ends at residual risk; later prose would make the
+        # report ambiguous to the handoff consumer. Reduced BLOCK output omits
+        # that normal-only field and is governed by its task-specific envelope.
+          - '(not re.search(r"(?im)^[ \t]*Portability verdict:", output) or re.search(r"(?im)^Portability residual risk:[^\r\n]*(?:\r?\n[ \t]*)*\r?\n[ \t]*\S", output) is None)'
+        # Regression self-tests for the two distinctive-label envelope rules.
+          - '(not re.search(r"(?im)^[ \t]*Portability verdict:", "Here is the review:\nPortability verdict: CLEAN") and not re.search(r"(?im)^[ \t]*Portability verdict:", "  Portability verdict: CLEAN") and re.search(r"(?im)^[ \t]*Portability verdict:", "Portability verdict: CLEAN") is not None)'
+          - '(re.search(r"(?im)^[ \t]*(?:Verdict|Target|Interpreter|Findings|Checklist status|Residual risk):", "  Verdict: CLEAN") is not None and re.search(r"(?im)^[ \t]*(?:Verdict|Target|Interpreter|Findings|Checklist status|Residual risk):", "Portability findings: None") is None)'
+          - '(re.search(r"(?im)^Portability residual risk:[^\r\n]*(?:\r?\n[ \t]*)*\r?\n[ \t]*\S", "Portability residual risk: None" + chr(10) + chr(10) + "  Extra prose") is not None and re.search(r"(?im)^Portability residual risk:[^\r\n]*(?:\r?\n[ \t]*)*\r?\n[ \t]*\S", "Portability residual risk: None" + chr(10)) is None)'
   - type: behavior
     name: efficiency
     config:
