@@ -21,6 +21,7 @@ import (
 type graderConfig struct {
 	RegexMatch    []string `yaml:"regex_match"`
 	RegexNotMatch []string `yaml:"regex_not_match"`
+	NotContains   []string `yaml:"not_contains"`
 	Assertions    []string `yaml:"assertions"`
 }
 
@@ -42,6 +43,7 @@ type yamlProjection struct {
 	Prompt        string   `json:"prompt"`
 	RegexMatch    []string `json:"regex_match"`
 	RegexNotMatch []string `json:"regex_not_match"`
+	NotContains   []string `json:"not_contains"`
 	Assertions    []string `json:"assertions"`
 }
 
@@ -267,12 +269,14 @@ func projectYAML(path string, stdout io.Writer) error {
 		Prompt:        value.Inputs.Prompt,
 		RegexMatch:    []string{},
 		RegexNotMatch: []string{},
+		NotContains:   []string{},
 		Assertions:    []string{},
 	}
 	for _, grader := range value.Graders {
 		if grader.Type == "text" && grader.Name == "task_completion" {
 			projection.RegexMatch = grader.Config.RegexMatch
 			projection.RegexNotMatch = grader.Config.RegexNotMatch
+			projection.NotContains = grader.Config.NotContains
 		}
 		if grader.Type == "code" && grader.Name == "output_contract" {
 			projection.Assertions = grader.Config.Assertions

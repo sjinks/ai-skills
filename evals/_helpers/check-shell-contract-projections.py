@@ -44,6 +44,7 @@ class YAMLProjection:
     prompt: str
     regex_match: tuple[str, ...]
     regex_not_match: tuple[str, ...]
+    not_contains: tuple[str, ...]
     assertions: tuple[str, ...]
 
 
@@ -97,12 +98,13 @@ def load_projection(path: Path) -> YAMLProjection:
         prompt = value["prompt"]
         regex_match = value["regex_match"] or []
         regex_not_match = value["regex_not_match"] or []
+        not_contains = value["not_contains"] or []
         assertions = value["assertions"] or []
     except (TypeError, KeyError, json.JSONDecodeError) as error:
         fail(f"could not decode the Go YAML projection for {path.relative_to(ROOT)}: {error}")
-    if not isinstance(prompt, str) or not all(isinstance(item, str) for item in (*regex_match, *regex_not_match, *assertions)):
+    if not isinstance(prompt, str) or not all(isinstance(item, str) for item in (*regex_match, *regex_not_match, *not_contains, *assertions)):
         fail(f"{path.relative_to(ROOT)} has an invalid YAML projection")
-    return YAMLProjection(prompt, tuple(regex_match), tuple(regex_not_match), tuple(assertions))
+    return YAMLProjection(prompt, tuple(regex_match), tuple(regex_not_match), tuple(not_contains), tuple(assertions))
 
 
 def marker_payload(prompt: str, task_name: str) -> str:
@@ -120,9 +122,13 @@ def marker_payload(prompt: str, task_name: str) -> str:
 def accepts_task_completion(task: YAMLProjection, output: str, task_name: str) -> bool:
     if not task.regex_match:
         fail(f"{task_name} must have a task_completion text regex")
-    return all(matches(regex, output, task_name) for regex in task.regex_match) and not any(
-        matches(regex, output, task_name) for regex in task.regex_not_match
-    )
+    return all(matches(regex, output, task_name) for regex in task.regex_match) and not any(matches(regex, output, task_name) for regex in task.regex_not_match) and not any(value in output for value in task.not_contains)
+
+
+def rejects_task_completion(task: YAMLProjection, output: str, task_name: str) -> bool:
+    if not task.regex_not_match and not task.not_contains:
+        fail(f"{task_name} must reject an SCC envelope")
+    return any(matches(regex, output, task_name) for regex in task.regex_not_match) or any(value in output for value in task.not_contains)
 
 
 def serialize_candidate(label: str, payload: str) -> str:
@@ -229,12 +235,80 @@ def custom_output(labels: tuple[str, str, str, str, str], next_step: str) -> str
     )
 
 
-def canonical_output(next_step: str) -> str:
+def custom_multiline_output(labels: tuple[str, str, str, str, str], next_step: str) -> str:
+    result, assessment, candidate, authority, next_label = labels
+    return "\n".join(
+        (
+            f"{result}: VALID",
+            f"{assessment}: The supplied bytes preserve the requested boundary.",
+            f"{candidate}: |",
+            "  tool 'hello world'",
+            f"{authority}: NOT ASSESSED BY THIS SKILL",
+            f"{next_label}: {next_step}",
+        )
+    )
+
+
+def check_negative_custom_envelopes() -> None:
+    labels = (
+        "Result",
+        "Boundary assessment",
+        "Shell candidate",
+        "Authority",
+        "Next construction action",
+    )
+    inline = custom_output(labels, "Review the candidate boundary.")
+    multiline = custom_multiline_output(labels, "Review the candidate boundary.")
+    hyphenated = custom_output(
+        ("Outcome-label", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+        "Review the candidate boundary.",
+    )
+    colon_injected = custom_output(
+        ("Result: injected", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+        "Review the candidate boundary.",
+    )
+    outputs = (
+        inline,
+        multiline,
+        f"Context only; the direct result follows.\n{inline}",
+        f"```text\n{multiline}\n```",
+        f"Context only; the direct result follows.\n{inline.replace('Result: VALID', 'Result: VALID -- direct construction result')}",
+        f"```text\n{multiline.replace('Result: VALID', 'Result: VALID -- direct construction result')}\n```",
+        f"Context only; the direct result follows.\n{hyphenated.replace('Outcome-label: VALID', 'Outcome-label: VALID -- direct construction result')}",
+        f"```text\n{colon_injected.replace('Result: injected: VALID', 'Result: injected: VALID -- direct construction result')}\n```",
+    )
+    for path in sorted(SCC_TASKS.glob("negative-*.yaml")):
+        task_name = path.relative_to(ROOT).as_posix()
+        task = load_projection(path)
+        for output in outputs:
+            if not rejects_task_completion(task, output, task_name):
+                fail(f"{task_name} accepts an unrequested custom SCC envelope")
+
+
+def check_label_cardinality_fallback() -> None:
+    requested_labels = (
+        ("Result", "Boundary assessment", "Shell candidate", "Authority"),
+        ("Result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action", "Extra label"),
+    )
+    for fixture, labels in zip(("positive-edge-036.yaml", "positive-edge-037.yaml"), requested_labels, strict=True):
+        path = SCC_TASKS / fixture
+        task_name = path.relative_to(ROOT).as_posix()
+        task = load_projection(path)
+        if not all(f"`{label}`" in task.prompt for label in labels):
+            fail(f"{task_name} no longer supplies its requested label set")
+        if "fallback" in task.prompt.lower() or "default field labels" in task.prompt.lower():
+            fail(f"{task_name} coaches the required fallback in its prompt")
+        output = canonical_output("Review the candidate boundary.", 'tool "hello world"')
+        if not accepts_task_completion(task, output, task_name):
+            fail(f"{task_name} does not accept its canonical fallback envelope")
+
+
+def canonical_output(next_step: str, candidate: str = "printf '%s\\n' value") -> str:
     return "\n".join(
         (
             "Construction result: VALID",
             "Construction assessment: The supplied bytes preserve the requested boundary.",
-            "Construction candidate: printf '%s\\n' value",
+            f"Construction candidate: {candidate}",
             "Execution authority: NOT ASSESSED BY THIS SKILL",
             f"Construction next step: {next_step}",
         )
@@ -354,7 +428,9 @@ def main() -> None:
     try:
         check_candidate_fixtures()
         check_leading_pipe_handoff()
+        check_negative_custom_envelopes()
         check_custom_label_deployment_regression()
+        check_label_cardinality_fallback()
         check_portability_preamble_regression()
     except CheckError as error:
         print(f"shell contract projection check failed: {error}", file=sys.stderr)

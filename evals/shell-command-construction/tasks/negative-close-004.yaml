@@ -23,3 +23,5 @@ graders:
         - 'Execution authority:'
         - 'Construction candidate:'
         - 'Construction next step:'
+      regex_not_match:
+        - '(?m)^[^\n]+:[ \t]*(?:VALID|REWRITE|BLOCKED)\b[^\n]*\n[^\n]+:[^\n]*\n[^\n]+:[ \t]*(?:[^\n]*\S[^\n]*\n|\|\n(?:  [^\n]*\n)+)[^\n]+:[ \t]*NOT ASSESSED BY THIS SKILL[ \t]*\n[^\n]+:[^\n]*'
