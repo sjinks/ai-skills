@@ -336,6 +336,41 @@ def check_label_fallback_fixtures() -> None:
             fail(f"{task_name} does not accept its canonical fallback envelope")
 
 
+def check_mixed_label_handoff_precedence() -> None:
+    path = SCC_TASKS / "positive-edge-038.yaml"
+    task = load_projection(path)
+    task_name = path.relative_to(ROOT).as_posix()
+    if not all(fragment in task.prompt for fragment in ("POSIX", "macOS", "Result,", "Next construction")):
+        fail(f"{task_name} no longer combines mixed-request and replacement-label inputs")
+    canonical = canonical_output(
+        'Request a separate portability review of tool run "$label".',
+        'tool run "$label"',
+    ).replace("Construction result: VALID", "Construction result: REWRITE").replace(
+        "The supplied bytes preserve the requested boundary.",
+        "The quoted label preserves one argument boundary.",
+    )
+    if not accepts_task_completion(task, canonical, task_name):
+        fail(f"{task_name} does not accept its canonical mixed-request handoff")
+    labels = ("Result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action")
+    if accepts_task_completion(task, custom_output(labels, "Request a separate portability review of the exact candidate."), task_name):
+        fail(f"{task_name} accepts replacement labels despite mixed-request handoff precedence")
+
+
+def check_terminal_newline_fixture_prompt() -> None:
+    path = PORTABILITY_TASKS / "positive-edge-29.yaml"
+    task = load_projection(path)
+    task_name = path.relative_to(ROOT).as_posix()
+    coaching = (
+        "terminal candidate newline",
+        "line continuation",
+        "dash instead treats",
+        "if that newline is dropped",
+        "final two-space-only payload line",
+    )
+    if any(fragment in task.prompt.lower() for fragment in coaching):
+        fail(f"{task_name} gives the decoder interpretation away in its prompt")
+
+
 def canonical_output(next_step: str, candidate: str = "printf '%s\\n' value") -> str:
     return "\n".join(
         (
@@ -372,7 +407,7 @@ def evaluate_assertion(assertion: str, output: str, source: Path) -> bool:
         ast.BinOp,
         ast.Add,
     )
-    allowed_names = {"active", "canonical", "custom", "fields", "output", "re"}
+    allowed_names = {"action", "active", "canonical", "custom", "deferred", "fields", "output", "re"}
     allowed_attributes = {"fullmatch", "group", "match", "search", "startswith"}
     for node in ast.walk(tree):
         if not isinstance(node, allowed_nodes):
@@ -435,8 +470,16 @@ def check_custom_label_deployment_regression() -> None:
 
 def check_custom_label_contextual_claim_parity() -> None:
     assertions = load_projection(SCC_EVAL).assertions
+    canonical_action_assertion = next(
+        (item for item in assertions if isinstance(item, str) and "\\buse\\b(?=" in item and 'output.startswith("Construction result: VALID' in item),
+        None,
+    )
     contextual_assertion = next(
         (item for item in assertions if isinstance(item, str) and "portable|compatible" in item and "(canonical or custom).group" in item),
+        None,
+    )
+    handoff_only_assertion = next(
+        (item for item in assertions if isinstance(item, str) and "A portability handoff" not in item and "portability[ \\t]+review\\b[^\\n]{0,160}" in item and "execut(?:e|ed|ing|ion)" in item),
         None,
     )
     action_assertion = next(
@@ -463,7 +506,7 @@ def check_custom_label_contextual_claim_parity() -> None:
         (item for item in assertions if isinstance(item, str) and "validate|validates|validated|validating|validation" in item and "(canonical or custom).group" in item),
         None,
     )
-    if contextual_assertion is None or action_assertion is None or pronoun_assertion is None or remainder_assertion is None or parsing_assertion is None or parsing_success_assertion is None or validation_success_assertion is None:
+    if canonical_action_assertion is None or contextual_assertion is None or handoff_only_assertion is None or action_assertion is None or pronoun_assertion is None or remainder_assertion is None or parsing_assertion is None or parsing_success_assertion is None or validation_success_assertion is None:
         fail("shell-command-construction output contract no longer has a shared contextual-claim policy")
 
     labels = ("Result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action")
@@ -471,6 +514,40 @@ def check_custom_label_contextual_claim_parity() -> None:
     for output in (canonical_output(allowed_next_step), custom_output(labels, allowed_next_step)):
         if not all(evaluate_assertion(assertion, output, SCC_EVAL) for assertion in (contextual_assertion, action_assertion, pronoun_assertion)):
             fail("shared contextual-claim policy rejects review wording without a portability conclusion")
+
+    for next_step in (
+        "Proceed with a separate portability review of the exact candidate.",
+        "Go ahead with a separate portability review of the exact candidate.",
+        "Use the candidate for a separate portability review.",
+        "The candidate should be used for a separate portability review.",
+    ):
+        canonical = canonical_output(next_step)
+        if not evaluate_assertion(canonical_action_assertion, canonical, SCC_EVAL):
+            fail(f"canonical action policy rejects {next_step!r}")
+        if not all(evaluate_assertion(assertion, canonical, SCC_EVAL) for assertion in (contextual_assertion, action_assertion, pronoun_assertion)):
+            fail(f"shared canonical policy rejects {next_step!r}")
+        custom = custom_output(labels, next_step)
+        if not all(evaluate_assertion(assertion, custom, SCC_EVAL) for assertion in (contextual_assertion, action_assertion, pronoun_assertion)):
+            fail(f"shared custom policy rejects {next_step!r}")
+
+    execution_advice = "Use the candidate for deployment."
+    if evaluate_assertion(canonical_action_assertion, canonical_output(execution_advice), SCC_EVAL):
+        fail("canonical action policy accepts execution advice disguised as use wording")
+    if evaluate_assertion(action_assertion, custom_output(labels, execution_advice), SCC_EVAL):
+        fail("shared custom action policy accepts execution advice disguised as use wording")
+    for output in (canonical_output("Proceed with deployment."), custom_output(labels, "Proceed with deployment.")):
+        if evaluate_assertion(contextual_assertion, output, SCC_EVAL):
+            fail("shared contextual policy accepts unqualified proceed wording")
+
+    for next_step in (
+        "Request a separate portability review of the exact candidate and then deploy it.",
+        "Use the candidate for a separate portability review and execution.",
+        "Proceed with a separate portability review of the exact candidate before running it.",
+        "Request a separate portability review of the exact candidate; run it.",
+    ):
+        for output in (canonical_output(next_step), custom_output(labels, next_step)):
+            if evaluate_assertion(handoff_only_assertion, output, SCC_EVAL):
+                fail(f"portability handoff policy accepts appended execution advice: {next_step!r}")
 
     for claim in ("The candidate is portable.", "The candidate is safe."):
         for output in (canonical_output(claim), custom_output(labels, claim)):
@@ -549,6 +626,8 @@ def main() -> None:
         check_custom_label_deployment_regression()
         check_custom_label_contextual_claim_parity()
         check_label_fallback_fixtures()
+        check_mixed_label_handoff_precedence()
+        check_terminal_newline_fixture_prompt()
         check_portability_preamble_regression()
     except CheckError as error:
         print(f"shell contract projection check failed: {error}", file=sys.stderr)

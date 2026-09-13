@@ -15,12 +15,8 @@ inputs:
     Construction next step: Request portability review of the exact candidate.
 
     Review only the decoded candidate for POSIX sh on Ubuntu and macOS. The
-    `printf` exists on every target. The final two-space-only payload line is a
-    terminal candidate newline, not authority framing. Preserve it exactly: it
-    completes the final standalone POSIX shell line continuation, which is
-    removed before parsing. If that newline is dropped, dash instead treats the
-    trailing backslash as a command name and fails, so the candidate no longer
-    has the same cross-target behavior.
+    `printf` utility exists on every target. Return the normal portability
+    report.
 expected: { should_trigger: true }
 graders:
   - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-portability/SKILL.md, mode: positive, threshold: 0.45 } }
