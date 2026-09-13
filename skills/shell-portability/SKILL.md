@@ -138,7 +138,7 @@ For a normal report, emit exactly this template and stop after `Portability resi
 
 `Rule:` values map to checklist sections: `interpreter-shebang` -> Interpreter And Shebang; `bashisms` -> Bashisms; `utilities-flags` -> Utilities And Flags; `output-behavior` -> Output And Behavior; `verification` -> Verification.
 
-When no material issues exist, write exactly `Portability findings: None` (allowed only with `CLEAN`) and list assumptions under `Portability residual risk`.
+When no findings exist at any severity, write exactly `Portability findings: None` (allowed only with `CLEAN`) and list assumptions under `Portability residual risk`.
 
 Insufficient-context mode: when no reviewable code or exact construction candidate is available because no code was supplied, construction was consistently `BLOCKED`, or any construction handoff is malformed or inconsistent (including one-line, disposition, field, and multiline errors), emit exactly this reduced template and stop; do not emit interpreter or checklist status with guessed values. The `BLOCK` verdict here is triggered by unavailable trustworthy command text, not by the finding's severity:
 
