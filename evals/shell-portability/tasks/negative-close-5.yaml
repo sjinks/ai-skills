@@ -24,5 +24,10 @@ graders:
   - type: text
     name: task_completion
     config:
-      regex_not_match:
-        - '(?im)^(?:Portability verdict|Portability target|Portability interpreter|Portability findings|Portability checklist status|Portability residual risk):'
+      not_contains:
+        - 'Portability verdict:'
+        - 'Portability target:'
+        - 'Portability interpreter:'
+        - 'Portability findings:'
+        - 'Portability checklist status:'
+        - 'Portability residual risk:'

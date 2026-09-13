@@ -4,8 +4,8 @@
 This is a static preflight. It does not call a model: it proves the fixture
 source bytes, output regexes, and portability handoff agree for three specific
 regressions: delimiter-owned newlines, custom-label deployment-completion
-claims, custom-label fallback, a leading-pipe handoff, byte-zero portability
-reports, and ordered portability report envelopes.
+claims, custom-label fallback, a leading-pipe handoff, byte-zero and ordered
+portability reports, and negative-task marker exclusions.
 """
 
 from __future__ import annotations
@@ -26,6 +26,14 @@ SCC_EVAL = ROOT / "evals/shell-command-construction/eval.yaml"
 PORTABILITY_EVAL = ROOT / "evals/shell-portability/eval.yaml"
 HANDOFF_REFERENCE = ROOT / "skills/shell-portability/references/construction-handoff.md"
 GO_REGEX_RUNNER = ROOT / "evals/_helpers/go-regex-runner"
+PORTABILITY_MARKERS = (
+    "Portability verdict:",
+    "Portability target:",
+    "Portability interpreter:",
+    "Portability findings:",
+    "Portability checklist status:",
+    "Portability residual risk:",
+)
 
 
 class CheckError(Exception):
@@ -253,6 +261,20 @@ def check_leading_pipe_handoff() -> None:
     )
     if not accepts_task_completion(task, output, task_name):
         fail(f"{task_name} does not accept the complete leading-pipe portability report")
+
+
+def check_portability_negative_marker_exclusions() -> None:
+    for path in sorted(PORTABILITY_TASKS.glob("negative-*.yaml")):
+        task = load_projection(path)
+        task_name = path.relative_to(ROOT).as_posix()
+        if any(marker in task.prompt for marker in PORTABILITY_MARKERS):
+            fail(f"{task_name} includes a forbidden portability marker in its prompt")
+        missing = tuple(marker for marker in PORTABILITY_MARKERS if marker not in task.not_contains)
+        if missing:
+            fail(f"{task_name} does not forbid every portability report marker: {missing!r}")
+        for marker in PORTABILITY_MARKERS:
+            if not rejects_task_completion(task, f"> {marker} CLEAN", task_name):
+                fail(f"{task_name} accepts a decorated portability marker: {marker!r}")
 
 
 def custom_output(labels: tuple[str, str, str, str, str], next_step: str) -> str:
@@ -730,6 +752,7 @@ def main() -> None:
         check_candidate_fixtures()
         check_heredoc_delimiter_fixture()
         check_leading_pipe_handoff()
+        check_portability_negative_marker_exclusions()
         check_negative_custom_envelopes()
         check_custom_label_deployment_regression()
         check_custom_label_contextual_claim_parity()
