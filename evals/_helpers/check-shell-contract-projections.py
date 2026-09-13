@@ -446,16 +446,27 @@ def evaluate_assertion(assertion: str, output: str, source: Path) -> bool:
         ast.Is,
         ast.IsNot,
         ast.Eq,
+        ast.NotEq,
+        ast.In,
+        ast.NotIn,
         ast.Call,
         ast.Attribute,
         ast.Name,
         ast.Load,
+        ast.Store,
         ast.Constant,
         ast.BinOp,
         ast.Add,
+        ast.Dict,
+        ast.Set,
+        ast.SetComp,
+        ast.GeneratorExp,
+        ast.comprehension,
+        ast.Tuple,
+        ast.Subscript,
     )
-    allowed_names = {"action", "active", "canonical", "custom", "deferred", "fields", "output", "re"}
-    allowed_attributes = {"fullmatch", "group", "match", "search", "startswith"}
+    allowed_names = {"action", "active", "all", "canonical", "custom", "deferred", "fields", "len", "m", "name", "output", "re", "text"}
+    allowed_attributes = {"findall", "fullmatch", "group", "join", "lower", "match", "rstrip", "search", "startswith", "sub"}
     for node in ast.walk(tree):
         if not isinstance(node, allowed_nodes):
             fail(f"custom-label shared assertion uses unsupported syntax: {type(node).__name__}")
@@ -463,7 +474,16 @@ def evaluate_assertion(assertion: str, output: str, source: Path) -> bool:
             fail(f"custom-label shared assertion uses unsupported name: {node.id}")
         if isinstance(node, ast.Attribute) and node.attr not in allowed_attributes:
             fail(f"custom-label shared assertion uses unsupported attribute: {node.attr}")
-    return bool(eval(compile(tree, source.as_posix(), "eval"), {"__builtins__": {}, "output": output, "re": re}))
+    # Waza exposes grader helpers as eval locals. Nested lambdas and
+    # comprehensions resolve free names through globals, so keep this split to
+    # catch assertions that accidentally rely on a different namespace.
+    return bool(
+        eval(
+            compile(tree, source.as_posix(), "eval"),
+            {"__builtins__": {}},
+            {"all": all, "len": len, "output": output, "re": re},
+        )
+    )
 
 
 def check_custom_label_deployment_regression() -> None:
@@ -639,6 +659,28 @@ def check_custom_label_contextual_claim_parity() -> None:
                 fail(f"shared validation-success policy accepts {claim!r}")
 
 
+def check_waza_nested_scope_regression() -> None:
+    """Evaluate every SCC assertion with Waza's globals/locals split."""
+
+    assertions = load_projection(SCC_EVAL).assertions
+    valid = canonical_output("Review the candidate boundary.")
+    for index, assertion in enumerate(assertions, start=1):
+        try:
+            accepted = evaluate_assertion(assertion, valid, SCC_EVAL)
+        except (NameError, TypeError) as error:
+            fail(f"SCC assertion {index} cannot resolve a Waza local from nested scope: {error}")
+        if not accepted:
+            fail(f"SCC assertion {index} rejects the canonical valid output")
+
+    broken = '(lambda: re.search(r"candidate", output) is not None)()'
+    try:
+        evaluate_assertion(broken, valid, SCC_EVAL)
+    except NameError:
+        pass
+    else:
+        fail("projection evaluator no longer models Waza's nested-scope namespace split")
+
+
 def check_portability_preamble_regression() -> None:
     assertions = load_projection(PORTABILITY_EVAL).assertions
     assertion = next(
@@ -664,42 +706,31 @@ def check_portability_preamble_regression() -> None:
         fail("portability output contract accepts an indented legacy label")
 
 
-def check_portability_output_contract_self_tests() -> None:
-    """Ensure portable grader self-tests are executable and assert their cases."""
-
-    assertions = load_projection(PORTABILITY_EVAL).assertions
-    signatures = (
-        ("decorated marker", "Here is the review:"),
-        ("legacy marker", '"  Verdict: CLEAN"'),
-        ("residual-risk terminator", "Extra prose"),
-    )
-    for name, signature in signatures:
-        assertion = next(
-            (item for item in assertions if isinstance(item, str) and signature in item),
-            None,
-        )
-        if assertion is None:
-            fail(f"shell-portability output contract no longer has its {name} self-test")
-        if not evaluate_assertion(assertion, "", PORTABILITY_EVAL):
-            fail(f"portability {name} self-test is not executable or has wrong polarity")
-
-
-def check_portability_ordered_envelopes() -> None:
+def check_portability_residual_risk_termination() -> None:
     assertions = load_projection(PORTABILITY_EVAL).assertions
     assertion = next(
-        (item for item in assertions if isinstance(item, str) and "re.fullmatch" in item and "Portability checklist status:" in item),
+        (
+            item
+            for item in assertions
+            if isinstance(item, str)
+            and 'r"(?im)^Portability residual risk:' in item
+            and "output) is None" in item
+        ),
         None,
     )
     if assertion is None:
-        fail("shell-portability output contract no longer requires complete ordered envelopes")
-    clean_severity_assertion = next(
-        (item for item in assertions if isinstance(item, str) and "CLEAN may list LOW-only" not in item and "(?:CRITICAL|HIGH|MEDIUM)" in item and "Portability checklist status" in item),
-        None,
-    )
-    if clean_severity_assertion is None:
-        fail("shell-portability output contract no longer rejects material CLEAN findings")
+        fail("shell-portability output contract no longer rejects prose after residual risk")
+    valid = normal_portability_clean_output()
+    if not evaluate_assertion(assertion, valid, PORTABILITY_EVAL):
+        fail("portability output contract rejects a terminal residual-risk field")
+    if evaluate_assertion(assertion, f"{valid}\n\n  Extra prose", PORTABILITY_EVAL):
+        fail("portability output contract accepts prose after residual risk")
+    if not evaluate_assertion(assertion, f"{valid}\n", PORTABILITY_EVAL):
+        fail("portability output contract rejects a terminal newline after residual risk")
 
-    normal_clean = "\n".join(
+
+def normal_portability_clean_output() -> str:
+    return "\n".join(
         (
             "Portability verdict: CLEAN",
             "Portability target: POSIX sh on Ubuntu and macOS",
@@ -717,6 +748,37 @@ def check_portability_ordered_envelopes() -> None:
             "Portability residual risk: None.",
         )
     )
+
+
+def check_portability_output_contract_assertions() -> None:
+    """Evaluate every portability assertion in Waza's actual namespace shape."""
+
+    valid = normal_portability_clean_output()
+    for index, assertion in enumerate(load_projection(PORTABILITY_EVAL).assertions, start=1):
+        try:
+            accepted = evaluate_assertion(assertion, valid, PORTABILITY_EVAL)
+        except (NameError, TypeError) as error:
+            fail(f"portability assertion {index} cannot run in the Waza namespace: {error}")
+        if not accepted:
+            fail(f"portability assertion {index} rejects the normal valid report")
+
+
+def check_portability_ordered_envelopes() -> None:
+    assertions = load_projection(PORTABILITY_EVAL).assertions
+    assertion = next(
+        (item for item in assertions if isinstance(item, str) and "re.fullmatch" in item and "Portability checklist status:" in item),
+        None,
+    )
+    if assertion is None:
+        fail("shell-portability output contract no longer requires complete ordered envelopes")
+    clean_severity_assertion = next(
+        (item for item in assertions if isinstance(item, str) and "CLEAN may list LOW-only" not in item and "(?:CRITICAL|HIGH|MEDIUM)" in item and "Portability checklist status" in item),
+        None,
+    )
+    if clean_severity_assertion is None:
+        fail("shell-portability output contract no longer rejects material CLEAN findings")
+
+    normal_clean = normal_portability_clean_output()
     normal_finding = "\n".join(
         (
             "Portability verdict: CONCERNS",
@@ -799,11 +861,13 @@ def main() -> None:
         check_negative_custom_envelopes()
         check_custom_label_deployment_regression()
         check_custom_label_contextual_claim_parity()
+        check_waza_nested_scope_regression()
         check_label_fallback_fixtures()
         check_mixed_label_handoff_precedence()
         check_terminal_newline_fixture_prompt()
         check_portability_preamble_regression()
-        check_portability_output_contract_self_tests()
+        check_portability_residual_risk_termination()
+        check_portability_output_contract_assertions()
         check_portability_ordered_envelopes()
     except CheckError as error:
         print(f"shell contract projection check failed: {error}", file=sys.stderr)
