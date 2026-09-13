@@ -664,6 +664,26 @@ def check_portability_preamble_regression() -> None:
         fail("portability output contract accepts an indented legacy label")
 
 
+def check_portability_output_contract_self_tests() -> None:
+    """Ensure portable grader self-tests are executable and assert their cases."""
+
+    assertions = load_projection(PORTABILITY_EVAL).assertions
+    signatures = (
+        ("decorated marker", "Here is the review:"),
+        ("legacy marker", '"  Verdict: CLEAN"'),
+        ("residual-risk terminator", "Extra prose"),
+    )
+    for name, signature in signatures:
+        assertion = next(
+            (item for item in assertions if isinstance(item, str) and signature in item),
+            None,
+        )
+        if assertion is None:
+            fail(f"shell-portability output contract no longer has its {name} self-test")
+        if not evaluate_assertion(assertion, "", PORTABILITY_EVAL):
+            fail(f"portability {name} self-test is not executable or has wrong polarity")
+
+
 def check_portability_ordered_envelopes() -> None:
     assertions = load_projection(PORTABILITY_EVAL).assertions
     assertion = next(
@@ -783,6 +803,7 @@ def main() -> None:
         check_mixed_label_handoff_precedence()
         check_terminal_newline_fixture_prompt()
         check_portability_preamble_regression()
+        check_portability_output_contract_self_tests()
         check_portability_ordered_envelopes()
     except CheckError as error:
         print(f"shell contract projection check failed: {error}", file=sys.stderr)
