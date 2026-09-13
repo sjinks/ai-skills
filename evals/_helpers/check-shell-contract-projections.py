@@ -18,6 +18,8 @@ import re
 import subprocess
 import sys
 
+from shell_report_grammar import GrammarError, SCC_CANONICAL_LABELS, SCCReport, parse as parse_scc_report, render as render_scc_report, validate_labels as validate_scc_labels
+
 
 ROOT = Path(__file__).resolve().parents[2]
 SCC_TASKS = ROOT / "evals/shell-command-construction/tasks"
@@ -34,13 +36,7 @@ PORTABILITY_MARKERS = (
     "Portability checklist status:",
     "Portability residual risk:",
 )
-SCC_MARKERS = (
-    "Construction result:",
-    "Construction assessment:",
-    "Construction candidate:",
-    "Execution authority:",
-    "Construction next step:",
-)
+SCC_MARKERS = tuple(f"{label}:" for label in SCC_CANONICAL_LABELS)
 
 
 class CheckError(Exception):
@@ -300,19 +296,20 @@ def check_negative_marker_exclusions(contract: ReportContract) -> None:
 
 
 def custom_output(labels: tuple[str, str, str, str, str], next_step: str) -> str:
-    result, assessment, candidate, authority, next_label = labels
-    return "\n".join(
-        (
-            f"{result}: VALID",
-            f"{assessment}: The supplied bytes preserve the requested boundary.",
-            f"{candidate}: printf '%s\\n' value",
-            f"{authority}: NOT ASSESSED BY THIS SKILL",
-            f"{next_label}: {next_step}",
-        )
+    return render_scc_report(
+        SCCReport(
+            "VALID",
+            "The supplied bytes preserve the requested boundary.",
+            "printf '%s\\n' value",
+            "NOT ASSESSED BY THIS SKILL",
+            next_step,
+        ),
+        labels,
     )
 
 
 def custom_multiline_output(labels: tuple[str, str, str, str, str], next_step: str) -> str:
+    validate_scc_labels(labels)
     result, assessment, candidate, authority, next_label = labels
     return "\n".join(
         (
@@ -340,9 +337,14 @@ def check_negative_custom_envelopes() -> None:
         ("Outcome-label", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
         "Review the candidate boundary.",
     )
-    colon_injected = custom_output(
-        ("Result: injected", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
-        "Review the candidate boundary.",
+    colon_injected = "\n".join(
+        (
+            "Result: injected: VALID",
+            "Boundary assessment: The supplied bytes preserve the requested boundary.",
+            "Shell candidate: printf '%s\\n' value",
+            "Authority: NOT ASSESSED BY THIS SKILL",
+            "Next construction action: Review the candidate boundary.",
+        )
     )
     outputs = (
         inline,
@@ -419,15 +421,66 @@ def check_terminal_newline_fixture_prompt() -> None:
 
 
 def canonical_output(next_step: str, candidate: str = "printf '%s\\n' value") -> str:
-    return "\n".join(
-        (
-            "Construction result: VALID",
-            "Construction assessment: The supplied bytes preserve the requested boundary.",
-            f"Construction candidate: {candidate}",
-            "Execution authority: NOT ASSESSED BY THIS SKILL",
-            f"Construction next step: {next_step}",
+    return render_scc_report(
+        SCCReport(
+            "VALID",
+            "The supplied bytes preserve the requested boundary.",
+            candidate,
+            "NOT ASSESSED BY THIS SKILL",
+            next_step,
         )
     )
+
+
+def check_scc_grammar() -> None:
+    """Keep canonical/custom rendering and field-order parsing in one grammar."""
+
+    report = SCCReport(
+        "VALID",
+        "The JSON payload is incorrectly quoted, so it splits into multiple arguments.",
+        'tool "hello world"',
+        "NOT ASSESSED BY THIS SKILL",
+        "Review the candidate boundary.",
+    )
+    for labels in (
+        SCC_CANONICAL_LABELS,
+        ("Result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+    ):
+        rendered = render_scc_report(report, labels)
+        if parse_scc_report(rendered, labels) != report:
+            fail("SCC grammar does not round-trip a semantic report")
+        try:
+            parse_scc_report("\n".join(reversed(rendered.splitlines())), labels)
+        except GrammarError:
+            pass
+        else:
+            fail("SCC grammar accepts reordered fields")
+
+    fixture = SCC_TASKS / "positive-edge-029.yaml"
+    if not accepts_task_completion(load_projection(fixture), render_scc_report(report, (
+        "Result",
+        "Boundary assessment",
+        "Shell candidate",
+        "Authority",
+        "Next construction action",
+    )), fixture.relative_to(ROOT).as_posix()):
+        fail("SCC grammar no longer serializes the custom-label task projection")
+    for invalid in (
+        SCCReport("", "assessment", "candidate", "authority", "next"),
+        SCCReport("VALID", "assessment\rvalue", "candidate", "authority", "next"),
+    ):
+        try:
+            render_scc_report(invalid)
+        except GrammarError:
+            pass
+        else:
+            fail("SCC grammar accepts a value that cannot round-trip")
+    try:
+        validate_scc_labels(("Result", "Assessment", "Candidate", "Authority", 7))  # type: ignore[arg-type]
+    except GrammarError:
+        pass
+    else:
+        fail("SCC grammar does not normalize malformed labels to GrammarError")
 
 
 def evaluate_assertion(assertion: str, output: str, source: Path) -> bool:
@@ -968,6 +1021,7 @@ def main() -> None:
         check_negative_marker_exclusions(SCC_REPORT)
         check_negative_marker_exclusions(PORTABILITY_REPORT)
         check_negative_custom_envelopes()
+        check_scc_grammar()
         check_custom_label_deployment_regression()
         check_custom_label_contextual_claim_parity()
         check_waza_nested_scope_regression()
