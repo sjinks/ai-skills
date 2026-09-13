@@ -5,9 +5,8 @@ tags: [positive-edge]
 inputs:
   prompt: |
     In POSIX sh, preserve `tool "hello world"` exactly. The requested five
-    labels are Result, result, Shell candidate, Authority, and Next
-    construction action. Because the set is duplicate case-insensitively and
-    ambiguous, use safe canonical fields instead.
+    labels are `Result`, `result`, `Shell candidate`, `Authority`, and
+    `Next construction action`.
 expected: { should_trigger: true }
 graders:
   - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }

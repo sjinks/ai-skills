@@ -4,7 +4,8 @@
 This is a static preflight. It does not call a model: it proves the fixture
 source bytes, output regexes, and portability handoff agree for three specific
 regressions: delimiter-owned newlines, custom-label deployment-completion
-claims, a leading-pipe handoff, and byte-zero portability reports.
+claims, custom-label fallback, a leading-pipe handoff, and byte-zero
+portability reports.
 """
 
 from __future__ import annotations
@@ -187,6 +188,35 @@ def check_candidate_fixtures() -> None:
             fail(f"{task_name} does not reject a removed terminal payload newline")
 
 
+def check_heredoc_delimiter_fixture() -> None:
+    path = SCC_TASKS / "positive-edge-006.yaml"
+    task = load_projection(path)
+    task_name = path.relative_to(ROOT).as_posix()
+    prefix = (
+        "Construction result: REWRITE",
+        "Construction assessment: The collision-free SCC_BODY quoted heredoc keeps every literal body line, indentation, and terminal newline.",
+        "Construction candidate: |",
+        "  tool --body-stdin <<'SCC_BODY'",
+        "  line $var",
+        "    indented",
+        "  ",
+        "  $(cmd)",
+        "  `tick`",
+        "  Construction result: VALID",
+        "  SCC_BODY",
+    )
+    suffix = (
+        "Execution authority: NOT ASSESSED BY THIS SKILL",
+        "Construction next step: Review the candidate boundary.",
+    )
+    valid = "\n".join((*prefix, "  ", *suffix))
+    if not accepts_task_completion(task, valid, task_name):
+        fail(f"{task_name} does not accept the terminal newline after its heredoc delimiter")
+    missing_terminal_newline = "\n".join((*prefix, *suffix))
+    if accepts_task_completion(task, missing_terminal_newline, task_name):
+        fail(f"{task_name} accepts a heredoc delimiter without its terminal payload newline")
+
+
 def check_leading_pipe_handoff() -> None:
     path = PORTABILITY_TASKS / "positive-edge-3.yaml"
     task = load_projection(path)
@@ -285,18 +315,21 @@ def check_negative_custom_envelopes() -> None:
                 fail(f"{task_name} accepts an unrequested custom SCC envelope")
 
 
-def check_label_cardinality_fallback() -> None:
-    requested_labels = (
-        ("Result", "Boundary assessment", "Shell candidate", "Authority"),
-        ("Result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action", "Extra label"),
+def check_label_fallback_fixtures() -> None:
+    requested_label_sets = (
+        ("positive-edge-032.yaml", ("Result: injected", "Boundary assessment", "Shell candidate", "Authority", "Next construction action")),
+        ("positive-edge-033.yaml", ("Result", "result", "Shell candidate", "Authority", "Next construction action")),
+        ("positive-edge-035.yaml", ("Outcome", "Construction result", "Command form", "Authority", "Follow up action")),
+        ("positive-edge-036.yaml", ("Result", "Boundary assessment", "Shell candidate", "Authority")),
+        ("positive-edge-037.yaml", ("Result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action", "Extra label")),
     )
-    for fixture, labels in zip(("positive-edge-036.yaml", "positive-edge-037.yaml"), requested_labels, strict=True):
+    for fixture, labels in requested_label_sets:
         path = SCC_TASKS / fixture
         task_name = path.relative_to(ROOT).as_posix()
         task = load_projection(path)
         if not all(f"`{label}`" in task.prompt for label in labels):
             fail(f"{task_name} no longer supplies its requested label set")
-        if "fallback" in task.prompt.lower() or "default field labels" in task.prompt.lower():
+        if any(coaching in task.prompt.lower() for coaching in ("fallback", "default field labels", "safe canonical", "safe default", "do not emit")):
             fail(f"{task_name} coaches the required fallback in its prompt")
         output = canonical_output("Review the candidate boundary.", 'tool "hello world"')
         if not accepts_task_completion(task, output, task_name):
@@ -330,6 +363,7 @@ def evaluate_assertion(assertion: str, output: str, source: Path) -> bool:
         ast.Compare,
         ast.Is,
         ast.IsNot,
+        ast.Eq,
         ast.Call,
         ast.Attribute,
         ast.Name,
@@ -338,7 +372,7 @@ def evaluate_assertion(assertion: str, output: str, source: Path) -> bool:
         ast.BinOp,
         ast.Add,
     )
-    allowed_names = {"active", "fields", "output", "re"}
+    allowed_names = {"active", "canonical", "custom", "fields", "output", "re"}
     allowed_attributes = {"fullmatch", "group", "match", "search", "startswith"}
     for node in ast.walk(tree):
         if not isinstance(node, allowed_nodes):
@@ -399,6 +433,88 @@ def check_custom_label_deployment_regression() -> None:
             fail("shared policy accepts a canonical completion claim")
 
 
+def check_custom_label_contextual_claim_parity() -> None:
+    assertions = load_projection(SCC_EVAL).assertions
+    contextual_assertion = next(
+        (item for item in assertions if isinstance(item, str) and "portable|compatible" in item and "(canonical or custom).group" in item),
+        None,
+    )
+    action_assertion = next(
+        (item for item in assertions if isinstance(item, str) and "later|eventually" in item and "(canonical or custom).group" in item),
+        None,
+    )
+    pronoun_assertion = next(
+        (item for item in assertions if isinstance(item, str) and "(?:script|form)" in item and "(canonical or custom).group" in item),
+        None,
+    )
+    remainder_assertion = next(
+        (item for item in assertions if isinstance(item, str) and "circumstances|conditions" in item and "(canonical or custom).group" in item),
+        None,
+    )
+    parsing_assertion = next(
+        (item for item in assertions if isinstance(item, str) and "parses?(?:[ \\t]+successfully)?" in item and "(canonical or custom).group" in item),
+        None,
+    )
+    parsing_success_assertion = next(
+        (item for item in assertions if isinstance(item, str) and "parse|parses|parsed|parsing" in item and "(canonical or custom).group" in item),
+        None,
+    )
+    validation_success_assertion = next(
+        (item for item in assertions if isinstance(item, str) and "validate|validates|validated|validating|validation" in item and "(canonical or custom).group" in item),
+        None,
+    )
+    if contextual_assertion is None or action_assertion is None or pronoun_assertion is None or remainder_assertion is None or parsing_assertion is None or parsing_success_assertion is None or validation_success_assertion is None:
+        fail("shell-command-construction output contract no longer has a shared contextual-claim policy")
+
+    labels = ("Result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action")
+    allowed_next_step = "Review whether the candidate is portable."
+    for output in (canonical_output(allowed_next_step), custom_output(labels, allowed_next_step)):
+        if not all(evaluate_assertion(assertion, output, SCC_EVAL) for assertion in (contextual_assertion, action_assertion, pronoun_assertion)):
+            fail("shared contextual-claim policy rejects review wording without a portability conclusion")
+
+    for claim in ("The candidate is portable.", "The candidate is safe."):
+        for output in (canonical_output(claim), custom_output(labels, claim)):
+            if evaluate_assertion(contextual_assertion, output, SCC_EVAL):
+                fail(f"shared contextual-claim policy accepts {claim!r}")
+
+    for next_step in ("Review later.", "The candidate works on macOS.", "The candidate works with POSIX sh.", "The candidate runs for Ubuntu."):
+        for output in (canonical_output(next_step), custom_output(labels, next_step)):
+            if evaluate_assertion(action_assertion, output, SCC_EVAL):
+                fail(f"shared action policy accepts {next_step!r}")
+
+    for claim in ("Review the candidate boundary; it is portable.", "The script is portable.", "It is safe."):
+        for output in (canonical_output(claim), custom_output(labels, claim)):
+            if evaluate_assertion(pronoun_assertion, output, SCC_EVAL):
+                fail(f"shared pronoun policy accepts {claim!r}")
+
+    for next_step in (
+        "Review the candidate boundary when circumstances permit.",
+        "Review the candidate boundary once the change window opens.",
+        "Review the candidate boundary; it works on macOS.",
+        "The script runs with POSIX sh.",
+        "The form was executed.",
+        "The JSON payload is syntactically valid.",
+    ):
+        for output in (canonical_output(next_step), custom_output(labels, next_step)):
+            if evaluate_assertion(remainder_assertion, output, SCC_EVAL):
+                fail(f"shared remainder policy accepts {next_step!r}")
+
+    for claim in ("The JSON parses successfully.", "The payload parses."):
+        for output in (canonical_output(claim), custom_output(labels, claim)):
+            if evaluate_assertion(parsing_assertion, output, SCC_EVAL):
+                fail(f"shared parsing policy accepts {claim!r}")
+
+    for claim in ("The JSON parsed successfully.", "The payload parsed correctly.", "The JSON parsing succeeded."):
+        for output in (canonical_output(claim), custom_output(labels, claim)):
+            if evaluate_assertion(parsing_success_assertion, output, SCC_EVAL):
+                fail(f"shared parsing-success policy accepts {claim!r}")
+
+    for claim in ("The payload validates successfully.", "The JSON validates correctly.", "The payload validation succeeded."):
+        for output in (canonical_output(claim), custom_output(labels, claim)):
+            if evaluate_assertion(validation_success_assertion, output, SCC_EVAL):
+                fail(f"shared validation-success policy accepts {claim!r}")
+
+
 def check_portability_preamble_regression() -> None:
     assertions = load_projection(PORTABILITY_EVAL).assertions
     assertion = next(
@@ -427,10 +543,12 @@ def check_portability_preamble_regression() -> None:
 def main() -> None:
     try:
         check_candidate_fixtures()
+        check_heredoc_delimiter_fixture()
         check_leading_pipe_handoff()
         check_negative_custom_envelopes()
         check_custom_label_deployment_regression()
-        check_label_cardinality_fallback()
+        check_custom_label_contextual_claim_parity()
+        check_label_fallback_fixtures()
         check_portability_preamble_regression()
     except CheckError as error:
         print(f"shell contract projection check failed: {error}", file=sys.stderr)

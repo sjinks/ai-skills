@@ -6,8 +6,7 @@ inputs:
   prompt: |
     In POSIX sh, preserve `tool "hello world"` exactly. Use these requested
     replacement labels: `Outcome`, `Construction result`, `Command form`,
-    `Authority`, and `Follow up action`. Do not emit a canonical field label
-    as a replacement label; use the safe default field labels instead.
+    `Authority`, and `Follow up action`.
 expected: { should_trigger: true }
 graders:
   - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
