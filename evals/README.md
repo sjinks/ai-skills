@@ -69,8 +69,8 @@ matching `output_contract` metric and grader. Positive tasks add `skill_invocati
 representative positives add `task_completion_substance`;
 `spock-voice` positives add `tone_quality`; and
 `nestjs-development/positive-trigger-1.yaml` adds the `ts_parse`
-`program` grader. The `adversarial-review` suite adds the deterministic
-`report_contract` program grader. Grader names match metric names so `waza`'s
+`program` grader. The `adversarial-review` and `equivalence-class-audit` suites
+add deterministic `report_contract` program graders. Grader names match metric names so `waza`'s
 metric → grader weighting takes effect.
 
 - `trigger_accuracy` (task-level, `trigger`) — heuristic
@@ -174,12 +174,13 @@ metric → grader weighting takes effect.
   construction-shaped output while allowing ordinary markerless prose for
   negative non-activation tasks; shell-portability rejects legacy-label mixing
   and trailing prose after a normal report.
-- `report_contract` (`adversarial-review` tasks only, `program`) — reads the raw
-  agent output that Waza passes on stdin and validates complete top-level order,
-  marker uniqueness, verdict branches, every numbered finding, and report
-  termination. Positive tasks run normal validation; negative tasks pass
-  `--reject`, which succeeds only when the output is not a complete canonical
-  adversarial-review report. Exit code 0 passes and any non-zero exit fails.
+- `report_contract` (`adversarial-review` and `equivalence-class-audit` tasks,
+  `program`) — reads the raw agent output that Waza passes on stdin and validates
+  each suite's complete report grammar, including top-level order, marker
+  uniqueness, verdict branches, findings/rows, and termination. Positive tasks
+  run normal validation; negative tasks pass `--reject`, which succeeds only
+  when the output is not a complete canonical report. Exit code 0 passes and
+  any non-zero exit fails.
 - `tone_quality` (`spock-voice` positives only, `prompt`) — LLM judge.
   The rubric asks for one sentence of reasoning followed by a final
   line containing only `1.0`, `0.5`, or `0.0`, so waza's prompt-grader

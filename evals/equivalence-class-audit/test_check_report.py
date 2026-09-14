@@ -2784,6 +2784,30 @@ class CheckerIntegrationTests(unittest.TestCase):
                     with self.assertRaises(SystemExit):
                         run_main(invalid, profile)
 
+    def test_bare_negative_metadata_is_rejected_for_each_field(self):
+        fields = (
+            ("positive-edge-009", "owner", "owner: Platform Docs;", "owner: {value};"),
+            (
+                "positive-edge-009",
+                "reason",
+                "reason: documentation is owned outside this change",
+                "reason: {value}",
+            ),
+            (
+                "positive-edge-002",
+                "provenance",
+                "provenance: supplied Known facts",
+                "provenance: {value}",
+            ),
+        )
+        for profile, field, original, replacement in fields:
+            for value in ("not provided", "not available", "not applicable", "unspecified"):
+                invalid = profile_report(profile).replace(original, replacement.format(value=value), 1)
+                with self.subTest(profile=profile, field=field, value=value):
+                    with contextlib.redirect_stderr(io.StringIO()):
+                        with self.assertRaises(SystemExit):
+                            run_main(invalid, profile)
+
     def test_generic_filename_extensions_are_valid_evidence(self):
         for filename in (
             "`project_permissions.rego`", "`main.cpp`", "`lib.rs`",

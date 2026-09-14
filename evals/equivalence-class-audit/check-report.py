@@ -37,7 +37,8 @@ VERDICTS = {"BLOCK", "CONCERNS", "CLEAN"}
 SEVERITIES = {"CRITICAL", "HIGH", "MEDIUM", "LOW", "NONE", "UNASSESSED"}
 METADATA_PLACEHOLDERS = {"name", "owner", "provenance", "rationale", "reason", "source"}
 NON_POPULATED_METADATA = {
-    "missing", "unknown", "unavailable", "not supplied", "none", "n/a", "tbd",
+    "missing", "unknown", "unavailable", "not available", "not provided",
+    "not supplied", "not applicable", "unspecified", "none", "n/a", "tbd",
     "unassigned", "not the owner",
 }
 FIELD_NON_POPULATED_METADATA = {
