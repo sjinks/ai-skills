@@ -536,6 +536,40 @@ def check_scc_grammar() -> None:
         fail("SCC grammar does not normalize repeated custom framing for BLOCKED placeholders")
     if not all(evaluate_assertion(assertion, blocked_custom, SCC_EVAL) for assertion in assertions):
         fail("SCC output contract rejects repeated custom framing for BLOCKED placeholders")
+    for candidate in (" leading space", " \tleading mixed whitespace", "\tleading tab"):
+        leading_custom = SCCReport(
+            "VALID",
+            "The candidate starts with data that framing must not consume.",
+            candidate,
+            "NOT ASSESSED BY THIS SKILL",
+            "Review the candidate boundary.",
+        )
+        serialized_leading = render_scc_report(leading_custom, custom_labels)
+        if "Shell candidate: |\n" not in serialized_leading:
+            fail("SCC grammar does not block-encode custom candidates with leading whitespace")
+        if parse_scc_report(serialized_leading, custom_labels) != leading_custom:
+            fail("SCC grammar loses leading whitespace from a custom candidate")
+        if not all(evaluate_assertion(assertion, serialized_leading, SCC_EVAL) for assertion in assertions):
+            fail("SCC output contract rejects a block-encoded custom leading-whitespace candidate")
+    for malformed_marker in (
+        "|",
+        "Shell candidate: | ",
+        "Shell candidate: \t|\t",
+    ):
+        malformed_block_marker = "\n".join((
+            "Result: VALID",
+            "Boundary assessment: The candidate boundary is represented.",
+            malformed_marker,
+            "  candidate data",
+            "Authority: NOT ASSESSED BY THIS SKILL",
+            "Next construction action: Review the candidate boundary.",
+        ))
+        try:
+            parse_scc_report(malformed_block_marker, custom_labels)
+        except GrammarError:
+            pass
+        else:
+            fail("SCC grammar accepts malformed custom block-candidate framing")
     multiline = SCCReport(
         "VALID",
         "The quoted payload preserves each physical line and its terminal newline.",
@@ -690,6 +724,19 @@ def check_scc_grammar() -> None:
             pass
         else:
             fail(f"SCC grammar accepts an invalid custom label set: {invalid_labels!r}")
+
+
+def check_canonical_task_framing() -> None:
+    """Keep canonical task envelopes as strict as the shared grammar."""
+
+    canonical_fields = tuple(f"{label}:[ \\t]*" for label in SCC_CANONICAL_LABELS)
+    for path in sorted(SCC_TASKS.glob("positive-*.yaml")):
+        task = load_projection(path)
+        for regex in task.regex_match:
+            if "\\AConstruction result:" not in regex:
+                continue
+            if any(field in regex for field in canonical_fields):
+                fail(f"{path.relative_to(ROOT)} permits flexible canonical post-colon framing")
 
 
 def evaluate_assertion(assertion: str, output: str, source: Path) -> bool:
@@ -1231,6 +1278,7 @@ def main() -> None:
         check_negative_marker_exclusions(PORTABILITY_REPORT)
         check_negative_custom_envelopes()
         check_scc_grammar()
+        check_canonical_task_framing()
         check_custom_label_deployment_regression()
         check_custom_label_contextual_claim_parity()
         check_waza_nested_scope_regression()

@@ -81,13 +81,13 @@ def validate_report(report: SCCReport) -> None:
         raise GrammarError("VALID and REWRITE SCC reports require a nonempty candidate")
 
 
-def _is_multiline_candidate(report: SCCReport) -> bool:
+def _is_multiline_candidate(report: SCCReport, *, custom_labels: bool) -> bool:
     if report.result == "BLOCKED":
         return False
     stripped = report.candidate.lstrip()
     return "\n" in report.candidate or report.candidate == "Not provided" or (
         stripped.startswith("|") and not stripped[1:].strip()
-    )
+    ) or (custom_labels and report.candidate.startswith((" ", "\t")))
 
 
 def _field_value(line: str, label: str, *, compact: bool = False, canonical: bool = False) -> str:
@@ -114,7 +114,7 @@ def render(report: SCCReport, labels: tuple[str, str, str, str, str] = SCC_CANON
         f"{result_label}: {report.result}",
         f"{assessment_label}: {report.assessment}",
     )
-    if _is_multiline_candidate(report):
+    if _is_multiline_candidate(report, custom_labels=labels != SCC_CANONICAL_LABELS):
         lines += (f"{candidate_label}: |", *(f"  {line}" for line in report.candidate.split("\n")))
     else:
         lines += (f"{candidate_label}: {report.candidate}",)
@@ -141,7 +141,8 @@ def parse(output: str, labels: tuple[str, str, str, str, str] = SCC_CANONICAL_LA
     candidate_marker = (
         lines[2] == f"{candidate_label}: |"
         if canonical
-        else lines[2].removeprefix(f"{candidate_label}:").strip(" \t") == "|"
+        else lines[2].startswith(f"{candidate_label}:")
+        and lines[2].removeprefix(f"{candidate_label}:").lstrip(" \t") == "|"
     )
     candidate = "|" if candidate_marker else _field_value(lines[2], candidate_label, canonical=canonical)
     index = 3
