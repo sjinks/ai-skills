@@ -468,6 +468,7 @@ def check_scc_grammar() -> None:
     for invalid in (
         SCCReport("", "assessment", "candidate", "authority", "next"),
         SCCReport("VALID", "assessment\rvalue", "candidate", "authority", "next"),
+        SCCReport("VALID", "assessment\u2028value", "candidate", "authority", "next"),
     ):
         try:
             render_scc_report(invalid)
