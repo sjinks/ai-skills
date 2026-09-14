@@ -97,11 +97,11 @@ def _field_value(line: str, label: str, *, compact: bool = False, canonical: boo
     value = line.removeprefix(prefix)
     if canonical:
         return value
-    if compact:
-        return value.lstrip(" \t")
-    if value.startswith(" "):
-        return value[1:]
-    return value.lstrip("\t")
+    # Custom-label projections define every post-colon space or tab as framing
+    # (`:[ \t]*`), so retain none of that run as semantic field data. This
+    # deliberately differs from canonical labels, whose exact `: ` framing is
+    # part of their public contract.
+    return value.lstrip(" \t")
 
 
 def render(report: SCCReport, labels: tuple[str, str, str, str, str] = SCC_CANONICAL_LABELS) -> str:

@@ -472,6 +472,12 @@ def check_scc_grammar() -> None:
                     fail(f"SCC grammar does not accept {separator!r} custom post-colon framing")
                 if not all(evaluate_assertion(assertion, alternate_spacing, SCC_EVAL) for assertion in load_projection(SCC_EVAL).assertions):
                     fail(f"SCC output contract rejects {separator!r} custom post-colon framing")
+        if labels != SCC_CANONICAL_LABELS:
+            repeated_framing = rendered.replace(": ", ":\t  ")
+            if parse_scc_report(repeated_framing, labels) != report:
+                fail("SCC grammar does not accept repeated custom post-colon framing")
+            if not all(evaluate_assertion(assertion, repeated_framing, SCC_EVAL) for assertion in load_projection(SCC_EVAL).assertions):
+                fail("SCC output contract rejects repeated custom post-colon framing")
         try:
             parse_scc_report("\n".join(reversed(rendered.splitlines())), labels)
         except GrammarError:
@@ -518,6 +524,18 @@ def check_scc_grammar() -> None:
         fail("SCC output contract accepts CR before a custom disposition")
     if evaluate_assertion(custom_contract_assertion, malformed_custom, SCC_EVAL):
         fail("custom SCC semantic policy bypasses CR before the disposition")
+    blocked_report = SCCReport(
+        "BLOCKED",
+        "The supplied bytes cannot be represented safely.",
+        "Not provided",
+        "NOT ASSESSED BY THIS SKILL",
+        "Review the construction boundary.",
+    )
+    blocked_custom = render_scc_report(blocked_report, custom_labels).replace(": ", ":\t  ")
+    if parse_scc_report(blocked_custom, custom_labels) != blocked_report:
+        fail("SCC grammar does not normalize repeated custom framing for BLOCKED placeholders")
+    if not all(evaluate_assertion(assertion, blocked_custom, SCC_EVAL) for assertion in assertions):
+        fail("SCC output contract rejects repeated custom framing for BLOCKED placeholders")
     multiline = SCCReport(
         "VALID",
         "The quoted payload preserves each physical line and its terminal newline.",
