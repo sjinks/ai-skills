@@ -33,13 +33,13 @@ graders:
     name: task_completion
     config:
       not_contains:
-        - "Intended behavior:"
-        - "Evidence basis:"
-        - "What works:"
+        - "Verdict:"
         - "Findings:"
-        - "Verdict: BLOCK"
-        - "Verdict: CONCERNS"
-        - "Verdict: CLEAN"
-        - "Adversarial tests:"
-        - "Mitigations / acceptance criteria:"
-        - "Residual risk:"
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/_helpers/check-adversarial-review-report.py
+        - --reject
+      timeout: 30

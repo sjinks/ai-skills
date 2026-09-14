@@ -1,0 +1,63 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-012
+name: Product-choice-only input yields CLEAN with open question
+description: |
+  An explicitly acknowledged product choice with stated alternatives but no
+  owner must use the fallback owner and avoid becoming a finding.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Audit this requirement for ambiguity.
+
+    Requirement R1: Before implementation, a decision must be made whether the
+    launch banner is blue or green. Both choices are valid, and no supplied
+    requirement selects one or names a decision owner.
+
+    Glossary:
+    - launch banner: the non-interactive announcement displayed at the top of
+      the web app after launch.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/requirements-ambiguity-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - requirements-ambiguity-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?im)\A[ \t]*##[ \t]+Requirements Ambiguity Report[ \t]*\r?\n(?:[ \t]*\r?\n)*[ \t]*[*_]*Verdict:[*_ \t]*CLEAN[*_]*\.?[*_]*[ \t]*\r?\n[ \t]*[*_]*All eight ambiguity classes were swept; no findings\.[*_]*[ \t]*\r?$'
+        - '(?im)^[ \t]*\|[ \t]*#[ \t]*\|[ \t]*Class[ \t]*\|[ \t]*Severity[ \t]*\|[ \t]*Location[ \t]*\|[ \t]*\r?$\r?\n^[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*### Findings[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*[*_]*None[*_.]*[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*-[^\r\n]*((blue[^\r\n]*(or|versus|vs\.?)[ \t]+[^\r\n]*green|green[^\r\n]*(or|versus|vs\.?)[ \t]+[^\r\n]*blue)[^\r\n]*requirements owner|requirements owner[^\r\n]*(blue[^\r\n]*(or|versus|vs\.?)[ \t]+[^\r\n]*green|green[^\r\n]*(or|versus|vs\.?)[ \t]+[^\r\n]*blue))[^\r\n]*(?:[ \t]*\r?\n)*[ \t]*\z'
+      regex_not_match:
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:'
+        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*\s*\|\s*[`*_]*(blocker|should-fix|suggestion)[`*_]*\s*\|[^\r\n]*\S[^\r\n]*\|\s*$'
+        - '(?im)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*([^\r\n]*)\r?$'
+        - '(?ims)^[ \t]*### Open questions \(product decisions, not findings\)[ \t]*\r?$[\s\S]*?^[ \t]*-[^\r\n]*product owner'
+      not_contains:
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Proposed rewrite:"
+        - "Readings:"
+        - "Quote:"
+        - "Conflict:"
+        - "Missing:"
+        - "Untestable because:"
+        - "| vague-quantifier |"
+        - "| undefined-term |"
+        - "| missing-actor |"
+        - "| conflicting-requirements |"
+        - "| placeholder |"
+        - "| unspecified-path |"
+        - "| ambiguous-reference |"
+        - "| untestable-wording |"

@@ -343,6 +343,23 @@ def affirmative_relation(value, pattern):
     return False
 
 
+def contradicts_zero_acceptance(value, field):
+    """Reject a finding that asserts both zero acceptance and rejection."""
+
+    field = re.escape(field)
+    for clause in re.split(r"[.;]", norm(value)):
+        if not re.search(rf"\b{field}\b", clause) or "zero" not in clause:
+            continue
+        if re.search(
+            r"\b(?:rejects?|disallows?|forbids?)\b[^,;]{0,30}\bzero\b|"
+            r"\b(?:does not|doesn't|cannot|can't|never)\s+"
+            r"(?:accept|allow|permit)[a-z]*\b[^,;]{0,30}\bzero\b",
+            clause,
+        ):
+            return True
+    return False
+
+
 def provenance_metadata(value):
     match = re.search(
         r"\bprovenance\s*:\s*(.+)$",
@@ -388,6 +405,8 @@ def finding_preserves_meaning(profile, value):
             r"\btimeoutseconds\b.{0,80}\b(?P<verb>accepted)\b.{0,20}\bzero\b.{0,60}\bhealth checker\b.{0,20}\bspin\b",
         ))
     if profile == "positive-edge-004":
+        if contradicts_zero_acceptance(value, "maxitems"):
+            return False
         if re.search(r"\b(?:does not|doesn't|cannot|can't|never)\s+(?:\w+\s+){0,2}(?:breaks?|crashes?)\b", norm(value)):
             return False
         return any(affirmative_relation(value, pattern) for pattern in (
@@ -396,6 +415,8 @@ def finding_preserves_meaning(profile, value):
             r"\bpagination\b.{0,30}\b(?P<verb>breaks?|crashes?)\b.{0,30}\bmaxitems\b.{0,20}\bzero\b",
         ))
     if profile == "positive-edge-007":
+        if contradicts_zero_acceptance(value, "minitems"):
+            return False
         if re.search(r"\b(?:does not|doesn't|cannot|can't|never)\s+(?:\w+\s+){0,2}(?:breaks?|crashes?)\b", norm(value)):
             return False
         return any(affirmative_relation(value, pattern) for pattern in (
@@ -403,6 +424,8 @@ def finding_preserves_meaning(profile, value):
             r"\bminitems\b.{0,60}\b(?P<verb>accepts?)\b.{0,20}\bzero\b.{0,30}\bcrashes?\b.{0,20}\bpagination\b",
         ))
     if profile in ("positive-edge-005", "positive-edge-008", "positive-edge-009", "positive-trigger-001"):
+        if contradicts_zero_acceptance(value, "maxretries"):
+            return False
         return any(affirmative_relation(value, pattern) for pattern in (
             r"\bmaxretries\b.{0,80}\b(?P<verb>accepts?|allows?|permits?)\b.{0,20}\bzero\b",
             r"\bzero\b.{0,30}\b(?:is\s+)?(?P<verb>accepted|allowed|permitted)\b.{0,20}\bby\s+maxretries\b",
@@ -773,6 +796,18 @@ def artifact_citations(value, suppress_unavailable=True):
     unavailable = (
         r"(?:missing|unknown|unavailable|not available|not supplied|not provided|required|needed)"
     )
+
+    def negated_generic_artifact_class(citation):
+        if not citation.startswith("named:"):
+            return False
+        subject = re.escape(citation.removeprefix("named:"))
+        return bool(re.search(
+            rf"\b(?:no|zero|none|without)\s+(?:relevant\s+|matching\s+|applicable\s+)?"
+            rf"{subject}s?\b[^.;]{{0,60}}\b(?:included|available|in|within|under)\b",
+            normalized,
+        ))
+
+    citations = {citation for citation in citations if not negated_generic_artifact_class(citation)}
     if not suppress_unavailable:
         return citations
     filtered = set()
@@ -796,7 +831,8 @@ def artifact_citations(value, suppress_unavailable=True):
 def has_ongoing_failure_claim(value):
     value = norm(value)
     pattern = re.compile(
-        r"\b(?:still\s+|continues?\s+(?:to\s+)?|keeps?\s+|remains?\s+)"
+        r"\b(?:still\s+|continues?\s+(?:to\s+)?|keeps?\s+|remains?\s+|"
+        r"now\s+|currently\s+|today\s+|at\s+present\s+)"
         r"(?:crash(?:es|ing)?|break(?:s|ing)?|fail(?:s|ing)?|errors?|throws?|hangs?|"
         r"panics?|broken|open|present|exists?|regresses?|reproduc(?:es|ing)|occurs?|happens?|500)\b"
     )
@@ -879,6 +915,7 @@ def parse_report(output):
         fail("report heading must be the first content line")
 
     headers = {}
+    raw_headers = {}
     header_indexes = {}
     report_headers = ("Triggering finding", "Locked audit scope", "Output depth", "Verdict", "Severity")
     for name in report_headers:
@@ -887,21 +924,22 @@ def parse_report(output):
                    if line.strip().startswith(f"{name}:")]
         if len(matches) != 1:
             fail(f"expected exactly one populated {name} header")
-        value = visible_text(matches[0][1])
+        raw_value = matches[0][1]
+        value = visible_text(raw_value)
         if not visible(value):
             fail(f"expected exactly one populated {name} header")
-        header_indexes[name], headers[name] = matches[0][0], value
+        header_indexes[name], headers[name], raw_headers[name] = matches[0][0], value, raw_value
     ordered_headers = [header_indexes[name] for name in report_headers]
     if ordered_headers != sorted(ordered_headers) or ordered_headers[0] <= report_index:
         fail("report headers must follow the report heading in canonical order")
     for left, right in zip([report_index] + ordered_headers, ordered_headers):
         if any(line.strip() for line in lines[left + 1:right]):
             fail("report heading and headers may be separated only by blank lines")
-    if headers["Verdict"] not in VERDICTS:
+    if raw_headers["Verdict"] not in VERDICTS:
         fail("report Verdict has an invalid value")
-    if headers["Severity"] not in SEVERITIES:
+    if raw_headers["Severity"] not in SEVERITIES:
         fail("report Severity has an invalid value")
-    if headers["Output depth"] not in ("quick", "standard", "exhaustive"):
+    if raw_headers["Output depth"] not in ("quick", "standard", "exhaustive"):
         fail("Output depth must use a canonical lowercase value")
 
     heading_entries = [(index, line[4:].strip()) for index, line in enumerate(lines)
@@ -1011,6 +1049,7 @@ def parse_report(output):
     elif any(line.strip() for line in lines[ordered_headers[-1] + 1:first_section]):
         fail("only blank lines may separate report headers and sections")
     headers["_has_table"] = bool(table_lines)
+    headers["_raw"] = raw_headers
     return headers, sections, rows
 
 
@@ -1222,7 +1261,7 @@ def reduced(headers, sections, rows, missing_header, quick=False, expected_missi
         fail("reduced report must not include a table")
     expected_missing = set(expected_missing or (missing_header,))
     for header in ("Triggering finding", "Locked audit scope"):
-        is_missing = missing_header_marker(headers[header])
+        is_missing = missing_header_marker(headers["_raw"][header])
         if is_missing != (header in expected_missing):
             state = "missing" if header in expected_missing else "supplied"
             fail(f"{header} must remain {state}")

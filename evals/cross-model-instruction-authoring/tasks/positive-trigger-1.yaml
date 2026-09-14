@@ -10,7 +10,7 @@ tags:
 inputs:
   prompt: |
     Create a portable Agent Skill that reviews pull requests for correctness
-    and security. It must work with GPT-5.4 mini, GPT-5.5, Claude Haiku 4.6,
+    and security. It must work with GPT-5.4 mini, GPT-5.5, Claude Haiku 4.5,
     Claude Sonnet 5, Claude Opus 4.8, and Claude Fable 5.
 
     Return a finished SKILL.md with concise trigger metadata, task-specific

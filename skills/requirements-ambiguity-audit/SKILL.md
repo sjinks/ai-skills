@@ -37,16 +37,19 @@ Sweep the whole text once per class:
 
 - Every finding quotes the exact text and names its location (section, requirement ID, or line).
 - Findings of classes 1, 2, 3, 6, and 7 state the two (or more) plausible readings; if only one reading is plausible, it is not a finding. Classes 4, 5, and 8 replace the `Readings:` line as defined under Output Format.
+- If classes 1 and 8 both appear applicable to the same text, use `vague-quantifier` when the text names an objectively observable dimension but omits a bound; use `untestable-wording` when it names no objective observable dimension. Do not report both classes for the same text.
 - A term defined in the supplied glossary or surrounding text is not `undefined-term`.
 - Every finding carries a proposed rewrite that survives the audit it failed; rewrites preserve intent and mark unknowns as explicit open questions rather than inventing values.
 - Do not flag intentional flexibility that is explicitly delegated ("implementation may choose the cache strategy").
-- Product-decision questions raised by the text are listed as open questions, not findings.
+- Route an explicitly acknowledged unresolved product choice directly to open questions, without a finding, when its alternatives are already stated. Use the stated decision owner or the `requirements owner` fallback when none is named. Independently ambiguous wording remains a finding under its matching class, and its unresolved decision is also routed to open questions.
 
 ## Severity
 
+Evaluate `blocker` first; it takes precedence whenever another severity condition also applies.
+
 - `blocker`: the plausible readings lead to materially different builds, or requirements conflict.
 - `should-fix`: one reading dominates in context but is not stated; a wrong guess is plausible.
-- `suggestion`: clarity polish; all readers would likely converge anyway.
+- `suggestion`: neither `blocker` nor `should-fix` applies; no reading dominates and the alternatives do not produce materially different builds.
 
 ## Output Format
 
@@ -60,7 +63,7 @@ Verdict: BLOCK | CONCERNS | CLEAN
 
 ### Findings
 
-For each finding numbered as in the table:
+Finding N:
 - Quote: <exact text; for `conflicting-requirements`, both statements>
 - Readings: <reading A> / <reading B>
 - Proposed rewrite: <unambiguous replacement, unknowns as open questions>
@@ -70,7 +73,13 @@ For each finding numbered as in the table:
 - <question, who can answer it>
 ```
 
+The table and `### Findings` must have exactly the same cardinality. Number rows with unique, contiguous integers starting at 1, and emit the corresponding `Finding N:` bodies in ascending numeric order. For each table row, emit exactly one body where `N` matches the row number; emit no other finding bodies. Each body contains exactly three fields, in this order, with no additional fields. The second field uses `Readings:` unless the finding class requires the replacement defined below.
+
+Each field value occupies one physical line. In `Quote:`, normalize each source line break and its adjacent indentation to one ASCII space; preserve all other source wording and punctuation. For `conflicting-requirements`, preserve both statements' terminal punctuation and, ignoring optional quote or Markdown wrappers, separate them with either one ASCII space or ` and `.
+
 Class-specific `Readings:` replacements: `conflicting-requirements` → `Conflict: <why both cannot hold>`; `placeholder` → `Missing: <what content must be supplied>`; `untestable-wording` → `Untestable because: <why no objective check exists>`.
+
+In each proposed rewrite, retain concrete requirement text before the first token and format every unresolved value as `[OPEN QUESTION: <decision> — <owner> to decide]`; a token-only line is not a rewrite. Do not invent values. Use `requirements owner` when the input names no explicit decision owner, both in rewrite tokens and the Open Questions section. The exact `[OPEN QUESTION:` prefix is reserved for these tokens; preserve other balanced square-bracket text without a colon when it belongs to the requirement.
 
 Verdict mapping: `BLOCK` — at least one `blocker` finding, or insufficient input. `CONCERNS` — findings exist, none `blocker`. `CLEAN` — no findings; immediately after the verdict line write exactly `All eight ambiguity classes were swept; no findings.` and keep the report with an empty table. Empty sections are written with `None`.
 
@@ -87,16 +96,18 @@ Verdict: BLOCK
 - Smallest addition to proceed: <concrete ask>
 ```
 
+Emit exactly these two fields in this order. Both values are required, complete, nonempty single lines; do not add other fields or narration.
+
 ## Example
 
 Input requirement (R1): "The export should complete quickly for large accounts."
 
-Table row: `| 1 | vague-quantifier | should-fix | R1 |`
+Table row: `| 1 | vague-quantifier | blocker | R1 |`
 
 Finding 1:
 - Quote: "complete quickly for large accounts"
 - Readings: under a few seconds, interactively / minutes, as a background job
-- Proposed rewrite: "The export completes within [OPEN QUESTION: target duration — owner to decide] for accounts up to [OPEN QUESTION: size bound]."
+- Proposed rewrite: "The export completes within [OPEN QUESTION: target duration — requirements owner to decide] for accounts up to [OPEN QUESTION: size bound — requirements owner to decide]."
 
 ## Anti-Patterns
 
@@ -108,5 +119,5 @@ Finding 1:
 
 ## Definition of Done
 
-All eight classes were swept over the whole text, every finding has a quote, a `Readings:` line or its class-specific replacement, a severity, and a proposed rewrite, and the verdict follows the mapping.
+All eight classes were swept over the whole text, the table and `Finding N:` bodies correspond bidirectionally with equal cardinality and matching numbers, every body has a quote, a `Readings:` line or its class-specific replacement, and a proposed rewrite that marks unresolved values with `[OPEN QUESTION: <decision> — <owner> to decide]`, every corresponding table row carries the severity, and the verdict follows the mapping.
 

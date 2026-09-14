@@ -4,9 +4,9 @@ Evaluation suites for the skills in this repository, in
 [waza](https://github.com/microsoft/waza) format. Each suite lives in
 `evals/<skill-name>/` and contains:
 
-- `eval.yaml` — eval spec: name, skill, config, metrics, and an eval-level
-  `behavior` grader (named `efficiency`) for tool-call and total-token
-  budgets.
+- `eval.yaml` — eval spec: name, skill, config, metrics, and eval-level
+  graders such as `behavior` `efficiency` for tool-call and total-token
+  budgets and deterministic output-contract checks where a suite defines one.
 - `tasks/positive-trigger-*.yaml` — prompts that should activate the
   skill, plus content/format graders to check the skill's structured
   output.
@@ -24,15 +24,54 @@ Evaluation suites for the skills in this repository, in
   look like the skill's target but should still not activate it (e.g. a
   single-lens CSS question for `multi-lens-review`).
 
+## Offline regex validation
+
+Validate one suite without issuing model/API calls:
+
+```sh
+python3 evals/_helpers/check-eval-regexes.py --root evals/<skill-name>
+```
+
+Use `--root evals` for the repository-wide inventory. The validator decodes YAML
+before counting and compiling every text grader's `regex_match` and
+`regex_not_match` value with Go's `regexp` engine. Raw grep/line counts are not
+authoritative. The first run may download the Go module's pinned YAML dependency.
+It requires Python 3.9+ and Go 1.20+.
+
+Optional contrastive cases are JSON and select a decoded regex by task path
+relative to `--root`, grader name, list name, and zero-based index:
+
+```json
+{
+  "cases": [
+    {
+      "name": "complete verdict",
+      "task": "example/tasks/positive-trigger-1.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 0,
+      "matches": ["Verdict: CLEAN"],
+      "does_not_match": ["Verdict: CLEAN trailing text"]
+    }
+  ]
+}
+```
+
+Pass the file with `--cases path/to/cases.json`. A missing selector, unexpected
+match/non-match, YAML error, or Go-incompatible regex fails the command with task
+and grader context.
+
 ## Grader Design
 
-Each task has a baseline set of task-level graders plus one eval-level
-`efficiency` grader. Positive tasks add `skill_invocation`; selected
+Each task has a baseline set of task-level graders plus an eval-level
+`efficiency` grader; suites with an eval-level output contract also define a
+matching `output_contract` metric and grader. Positive tasks add `skill_invocation`; selected
 representative positives add `task_completion_substance`;
 `spock-voice` positives add `tone_quality`; and
 `nestjs-development/positive-trigger-1.yaml` adds the `ts_parse`
-`program` grader. Grader names match metric names so `waza`'s metric →
-grader weighting takes effect.
+`program` grader. The `adversarial-review` suite adds the deterministic
+`report_contract` program grader. Grader names match metric names so `waza`'s
+metric → grader weighting takes effect.
 
 - `trigger_accuracy` (task-level, `trigger`) — heuristic
   prompt-vs-SKILL.md keyword overlap. `mode: positive` on positive
@@ -103,6 +142,7 @@ grader weighting takes effect.
   - `vip-dev-env`: 0.45
   - `gh-cli`: 0.45
   - `shell-portability`: 0.45
+  - `shell-command-construction`: 0.45
   - `flaky-test-diagnosis`: 0.45
   - `test-quality-review`: 0.45
   - `perf-measurement`: 0.45
@@ -129,6 +169,17 @@ grader weighting takes effect.
   words echoed from the prompt. Positive tasks also `not_contains`
   the structured-output markers of unrelated skills so cross-skill
   leakage fails the task.
+- `output_contract` (eval-level `code`) — validates a suite-defined structured
+  output contract. Shell-command-construction validates canonical
+  construction-shaped output while allowing ordinary markerless prose for
+  negative non-activation tasks; shell-portability rejects legacy-label mixing
+  and trailing prose after a normal report.
+- `report_contract` (`adversarial-review` tasks only, `program`) — reads the raw
+  agent output that Waza passes on stdin and validates complete top-level order,
+  marker uniqueness, verdict branches, every numbered finding, and report
+  termination. Positive tasks run normal validation; negative tasks pass
+  `--reject`, which succeeds only when the output is not a complete canonical
+  adversarial-review report. Exit code 0 passes and any non-zero exit fails.
 - `tone_quality` (`spock-voice` positives only, `prompt`) — LLM judge.
   The rubric asks for one sentence of reasoning followed by a final
   line containing only `1.0`, `0.5`, or `0.0`, so waza's prompt-grader
@@ -148,6 +199,7 @@ grader weighting takes effect.
   multi-turn re-sends;
   `handoff-note` is explicitly budgeted at 8 000; `spock-voice` uses
   4 000.
+  `shell-command-construction` uses 8 000 tokens and 10 tool calls.
 
 ## Skill-body injection
 
@@ -204,15 +256,19 @@ checks:
 
 ## Running these evals
 
-No CI workflow ships in this repo. The non-secret baseline validation is
-schema/spec validation only:
+No CI workflow ships in this repo. The non-secret baseline validates the
+schema/spec and decoded task regexes:
 
 ```bash
 waza check skills/<skill>
+python3 evals/_helpers/check-eval-regexes.py --root evals/<skill>
 ```
 
 `waza check` does not execute a model and is the default validation path for
-frontmatter, token budget, and eval presence checks.
+frontmatter, token budget, and eval presence checks. Run the regex validator
+whenever task YAML or grader contracts change; it also does not execute a model.
+
+Static checks validate only artifact structure and deterministic assertions; they do not prove any model's behavior. GPT-5.4 mini and Claude Haiku 4.5 are compatibility-floor evaluation goals, not proven outcomes. Live evidence is specific to the model, runtime, and settings, and each live evaluation remains explicitly approval-gated.
 
 Model evals are optional and require local Copilot authentication or a
 user-scoped GitHub Copilot PAT. The waza CLI's `copilot-sdk` executor rejects

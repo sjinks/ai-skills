@@ -1538,6 +1538,18 @@ class CheckerIntegrationTests(unittest.TestCase):
                     with self.assertRaises(SystemExit):
                         run_main(profile_report(profile).replace(original, inverted, 1), profile)
 
+    def test_triggering_finding_rejects_mixed_zero_acceptance_polarity(self):
+        cases = (
+            ("positive-edge-004", "maxItems zero breaks pagination", "maxItems accepts zero, but it actually rejects zero"),
+            ("positive-edge-005", "maxRetries accepts zero", "maxRetries accepts zero, but it actually rejects zero"),
+            ("positive-edge-007", "minItems zero breaks pagination", "minItems accepts zero, but it actually rejects zero"),
+        )
+        for profile, original, contradictory in cases:
+            with self.subTest(profile=profile):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(profile_report(profile).replace(original, contradictory, 1), profile)
+
     def test_proposition_level_triggering_finding_inversion_is_rejected(self):
         for profile, (finding, _) in HEADERS.items():
             with self.subTest(profile=profile):
@@ -1846,6 +1858,7 @@ class CheckerIntegrationTests(unittest.TestCase):
             "the fixed minItems zero pagination defect previously crashed requests and the defect still exists",
             "the fixed minItems zero pagination defect previously crashed requests and is still present",
             "the fixed minItems zero pagination defect previously crashed requests and still regresses",
+            "the fixed minItems zero pagination defect previously crashed requests, but now crashes requests",
             "current unfixed minItems zero defect previously crashed requests",
             "current minItems zero pagination defect was previously fixed",
             "minItems zero defect was not yet fixed and previously crashed requests",
@@ -1861,6 +1874,19 @@ class CheckerIntegrationTests(unittest.TestCase):
                     with self.assertRaises(SystemExit):
                         run_main(invalid, "positive-edge-010")
                 self.assertIn("clean profile triggering finding", error.getvalue())
+
+    def test_header_values_and_missing_markers_reject_markup_or_entities(self):
+        cases = (
+            ("positive-edge-010", "Verdict: CLEAN", "Verdict: <strong>CLEAN</strong>"),
+            ("positive-edge-010", "Output depth: standard", "Output depth: &#115;tandard"),
+            ("positive-edge-006", "Triggering finding: missing", "Triggering finding: <strong>missing</strong>"),
+        )
+        for profile, original, replacement in cases:
+            with self.subTest(profile=profile):
+                report = profile_report(profile).replace(original, replacement, 1)
+                with contextlib.redirect_stderr(io.StringIO()):
+                    with self.assertRaises(SystemExit):
+                        run_main(report, profile)
 
     def test_clean_profile_accepts_ongoing_verification_prose(self):
         for finding in (
@@ -2544,6 +2570,14 @@ class CheckerIntegrationTests(unittest.TestCase):
         ).replace(
             "| Race/Shared-State Twin | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
             "| Race/Shared-State Twin | Shared pagination state | n/a — structurally inapplicable | n/a | tests/pagination.test.ts; not shared mutable state |",
+            1,
+        )
+        run_main(report, "positive-edge-007")
+
+    def test_documented_negated_schema_artifact_reason_is_not_a_scope_citation(self):
+        report = profile_report("positive-edge-007").replace(
+            "| Type/Schema Narrowing | - | n/a — no candidates in scope | n/a | no candidates in locked scope |",
+            "| Type/Schema Narrowing | Retry configuration schema | n/a — no candidates in scope | n/a | no schema artifacts are included in the locked scope |",
             1,
         )
         run_main(report, "positive-edge-007")

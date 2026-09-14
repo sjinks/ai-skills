@@ -1,11 +1,12 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 id: negative-trigger-001
-name: Off-topic cooking question
-description: Unrelated everyday question must not activate the shell-portability skill.
+name: Off-topic developer task
+description: An unrelated developer task must not activate the shell-portability skill.
 tags:
   - negative-trigger
 inputs:
-  prompt: "How long should I rest a steak after grilling it medium-rare?"
+  prompt: |
+    Write a SQL query that finds duplicate email addresses in a `users` table.
 expected:
   should_trigger: false
 graders:
@@ -19,9 +20,9 @@ graders:
     name: task_completion
     config:
       not_contains:
-        - "Verdict:"
-        - "Findings:"
-        - "Checklist status:"
-        - "Interpreter:"
-        - "Target:"
-        - "Residual risk:"
+        - "Portability verdict:"
+        - "Portability findings:"
+        - "Portability checklist status:"
+        - "Portability interpreter:"
+        - "Portability target:"
+        - "Portability residual risk:"

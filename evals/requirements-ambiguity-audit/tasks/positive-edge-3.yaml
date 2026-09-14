@@ -1,0 +1,80 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Unambiguous spec yields CLEAN with the sweep statement
+description: |
+  A small requirement set with exact bounds, glossary-defined terms,
+  explicit actors, a closed case partition, and no conflicts must
+  produce a CLEAN verdict with the exact sweep statement and an empty
+  report, not fabricated findings.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Run a requirements ambiguity audit on this requirement set. Use the
+    glossary.
+
+    Requirements:
+    - R1: The API server rejects a session-refresh request that lacks a
+      session cookie with HTTP status 401 and the error code NO_SESSION.
+    - R2: The API server rejects a session-refresh request whose session
+      cookie is expired with HTTP status 401 and the error code
+      SESSION_EXPIRED.
+    - R3: The API server accepts a session-refresh request that has a
+      session cookie that is not expired, responds with HTTP status
+      204, and sets the session's recorded expiry to 1,800 seconds
+      after the instant the server received the request's last byte.
+    - R4: The implementation may choose any session storage mechanism.
+
+    Glossary:
+    - session: the server-side login state identified by the session cookie.
+    - session-refresh request: an HTTP POST to /v1/session/refresh.
+    - session cookie: the request cookie named "sid".
+    - expired: evaluated at the instant the server received the
+      request's last byte; the cookie's "sid" value has no session
+      record, or that instant is later than the session's recorded
+      expiry.
+    - error code: the value of the "code" field in the JSON response
+      body.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/requirements-ambiguity-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - requirements-ambiguity-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?im)\A[ \t]*##[ \t]+Requirements Ambiguity Report[ \t]*\r?\n(?:[ \t]*\r?\n)*[ \t]*[*_]*Verdict:[*_ \t]*CLEAN[*_]*\.?[*_]*[ \t]*\r?\n[ \t]*[*_]*All eight ambiguity classes were swept; no findings\.[*_]*[ \t]*\r?$'
+        - '(?im)^[ \t]*\|[ \t]*#[ \t]*\|[ \t]*Class[ \t]*\|[ \t]*Severity[ \t]*\|[ \t]*Location[ \t]*\|[ \t]*\r?$\r?\n^[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*:?-{3,}:?[ \t]*\|[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*### Findings[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*[*_]*None[*_.]*[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*### Open questions \(product decisions, not findings\)[ \t]*\r?$\r?\n(?:^[ \t]*\r?$\r?\n)*^[ \t]*[*_]*None[*_.]*(?:[ \t]*\r?\n)*[ \t]*\z'
+      regex_not_match:
+        - '(?ims)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:[^\r\n]*\r?$[\s\S]*?^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Verdict:'
+        - '(?im)^\s*\|\s*[`*_]*\d+[`*_]*\s*\|\s*[`*_]*(vague-quantifier|undefined-term|missing-actor|conflicting-requirements|placeholder|unspecified-path|ambiguous-reference|untestable-wording)[`*_]*\s*\|\s*[`*_]*(blocker|should-fix|suggestion)[`*_]*\s*\|[^\r\n]*\S[^\r\n]*\|\s*$'
+        - '(?im)^[ \t]*((#{1,6}|[-+*]|[0-9]+[.)])[ \t]+|>+[ \t]*)*[*_]*Finding[ \t]+\d+[*_]*:[*_]*([^\r\n]*)\r?$'
+      not_contains:
+        - "Verdict: BLOCK"
+        - "Verdict: CONCERNS"
+        - "Proposed rewrite:"
+        - "Readings:"
+        - "Quote:"
+        - "Conflict:"
+        - "Missing:"
+        - "Untestable because:"
+        - "| vague-quantifier |"
+        - "| undefined-term |"
+        - "| missing-actor |"
+        - "| conflicting-requirements |"
+        - "| placeholder |"
+        - "| unspecified-path |"
+        - "| ambiguous-reference |"
+        - "| untestable-wording |"

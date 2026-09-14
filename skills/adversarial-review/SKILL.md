@@ -1,6 +1,11 @@
 ---
 name: adversarial-review
-description: "Use when: performing adversarial review, red-team analysis, edge-case discovery, failure-mode analysis, misuse review, regression hunting, and risk-focused test planning."
+description: >-
+  Use when: performing adversarial review, red-team analysis, edge-case
+  discovery, failure-mode analysis, misuse review, regression hunting, or
+  risk-focused test planning. Do not use for ordinary readability, linting,
+  idiomatic-style, or general best-practices review without an explicit
+  failure, misuse, edge-case, or risk objective.
 argument-hint: "Describe the spec, design, implementation, workflow, migration, runbook, or test plan to challenge."
 user-invocable: true
 ---
@@ -16,6 +21,16 @@ The goal is to expose plausible failure modes, separate evidence from speculatio
 Use this skill when performing adversarial review, red-team analysis, edge-case discovery, failure-mode analysis, misuse review, regression hunting, risk-focused test planning, or pre-ship challenge of an artifact whose failure would matter.
 
 Use it for specs, designs, implementations, workflows, migrations, operational procedures, and test plans. Do not reduce the review to code-only comments unless the target is only code.
+
+## DO NOT USE FOR:
+
+Do not use this skill for ordinary readability, linting, idiomatic-style, or general best-practices review unless the request explicitly asks to challenge failures, misuse, material edge cases, or risks.
+
+## Routing
+
+- **UTILITY SKILL:** Use for a deliberate failure-, misuse-, edge-, or risk-focused challenge of a concrete artifact.
+- **INVOKES:** Read-only artifact inspection and non-destructive evidence gathering when needed.
+- **FOR SINGLE OPERATIONS:** Use an ordinary focused review instead when the request asks only about readability, linting, idiomatic style, or general best practices.
 
 ## Invocation Modes
 
@@ -128,6 +143,8 @@ Every substantive finding must name a concrete trigger or scenario. Do not prese
 
 Return a compact review in this shape. Replace each `A | B | C` placeholder with exactly one of the listed values. `What works` is the brief steel-man of the target. `Suggested fix` is local to one finding; `Mitigations / acceptance criteria` is the cross-cutting or gating set agreed for the target and must separate blocking items from non-blocking watch items when both exist. Per-finding `Test gap` names the unverified behavior; the footer `Adversarial tests` aggregates the concrete tests proposed for top risks and may reference finding numbers.
 
+Emit the report as bare text without a code fence, heading, preamble, or trailing commentary. `Verdict:` must be the first non-whitespace line, and `Residual risk:` must be the final non-whitespace line.
+
 ```text
 Verdict: BLOCK | CONCERNS | CLEAN
 Target: <artifact and content type>
@@ -153,7 +170,7 @@ Mitigations / acceptance criteria: <blocking items before reliance, shipping, or
 Residual risk: <remaining caveats after suggested mitigations, or "No material residual risk identified">
 ```
 
-For `CLEAN`, replace each empty section with `None`; `What works` should still name the strongest evidence supporting the clean verdict when available; `Residual risk` must list caveats or `No material residual risk identified`. For `BLOCK` on a missing, unreadable, or insufficient target, emit a single `Open question` finding describing the blocker, put the exact artifact or context required to continue in that finding's `Suggested fix`, and use `Pending - target unavailable` for `What works`, `Adversarial tests`, and `Mitigations / acceptance criteria`.
+For `CLEAN`, replace each empty section with `None`; `What works` should still name the strongest evidence supporting the clean verdict when available; `Residual risk` must not be `None` and must instead list caveats or `No material residual risk identified`. For non-`CLEAN` reports, `Mitigations / acceptance criteria` must not be `None`. For `BLOCK` on a missing, unreadable, or insufficient target, emit a single `Open question` finding describing the blocker, put the exact artifact or context required to continue in that finding's `Suggested fix`, and use `Pending - target unavailable` for `What works`, `Adversarial tests`, and `Mitigations / acceptance criteria`.
 
 ## Anti-Patterns
 
@@ -162,3 +179,8 @@ For `CLEAN`, replace each empty section with `None`; `What works` should still n
 - Do not provide exploit steps, weaponizable payloads, or instructions for attacking real systems.
 - Do not say only "needs tests"; name the unverified behavior and the failure it should catch.
 - Do not force every taxonomy category into the output when it does not apply.
+
+## Examples
+
+- Activates: “Red-team this migration runbook for rollback and partial-failure risks.”
+- Does not activate: “Is this small helper readable and idiomatic?”

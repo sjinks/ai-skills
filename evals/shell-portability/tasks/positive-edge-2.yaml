@@ -41,9 +41,17 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?i)Verdict:\s*(CLEAN|CONCERNS)'
-        - '(?i)(bash[- ]only|target)'
-        - '(?i)Checklist status:'
+        - '(?im)^Portability verdict:\s*CLEAN\s*$'
+        - '(?im)^Portability target:\s*(?:bash[- ]only.*Linux.*bash 5|Linux.*bash 5.*bash[- ]only)\s*$'
+        - '(?im)^Portability interpreter:\s*#!/usr/bin/env bash\s*$'
+        - '(?im)^Portability findings:\s*None\s*$'
+        - '(?i)Portability checklist status:'
+        - '(?im)^- Interpreter and shebang:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Bashisms:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Utilities and flags:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Output and behavior:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Verification:\s*(?:covered|n/a)\s*$'
+        - '(?im)^Portability residual risk:\s*[^\r\n]+$'
       not_contains:
         - "Dependency policy:"
         - "Compatibility promise:"

@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-009
+name: Blocking mitigation and watch item remain distinct
+description: |
+  A non-CLEAN review with both an unmitigated HIGH risk and a bounded follow-up
+  must separate blocking mitigation from a non-blocking watch item.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Adversarial-review this signing-key rollout plan and distinguish what blocks
+    rollout from what can remain a non-blocking watch item.
+
+    Plan: deploy verifiers that accept only the new signing key, then update all
+    token issuers to use that key. Existing tokens signed by the old key remain
+    valid for 24 hours, but the plan has no dual-key overlap, rollback, or client
+    compatibility step. Rejection-count telemetry and a global alert already
+    exist. The dashboard does not split rejection counts by region; the global
+    alert is accurate, so regional breakdown is a bounded observability follow-up.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/adversarial-review/SKILL.md
+      mode: positive
+      threshold: 0.3
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - adversarial-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?im)^Verdict:[ \t]*BLOCK[ \t]*\r?$'
+        - '(?im)^Mitigations / acceptance criteria:[^\r\n]*(blocking|required)[^\r\n]*(non-blocking|watch)[^\r\n]*\r?$'
+        - '(?i)(dual-key|overlap|old key|existing tokens)'
+        - '(?i)(region|regional)'
+      not_contains:
+        - "Gate decision:"
+        - "Lenses applied:"
+        - "Egress policy:"
+        - "Verdict: PLAN-READY"
+        - "Verdict: PLAN-PARTIAL"
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response treats the missing dual-key overlap and
+        rollback as a blocking HIGH risk because valid old-key tokens would be
+        rejected, while keeping regional dashboard breakdown as a distinct
+        non-blocking watch item because accurate global telemetry and alerting
+        already exist. The Mitigations / acceptance criteria field must label
+        both dispositions explicitly rather than merging them.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+
+        1.0 = BLOCK is emitted and blocking versus watch dispositions are explicit and correct.
+        0.5 = the risks are found but their dispositions are incomplete or blurred.
+        0.0 = the verdict is weaker than BLOCK or the bounded watch item is made blocking.
+      mode: independent
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/_helpers/check-adversarial-review-report.py
+      timeout: 30

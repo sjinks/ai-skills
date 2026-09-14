@@ -11,7 +11,7 @@ It helps an assistant:
 - propose rewrites that preserve intent and turn unknowns into explicit open questions instead of invented values
 - respect supplied glossaries and explicitly delegated flexibility instead of flagging them
 - assign `blocker`, `should-fix`, or `suggestion` severity and return `BLOCK`, `CONCERNS`, or `CLEAN` verdicts
-- emit a deterministic BLOCK template when no spec text is supplied
+- emit a deterministic BLOCK template when spec text is missing or unreadable
 
 ## Files
 

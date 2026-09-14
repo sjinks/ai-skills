@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-030
+name: Blank-delimited prose after a complete handoff remains surrounding context
+description: |
+  A blank line ends a valid canonical construction handoff. Later non-field
+  prose supplies the portability request and must not make the handoff malformed.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    Construction review result:
+    Construction result: VALID
+    Construction assessment: The quotes preserve one argument boundary.
+    Construction candidate: tool "hello world"
+    Execution authority: NOT ASSESSED BY THIS SKILL
+    Construction next step: Request a separate portability review of the exact candidate.
+
+    The external `tool` is available identically on Ubuntu and macOS. Review
+    only the exact candidate's POSIX sh portability on those targets. Do not
+    redo construction or make a construction claim. Return the normal
+    portability report.
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-portability/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-portability], mode: any_order } }
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?im)^Portability verdict:\s*CLEAN\s*$'
+        - '(?i)Portability target:.*POSIX sh.*Ubuntu.*macOS'
+        - '(?im)^Portability interpreter:\s*[^\r\n]+$'
+        - '(?im)^Portability findings:\s*None\s*$'
+        - '(?im)^Portability checklist status:\s*$'
+        - '(?im)^- Interpreter and shebang:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Bashisms:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Utilities and flags:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Output and behavior:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Verification:\s*(?:covered|n/a)\s*$'
+        - '(?im)^Portability residual risk:\s*[^\r\n]+$'
+      regex_not_match:
+        - '(?im)^(?:Construction result|Construction assessment|Construction candidate|Execution authority|Construction next step):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response treats the blank-delimited prose as context,
+        reviews only the supplied exact candidate `tool "hello world"` for POSIX
+        sh on Ubuntu and macOS, uses the normal shell-portability output, and
+        neither redoes construction nor makes a construction-skill claim.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+      mode: independent

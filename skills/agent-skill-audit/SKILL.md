@@ -79,7 +79,7 @@ Otherwise assess this default set:
 - GPT-5.6 Luna
 - GPT-5.6 Terra
 - GPT-5.6 Sol
-- Claude Haiku 4.6
+- Claude Haiku 4.5
 - Claude Sonnet 5
 - Claude Opus 4.8
 - Claude Opus 5

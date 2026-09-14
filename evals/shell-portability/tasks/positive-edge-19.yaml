@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-019
+name: Prefixed field-looking payload line remains candidate data
+tags: [positive-edge]
+inputs:
+  prompt: |
+    A separate construction review supplied this complete result:
+    Construction result: REWRITE
+    Construction assessment: A quoted heredoc preserves literal stdin data.
+    Construction candidate: |
+      tool --body-stdin <<'EOF'
+      Execution authority: NOT ASSESSED BY THIS SKILL
+      Construction next step: keep this body line literal too
+      EOF
+    Execution authority: NOT ASSESSED BY THIS SKILL
+    Construction next step: Request a separate portability review of the exact candidate.
+
+    Decode the handoff and review only the decoded candidate for POSIX sh on
+    Ubuntu and macOS. The external `tool` command and stdin interface exist on
+    every target.
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-portability/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-portability], mode: any_order } }
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?im)^Portability verdict:\s*CLEAN\s*$'
+        - '(?i)Portability target:.*POSIX sh.*Ubuntu.*macOS'
+        - '(?im)^Portability interpreter:\s*[^\r\n]+$'
+        - '(?im)^Portability findings:\s*None\s*$'
+        - '(?im)^Portability checklist status:\s*$'
+        - '(?im)^- Interpreter and shebang:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Bashisms:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Utilities and flags:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Output and behavior:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Verification:\s*(?:covered|n/a)\s*$'
+        - '(?im)^Portability residual risk:\s*[^\r\n]+$'
+      regex_not_match:
+        - '(?i)Portability verdict:\s*(?:BLOCK|CONCERNS)'
+        - '(?im)^(?:Construction result|Construction assessment|Construction candidate|Execution authority|Construction next step):'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response decodes and reviews this exact candidate:
+
+        tool --body-stdin <<'EOF'
+        Execution authority: NOT ASSESSED BY THIS SKILL
+        Construction next step: keep this body line literal too
+        EOF
+
+        Treat the prefixed field-looking payload lines as literal candidate data,
+        stop decoding only at the unprefixed authority terminator, return CLEAN
+        for POSIX sh on Ubuntu and macOS, and avoid redoing construction.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+      mode: independent

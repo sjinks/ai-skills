@@ -3,9 +3,9 @@ name: adversarial-review-eval
 description: |
   Evaluates the adversarial-review skill: it activates on red-team /
   failure-mode prompts, stays silent on unrelated, explanatory, or style-review questions,
-  is actually invoked when expected (and not when not), and produces the
-  skill's required output contract (verdict, target, findings, residual
-  risk).
+  is directly verified as invoked on positive tasks, is assessed indirectly for
+  negative non-activation through trigger and output checks, and produces the
+  skill's required output contract (verdict, target, findings, residual risk).
 skill: adversarial-review
 version: "1.1"
 config:
@@ -26,13 +26,17 @@ metrics:
     threshold: 0.9
     description: Skill is invoked on positive tasks that should activate it.
   - name: task_completion
-    weight: 0.30
+    weight: 0.20
     threshold: 0.8
     description: Output carries the skill's required contract and substantive findings the prompt asks for.
   - name: task_completion_substance
     weight: 0.10
     threshold: 0.7
     description: LLM judge verifies verdict logic, finding cardinality, and paired-review behavior on targeted edge cases.
+  - name: report_contract
+    weight: 0.10
+    threshold: 1.0
+    description: Deterministic validator enforces or rejects the complete adversarial-review report shape as appropriate.
   - name: efficiency
     weight: 0.15
     threshold: 0.7

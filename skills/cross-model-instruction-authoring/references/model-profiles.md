@@ -6,7 +6,7 @@ Use these profiles as authoring heuristics, not as guarantees. Runtime system in
 
 Use two simultaneous tests:
 
-1. **Compatibility floor:** Can GPT-5.4 mini and Claude Haiku 4.6 execute the normal path without guessing essential requirements?
+1. **Compatibility floor:** Can GPT-5.4 mini and Claude Haiku 4.5 execute the normal path without guessing essential requirements?
 2. **Capability ceiling:** Do the same instructions leave GPT-5.5, the GPT-5.6 family, Claude Sonnet 5, Claude Opus 4.8, Claude Opus 5, and Claude Fable 5 enough freedom to use better strategies?
 
 GPT-5.4 is the balanced GPT baseline reference point.
@@ -131,7 +131,7 @@ Failure patterns to test:
 - replacing explicit contracts with a more elegant inferred objective;
 - over-compressing the final evidence trail.
 
-## Claude Haiku 4.6
+## Claude Haiku 4.5
 
 Treat as the smallest Claude target and prefer straightforward, bounded tasks.
 
