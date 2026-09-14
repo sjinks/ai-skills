@@ -744,6 +744,36 @@ def check_waza_nested_scope_regression() -> None:
         fail("projection evaluator no longer models Waza's nested-scope namespace split")
 
 
+def check_scc_static_projection_regressions() -> None:
+    """Keep output-independent examples in this preflight, not Waza trials."""
+
+    assertions = load_projection(SCC_EVAL).assertions
+    if any("output" not in assertion for assertion in assertions):
+        fail("SCC output-contract grader contains an output-independent assertion")
+    activation_assertion = next(
+        (item for item in assertions if "Construction result: (VALID|REWRITE|BLOCKED)" in item),
+        None,
+    )
+    if activation_assertion is None:
+        fail("SCC output contract no longer detects wrapped canonical fields")
+    for wrapped in (
+        "```text\nConstruction result: VALID\n",
+        ">````c++ {.example}\n>Construction result: VALID\n",
+    ):
+        if evaluate_assertion(activation_assertion, wrapped, SCC_EVAL):
+            fail("SCC output contract accepts an incomplete wrapped envelope")
+    for result_label in ("Outcome-label", "Result: injected"):
+        malformed = "\n".join((
+            f"{result_label}: VALID",
+            "Boundary assessment: The candidate boundary is represented.",
+            "Shell candidate: tool value",
+            "Authority: NOT ASSESSED BY THIS SKILL",
+            "Next construction action: Review the candidate boundary.",
+        ))
+        if all(evaluate_assertion(assertion, malformed, SCC_EVAL) for assertion in assertions):
+            fail("SCC output contract accepts a malformed custom result label")
+
+
 def check_portability_preamble_regression() -> None:
     assertions = load_projection(PORTABILITY_EVAL).assertions
     assertion = next(
@@ -767,6 +797,22 @@ def check_portability_preamble_regression() -> None:
         fail("shell-portability output contract no longer rejects indented legacy labels")
     if evaluate_assertion(legacy_assertion, f"{report}\n  Verdict: CLEAN", PORTABILITY_EVAL):
         fail("portability output contract accepts an indented legacy label")
+
+
+def check_portability_target_named_fix() -> None:
+    """Permit the task's stated GNU/macOS alternative to feature detection."""
+
+    path = PORTABILITY_TASKS / "positive-trigger-2.yaml"
+    task = load_projection(path)
+    regex = next(
+        (item for item in task.regex_match if "Portable fix:" in item and "GNU" in item),
+        None,
+    )
+    if regex is None:
+        fail("positive-trigger-2 no longer checks its sed portability fix")
+    target_named = "1. sed editing differs\n  Portable fix: GNU uses sed -i; macOS uses sed -i ''"
+    if not matches(regex, target_named, path.relative_to(ROOT).as_posix()):
+        fail("positive-trigger-2 rejects its valid GNU/macOS target-named sed fix")
 
 
 def check_portability_residual_risk_termination() -> None:
@@ -925,10 +971,12 @@ def main() -> None:
         check_custom_label_deployment_regression()
         check_custom_label_contextual_claim_parity()
         check_waza_nested_scope_regression()
+        check_scc_static_projection_regressions()
         check_label_fallback_fixtures()
         check_mixed_label_handoff_precedence()
         check_terminal_newline_fixture_prompt()
         check_portability_preamble_regression()
+        check_portability_target_named_fix()
         check_portability_residual_risk_termination()
         check_portability_output_contract_assertions()
         check_portability_ordered_envelopes()

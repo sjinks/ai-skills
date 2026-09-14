@@ -51,7 +51,7 @@ graders:
         - '(?ims)^3\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*CRITICAL\s*\r?\n[ \t]+Classification:\s*Confirmed issue\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*find[^\r\n]*-printf[^\r\n]*\r?\n[ \t]+Rule:\s*utilities-flags\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?:-exec|-print)[^\r\n]*\r?\n[ \t]+Verification:\s*[^\r\n]+$'
         - '(?ims)^2\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:grep -E|ERE|awk)[^\r\n]*(?:\[0-9\]\{3\}|\[\[:digit:\]\]\{3\}|\[0-9\]\[0-9\]\[0-9\])[^\r\n]*$'
         - '(?ims)^3\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:-exec[^\r\n]*basename|basename[^\r\n]*-exec)[^\r\n]*$'
-        - '(?ims)^1\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:branch|case|detect|probe|\bif\b)[^\r\n]*$'
+        - '(?ims)^1\.\s+[^\r\n]+(?:\r?\n[ \t]+[^\r\n]+)*?\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?i:(?:branch|case|detect|probe|\bif\b)|GNU[^\r\n]*(?:BSD|macOS)|(?:BSD|macOS)[^\r\n]*GNU)[^\r\n]*$'
         - '(?i)sed -i'
         - '(?i)(grep -P|PCRE|grep -E|ERE)'
         - '(?i)(printf|-exec|find -printf|GNU)'
