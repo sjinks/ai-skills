@@ -7,7 +7,7 @@
 
 ## Scope for skill and eval work
 
-- The skill, eval, review, and documentation conventions below apply when changing this `AGENTS.md`, canonical `skills/**`, `evals/**`, or related README files. `.agents/skills/**` is a generated-skill destination governed by `source-to-skill`: do not mirror it into `skills/**`, add repository evals, or add README entries unless the request explicitly promotes that artifact.
+- The skill, eval, review, and documentation conventions below apply when changing this `AGENTS.md`, canonical `skills/**`, `evals/**`, or related README files. `.agents/skills/**` is a generated-skill destination governed by `source-to-skill`: do not mirror it into `skills/**`, add repository evals, or add README entries unless the request explicitly promotes that artifact. `AGENTS.md` is the sole Codex instruction surface; clients that load only `.github/instructions/*.instructions.md` are intentionally out of scope.
 
 ## Skill layout and content
 
@@ -17,7 +17,7 @@
 - Review-style skills define a severity rubric, deterministic verdict mapping, no-findings path, and deterministic insufficient-context template. Preserve established verdict vocabularies; use `BLOCK`/`CONCERNS`/`CLEAN` only when canonical for that skill.
 - Keep output labels and enums exact across templates, checklists, references, and evals. State any mapping from a richer reference vocabulary. The checklist is the gating source when it overlaps decision rules.
 - The `## Output` section defines distinctive labels, not prose-only output. Default labels may be caller-replaced only when the skill explicitly permits it; when that option exists, preserve the caller's requested labels exactly. Negative evals must use the same canonical labels.
-- A runnable embedded C/C++ example must compile with its stated command and `-Wall -Wextra -Werror`. Clearly label partial illustrations and never pair them with a command that implies they are ready to run.
+- A runnable embedded C/C++ example must include the headers it uses and compile and run cleanly with its stated commands and `-Wall -Wextra -Werror`. Clearly label partial illustrations and never pair them with a command that implies they are ready to run.
 
 ## Eval suites
 
@@ -25,7 +25,7 @@
 - New or materially revised suites use the applicable filename taxonomy: `positive-trigger-*.yaml`, documented `positive-edge-*.yaml`, optional `positive-substance-*.yaml` when an LLM-judge substance check is needed, unique off-topic `negative-trigger-*.yaml`, and at least two `negative-close-*.yaml`. Preserve a stable existing suite's documented exception unless the change revises that coverage. Negative tasks omit `skill_invocation` because Waza v0.33.0 has no forbidden mode.
 - Positive tasks assert structured output markers in `task_completion`, not only topic keywords. When adding a marker to positive tasks, update the matching negative exclusions in the same change. Negative `not_contains` entries cover every output-template marker and proprietary skill name, never broad English vocabulary; confirm each forbidden token is absent from that task's prompt.
 - Quote YAML regexes containing backslashes with single quotes. Register new suites in `evals/README.md`, including its trigger threshold and token budget.
-- For conditional structured reports, one deterministic validator owns markers, order, domains, cardinality, branches, and termination. Keep it suite-local at `evals/<name>/check-report.py`; use `evals/_helpers/` only for an actually shared semantic contract. Wire it through a `program` grader, document its invocation in the suite README, and mechanically verify task assertions and negative exclusions against it. Include deterministic mutations for each omission, reorder, duplicate, invalid enum, profile crossover, trailing prose, and one valid case per profile.
+- For new or materially revised conditional structured reports, one deterministic validator owns markers, order, domains, cardinality, branches, and termination. Keep it suite-local at `evals/<name>/check-report.py`, or in `evals/_helpers/` only for an actually shared semantic contract. Wire it through a `program` grader, document its invocation in `evals/README.md`, and mechanically verify task assertions and negative exclusions against it. Include deterministic mutations for each omission, reorder, duplicate, invalid enum, profile crossover, trailing prose, and one valid case per profile.
 
 ## Review and PR discipline
 
@@ -49,7 +49,7 @@
 
 ## Validation and documentation
 
-- Run `waza check skills/<name>` and `git diff --check` after relevant changes. Eval schema and every task file must validate. Ignore only Waza's 500-token hard limit and its `argument-hint`/`user-invocable` frontmatter-field advisories; everything else must be green.
+- Always run `git diff --check` after relevant changes. For skill changes, also run `waza check skills/<name>`; for eval changes, validate the suite schema and every task file. Ignore only Waza's 500-token hard limit and its `argument-hint`/`user-invocable` frontmatter-field advisories; everything else must be green.
 - When task YAML or grader contracts change, run `python3 evals/_helpers/check-eval-regexes.py --root evals/<skill-name>`; its decoded-YAML count is authoritative. Use `--cases` for contract-specific inputs rather than grepping YAML.
 - For coupled shell-command-construction/shell-portability changes, run `python3 evals/_helpers/check-shell-contract-projections.py`. It does not invoke a live model.
 - With multiple worktrees, run repository commands as `git -C <absolute-worktree> ...`.
