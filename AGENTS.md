@@ -1,19 +1,19 @@
 # Project Instructions
 
-## Startup routing
-
-- At the start of every task, read and follow the `codex-subagent-routing` skill before deciding whether to delegate.
-
 ## Running model evals (cost control)
 
 - Never run `waza run`, or any command that issues live model/API calls, without explicit per-run user approval. State the expected scope and cost first; a full suite costs roughly 200–270 premium Copilot requests and even one `--task ... --trials 1` probe costs roughly 9–18.
 - `waza check`, schema validation, `cmp`, `git`, `gh`, file reads, and searches are free. Do not re-run paid evaluation merely to confirm an established result.
 
+## Scope for skill and eval work
+
+- The skill, eval, review, and documentation conventions below apply only when changing `skills/**`, `.agents/skills/**`, `evals/**`, or related README files.
+
 ## Skill layout and content
 
 - Canonical skills live at `skills/<name>/SKILL.md`; the folder name equals frontmatter `name`. When a compatibility symlink exists, edit only the canonical path and verify the resolved files match with `cmp`.
 - Skills are standalone: do not name other repository skills. State the boundary as self-contained guidance instead.
-- Keep `SKILL.md` operational: triggers, workflow, decision rules, checklist, output format, examples, and definition of done. Put provenance in `references/source-map.md`; long catalogs and matrices in `references/*.md`; every reference starts with when to read it.
+- Keep `SKILL.md` operational: triggers, workflow, decision rules, checklist, output format, examples, and definition of done. Put provenance in `references/source-map.md`; long catalogs and matrices in `references/*.md`; every reference starts with when to read it, and `SKILL.md` gives each reference a concise summary and link (including a `## Provenance` pointer for its source map).
 - Review-style skills define a severity rubric, deterministic verdict mapping, no-findings path, and deterministic insufficient-context template. Preserve established verdict vocabularies; use `BLOCK`/`CONCERNS`/`CLEAN` only when canonical for that skill.
 - Keep output labels and enums exact across templates, checklists, references, and evals. State any mapping from a richer reference vocabulary. The checklist is the gating source when it overlaps decision rules.
 - The `## Output` section defines distinctive labels, not prose-only output. Default labels may be caller-replaced only when the skill explicitly permits it; when that option exists, preserve the caller's requested labels exactly. Negative evals must use the same canonical labels.
@@ -21,8 +21,8 @@
 
 ## Eval suites
 
-- Every skill has `evals/<name>/eval.yaml` and sibling-style `trigger_accuracy`, `skill_invocation`, `task_completion`, and `efficiency` graders.
-- Use the established task taxonomy: positive triggers, documented positive edges, unique off-topic negative triggers, and at least two negative-close tasks. Negative tasks omit `skill_invocation` because Waza v0.33.0 has no forbidden mode.
+- New skills have `evals/<name>/eval.yaml` and sibling-style `trigger_accuracy`, `skill_invocation`, `task_completion`, and `efficiency` graders.
+- New or materially revised suites use the applicable taxonomy: positive triggers, documented positive edges, optional positive-substance cases when an LLM-judge substance check is needed, unique off-topic negative triggers, and at least two negative-close tasks. Preserve a stable existing suite's documented exception unless the change revises that coverage. Negative tasks omit `skill_invocation` because Waza v0.33.0 has no forbidden mode.
 - Positive tasks assert structured output markers in `task_completion`, not only topic keywords. When adding a marker to positive tasks, update the matching negative exclusions in the same change. Negative `not_contains` entries cover every output-template marker and proprietary skill name, never broad English vocabulary; confirm each forbidden token is absent from that task's prompt.
 - Quote YAML regexes containing backslashes with single quotes. Register new suites in `evals/README.md`, including its trigger threshold and token budget.
 - For conditional structured reports, one executable contract owns markers, order, domains, cardinality, branches, and termination. Mechanically verify every parser, task assertion, and negative exclusion against it. Include deterministic mutations for each omission, reorder, duplicate, invalid enum, profile crossover, trailing prose, and one valid case per profile.
@@ -34,7 +34,7 @@
 - Never change a label, enum, or section name incidentally. It is a deliberate contract change requiring an eval-projection check.
 - For sibling propagation, inventory the workspace and available open sibling PRs, recording searched paths, inspected evidence, and why each candidate changed or did not apply. Report unavailable required inventory as blocked.
 - Before adding tasks, first use an existing task if it can provide an independent discriminating assertion; record why a new task is needed otherwise. Enumerate changed branches, defaults, and precedence collisions. Give each behaviorally distinct class a discriminating positive-edge task; fixtures cover only what they explicitly assert. More than five new tasks requires explicit owner approval of the coverage matrix.
-- Before opening or updating a PR, record a compact contract matrix: markers, order, requiredness, domains, cardinality, positive and negative examples, and every eval projection. Record each projection sweep with its immutable tree/diff, inspected package and sibling scope, result, and mismatches. `PASS` has no unresolved mismatch; unavailable scope is `BLOCK`.
+- A projection is any consumer of a changed rule: skill procedure, template, checklist, reference, eval manifest/global grader, task grader, validator, documentation, or sibling package using the same contract. Before opening or updating a PR, record a compact contract matrix in the PR description (or, before a PR exists, the task handoff): markers, order, requiredness, domains, cardinality, positive/negative examples, and each applicable projection. Record each sweep's immutable tree/diff, inspected package and sibling scope, result, and mismatches. `PASS` has no unresolved mismatch; unavailable scope is `BLOCK`.
 - For every changed decision or output contract, compare its source rule with each projection for branches, defaults, precedence, wording, cardinality, blocker behavior, and positive/negative assertions; any mismatch blocks readiness. Verify conditional template slots use the same condition as the prose; rules based on user- versus risk-selected values apply to the selected value itself unless stated otherwise; code identifiers are fully qualified; and category headings match their content.
 - Do not put volatile task totals in PR descriptions. Say `all task files`, or derive and verify a required count from the final tree. After a final post-publication push, verify and update the published body.
 
@@ -50,9 +50,9 @@
 ## Validation and documentation
 
 - Run `waza check skills/<name>` and `git diff --check` after relevant changes. Eval schema and every task file must validate. Ignore only Waza's 500-token hard limit and its `argument-hint`/`user-invocable` frontmatter-field advisories; everything else must be green.
-- For task-regex changes, run `python3 evals/_helpers/check-eval-regexes.py --root evals/<skill-name>`; its decoded-YAML count is authoritative. Use `--cases` for contract-specific inputs rather than grepping YAML.
-- For coupled shell-command-construction/shell-portability changes, run `python3 evals/_helpers/check-shell-contract-projections.py`. For a shell-portability report change, also run `python3 evals/_helpers/check-shell-report-contracts.py` after the regex check. Neither invokes a live model.
+- When task YAML or grader contracts change, run `python3 evals/_helpers/check-eval-regexes.py --root evals/<skill-name>`; its decoded-YAML count is authoritative. Use `--cases` for contract-specific inputs rather than grepping YAML.
+- For coupled shell-command-construction/shell-portability changes, run `python3 evals/_helpers/check-shell-contract-projections.py`. It does not invoke a live model.
 - With multiple worktrees, run repository commands as `git -C <absolute-worktree> ...`.
-- Keep each skill README synchronized with scope and files. The top-level README lists every skill once under `## Skills`; do not restore per-skill detail sections there.
+- Each skill README has an overview, blurb, and `## Files` links; keep it synchronized with scope and supporting files. The top-level README lists every skill once, in the appropriate `## Skills` category, as a one-line link to that README; do not restore per-skill detail sections there.
 - In Markdown README files, put a blank line before every `###` heading.
 - Verify factual claims about language semantics, ABI behavior, tool defaults, or flags against authoritative sources. Qualify strong claims inline.
