@@ -50,8 +50,9 @@ Targets referenced below:
 
 | Non-portable | Portable approach | Notes |
 |---|---|---|
-| `readlink -f` / `-m` | shell `cd`+`pwd -P` function, or require GNU `realpath`/`grealpath` | BSD/macOS `readlink` has no `-f`. A `realpath(1)` utility is not guaranteed on macOS/BSD baselines (and is not POSIX); do not assume it is present. |
-| `sed -i 's/.../.../' f` | `t=$(mktemp); sed '...' f >"$t" && mv "$t" f` | GNU `-i` (no arg), BSD/macOS `-i ''` (empty backup suffix). In-place is non-portable. |
+| `readlink -f` | preserve a confirmed native implementation whose final-component, existence, and error semantics match; otherwise require a confirmed available `realpath` implementation with matching semantics, or document reduced semantics | `-f` is non-POSIX and implementation-dependent. FreeBSD and macOS 12.3+ provide `-f`; older macOS targets may lack it. GNU `realpath`/`grealpath` are examples, but other implementations may satisfy the required semantics. `cd`+`pwd -P` plus `basename` does not resolve a final-component symlink. `realpath(1)` is not POSIX or guaranteed present. |
+| `readlink -m` | use a declared-target branch or a confirmed available implementation whose missing-component semantics match the requirement; otherwise document reduced semantics | `-m` is non-POSIX and has different missing-component semantics from `-f`; do not infer `-m` support from a target's `-f` support. |
+| `sed -i 's/.../.../' f` | explicit target-named or feature-detected GNU/BSD behavior branch: GNU `sed -i '...' f`; BSD/macOS `sed -i '' '...' f` | This branch resolves `-i` syntax compatibility only. It does not guarantee metadata, hard-link identity, or atomicity preservation; if those invariants are required, use a target-specific verified strategy and document trade-offs. Replacing through a generic `$TMPDIR` file can be cross-filesystem/non-atomic, alter metadata, and leak on failure; use it only with same-directory creation, cleanup, and explicit metadata guarantees. |
 | `sed -r` / `sed -E` | rewrite to POSIX BRE, or branch by target | POSIX `sed` specifies neither `-r` nor `-E` (BRE only). BSD/macOS and modern GNU accept `-E`; `-r` is GNU/busybox. For strict portability rewrite to BRE. |
 | `grep -P` (PCRE) | `grep -E` (ERE) or `awk` | PCRE is GNU-only; `grep -E` (ERE) is POSIX. Rewrite the pattern in ERE. |
 | `grep -o` | mostly portable now (GNU+BSD+busybox) | OK on modern targets; avoid on ancient ones. |
@@ -71,7 +72,7 @@ Targets referenced below:
 | `mktemp` | `mktemp 2>/dev/null \|\| mktemp -t prefix` | Template/`-t` semantics differ GNU vs BSD. |
 | `stat -c` (GNU) / `stat -f` (BSD) | avoid, or branch by `uname`; use `find -printf`-free alternatives, `wc -c`, `ls` parsing as last resort | Format strings are entirely different. |
 | `head -c N` | `dd bs=1 count=N 2>/dev/null` for strict POSIX | `head -c` is widely available but not POSIX; busybox quirks exist. |
-| `realpath` | shell function or GNU coreutils | Not POSIX; availability varies. |
+| `realpath` | any confirmed available implementation whose final-component, existence, and error semantics match the requirement; otherwise a documented reduced-semantics fallback | Not POSIX; availability and options vary across GNU/BSD/macOS, and simple `cd`/`pwd -P` fallbacks do not resolve final-component symlinks. |
 | `getopt` (GNU enhanced) | POSIX `getopts` builtin | GNU `getopt` long-options are non-portable; `getopts` is the portable builtin (short opts only). |
 | `awk` GNU extensions (`gensub`, `asort`, `length(arr)`, `match` 3rd arg, `--`) | POSIX awk only | BSD `awk`/`mawk`/busybox `awk` lack them. |
 | `ls --color`, `grep --color` | omit or branch | GNU-only long flags. |

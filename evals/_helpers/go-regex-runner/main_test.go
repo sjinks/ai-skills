@@ -2,11 +2,28 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 )
+
+func TestYAMLProjection(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "task.yaml")
+	writeFile(t, path, "inputs:\n  prompt: sample\ngraders:\n  - type: text\n    name: task_completion\n    config:\n      regex_match: ['required']\n      regex_not_match: ['forbidden']\n      not_contains: ['blocked']\n  - type: code\n    name: output_contract\n    config:\n      assertions: ['assertion']\n")
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"--yaml-projection", path}, &stdout, &stderr); err != nil {
+		t.Fatalf("projection failed: %v; stderr: %s", err, stderr.String())
+	}
+	var projection yamlProjection
+	if err := json.Unmarshal(stdout.Bytes(), &projection); err != nil {
+		t.Fatal(err)
+	}
+	if projection.Prompt != "sample" || len(projection.RegexMatch) != 1 || projection.RegexMatch[0] != "required" || len(projection.RegexNotMatch) != 1 || projection.RegexNotMatch[0] != "forbidden" || len(projection.NotContains) != 1 || projection.NotContains[0] != "blocked" || len(projection.Assertions) != 1 || projection.Assertions[0] != "assertion" {
+		t.Fatalf("unexpected projection: %#v", projection)
+	}
+}
 
 func writeTask(t *testing.T, root, pattern string) string {
 	t.Helper()

@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-025
+name: Do not infer FreeBSD readlink -m from -f
+description: |
+  Confirmed native `readlink -f` support does not establish `readlink -m`
+  support or its distinct missing-component semantics.
+tags:
+  - positive-edge
+inputs:
+  prompt: |
+    Review this FreeBSD 14-only shell fragment for portability:
+
+    ```sh
+    target=$(readlink -m "$2")
+    ```
+
+    The path may have missing components, so those semantics are required.
+    Native `readlink -f` is confirmed available, but FreeBSD 14's `readlink`
+    has no `-m` option and therefore cannot provide the required
+    missing-component behavior. Do not treat `-f` as an equivalent repair.
+    Return the normal portability report.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/shell-portability/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - shell-portability
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?im)^Portability verdict:\s*BLOCK\s*$'
+        - '(?im)^Portability target:\s*[^\r\n]*FreeBSD[ \t]*14[^\r\n]*$'
+        - '(?im)^Portability interpreter:\s*[^\r\n]+$'
+        - '(?im)^Portability findings:\s*$'
+        - '(?ims)^1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*CRITICAL\s*\r?\n[ \t]+Classification:\s*Confirmed issue\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*(?i:readlink[ \t]+-m)[^\r\n]*\r?\n[ \t]+Rule:\s*utilities-flags\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]+\r?\n[ \t]+Verification:\s*[^\r\n]+$'
+        - '(?im)^[ \t]+Portable fix:\s*[^\r\n]*(?i:matching|missing.component|target.branch|reduced)[^\r\n]*$'
+        - '(?im)^Portability checklist status:\s*$'
+        - '(?im)^- Interpreter and shebang:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Bashisms:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Utilities and flags:\s*missing\s*$'
+        - '(?im)^- Output and behavior:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Verification:\s*(?:covered|n/a)\s*$'
+        - '(?im)^Portability residual risk:\s*[^\r\n]+$'
+      regex_not_match:
+        - '(?im)^[ \t]+Portable fix:\s*readlink[ \t]+-f\b'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response explains that FreeBSD `readlink -f` support
+        does not establish the required `readlink -m` missing-component
+        semantics, does not use `-f` as the repair, and requires a matching
+        target branch or explicitly accepted reduced semantics. End with only
+        1.0, 0.5, or 0.0 on the last line.
+      mode: independent

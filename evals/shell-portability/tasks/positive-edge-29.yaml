@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-029
+name: Terminal multiline payload newline remains exact candidate data
+tags: [positive-edge]
+inputs:
+  prompt: |
+    A mixed-request handoff supplied this complete construction result:
+    Construction result: VALID
+    Construction assessment: A literal shell source boundary was reviewed.
+    Construction candidate: |
+      printf '%s\n' portable
+      \
+      
+    Execution authority: NOT ASSESSED BY THIS SKILL
+    Construction next step: Request portability review of the exact candidate.
+
+    Review only the decoded candidate for POSIX sh on Ubuntu and macOS. The
+    `printf` utility exists on every target. Return the normal portability
+    report.
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-portability/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-portability], mode: any_order } }
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?im)^Portability verdict:\s*CLEAN\s*$'
+        - '(?i)Portability target:.*POSIX sh.*Ubuntu.*macOS'
+        - '(?im)^Portability interpreter:\s*[^\r\n]+$'
+        - '(?im)^Portability findings:\s*None\s*$'
+        - '(?im)^Portability checklist status:\s*$'
+        - '(?im)^- Interpreter and shebang:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Bashisms:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Utilities and flags:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Output and behavior:\s*(?:covered|n/a)\s*$'
+        - '(?im)^- Verification:\s*(?:covered|n/a)\s*$'
+        - '(?im)^Portability residual risk:\s*[^\r\n]*(?i:terminal newline|line continuation|backslash-newline)[^\r\n]*$'
+      regex_not_match:
+        - '(?im)^Portability verdict:\s*(?:BLOCK|CONCERNS)\s*$'
+        - '(?im)^[ \t]+Evidence:.*(?:malformed|missing|strip|drop).*$'
+  - type: prompt
+    name: task_completion_substance
+    config:
+      prompt: |
+        Grade whether the response decodes the final two-space-only payload line
+        as an exact terminal candidate newline, not authority framing, and
+        recognizes that it completes the final POSIX line continuation.
+        The decoded candidate is CLEAN for the declared targets; omitting that
+        newline would make dash treat the trailing backslash as a command and
+        change output behavior. Require a complete normal CLEAN report with no
+        findings and no construction redo.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+      mode: independent
