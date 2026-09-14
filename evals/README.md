@@ -174,13 +174,15 @@ metric → grader weighting takes effect.
   construction-shaped output while allowing ordinary markerless prose for
   negative non-activation tasks; shell-portability rejects legacy-label mixing
   and trailing prose after a normal report.
-- `report_contract` (`adversarial-review` and `equivalence-class-audit` tasks,
-  `program`) — reads the raw agent output that Waza passes on stdin and validates
-  each suite's complete report grammar, including top-level order, marker
-  uniqueness, verdict branches, findings/rows, and termination. Positive tasks
-  run normal validation; negative tasks pass `--reject`, which succeeds only
-  when the output is not a complete canonical report. Exit code 0 passes and
-  any non-zero exit fails.
+- `report_contract` (`adversarial-review` and `equivalence-class-audit` positive
+  tasks, `program`) — reads the raw agent output that Waza passes on stdin and
+  validates each suite's complete report grammar, including top-level order,
+  marker uniqueness, verdict branches, findings/rows, and termination.
+  `adversarial-review` negative tasks pass `--reject`, which succeeds only when
+  the output is not a complete canonical adversarial-review report.
+  `equivalence-class-audit` attaches this grader only to positive tasks and its
+  checker accepts a positive profile ID. Exit code 0 passes and any non-zero exit
+  fails.
 - `tone_quality` (`spock-voice` positives only, `prompt`) — LLM judge.
   The rubric asks for one sentence of reasoning followed by a final
   line containing only `1.0`, `0.5`, or `0.0`, so waza's prompt-grader

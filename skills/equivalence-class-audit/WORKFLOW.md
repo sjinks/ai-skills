@@ -57,17 +57,18 @@ Always emit the selected depth as `Output depth: quick`, `Output depth: standard
 
 ## Procedure
 
-1. Restate the triggering finding and locked audit scope.
-2. Select output depth. In `quick` mode, identify target-specific blockers, high-risk concerns, and applicable axes, then summarize omitted axes instead of walking the full catalogue in the table. In `standard` and `exhaustive`, walk every axis in the catalogue below.
+1. Select output depth only; selecting `quick` never authorizes candidate enumeration before the required-input gate.
+2. Restate the triggering finding and locked audit scope.
 3. If the triggering finding or locked audit scope is missing, stop before candidate enumeration and ask exactly one blocking question while preserving the selected depth. Ask for the triggering finding first when both are missing; otherwise ask for the one missing input.
-4. For each axis, enumerate candidates inside the locked scope.
-5. When the table is included after the triggering finding and locked audit scope are available, represent every catalogue axis at least once unless the selected depth is `quick`.
-6. If an axis has candidates, add one row per candidate.
-7. If an axis has no candidates or is structurally inapplicable, add one explicit `n/a` row with evidence or a reason.
-8. For each candidate, decide **Presence** from evidence, not probability.
-9. For every `present` defect, assign a **Disposition**: `fix-now`, `defer-with-owner`, or `blocked`.
-10. Put candidates found outside the locked scope in the out-of-scope section rather than adding them to the table.
-11. Capture test and documentation implications even when production code is already safe.
+4. Only after both required inputs are available: in `quick` mode, identify target-specific blockers, high-risk concerns, and applicable axes, then summarize omitted axes instead of walking the full catalogue in the table. In `standard` and `exhaustive`, walk every axis in the catalogue below.
+5. For each axis, enumerate candidates inside the locked scope.
+6. When the table is included after the triggering finding and locked audit scope are available, represent every catalogue axis at least once unless the selected depth is `quick`.
+7. If an axis has candidates, add one row per candidate.
+8. If an axis has no candidates or is structurally inapplicable, add one explicit `n/a` row with evidence or a reason.
+9. For each candidate, decide **Presence** from evidence, not probability.
+10. For every `present` defect, assign a **Disposition**: `fix-now`, `defer-with-owner`, or `blocked`.
+11. Put candidates found outside the locked scope in the out-of-scope section rather than adding them to the table.
+12. Capture test and documentation implications even when production code is already safe.
 
 Do not use `unknown`, `maybe`, or speculative wording as a verdict. If a candidate cannot be evaluated from the available evidence, use `blocked — clarification needed` and ask the smallest blocking question.
 
