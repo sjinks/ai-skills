@@ -150,6 +150,8 @@ def parse(output: str, labels: tuple[str, str, str, str, str] = SCC_CANONICAL_LA
     candidate = "|" if candidate_marker else _field_value(lines[2], candidate_label, canonical=canonical)
     index = 3
     if candidate_marker:
+        if result == "BLOCKED":
+            raise GrammarError("BLOCKED SCC reports require the inline Not provided candidate")
         payload: list[str] = []
         while index < len(lines) and lines[index].startswith("  "):
             payload.append(lines[index].removeprefix("  "))

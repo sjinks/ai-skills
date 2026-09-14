@@ -425,6 +425,28 @@ def check_terminal_newline_fixture_prompt() -> None:
         fail(f"{task_name} gives the decoder interpretation away in its prompt")
 
 
+def check_custom_leading_whitespace_fixture() -> None:
+    """Require the model-facing custom-label payload-preservation branch."""
+
+    path = SCC_TASKS / "positive-edge-039.yaml"
+    task = load_projection(path)
+    task_name = path.relative_to(ROOT).as_posix()
+    expected = render_scc_report(
+        SCCReport(
+            "VALID",
+            "The candidate retains its first whitespace byte as payload data.",
+            ' tool "hello world"',
+            "NOT ASSESSED BY THIS SKILL",
+            "Review the candidate boundary.",
+        ),
+        ("Result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+    )
+    if "Shell candidate: |\n   tool \"hello world\"" not in expected:
+        fail(f"{task_name} expected custom candidate is not block-serialized")
+    if not accepts_task_completion(task, expected, task_name):
+        fail(f"{task_name} does not require the custom leading-whitespace candidate bytes")
+
+
 def canonical_output(next_step: str, candidate: str = "printf '%s\\n' value") -> str:
     return render_scc_report(
         SCCReport(
@@ -528,6 +550,38 @@ def check_scc_grammar() -> None:
         fail("SCC output contract accepts CR before a custom disposition")
     if evaluate_assertion(custom_contract_assertion, malformed_custom, SCC_EVAL):
         fail("custom SCC semantic policy bypasses CR before the disposition")
+    rendered_custom = render_scc_report(report, custom_labels)
+    for separator in LINE_SEPARATORS:
+        if separator == "\n":
+            continue
+        for malformed in (
+            rendered_custom.replace("Result: VALID", f"Result:{separator}VALID"),
+            rendered_custom.replace("\n", separator),
+        ):
+            if accepts_task_completion(load_projection(fixture), malformed, fixture.relative_to(ROOT).as_posix()):
+                fail(f"custom-label task projection accepts {separator!r} field framing")
+            if all(evaluate_assertion(assertion, malformed, SCC_EVAL) for assertion in assertions):
+                fail(f"SCC output contract accepts {separator!r} custom field framing")
+        ordinary_prose = f"Summary:{separator}The word VALID is discussed as ordinary prose."
+        if not all(evaluate_assertion(assertion, ordinary_prose, SCC_EVAL) for assertion in assertions):
+            fail(f"SCC output contract falsely activates ordinary prose with {separator!r}")
+    for result in ("VALID", "REWRITE", "BLOCKED"):
+        disposition_report = SCCReport(
+            result,
+            report.assessment,
+            "Not provided" if result == "BLOCKED" else report.candidate,
+            report.authority,
+            report.next,
+        )
+        rendered_disposition = render_scc_report(disposition_report, custom_labels)
+        for separator in LINE_SEPARATORS:
+            if separator == "\n":
+                continue
+            for split_at in range(1, len(result)):
+                split_disposition = f"{result[:split_at]}{separator}{result[split_at:]}"
+                malformed = rendered_disposition.replace(f"Result: {result}", f"Result: {split_disposition}")
+                if all(evaluate_assertion(assertion, malformed, SCC_EVAL) for assertion in assertions):
+                    fail(f"SCC output contract accepts {separator!r} inside {result}")
     blocked_report = SCCReport(
         "BLOCKED",
         "The supplied bytes cannot be represented safely.",
@@ -540,6 +594,19 @@ def check_scc_grammar() -> None:
         fail("SCC grammar does not normalize repeated custom framing for BLOCKED placeholders")
     if not all(evaluate_assertion(assertion, blocked_custom, SCC_EVAL) for assertion in assertions):
         fail("SCC output contract rejects repeated custom framing for BLOCKED placeholders")
+    for labels in (SCC_CANONICAL_LABELS, custom_labels):
+        blocked_block = render_scc_report(blocked_report, labels).replace(
+            f"{labels[2]}: Not provided",
+            f"{labels[2]}: |\n  Not provided",
+        )
+        try:
+            parse_scc_report(blocked_block, labels)
+        except GrammarError:
+            pass
+        else:
+            fail("SCC grammar accepts a block-serialized BLOCKED placeholder")
+        if all(evaluate_assertion(assertion, blocked_block, SCC_EVAL) for assertion in assertions):
+            fail("SCC output contract accepts a block-serialized BLOCKED placeholder")
     for candidate in (" leading space", " \tleading mixed whitespace", "\tleading tab"):
         leading_custom = SCCReport(
             "VALID",
@@ -1321,6 +1388,7 @@ def main() -> None:
         check_scc_static_projection_regressions()
         check_label_fallback_fixtures()
         check_mixed_label_handoff_precedence()
+        check_custom_leading_whitespace_fixture()
         check_terminal_newline_fixture_prompt()
         check_portability_preamble_regression()
         check_portability_target_named_fix()
