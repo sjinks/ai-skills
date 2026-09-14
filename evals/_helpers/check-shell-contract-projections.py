@@ -596,6 +596,8 @@ def check_scc_grammar() -> None:
             pass
         else:
             fail("SCC grammar accepts malformed custom block-candidate framing")
+        if all(evaluate_assertion(assertion, malformed_block_marker, SCC_EVAL) for assertion in assertions):
+            fail("SCC output contract accepts malformed custom block-candidate framing")
     multiline = SCCReport(
         "VALID",
         "The quoted payload preserves each physical line and its terminal newline.",
@@ -648,6 +650,8 @@ def check_scc_grammar() -> None:
             pass
         else:
             fail("SCC grammar accepts malformed block-candidate framing")
+        if all(evaluate_assertion(assertion, malformed_block, SCC_EVAL) for assertion in assertions):
+            fail("SCC output contract accepts malformed block-candidate framing")
     for labels in (SCC_CANONICAL_LABELS, custom_labels):
         result_label, assessment_label, candidate_label, authority_label, next_label = labels
         for result, candidate in (("VALID", "Not provided"), ("REWRITE", "Not provided"), ("VALID", "| "), ("REWRITE", "\t|\t")):
@@ -664,6 +668,8 @@ def check_scc_grammar() -> None:
                 pass
             else:
                 fail(f"SCC parser accepts reserved inline candidate {candidate!r}")
+            if all(evaluate_assertion(assertion, inline_reserved, SCC_EVAL) for assertion in assertions):
+                fail(f"SCC output contract accepts reserved inline candidate {candidate!r}")
     field_values = (
         "The JSON payload is incorrectly quoted, so it splits into multiple arguments.",
         'tool "hello world"',
@@ -689,9 +695,9 @@ def check_scc_grammar() -> None:
                 if evaluate_assertion(separator_assertion, malformed, SCC_EVAL):
                     fail(f"SCC output contract accepts {separator!r} inside a field")
     for invalid in (
-        SCCReport("", "assessment", "candidate", "authority", "next"),
-        SCCReport("VALID", "assessment\rvalue", "candidate", "authority", "next"),
-        SCCReport("VALID", "assessment\u2028value", "candidate", "authority", "next"),
+        SCCReport("", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL", "next"),
+        SCCReport("VALID", "assessment\rvalue", "candidate", "NOT ASSESSED BY THIS SKILL", "next"),
+        SCCReport("VALID", "assessment\u2028value", "candidate", "NOT ASSESSED BY THIS SKILL", "next"),
     ):
         try:
             render_scc_report(invalid)
@@ -755,7 +761,11 @@ def check_scc_grammar() -> None:
 def check_canonical_task_framing() -> None:
     """Keep canonical task envelopes as strict as the shared grammar."""
 
-    canonical_fields = tuple(f"{label}:[ \\t]*" for label in SCC_CANONICAL_LABELS)
+    canonical_fields = tuple(
+        spelling
+        for label in SCC_CANONICAL_LABELS
+        for spelling in (f"{label}:[ \\t]*", f"{label}:\\s*")
+    )
     for path in sorted(SCC_TASKS.glob("positive-*.yaml")):
         task = load_projection(path)
         for regex in task.regex_match:
