@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-039
+name: Custom labels preserve a leading candidate space with block serialization
+description: |
+  A caller-selected candidate field must retain its first payload byte even
+  when that byte is a space. The custom-label envelope therefore needs the
+  documented multiline candidate representation.
+tags: [positive-edge]
+inputs:
+  prompt: |
+    In POSIX sh, preserve the bytes between `BEGIN CANDIDATE` and `END
+    CANDIDATE` exactly. The delimiter lines are framing. The first byte after
+    the opening delimiter newline is one U+0020 space byte:
+
+    BEGIN CANDIDATE
+     tool "hello world"
+    END CANDIDATE
+
+    Use exactly these five labels, in this order, with no preamble or trailing
+    prose: Result, Boundary assessment, Shell candidate, Authority, and Next
+    construction action. Do not use the default labels. The next action must
+    preserve, review, or verify the candidate boundary.
+expected: { should_trigger: true }
+graders:
+  - { type: trigger, name: trigger_accuracy, config: { skill_path: skills/shell-command-construction/SKILL.md, mode: positive, threshold: 0.45 } }
+  - { type: skill_invocation, name: skill_invocation, config: { required_skills: [shell-command-construction], mode: any_order } }
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?s)\AResult:[ \t]*VALID\nBoundary assessment:[ \t]*[^\n]*\S[^\n]*\nShell candidate:[ \t]*\|\n   tool "hello world"\nAuthority:[ \t]*NOT ASSESSED BY THIS SKILL\nNext construction action:[ \t]*[^\n]*\S[^\n]*\n?\z'
+        - '(?im)^Next construction action:[^\n]*(?i:preserve|retain|keep|review|verify|validate|check|confirm)[^\n]*(?i:candidate|boundary|argument|command|form)[^\n]*$'
+      not_contains:
+        - 'Construction result:'
+        - 'Construction assessment:'
+        - 'Construction candidate:'
+        - 'Construction next step:'

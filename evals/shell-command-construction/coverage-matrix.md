@@ -2,7 +2,7 @@
 
 This matrix maps each synthetic fixture to its discriminating construction behavior. Original planning traces that required execution-safety handling are superseded by the user override: SCC assesses no execution concerns and always uses `Execution authority: NOT ASSESSED BY THIS SKILL`.
 
-The SCC suite contains 47 fixtures. The user explicitly approved its expansion from 43 to 44 fixtures on 2026-09-12: `I approve`. `positive-edge-036`, `positive-edge-037`, and `positive-edge-038` are additional fixtures, below the repository rule's five-task approval threshold. The separate shell-portability suite contains 38 fixtures: its 37-fixture matrix was explicitly approved by the user on 2026-09-12, and `positive-edge-030` was added to remediate the blank-delimited-handoff review finding.
+The SCC suite contains 48 fixtures. The user explicitly approved its expansion from 43 to 44 fixtures on 2026-09-12: `I approve`. `positive-edge-036`, `positive-edge-037`, `positive-edge-038`, and `positive-edge-039` are additional fixtures, below the repository rule's five-task approval threshold. The separate shell-portability suite contains 38 fixtures: its 37-fixture matrix was explicitly approved by the user on 2026-09-12, and `positive-edge-030` was added to remediate the blank-delimited-handoff review finding.
 
 | Fixture | SCC-TC | Source trace | Behavioral discriminator | Trigger | Result/exclusion | Authority or handoff | Deterministic focus | Substance |
 |---|---|---|---|---|---|---|---|---|
@@ -44,6 +44,7 @@ The SCC suite contains 47 fixtures. The user explicitly approved its expansion f
 | positive-edge-036 | 4 | AC-7 | Caller-requested non-five-label set | yes | VALID | not assessed | falls back to canonical labels rather than assigning an ambiguous four-label envelope | no |
 | positive-edge-037 | 4 | AC-7 | Caller-requested over-five-label set | yes | VALID | not assessed | falls back to canonical labels rather than assigning an ambiguous six-label envelope | no |
 | positive-edge-038 | 7 | AC-7 | Mixed request with otherwise valid replacement labels | yes | REWRITE | canonical handoff | mixed-request handoff precedence overrides direct-response labels | yes |
+| positive-edge-039 | 4 | AC-1, AC-7 | Caller-requested labels with a candidate beginning with one U+0020 space byte | yes | VALID | not assessed | custom candidate uses block serialization with exactly three visible spaces before `tool`: two removable serialization bytes plus one literal payload byte | yes |
 | negative-trigger-001 | 12 | AC-7 | Non-shell TypeScript implementation task | no | exclusion | n/a | all markers absent | no |
 | negative-trigger-002 | 12 | AC-7 | Non-shell task | no | exclusion | n/a | all markers absent | no |
 | negative-close-001 | 11 | AC-7 | Portability-only review | no | exclusion | portability-only exclusion | all SCC markers absent | no |

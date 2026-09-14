@@ -18,6 +18,8 @@ import re
 import subprocess
 import sys
 
+from shell_report_grammar import GrammarError, LINE_SEPARATORS, SCC_CANONICAL_LABELS, SCCReport, parse as parse_scc_report, render as render_scc_report, validate_labels as validate_scc_labels
+
 
 ROOT = Path(__file__).resolve().parents[2]
 SCC_TASKS = ROOT / "evals/shell-command-construction/tasks"
@@ -34,13 +36,7 @@ PORTABILITY_MARKERS = (
     "Portability checklist status:",
     "Portability residual risk:",
 )
-SCC_MARKERS = (
-    "Construction result:",
-    "Construction assessment:",
-    "Construction candidate:",
-    "Execution authority:",
-    "Construction next step:",
-)
+SCC_MARKERS = tuple(f"{label}:" for label in SCC_CANONICAL_LABELS)
 
 
 class CheckError(Exception):
@@ -300,19 +296,20 @@ def check_negative_marker_exclusions(contract: ReportContract) -> None:
 
 
 def custom_output(labels: tuple[str, str, str, str, str], next_step: str) -> str:
-    result, assessment, candidate, authority, next_label = labels
-    return "\n".join(
-        (
-            f"{result}: VALID",
-            f"{assessment}: The supplied bytes preserve the requested boundary.",
-            f"{candidate}: printf '%s\\n' value",
-            f"{authority}: NOT ASSESSED BY THIS SKILL",
-            f"{next_label}: {next_step}",
-        )
+    return render_scc_report(
+        SCCReport(
+            "VALID",
+            "The supplied bytes preserve the requested boundary.",
+            "printf '%s\\n' value",
+            "NOT ASSESSED BY THIS SKILL",
+            next_step,
+        ),
+        labels,
     )
 
 
 def custom_multiline_output(labels: tuple[str, str, str, str, str], next_step: str) -> str:
+    validate_scc_labels(labels)
     result, assessment, candidate, authority, next_label = labels
     return "\n".join(
         (
@@ -336,13 +333,23 @@ def check_negative_custom_envelopes() -> None:
     )
     inline = custom_output(labels, "Review the candidate boundary.")
     multiline = custom_multiline_output(labels, "Review the candidate boundary.")
-    hyphenated = custom_output(
-        ("Outcome-label", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
-        "Review the candidate boundary.",
+    hyphenated = "\n".join(
+        (
+            "Outcome-label: VALID",
+            "Boundary assessment: The supplied bytes preserve the requested boundary.",
+            "Shell candidate: printf '%s\\n' value",
+            "Authority: NOT ASSESSED BY THIS SKILL",
+            "Next construction action: Review the candidate boundary.",
+        )
     )
-    colon_injected = custom_output(
-        ("Result: injected", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
-        "Review the candidate boundary.",
+    colon_injected = "\n".join(
+        (
+            "Result: injected: VALID",
+            "Boundary assessment: The supplied bytes preserve the requested boundary.",
+            "Shell candidate: printf '%s\\n' value",
+            "Authority: NOT ASSESSED BY THIS SKILL",
+            "Next construction action: Review the candidate boundary.",
+        )
     )
     outputs = (
         inline,
@@ -418,16 +425,550 @@ def check_terminal_newline_fixture_prompt() -> None:
         fail(f"{task_name} gives the decoder interpretation away in its prompt")
 
 
+def check_custom_leading_whitespace_fixture() -> None:
+    """Require the model-facing custom-label payload-preservation branch."""
+
+    path = SCC_TASKS / "positive-edge-039.yaml"
+    task = load_projection(path)
+    task_name = path.relative_to(ROOT).as_posix()
+    opening = "\nBEGIN CANDIDATE\n"
+    closing = "\nEND CANDIDATE"
+    if opening not in task.prompt or closing not in task.prompt:
+        fail(f"{task_name} does not contain a delimited candidate payload")
+    candidate = task.prompt.split(opening, 1)[1].split(closing, 1)[0]
+    if candidate != ' tool "hello world"':
+        fail(f"{task_name} does not preserve its exact leading-space candidate bytes")
+    expected = render_scc_report(
+        SCCReport(
+            "VALID",
+            "The candidate retains its first whitespace byte as payload data.",
+            candidate,
+            "NOT ASSESSED BY THIS SKILL",
+            "Review the candidate boundary.",
+        ),
+        ("Result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+    )
+    if "Shell candidate: |\n   tool \"hello world\"" not in expected:
+        fail(f"{task_name} expected custom candidate is not block-serialized")
+    if not accepts_task_completion(task, expected, task_name):
+        fail(f"{task_name} does not require the custom leading-whitespace candidate bytes")
+
+
 def canonical_output(next_step: str, candidate: str = "printf '%s\\n' value") -> str:
-    return "\n".join(
-        (
-            "Construction result: VALID",
-            "Construction assessment: The supplied bytes preserve the requested boundary.",
-            f"Construction candidate: {candidate}",
-            "Execution authority: NOT ASSESSED BY THIS SKILL",
-            f"Construction next step: {next_step}",
+    return render_scc_report(
+        SCCReport(
+            "VALID",
+            "The supplied bytes preserve the requested boundary.",
+            candidate,
+            "NOT ASSESSED BY THIS SKILL",
+            next_step,
         )
     )
+
+
+def check_scc_grammar() -> None:
+    """Keep canonical/custom rendering and field-order parsing in one grammar."""
+
+    report = SCCReport(
+        "VALID",
+        "The JSON payload is incorrectly quoted, so it splits into multiple arguments.",
+        'tool "hello world"',
+        "NOT ASSESSED BY THIS SKILL",
+        "Review the candidate boundary.",
+    )
+    for labels in (
+        SCC_CANONICAL_LABELS,
+        ("Result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+    ):
+        rendered = render_scc_report(report, labels)
+        if parse_scc_report(rendered, labels) != report:
+            fail("SCC grammar does not round-trip a semantic report")
+        if parse_scc_report(f"{rendered}\n", labels) != report:
+            fail("SCC grammar does not accept its optional terminal LF")
+        for separator in ("", "\t"):
+            alternate_spacing = rendered.replace(": ", f":{separator}")
+            if labels == SCC_CANONICAL_LABELS:
+                try:
+                    parse_scc_report(alternate_spacing, labels)
+                except GrammarError:
+                    pass
+                else:
+                    fail(f"SCC grammar accepts noncanonical {separator!r} post-colon framing")
+                if all(evaluate_assertion(assertion, alternate_spacing, SCC_EVAL) for assertion in load_projection(SCC_EVAL).assertions):
+                    fail(f"SCC output contract accepts noncanonical {separator!r} post-colon framing")
+            else:
+                if parse_scc_report(alternate_spacing, labels) != report:
+                    fail(f"SCC grammar does not accept {separator!r} custom post-colon framing")
+                if not all(evaluate_assertion(assertion, alternate_spacing, SCC_EVAL) for assertion in load_projection(SCC_EVAL).assertions):
+                    fail(f"SCC output contract rejects {separator!r} custom post-colon framing")
+        if labels != SCC_CANONICAL_LABELS:
+            repeated_lines = rendered.replace(": ", ":\t  ").splitlines()
+            # A non-BLOCKED custom inline candidate has a deliberately stricter
+            # delimiter so a leading payload byte cannot be mistaken for framing.
+            repeated_lines[2] = rendered.splitlines()[2]
+            repeated_framing = "\n".join(repeated_lines)
+            if parse_scc_report(repeated_framing, labels) != report:
+                fail("SCC grammar does not accept repeated custom post-colon framing")
+            if not all(evaluate_assertion(assertion, repeated_framing, SCC_EVAL) for assertion in load_projection(SCC_EVAL).assertions):
+                fail("SCC output contract rejects repeated custom post-colon framing")
+        try:
+            parse_scc_report("\n".join(reversed(rendered.splitlines())), labels)
+        except GrammarError:
+            pass
+        else:
+            fail("SCC grammar accepts reordered fields")
+        for separator in LINE_SEPARATORS:
+            if separator == "\n":
+                continue
+            try:
+                parse_scc_report(rendered.replace("\n", separator), labels)
+            except GrammarError:
+                pass
+            else:
+                fail(f"SCC grammar accepts {separator!r} as a field separator")
+
+    fixture = SCC_TASKS / "positive-edge-029.yaml"
+    if not accepts_task_completion(load_projection(fixture), render_scc_report(report, (
+        "Result",
+        "Boundary assessment",
+        "Shell candidate",
+        "Authority",
+        "Next construction action",
+    )), fixture.relative_to(ROOT).as_posix()):
+        fail("SCC grammar no longer serializes the custom-label task projection")
+    assertions = load_projection(SCC_EVAL).assertions
+    separator_assertion = next(
+        (item for item in assertions if isinstance(item, str) and "x1c-\\x1e\\x85" in item),
+        None,
+    )
+    if separator_assertion is None:
+        fail("SCC output contract no longer rejects non-LF field separators")
+    custom_labels = ("Result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action")
+    for leading_report in (
+        SCCReport("VALID", " assessment", "candidate", "NOT ASSESSED BY THIS SKILL", "next"),
+        SCCReport("VALID", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL", " next"),
+    ):
+        try:
+            render_scc_report(leading_report, custom_labels)
+        except GrammarError:
+            pass
+        else:
+            fail("SCC grammar custom rendering loses leading assessment or next-step whitespace")
+    for labels in (SCC_CANONICAL_LABELS, custom_labels):
+        suffixed_sentinel = SCCReport(
+            "VALID",
+            report.assessment,
+            "Not provided ",
+            report.authority,
+            report.next,
+        )
+        rendered_sentinel = render_scc_report(suffixed_sentinel, labels)
+        if parse_scc_report(rendered_sentinel, labels) != suffixed_sentinel:
+            fail("SCC grammar does not round-trip a whitespace-suffixed candidate")
+        if not all(evaluate_assertion(assertion, rendered_sentinel, SCC_EVAL) for assertion in assertions):
+            fail("SCC output contract rejects a grammar-valid whitespace-suffixed candidate")
+    field_shaped_candidate = SCCReport(
+        "VALID",
+        report.assessment,
+        "Result: VALID\nBoundary assessment: payload\nShell candidate: payload\nAuthority: payload\nNext construction action: payload",
+        report.authority,
+        report.next,
+    )
+    rendered_field_shaped_candidate = render_scc_report(field_shaped_candidate)
+    if parse_scc_report(rendered_field_shaped_candidate) != field_shaped_candidate:
+        fail("SCC grammar does not round-trip a field-shaped canonical candidate payload")
+    if not all(evaluate_assertion(assertion, rendered_field_shaped_candidate, SCC_EVAL) for assertion in assertions):
+        fail("SCC output contract rejects a field-shaped canonical candidate payload")
+    malformed_custom = render_scc_report(report, custom_labels).replace("Result: VALID", "Result: \rVALID")
+    if accepts_task_completion(load_projection(fixture), malformed_custom, fixture.relative_to(ROOT).as_posix()):
+        fail("custom-label task projection accepts CR before the disposition")
+    if all(evaluate_assertion(assertion, malformed_custom, SCC_EVAL) for assertion in assertions):
+        fail("SCC output contract accepts CR before a custom disposition")
+    rendered_custom = render_scc_report(report, custom_labels)
+    for separator in LINE_SEPARATORS:
+        if separator == "\n":
+            continue
+        for malformed in (
+            rendered_custom.replace("Result: VALID", f"Result:{separator}VALID"),
+            rendered_custom.replace("\n", separator),
+        ):
+            if accepts_task_completion(load_projection(fixture), malformed, fixture.relative_to(ROOT).as_posix()):
+                fail(f"custom-label task projection accepts {separator!r} field framing")
+            if all(evaluate_assertion(assertion, malformed, SCC_EVAL) for assertion in assertions):
+                fail(f"SCC output contract accepts {separator!r} custom field framing")
+        ordinary_prose = f"Summary:{separator}The word VALID is discussed as ordinary prose."
+        if not all(evaluate_assertion(assertion, ordinary_prose, SCC_EVAL) for assertion in assertions):
+            fail(f"SCC output contract falsely activates ordinary prose with {separator!r}")
+    for suffix in ("\n\n", "\nTrailing prose"):
+        malformed = rendered_custom + suffix
+        try:
+            parse_scc_report(malformed, custom_labels)
+        except GrammarError:
+            pass
+        else:
+            fail("SCC grammar accepts trailing custom report content")
+        if all(evaluate_assertion(assertion, malformed, SCC_EVAL) for assertion in assertions):
+            fail("SCC output contract accepts trailing custom report content")
+    trailing_claim = rendered_custom.replace(
+        "Boundary assessment: The JSON payload is incorrectly quoted, so it splits into multiple arguments.",
+        "Boundary assessment: The candidate is safe.",
+    ) + "\nTrailing prose"
+    if all(evaluate_assertion(assertion, trailing_claim, SCC_EVAL) for assertion in assertions):
+        fail("SCC output contract lets trailing prose deactivate a custom semantic claim")
+    for wrapped in (
+        f"Here is the report:\n{rendered_custom}",
+        f"```text\n{rendered_custom}\n```",
+        "\n".join(f">{line}" for line in rendered_custom.splitlines()),
+    ):
+        if all(evaluate_assertion(assertion, wrapped, SCC_EVAL) for assertion in assertions):
+            fail("SCC output contract accepts a wrapped custom report")
+    for separator in ("\r\n", "\r\v", "\n\n"):
+        for malformed in (
+            rendered_custom.replace("\n", separator),
+            rendered_custom.replace("\n", separator).replace("Result: VALID", f"Result:{separator}VALID"),
+            rendered_custom.replace("\n", separator).replace("Result: VALID", f"Result: V{separator}ALID"),
+        ):
+            try:
+                parse_scc_report(malformed, custom_labels)
+            except GrammarError:
+                pass
+            else:
+                fail("SCC grammar accepts a multi-unit custom field separator")
+            if all(evaluate_assertion(assertion, malformed, SCC_EVAL) for assertion in assertions):
+                fail("SCC output contract accepts a multi-unit custom field separator")
+    for label in custom_labels[1:]:
+        malformed = rendered_custom.replace(label + ":", "unlabeled\n" + label + ":", 1)
+        try:
+            parse_scc_report(malformed, custom_labels)
+        except GrammarError:
+            pass
+        else:
+            fail("SCC grammar accepts an unlabeled custom interstitial line")
+        if all(evaluate_assertion(assertion, malformed, SCC_EVAL) for assertion in assertions):
+            fail("SCC output contract accepts an unlabeled custom interstitial line")
+    for ordinary_prose in (
+        "Summary: this command is VALID.\n",
+        "Summary: VALID\n",
+        "Summary: REWRITE\n",
+        "Summary: the VALID disposition is discussed.\nContext-note: ordinary prose\nExample: ordinary prose\nStatus: ordinary prose\nConclusion: ordinary prose",
+        "Subject: fix parser\nBody: ordinary prose\nTests: ordinary prose\nRisk: Low\nNotes: None",
+    ):
+        if not all(evaluate_assertion(assertion, ordinary_prose, SCC_EVAL) for assertion in assertions):
+            fail("SCC output contract falsely activates ordinary disposition prose")
+    for result in ("VALID", "REWRITE", "BLOCKED"):
+        disposition_report = SCCReport(
+            result,
+            report.assessment,
+            "Not provided" if result == "BLOCKED" else report.candidate,
+            report.authority,
+            report.next,
+        )
+        rendered_disposition = render_scc_report(disposition_report, custom_labels)
+        for separator in LINE_SEPARATORS:
+            if separator == "\n":
+                continue
+            for split_at in range(1, len(result)):
+                split_disposition = f"{result[:split_at]}{separator}{result[split_at:]}"
+                malformed = rendered_disposition.replace(f"Result: {result}", f"Result: {split_disposition}")
+                if all(evaluate_assertion(assertion, malformed, SCC_EVAL) for assertion in assertions):
+                    fail(f"SCC output contract accepts {separator!r} inside {result}")
+                whole_envelope = rendered_disposition.replace("\n", separator).replace(
+                    f"Result: {result}",
+                    f"Result: {split_disposition}",
+                )
+                if all(evaluate_assertion(assertion, whole_envelope, SCC_EVAL) for assertion in assertions):
+                    fail(f"SCC output contract accepts {separator!r} inside {result} with non-LF fields")
+            prefixed_envelope = rendered_disposition.replace("\n", separator).replace(
+                f"Result: {result}",
+                f"Result:{separator}{result}",
+            )
+            if all(evaluate_assertion(assertion, prefixed_envelope, SCC_EVAL) for assertion in assertions):
+                fail(f"SCC output contract accepts {separator!r} before {result} with non-LF fields")
+    blocked_report = SCCReport(
+        "BLOCKED",
+        "The supplied bytes cannot be represented safely.",
+        "Not provided",
+        "NOT ASSESSED BY THIS SKILL",
+        "Review the construction boundary.",
+    )
+    blocked_custom = render_scc_report(blocked_report, custom_labels).replace(": ", ":\t  ")
+    if parse_scc_report(blocked_custom, custom_labels) != blocked_report:
+        fail("SCC grammar does not normalize repeated custom framing for BLOCKED placeholders")
+    if not all(evaluate_assertion(assertion, blocked_custom, SCC_EVAL) for assertion in assertions):
+        fail("SCC output contract rejects repeated custom framing for BLOCKED placeholders")
+    for labels in (SCC_CANONICAL_LABELS, custom_labels):
+        blocked_block = render_scc_report(blocked_report, labels).replace(
+            f"{labels[2]}: Not provided",
+            f"{labels[2]}: |\n  Not provided",
+        )
+        try:
+            parse_scc_report(blocked_block, labels)
+        except GrammarError:
+            pass
+        else:
+            fail("SCC grammar accepts a block-serialized BLOCKED placeholder")
+        if all(evaluate_assertion(assertion, blocked_block, SCC_EVAL) for assertion in assertions):
+            fail("SCC output contract accepts a block-serialized BLOCKED placeholder")
+    for candidate in (" leading space", " \tleading mixed whitespace", "\tleading tab"):
+        leading_custom = SCCReport(
+            "VALID",
+            "The candidate starts with data that framing must not consume.",
+            candidate,
+            "NOT ASSESSED BY THIS SKILL",
+            "Review the candidate boundary.",
+        )
+        serialized_leading = render_scc_report(leading_custom, custom_labels)
+        if "Shell candidate: |\n" not in serialized_leading:
+            fail("SCC grammar does not block-encode custom candidates with leading whitespace")
+        if parse_scc_report(serialized_leading, custom_labels) != leading_custom:
+            fail("SCC grammar loses leading whitespace from a custom candidate")
+        if not all(evaluate_assertion(assertion, serialized_leading, SCC_EVAL) for assertion in assertions):
+            fail("SCC output contract rejects a block-encoded custom leading-whitespace candidate")
+        flexible_block = serialized_leading.replace("Shell candidate: |\n", "Shell candidate:  |\n")
+        if parse_scc_report(flexible_block, custom_labels) != leading_custom:
+            fail("SCC grammar loses custom leading whitespace after flexible block framing")
+        if not all(evaluate_assertion(assertion, flexible_block, SCC_EVAL) for assertion in assertions):
+            fail("SCC output contract rejects flexible custom block framing")
+    fixture = SCC_TASKS / "positive-edge-039.yaml"
+    fixture_report = SCCReport(
+        "VALID",
+        "The candidate boundary is represented.",
+        ' tool "hello world"',
+        "NOT ASSESSED BY THIS SKILL",
+        "Review the candidate boundary.",
+    )
+    fixture_block = render_scc_report(fixture_report, custom_labels).replace("Shell candidate: |\n", "Shell candidate:  |\n")
+    if parse_scc_report(fixture_block, custom_labels) != fixture_report:
+        fail("SCC grammar loses the fixture candidate after flexible block framing")
+    if not accepts_task_completion(load_projection(fixture), fixture_block, fixture.relative_to(ROOT).as_posix()):
+        fail("custom leading-whitespace task projection rejects flexible block framing")
+    if not all(evaluate_assertion(assertion, fixture_block, SCC_EVAL) for assertion in assertions):
+        fail("SCC output contract rejects fixture flexible custom block framing")
+    inline_whitespace_assertion = next(
+        (item for item in assertions if isinstance(item, str) and "[ \\t]{2,}" in item and "(?!\\|[ \\t]*\\n)" in item),
+        None,
+    )
+    if inline_whitespace_assertion is None:
+        fail("SCC output contract no longer rejects ambiguous custom inline candidates")
+    for candidate in ("  leading space", "\t\tleading tab", " \tleading mixed whitespace"):
+        ambiguous_custom = "\n".join((
+            "Result: VALID",
+            "Boundary assessment: The candidate boundary is represented.",
+            f"Shell candidate:{candidate}",
+            "Authority: NOT ASSESSED BY THIS SKILL",
+            "Next construction action: Review the candidate boundary.",
+        ))
+        try:
+            parse_scc_report(ambiguous_custom, custom_labels)
+        except GrammarError:
+            pass
+        else:
+            fail("SCC grammar accepts an ambiguous custom inline candidate")
+        if evaluate_assertion(inline_whitespace_assertion, ambiguous_custom, SCC_EVAL):
+            fail("SCC output contract accepts an ambiguous custom inline candidate")
+    for malformed_marker in (
+        "|",
+        "Shell candidate: | ",
+        "Shell candidate: \t|\t",
+    ):
+        malformed_block_marker = "\n".join((
+            "Result: VALID",
+            "Boundary assessment: The candidate boundary is represented.",
+            malformed_marker,
+            "  candidate data",
+            "Authority: NOT ASSESSED BY THIS SKILL",
+            "Next construction action: Review the candidate boundary.",
+        ))
+        try:
+            parse_scc_report(malformed_block_marker, custom_labels)
+        except GrammarError:
+            pass
+        else:
+            fail("SCC grammar accepts malformed custom block-candidate framing")
+        if all(evaluate_assertion(assertion, malformed_block_marker, SCC_EVAL) for assertion in assertions):
+            fail("SCC output contract accepts malformed custom block-candidate framing")
+    multiline = SCCReport(
+        "VALID",
+        "The quoted payload preserves each physical line and its terminal newline.",
+        "tool 'first\nsecond\n'\n",
+        "NOT ASSESSED BY THIS SKILL",
+        "Review the candidate boundary.",
+    )
+    rendered_multiline = render_scc_report(multiline)
+    if parse_scc_report(rendered_multiline) != multiline:
+        fail("SCC grammar does not round-trip a multiline candidate")
+    for candidate in ("Not provided", "|", "| ", "|\t", "  | "):
+        block_candidate = SCCReport(
+            "VALID",
+            "The candidate representation preserves the supplied literal data.",
+            candidate,
+            "NOT ASSESSED BY THIS SKILL",
+            "Review the candidate boundary.",
+        )
+        rendered_block = render_scc_report(block_candidate)
+        if "Construction candidate: |\n" not in rendered_block:
+            fail(f"SCC grammar does not block-encode the {candidate!r} inline candidate")
+        if parse_scc_report(rendered_block) != block_candidate:
+            fail(f"SCC grammar does not disambiguate the {candidate!r} inline candidate")
+        if not all(evaluate_assertion(assertion, rendered_block, SCC_EVAL) for assertion in assertions):
+            fail(f"SCC output contract rejects the block-encoded {candidate!r} candidate")
+    multiline_fixture = SCC_TASKS / "positive-edge-034.yaml"
+    if not accepts_task_completion(load_projection(multiline_fixture), rendered_multiline, multiline_fixture.relative_to(ROOT).as_posix()):
+        fail("SCC grammar no longer serializes the terminal-newline multiline fixture")
+    heredoc = SCCReport(
+        "REWRITE",
+        "A collision-free SCC_BODY quoted heredoc preserves literal body lines and the terminal newline.",
+        "tool --body-stdin <<'SCC_BODY'\nline $var\n  indented\n\n$(cmd)\n`tick`\nConstruction result: VALID\nSCC_BODY\n",
+        "NOT ASSESSED BY THIS SKILL",
+        "Review the candidate construction boundary.",
+    )
+    rendered_heredoc = render_scc_report(heredoc)
+    if parse_scc_report(rendered_heredoc) != heredoc:
+        fail("SCC grammar does not round-trip the field-looking heredoc payload")
+    heredoc_fixture = SCC_TASKS / "positive-edge-006.yaml"
+    if not accepts_task_completion(load_projection(heredoc_fixture), rendered_heredoc, heredoc_fixture.relative_to(ROOT).as_posix()):
+        fail("SCC grammar no longer serializes the heredoc multiline fixture")
+    for malformed_block in (
+        rendered_multiline.replace("  tool 'first", " tool 'first", 1),
+        rendered_multiline.replace("  second\n", "Execution authority: shadow\n", 1),
+        rendered_multiline.replace("  tool 'first", "Execution authority: shadow", 1),
+    ):
+        try:
+            parse_scc_report(malformed_block)
+        except GrammarError:
+            pass
+        else:
+            fail("SCC grammar accepts malformed block-candidate framing")
+        if all(evaluate_assertion(assertion, malformed_block, SCC_EVAL) for assertion in assertions):
+            fail("SCC output contract accepts malformed block-candidate framing")
+    for labels in (SCC_CANONICAL_LABELS, custom_labels):
+        result_label, assessment_label, candidate_label, authority_label, next_label = labels
+        for result, candidate in (("VALID", "Not provided"), ("REWRITE", "Not provided"), ("VALID", "| "), ("REWRITE", "\t|\t")):
+            inline_reserved = "\n".join((
+                f"{result_label}: {result}",
+                f"{assessment_label}: The candidate boundary is represented.",
+                f"{candidate_label}: {candidate}",
+                f"{authority_label}: NOT ASSESSED BY THIS SKILL",
+                f"{next_label}: Review the candidate boundary.",
+            ))
+            try:
+                parse_scc_report(inline_reserved, labels)
+            except GrammarError:
+                pass
+            else:
+                fail(f"SCC parser accepts reserved inline candidate {candidate!r}")
+            if all(evaluate_assertion(assertion, inline_reserved, SCC_EVAL) for assertion in assertions):
+                fail(f"SCC output contract accepts reserved inline candidate {candidate!r}")
+    field_values = (
+        "The JSON payload is incorrectly quoted, so it splits into multiple arguments.",
+        'tool "hello world"',
+        "NOT ASSESSED BY THIS SKILL",
+        "Review the candidate boundary.",
+    )
+    for labels in (
+        SCC_CANONICAL_LABELS,
+        ("Result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+    ):
+        rendered = render_scc_report(report, labels)
+        for value in field_values:
+            for separator in LINE_SEPARATORS:
+                if separator == "\n":
+                    continue
+                malformed = rendered.replace(value, f"{value}{separator}extra", 1)
+                try:
+                    parse_scc_report(malformed, labels)
+                except GrammarError:
+                    pass
+                else:
+                    fail(f"SCC grammar accepts {separator!r} inside a field")
+                if all(evaluate_assertion(assertion, malformed, SCC_EVAL) for assertion in assertions):
+                    fail(f"SCC output contract accepts {separator!r} inside a field")
+    for invalid in (
+        SCCReport("", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL", "next"),
+        SCCReport("VALID", "assessment\rvalue", "candidate", "NOT ASSESSED BY THIS SKILL", "next"),
+        SCCReport("VALID", "assessment\u2028value", "candidate", "NOT ASSESSED BY THIS SKILL", "next"),
+    ):
+        try:
+            render_scc_report(invalid)
+        except GrammarError:
+            pass
+        else:
+            fail("SCC grammar accepts a value that cannot round-trip")
+    semantic_invalid = (
+        SCCReport("UNKNOWN", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL", "next"),
+        SCCReport("VALID", " ", "candidate", "NOT ASSESSED BY THIS SKILL", "next"),
+        SCCReport("VALID", "assessment", "candidate", "APPROVED", "next"),
+        SCCReport("VALID", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL", " "),
+        SCCReport("BLOCKED", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL", "clarify one fact"),
+        SCCReport("VALID\x00", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL", "next"),
+        SCCReport("VALID", "assessment\x00", "candidate", "NOT ASSESSED BY THIS SKILL", "next"),
+        SCCReport("VALID", "assessment", "candidate\x00", "NOT ASSESSED BY THIS SKILL", "next"),
+        SCCReport("VALID", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL\x00", "next"),
+        SCCReport("VALID", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL", "next\x00"),
+    )
+    for invalid in semantic_invalid:
+        try:
+            render_scc_report(invalid)
+        except GrammarError:
+            pass
+        else:
+            fail(f"SCC renderer accepts an invalid semantic report: {invalid!r}")
+        serialized = "\n".join(f"{label}: {value}" for label, value in zip(SCC_CANONICAL_LABELS, (
+            invalid.result,
+            invalid.assessment,
+            invalid.candidate,
+            invalid.authority,
+            invalid.next,
+        )))
+        try:
+            parse_scc_report(serialized)
+        except GrammarError:
+            pass
+        else:
+            fail(f"SCC parser accepts an invalid semantic report: {invalid!r}")
+    try:
+        validate_scc_labels(("Result", "Assessment", "Candidate", "Authority", 7))  # type: ignore[arg-type]
+    except GrammarError:
+        pass
+    else:
+        fail("SCC grammar does not normalize malformed labels to GrammarError")
+    for invalid_labels in (
+        ("Outcome-label", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+        (" Outcome", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+        ("Outcome ", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+        ("Outcome_", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+        ("Outcome!", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+        ("Out/come", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+        ("Out\tcome", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+        ("Résultat", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+        ("Outcome", "Boundary assessment", "Construction candidate", "Authority", "Next construction action"),
+        ("construction result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+    ):
+        try:
+            validate_scc_labels(invalid_labels)
+        except GrammarError:
+            pass
+        else:
+            fail(f"SCC grammar accepts an invalid custom label set: {invalid_labels!r}")
+
+
+def check_canonical_task_framing() -> None:
+    """Keep canonical task envelopes as strict as the shared grammar."""
+
+    for path in sorted(SCC_TASKS.glob("positive-*.yaml")):
+        task = load_projection(path)
+        for regex in task.regex_match:
+            if "\\AConstruction result:" not in regex:
+                continue
+            first_line_end = regex.find("\\n", regex.find("\\AConstruction result:"))
+            if first_line_end < 0:
+                fail(f"{path.relative_to(ROOT)} does not delimit its canonical result field")
+            first_line = f"{regex[:first_line_end]}\\z"
+            if not any(matches(first_line, f"Construction result: {result}", path.relative_to(ROOT).as_posix()) for result in ("VALID", "REWRITE", "BLOCKED")):
+                fail(f"{path.relative_to(ROOT)} does not accept exact canonical result framing")
+            for framing in ("", "\t", "  "):
+                if any(matches(first_line, f"Construction result:{framing}{result}", path.relative_to(ROOT).as_posix()) for result in ("VALID", "REWRITE", "BLOCKED")):
+                    fail(f"{path.relative_to(ROOT)} permits noncanonical result-field framing")
 
 
 def evaluate_assertion(assertion: str, output: str, source: Path) -> bool:
@@ -465,7 +1006,7 @@ def evaluate_assertion(assertion: str, output: str, source: Path) -> bool:
         ast.Tuple,
         ast.Subscript,
     )
-    allowed_names = {"action", "active", "all", "canonical", "custom", "deferred", "fields", "len", "m", "name", "output", "re", "text"}
+    allowed_names = {"action", "active", "all", "canonical", "custom", "deferred", "envelope", "exact", "fields", "label", "len", "m", "name", "output", "prefix", "re", "text"}
     allowed_attributes = {"findall", "fullmatch", "group", "join", "lower", "match", "rstrip", "search", "startswith", "sub"}
     for node in ast.walk(tree):
         if not isinstance(node, allowed_nodes):
@@ -762,7 +1303,8 @@ def check_scc_static_projection_regressions() -> None:
     ):
         if evaluate_assertion(activation_assertion, wrapped, SCC_EVAL):
             fail("SCC output contract accepts an incomplete wrapped envelope")
-    for result_label in ("Outcome-label", "Result: injected"):
+    for result_label in ("Outcome-label", "Result: injected", " Outcome", "Outcome ", "Outcome_", "Outcome!", "Out/come", "Out\tcome", "Résultat"):
+        labels = (result_label, "Boundary assessment", "Shell candidate", "Authority", "Next construction action")
         malformed = "\n".join((
             f"{result_label}: VALID",
             "Boundary assessment: The candidate boundary is represented.",
@@ -770,8 +1312,20 @@ def check_scc_static_projection_regressions() -> None:
             "Authority: NOT ASSESSED BY THIS SKILL",
             "Next construction action: Review the candidate boundary.",
         ))
+        try:
+            parse_scc_report(malformed, labels)
+        except GrammarError:
+            pass
+        else:
+            fail("SCC grammar accepts a malformed custom result label")
         if all(evaluate_assertion(assertion, malformed, SCC_EVAL) for assertion in assertions):
             fail("SCC output contract accepts a malformed custom result label")
+        for separator in LINE_SEPARATORS:
+            if separator == "\n":
+                continue
+            separated = malformed.replace("\n", separator)
+            if all(evaluate_assertion(assertion, separated, SCC_EVAL) for assertion in assertions):
+                fail("SCC output contract accepts a malformed custom result label with a non-LF separator")
 
 
 def check_portability_preamble_regression() -> None:
@@ -968,12 +1522,15 @@ def main() -> None:
         check_negative_marker_exclusions(SCC_REPORT)
         check_negative_marker_exclusions(PORTABILITY_REPORT)
         check_negative_custom_envelopes()
+        check_scc_grammar()
+        check_canonical_task_framing()
         check_custom_label_deployment_regression()
         check_custom_label_contextual_claim_parity()
         check_waza_nested_scope_regression()
         check_scc_static_projection_regressions()
         check_label_fallback_fixtures()
         check_mixed_label_handoff_precedence()
+        check_custom_leading_whitespace_fixture()
         check_terminal_newline_fixture_prompt()
         check_portability_preamble_regression()
         check_portability_target_named_fix()
