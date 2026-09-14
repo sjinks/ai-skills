@@ -544,6 +544,41 @@ def check_scc_grammar() -> None:
     if separator_assertion is None:
         fail("SCC output contract no longer rejects non-LF field separators")
     custom_labels = ("Result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action")
+    for leading_report in (
+        SCCReport("VALID", " assessment", "candidate", "NOT ASSESSED BY THIS SKILL", "next"),
+        SCCReport("VALID", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL", " next"),
+    ):
+        try:
+            render_scc_report(leading_report, custom_labels)
+        except GrammarError:
+            pass
+        else:
+            fail("SCC grammar custom rendering loses leading assessment or next-step whitespace")
+    for labels in (SCC_CANONICAL_LABELS, custom_labels):
+        suffixed_sentinel = SCCReport(
+            "VALID",
+            report.assessment,
+            "Not provided ",
+            report.authority,
+            report.next,
+        )
+        rendered_sentinel = render_scc_report(suffixed_sentinel, labels)
+        if parse_scc_report(rendered_sentinel, labels) != suffixed_sentinel:
+            fail("SCC grammar does not round-trip a whitespace-suffixed candidate")
+        if not all(evaluate_assertion(assertion, rendered_sentinel, SCC_EVAL) for assertion in assertions):
+            fail("SCC output contract rejects a grammar-valid whitespace-suffixed candidate")
+    field_shaped_candidate = SCCReport(
+        "VALID",
+        report.assessment,
+        "Result: VALID\nBoundary assessment: payload\nShell candidate: payload\nAuthority: payload\nNext construction action: payload",
+        report.authority,
+        report.next,
+    )
+    rendered_field_shaped_candidate = render_scc_report(field_shaped_candidate)
+    if parse_scc_report(rendered_field_shaped_candidate) != field_shaped_candidate:
+        fail("SCC grammar does not round-trip a field-shaped canonical candidate payload")
+    if not all(evaluate_assertion(assertion, rendered_field_shaped_candidate, SCC_EVAL) for assertion in assertions):
+        fail("SCC output contract rejects a field-shaped canonical candidate payload")
     malformed_custom = render_scc_report(report, custom_labels).replace("Result: VALID", "Result: \rVALID")
     if accepts_task_completion(load_projection(fixture), malformed_custom, fixture.relative_to(ROOT).as_posix()):
         fail("custom-label task projection accepts CR before the disposition")

@@ -56,7 +56,7 @@ def validate_labels(labels: tuple[str, str, str, str, str]) -> None:
             raise GrammarError("custom SCC labels must use ASCII letters, digits, and internal spaces")
 
 
-def validate_report(report: SCCReport) -> None:
+def validate_report(report: SCCReport, *, custom_labels: bool = False) -> None:
     """Validate SCC semantic fields shared by rendering and parsing."""
 
     values = (report.result, report.assessment, report.candidate, report.authority, report.next)
@@ -72,6 +72,8 @@ def validate_report(report: SCCReport) -> None:
         raise GrammarError("SCC result must be VALID, REWRITE, or BLOCKED")
     if not report.assessment.strip() or not report.next.strip():
         raise GrammarError("SCC assessment and next step must contain non-whitespace text")
+    if custom_labels and (report.assessment.startswith((" ", "\t")) or report.next.startswith((" ", "\t"))):
+        raise GrammarError("custom SCC assessment and next step cannot begin with framing whitespace")
     if report.authority != AUTHORITY:
         raise GrammarError("SCC authority must use the exact not-assessed literal")
     if report.result == "BLOCKED":
@@ -108,7 +110,7 @@ def render(report: SCCReport, labels: tuple[str, str, str, str, str] = SCC_CANON
     """Serialize one unambiguous SCC envelope, including block candidates."""
 
     validate_labels(labels)
-    validate_report(report)
+    validate_report(report, custom_labels=labels != SCC_CANONICAL_LABELS)
     result_label, assessment_label, candidate_label, authority_label, next_label = labels
     lines = (
         f"{result_label}: {report.result}",
@@ -168,5 +170,5 @@ def parse(output: str, labels: tuple[str, str, str, str, str] = SCC_CANONICAL_LA
     authority = _field_value(lines[index], authority_label, compact=True, canonical=canonical)
     next_step = _field_value(lines[index + 1], next_label, canonical=canonical)
     report = SCCReport(result, assessment, candidate, authority, next_step)
-    validate_report(report)
+    validate_report(report, custom_labels=not canonical)
     return report
