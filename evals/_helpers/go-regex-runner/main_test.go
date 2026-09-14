@@ -287,6 +287,59 @@ func TestCollectIgnoresRegexFieldsOnNonTextGraders(t *testing.T) {
 	}
 }
 
+func TestRunYAMLProjectionDecodesTaskCompletionContract(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "sample", "tasks", "task.yaml")
+	writeFile(t, path, "id: sample-task\ninputs:\n  prompt: |\n    Review this script.\ngraders:\n  - type: text\n    name: task_completion\n    config:\n      regex_match: ['^Verdict: CLEAN$']\n      regex_not_match: ['forbidden']\n      not_contains: ['Other report:']\n  - type: text\n    name: unrelated_text_grader\n    config:\n      regex_match: ['unrelated marker']\n      regex_not_match: ['unrelated non-match']\n      not_contains: ['unrelated exclusion']\n")
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"--yaml-projection", path}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	var projection yamlProjection
+	if err := json.Unmarshal(stdout.Bytes(), &projection); err != nil {
+		t.Fatalf("decode projection: %v", err)
+	}
+	if projection.Prompt != "Review this script.\n" || len(projection.RegexMatch) != 1 || projection.RegexMatch[0] != "^Verdict: CLEAN$" || len(projection.RegexNotMatch) != 1 || projection.RegexNotMatch[0] != "forbidden" || len(projection.NotContains) != 1 || projection.NotContains[0] != "Other report:" {
+		t.Fatalf("unexpected projection: %#v", projection)
+	}
+}
+
+func TestRunYAMLProjectionRejectsConflictingFlags(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	err := run([]string{"--yaml-projection", "task.yaml", "--root", "evals"}, &stdout, &stderr)
+	if err == nil || !strings.Contains(err.Error(), "cannot be combined") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestRunYAMLProjectionAllowsCodeContractWithoutTextTaskCompletion(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "sample", "tasks", "task.yaml")
+	writeFile(t, path, "id: sample-task\ngraders:\n  - type: code\n    name: output_contract\n    config:\n      assertions: ['output is valid']\n")
+	var stdout, stderr bytes.Buffer
+	if err := run([]string{"--yaml-projection", path}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	var projection yamlProjection
+	if err := json.Unmarshal(stdout.Bytes(), &projection); err != nil {
+		t.Fatalf("decode projection: %v", err)
+	}
+	if len(projection.RegexMatch) != 0 || len(projection.Assertions) != 1 || projection.Assertions[0] != "output is valid" {
+		t.Fatalf("unexpected projection: %#v", projection)
+	}
+}
+
+func TestRunYAMLProjectionRejectsMultipleTextTaskCompletionGraders(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "sample", "tasks", "task.yaml")
+	writeFile(t, path, "id: sample-task\ngraders:\n  - type: text\n    name: task_completion\n    config:\n      regex_match: ['^Verdict: CLEAN$']\n  - type: text\n    name: task_completion\n    config:\n      regex_match: ['^Findings: None$']\n")
+	var stdout, stderr bytes.Buffer
+	err := run([]string{"--yaml-projection", path}, &stdout, &stderr)
+	if err == nil || !strings.Contains(err.Error(), "multiple text task_completion graders") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestRunRequiresRootAndReportsCounts(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	if err := run(nil, &stdout, &stderr); err == nil || !strings.Contains(err.Error(), "--root is required") {

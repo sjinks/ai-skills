@@ -61,6 +61,24 @@ Pass the file with `--cases path/to/cases.json`. A missing selector, unexpected
 match/non-match, YAML error, or Go-incompatible regex fails the command with task
 and grader context.
 
+## Structured report contracts
+
+When a skill emits a conditional structured report, make its output grammar an
+executable source of truth instead of duplicating it in prose and unrelated
+regexes. The shell-portability grammar lives in
+`evals/_helpers/report_contract.py`; it is deliberately scoped to that skill's
+finding fields and enum domains. Its preflight verifies the skill template,
+decoded `task_completion` projection, and a mutation matrix without calling a
+model:
+
+```sh
+python3 evals/_helpers/check-shell-report-contracts.py
+```
+
+Add a corresponding, skill-owned preflight when another skill needs a report
+grammar. It must cover every profile and reject missing, reordered, duplicate,
+invalid, or trailing fields.
+
 ## Grader Design
 
 Each task has a baseline set of task-level graders plus an eval-level

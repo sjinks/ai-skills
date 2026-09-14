@@ -32,8 +32,8 @@ type grader struct {
 }
 
 type task struct {
-	ID      string `yaml:"id"`
-	Inputs  struct {
+	ID     string `yaml:"id"`
+	Inputs struct {
 		Prompt string `yaml:"prompt"`
 	} `yaml:"inputs"`
 	Graders []grader `yaml:"graders"`
@@ -272,11 +272,16 @@ func projectYAML(path string, stdout io.Writer) error {
 		NotContains:   []string{},
 		Assertions:    []string{},
 	}
+	foundTaskCompletion := false
 	for _, grader := range value.Graders {
 		if grader.Type == "text" && grader.Name == "task_completion" {
+			if foundTaskCompletion {
+				return errors.New("task has multiple text task_completion graders")
+			}
 			projection.RegexMatch = grader.Config.RegexMatch
 			projection.RegexNotMatch = grader.Config.RegexNotMatch
 			projection.NotContains = grader.Config.NotContains
+			foundTaskCompletion = true
 		}
 		if grader.Type == "code" && grader.Name == "output_contract" {
 			projection.Assertions = grader.Config.Assertions
