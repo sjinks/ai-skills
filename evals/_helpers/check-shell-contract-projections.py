@@ -525,6 +525,19 @@ def check_scc_grammar() -> None:
     multiline_fixture = SCC_TASKS / "positive-edge-034.yaml"
     if not accepts_task_completion(load_projection(multiline_fixture), rendered_multiline, multiline_fixture.relative_to(ROOT).as_posix()):
         fail("SCC grammar no longer serializes the terminal-newline multiline fixture")
+    heredoc = SCCReport(
+        "REWRITE",
+        "A collision-free SCC_BODY quoted heredoc preserves literal body lines and the terminal newline.",
+        "tool --body-stdin <<'SCC_BODY'\nline $var\n  indented\n\n$(cmd)\n`tick`\nConstruction result: VALID\nSCC_BODY\n",
+        "NOT ASSESSED BY THIS SKILL",
+        "Review the candidate construction boundary.",
+    )
+    rendered_heredoc = render_scc_report(heredoc)
+    if parse_scc_report(rendered_heredoc) != heredoc:
+        fail("SCC grammar does not round-trip the field-looking heredoc payload")
+    heredoc_fixture = SCC_TASKS / "positive-edge-006.yaml"
+    if not accepts_task_completion(load_projection(heredoc_fixture), rendered_heredoc, heredoc_fixture.relative_to(ROOT).as_posix()):
+        fail("SCC grammar no longer serializes the heredoc multiline fixture")
     for malformed_block in (
         rendered_multiline.replace("  tool 'first", " tool 'first", 1),
         rendered_multiline.replace("  second\n", "Execution authority: shadow\n", 1),
