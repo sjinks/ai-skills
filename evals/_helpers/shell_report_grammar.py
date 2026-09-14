@@ -21,6 +21,8 @@ SCC_CANONICAL_LABELS = (
 )
 LINE_SEPARATORS = "\n\r\v\f\x1c\x1d\x1e\x85\u2028\u2029"
 CUSTOM_LABEL = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9 ]*[A-Za-z0-9])?\Z")
+RESULTS = frozenset(("VALID", "REWRITE", "BLOCKED"))
+AUTHORITY = "NOT ASSESSED BY THIS SKILL"
 
 
 class GrammarError(ValueError):
@@ -54,15 +56,33 @@ def validate_labels(labels: tuple[str, str, str, str, str]) -> None:
             raise GrammarError("custom SCC labels must use ASCII letters, digits, and internal spaces")
 
 
+def validate_report(report: SCCReport) -> None:
+    """Validate the inline SCC semantic fields shared by rendering and parsing."""
+
+    values = (report.result, report.assessment, report.candidate, report.authority, report.next)
+    if not all(isinstance(value, str) for value in values):
+        raise GrammarError("SCC field values must be strings")
+    if any("\x00" in value or any(separator in value for separator in LINE_SEPARATORS) for value in values):
+        raise GrammarError("SCC field values must not contain NUL or line separators")
+    if report.result not in RESULTS:
+        raise GrammarError("SCC result must be VALID, REWRITE, or BLOCKED")
+    if not report.assessment.strip() or not report.next.strip():
+        raise GrammarError("SCC assessment and next step must contain non-whitespace text")
+    if report.authority != AUTHORITY:
+        raise GrammarError("SCC authority must use the exact not-assessed literal")
+    if report.result == "BLOCKED":
+        if report.candidate != "Not provided":
+            raise GrammarError("BLOCKED SCC reports must use the Not provided candidate")
+    elif not report.candidate.strip() or report.candidate == "Not provided" or report.candidate.strip() == "|":
+        raise GrammarError("VALID and REWRITE SCC reports require a nonempty inline candidate")
+
+
 def render(report: SCCReport, labels: tuple[str, str, str, str, str] = SCC_CANONICAL_LABELS) -> str:
     """Serialize one unambiguous one-line SCC envelope."""
 
     validate_labels(labels)
+    validate_report(report)
     values = (report.result, report.assessment, report.candidate, report.authority, report.next)
-    if not all(isinstance(value, str) for value in values):
-        raise GrammarError("SCC field values must be strings")
-    if any(not value or any(separator in value for separator in LINE_SEPARATORS) for value in values):
-        raise GrammarError("render() accepts nonempty one-line field values only")
     return "\n".join(f"{label}: {value}" for label, value in zip(labels, values))
 
 
@@ -88,4 +108,6 @@ def parse(output: str, labels: tuple[str, str, str, str, str] = SCC_CANONICAL_LA
         if not value:
             raise GrammarError("SCC envelope field values must be nonempty")
         values.append(value)
-    return SCCReport(*values)
+    report = SCCReport(*values)
+    validate_report(report)
+    return report

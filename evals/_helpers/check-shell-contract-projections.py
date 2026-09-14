@@ -488,6 +488,20 @@ def check_scc_grammar() -> None:
     )
     if separator_assertion is None:
         fail("SCC output contract no longer rejects non-LF field separators")
+    custom_contract_assertion = next(
+        (item for item in assertions if isinstance(item, str) and 'custom.group("authority")' in item),
+        None,
+    )
+    if custom_contract_assertion is None:
+        fail("SCC output contract no longer activates malformed custom envelopes")
+    custom_labels = ("Result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action")
+    malformed_custom = render_scc_report(report, custom_labels).replace("Result: VALID", "Result: \rVALID")
+    if accepts_task_completion(load_projection(fixture), malformed_custom, fixture.relative_to(ROOT).as_posix()):
+        fail("custom-label task projection accepts CR before the disposition")
+    if evaluate_assertion(separator_assertion, malformed_custom, SCC_EVAL):
+        fail("SCC output contract accepts CR before a custom disposition")
+    if evaluate_assertion(custom_contract_assertion, malformed_custom, SCC_EVAL):
+        fail("custom SCC semantic policy bypasses CR before the disposition")
     field_values = (
         "The JSON payload is incorrectly quoted, so it splits into multiple arguments.",
         'tool "hello world"',
@@ -523,6 +537,40 @@ def check_scc_grammar() -> None:
             pass
         else:
             fail("SCC grammar accepts a value that cannot round-trip")
+    semantic_invalid = (
+        SCCReport("UNKNOWN", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL", "next"),
+        SCCReport("VALID", " ", "candidate", "NOT ASSESSED BY THIS SKILL", "next"),
+        SCCReport("VALID", "assessment", "candidate", "APPROVED", "next"),
+        SCCReport("VALID", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL", " "),
+        SCCReport("BLOCKED", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL", "clarify one fact"),
+        SCCReport("VALID", "assessment", "Not provided", "NOT ASSESSED BY THIS SKILL", "review the boundary"),
+        SCCReport("VALID", "assessment", "|", "NOT ASSESSED BY THIS SKILL", "review the boundary"),
+        SCCReport("VALID\x00", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL", "next"),
+        SCCReport("VALID", "assessment\x00", "candidate", "NOT ASSESSED BY THIS SKILL", "next"),
+        SCCReport("VALID", "assessment", "candidate\x00", "NOT ASSESSED BY THIS SKILL", "next"),
+        SCCReport("VALID", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL\x00", "next"),
+        SCCReport("VALID", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL", "next\x00"),
+    )
+    for invalid in semantic_invalid:
+        try:
+            render_scc_report(invalid)
+        except GrammarError:
+            pass
+        else:
+            fail(f"SCC renderer accepts an invalid semantic report: {invalid!r}")
+        serialized = "\n".join(f"{label}: {value}" for label, value in zip(SCC_CANONICAL_LABELS, (
+            invalid.result,
+            invalid.assessment,
+            invalid.candidate,
+            invalid.authority,
+            invalid.next,
+        )))
+        try:
+            parse_scc_report(serialized)
+        except GrammarError:
+            pass
+        else:
+            fail(f"SCC parser accepts an invalid semantic report: {invalid!r}")
     try:
         validate_scc_labels(("Result", "Assessment", "Candidate", "Authority", 7))  # type: ignore[arg-type]
     except GrammarError:

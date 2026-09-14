@@ -23,4 +23,4 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?s)\AConstruction result:\s*VALID\nConstruction assessment:\s*[^\n]*\S[^\n]*\nConstruction candidate:\s*\|\n  tool ''first\n  second\n  ''\n  \nExecution authority:\s*NOT ASSESSED BY THIS SKILL\nConstruction next step:\s*[^\n]*\S[^\n]*\n?\z'
+        - '(?s)\AConstruction result:[ \t]*VALID\nConstruction assessment:[ \t]*[^\n]*\S[^\n]*\nConstruction candidate:[ \t]*\|\n  tool ''first\n  second\n  ''\n  \nExecution authority:[ \t]*NOT ASSESSED BY THIS SKILL\nConstruction next step:[ \t]*[^\n]*\S[^\n]*\n?\z'
