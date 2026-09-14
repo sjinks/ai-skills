@@ -18,7 +18,7 @@ import re
 import subprocess
 import sys
 
-from shell_report_grammar import GrammarError, SCC_CANONICAL_LABELS, SCCReport, parse as parse_scc_report, render as render_scc_report, validate_labels as validate_scc_labels
+from shell_report_grammar import GrammarError, LINE_SEPARATORS, SCC_CANONICAL_LABELS, SCCReport, parse as parse_scc_report, render as render_scc_report, validate_labels as validate_scc_labels
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -333,9 +333,14 @@ def check_negative_custom_envelopes() -> None:
     )
     inline = custom_output(labels, "Review the candidate boundary.")
     multiline = custom_multiline_output(labels, "Review the candidate boundary.")
-    hyphenated = custom_output(
-        ("Outcome-label", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
-        "Review the candidate boundary.",
+    hyphenated = "\n".join(
+        (
+            "Outcome-label: VALID",
+            "Boundary assessment: The supplied bytes preserve the requested boundary.",
+            "Shell candidate: printf '%s\\n' value",
+            "Authority: NOT ASSESSED BY THIS SKILL",
+            "Next construction action: Review the candidate boundary.",
+        )
     )
     colon_injected = "\n".join(
         (
@@ -449,12 +454,23 @@ def check_scc_grammar() -> None:
         rendered = render_scc_report(report, labels)
         if parse_scc_report(rendered, labels) != report:
             fail("SCC grammar does not round-trip a semantic report")
+        if parse_scc_report(f"{rendered}\n", labels) != report:
+            fail("SCC grammar does not accept its optional terminal LF")
         try:
             parse_scc_report("\n".join(reversed(rendered.splitlines())), labels)
         except GrammarError:
             pass
         else:
             fail("SCC grammar accepts reordered fields")
+        for separator in LINE_SEPARATORS:
+            if separator == "\n":
+                continue
+            try:
+                parse_scc_report(rendered.replace("\n", separator), labels)
+            except GrammarError:
+                pass
+            else:
+                fail(f"SCC grammar accepts {separator!r} as a field separator")
 
     fixture = SCC_TASKS / "positive-edge-029.yaml"
     if not accepts_task_completion(load_projection(fixture), render_scc_report(report, (
@@ -465,6 +481,37 @@ def check_scc_grammar() -> None:
         "Next construction action",
     )), fixture.relative_to(ROOT).as_posix()):
         fail("SCC grammar no longer serializes the custom-label task projection")
+    assertions = load_projection(SCC_EVAL).assertions
+    separator_assertion = next(
+        (item for item in assertions if isinstance(item, str) and "x1c-\\x1e\\x85" in item),
+        None,
+    )
+    if separator_assertion is None:
+        fail("SCC output contract no longer rejects non-LF field separators")
+    field_values = (
+        "The JSON payload is incorrectly quoted, so it splits into multiple arguments.",
+        'tool "hello world"',
+        "NOT ASSESSED BY THIS SKILL",
+        "Review the candidate boundary.",
+    )
+    for labels in (
+        SCC_CANONICAL_LABELS,
+        ("Result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+    ):
+        rendered = render_scc_report(report, labels)
+        for value in field_values:
+            for separator in LINE_SEPARATORS:
+                if separator == "\n":
+                    continue
+                malformed = rendered.replace(value, f"{value}{separator}extra", 1)
+                try:
+                    parse_scc_report(malformed, labels)
+                except GrammarError:
+                    pass
+                else:
+                    fail(f"SCC grammar accepts {separator!r} inside a field")
+                if evaluate_assertion(separator_assertion, malformed, SCC_EVAL):
+                    fail(f"SCC output contract accepts {separator!r} inside a field")
     for invalid in (
         SCCReport("", "assessment", "candidate", "authority", "next"),
         SCCReport("VALID", "assessment\rvalue", "candidate", "authority", "next"),
@@ -482,6 +529,19 @@ def check_scc_grammar() -> None:
         pass
     else:
         fail("SCC grammar does not normalize malformed labels to GrammarError")
+    for invalid_labels in (
+        ("Outcome-label", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+        (" Outcome", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+        ("Résultat", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+        ("Outcome", "Boundary assessment", "Construction candidate", "Authority", "Next construction action"),
+        ("construction result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action"),
+    ):
+        try:
+            validate_scc_labels(invalid_labels)
+        except GrammarError:
+            pass
+        else:
+            fail(f"SCC grammar accepts an invalid custom label set: {invalid_labels!r}")
 
 
 def evaluate_assertion(assertion: str, output: str, source: Path) -> bool:
