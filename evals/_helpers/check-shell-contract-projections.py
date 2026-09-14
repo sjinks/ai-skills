@@ -473,7 +473,11 @@ def check_scc_grammar() -> None:
                 if not all(evaluate_assertion(assertion, alternate_spacing, SCC_EVAL) for assertion in load_projection(SCC_EVAL).assertions):
                     fail(f"SCC output contract rejects {separator!r} custom post-colon framing")
         if labels != SCC_CANONICAL_LABELS:
-            repeated_framing = rendered.replace(": ", ":\t  ")
+            repeated_lines = rendered.replace(": ", ":\t  ").splitlines()
+            # A non-BLOCKED custom inline candidate has a deliberately stricter
+            # delimiter so a leading payload byte cannot be mistaken for framing.
+            repeated_lines[2] = rendered.splitlines()[2]
+            repeated_framing = "\n".join(repeated_lines)
             if parse_scc_report(repeated_framing, labels) != report:
                 fail("SCC grammar does not accept repeated custom post-colon framing")
             if not all(evaluate_assertion(assertion, repeated_framing, SCC_EVAL) for assertion in load_projection(SCC_EVAL).assertions):
@@ -551,6 +555,28 @@ def check_scc_grammar() -> None:
             fail("SCC grammar loses leading whitespace from a custom candidate")
         if not all(evaluate_assertion(assertion, serialized_leading, SCC_EVAL) for assertion in assertions):
             fail("SCC output contract rejects a block-encoded custom leading-whitespace candidate")
+    inline_whitespace_assertion = next(
+        (item for item in assertions if isinstance(item, str) and "[ \\t]{2,}\\S" in item),
+        None,
+    )
+    if inline_whitespace_assertion is None:
+        fail("SCC output contract no longer rejects ambiguous custom inline candidates")
+    for candidate in ("  leading space", "\t\tleading tab", " \tleading mixed whitespace"):
+        ambiguous_custom = "\n".join((
+            "Result: VALID",
+            "Boundary assessment: The candidate boundary is represented.",
+            f"Shell candidate:{candidate}",
+            "Authority: NOT ASSESSED BY THIS SKILL",
+            "Next construction action: Review the candidate boundary.",
+        ))
+        try:
+            parse_scc_report(ambiguous_custom, custom_labels)
+        except GrammarError:
+            pass
+        else:
+            fail("SCC grammar accepts an ambiguous custom inline candidate")
+        if evaluate_assertion(inline_whitespace_assertion, ambiguous_custom, SCC_EVAL):
+            fail("SCC output contract accepts an ambiguous custom inline candidate")
     for malformed_marker in (
         "|",
         "Shell candidate: | ",

@@ -144,6 +144,9 @@ def parse(output: str, labels: tuple[str, str, str, str, str] = SCC_CANONICAL_LA
         else lines[2].startswith(f"{candidate_label}:")
         and lines[2].removeprefix(f"{candidate_label}:").lstrip(" \t") == "|"
     )
+    candidate_value = lines[2].removeprefix(f"{candidate_label}:")
+    if not canonical and not candidate_marker and result != "BLOCKED" and len(candidate_value) - len(candidate_value.lstrip(" \t")) > 1:
+        raise GrammarError("custom inline candidates with leading whitespace require block serialization")
     candidate = "|" if candidate_marker else _field_value(lines[2], candidate_label, canonical=canonical)
     index = 3
     if candidate_marker:
