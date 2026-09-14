@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-010
+name: Complete audit can find no equivalent defects
+description: |
+  A complete standard audit may conclude that every equivalent candidate is
+  absent or inapplicable and must keep all report summaries at None.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Apply equivalence-class-audit.
+
+    Triggering finding: the fixed `minItems = 0` pagination defect previously
+    crashed requests.
+
+    Locked audit scope: `src/pagination.ts`, `tests/pagination.test.ts`, and the
+    Pagination section of `docs/api.md`.
+
+    Known facts:
+    - The triggering defect is fixed.
+    - Every equivalent candidate in scope has been checked and is either absent
+      or structurally inapplicable.
+    - No fix, deferral, blocker, test implication, documentation implication, or
+      out-of-scope candidate remains.
+
+    Return the complete standard audit. Represent every catalogue axis and use
+    only absent or n/a rows with evidence. Every summary section must be None.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/equivalence-class-audit/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - equivalence-class-audit
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Equivalence-Class Audit Report'
+        - '(?im)^Output depth:\s*standard\s*$'
+        - '(?im)^Verdict:\s*CLEAN\s*$'
+        - '(?im)^Severity:\s*NONE\s*$'
+        - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
+      not_contains:
+        - "### Omitted axes (quick mode only)"
+        - "Output depth: quick"
+        - "Output depth: exhaustive"
+        - "Gate decision:"
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/equivalence-class-audit/check-report.py
+        - positive-edge-010
+      timeout: 60

@@ -17,6 +17,8 @@ inputs:
 
     Locked audit scope: `src/pagination.ts` and `tests/pagination.test.ts`.
 
+    Known fact: `tests/pagination.test.ts` does not cover zero values.
+
     Only report target-specific blockers and concerns; do not enumerate the
     full axis checklist. Summarize omitted axes without listing every axis as
     a table row.
@@ -39,17 +41,31 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - "(?i)Equivalence-Class Audit Report"
-        - "(?i)(quick|target-specific|blockers|concerns)"
-        - "(?i)Omitted axes"
-        - "(?i)Locked audit scope"
-        - "(?is)(zero.*pagination|pagination.*zero)"
-        - "(?i)(fix-now|Defects to fix now)"
+        - '(?i)Equivalence-Class Audit Report'
+        - '(?im)^### Defects to fix now[ \t]*\r?\n-[ \t]*\S[^\r\n]*$'
+        - '(?im)^### Deferred follow-ups[ \t]*\r?\n-[ \t]*\S[^\r\n]*$'
+        - '(?im)^### Out-of-scope candidates discovered[ \t]*\r?\n-[ \t]*\S[^\r\n]*$'
+        - '(?im)^### Blocking questions[ \t]*\r?\n-[ \t]*\S[^\r\n]*$'
+        - '(?im)^### Test/doc implications[ \t]*\r?\n-[ \t]*\S[^\r\n]*$'
+        - '(?im)^Output depth:\s*quick\s*$'
+        - '(?im)^Verdict:\s*(BLOCK|CONCERNS)\s*$'
+        - '(?im)^Severity:\s*(CRITICAL|HIGH|MEDIUM|LOW)\s*$'
+        - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
+        - '(?im)^### Omitted axes \(quick mode only\)[ \t]*$'
+        - '(?i)Omitted axes[^\n]*(scope|inapplicable|material)|Omitted axes[\s\S]{0,300}(scope|inapplicable|material)'
+        - '(?i)Locked audit scope'
+        - '(?is)(zero.*pagination|pagination.*zero)'
       not_contains:
-        - "| Cache/Projection/Source-of-Truth Twin |"
-        - "| Permission/Authorization Class |"
-        - "| Resource Cleanup |"
-        - "| Observability Twin |"
+        - "Output depth: standard"
+        - "Output depth: exhaustive"
         - "Egress policy:"
         - "Trusted root:"
         - "Adversarial tests:"
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/equivalence-class-audit/check-report.py
+        - positive-edge-004
+      timeout: 60

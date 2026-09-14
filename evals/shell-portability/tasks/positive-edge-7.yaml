@@ -15,7 +15,7 @@ inputs:
     Construction candidate: |
       tool --body-stdin <<'EOF'
         indented $literal
-      
+
       EOF
     Execution authority: NOT ASSESSED BY THIS SKILL
     Construction next step: Request a separate portability review of the exact candidate.

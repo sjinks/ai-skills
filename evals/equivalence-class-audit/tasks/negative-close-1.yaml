@@ -25,13 +25,17 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "Verdict:"
+        - "Severity:"
         - "Equivalence-Class Audit Report"
+        - "Triggering finding:"
+        - "Locked audit scope:"
+        - "| Axis | Candidate | Presence | Disposition | Evidence |"
+        - "|------|-----------|----------|-------------|----------|"
+        - "Output depth:"
+        - "Omitted axes"
         - "Defects to fix now"
         - "Deferred follow-ups"
         - "Out-of-scope candidates"
         - "Blocking questions"
         - "Test/doc implications"
-        - "Gate decision:"
-        - "Lenses applied:"
-        - "PLAN-PARTIAL"
-        - "Adversarial tests:"

@@ -8,8 +8,6 @@ tags:
   - positive-trigger
 inputs:
   prompt: |
-    Apply equivalence-class-audit.
-
     Triggering finding: a reviewer found that `maxRetries` in
     `config/retry.yml` accepts `0`, which silently disables retries and caused
     incident INC-17.
@@ -25,9 +23,10 @@ inputs:
     - Tests cover `maxRetries=0` only.
     - The docs still say `0` means "retry forever" and are tracked in
       ticket DOC-22, but no named owner or owning team is available.
+    - No disposition boundary or explicit deferral requirement is supplied.
 
     Produce the audit report and identify what should be fixed now versus
-    deferred. Do not treat DOC-22 alone as enough for defer-with-owner.
+    deferred. Do not defer based on DOC-22 alone.
 expected:
   should_trigger: true
 graders:
@@ -48,21 +47,33 @@ graders:
     config:
       regex_match:
         - '(?i)Equivalence-Class Audit Report'
-        - '(?i)\|\s*Axis\s*\|\s*Candidate\s*\|\s*Presence\s*\|\s*Disposition\s*\|\s*Evidence\s*\|'
+        - '(?is)### Defects to fix now.*### Deferred follow-ups.*### Out-of-scope candidates discovered.*### Blocking questions.*### Test/doc implications'
+        - '(?im)^Output depth:\s*standard\s*$'
+        - '(?im)^Verdict:\s*(BLOCK|CONCERNS)\s*$'
+        - '(?im)^Severity:\s*(CRITICAL|HIGH|MEDIUM|LOW)\s*$'
+        - '(?im)^\|[ \t]*Axis[ \t]*\|[ \t]*Candidate[ \t]*\|[ \t]*Presence[ \t]*\|[ \t]*Disposition[ \t]*\|[ \t]*Evidence[ \t]*\|[ \t]*\r?\n\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*-{3,}[ \t]*\|[ \t]*$'
         - '(?i)Presence'
         - '(?i)Disposition'
         - '(?i)Evidence'
         - '(?i)(Opposite Bound|opposite bound).*(present|fix-now)'
         - '(?i)(Sibling Parameter/Field|sibling).*(retryDelaySeconds|present|fix-now)'
         - '(?i)(Empty/Sentinel Equivalence|sentinel).*(null|present|fix-now|blocked)'
-        - '(?i)(Documentation/Spec Prose Twin|docs).*(present).*(fix-now|blocked)'
         - '(?i)Defects to fix now'
         - '(?i)Deferred follow-ups'
       not_contains:
-        - "defer-with-owner"
+        - "### Omitted axes (quick mode only)"
+        - "Output depth: quick"
+        - "Output depth: exhaustive"
         - "Gate decision:"
-        - "Verdict: BLOCK"
         - "Adversarial tests:"
         - "Egress policy:"
         - "Trusted root:"
         - "PLAN-READY"
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/equivalence-class-audit/check-report.py
+        - positive-trigger-001
+      timeout: 60
