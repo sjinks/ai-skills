@@ -557,6 +557,10 @@ def check_custom_label_contextual_claim_parity() -> None:
         (item for item in assertions if isinstance(item, str) and "(?:please|carefully|actually|now|directly)" in item and "(canonical or custom).group(\"next\")" in item),
         None,
     )
+    indirect_execution_assertion = next(
+        (item for item in assertions if isinstance(item, str) and "Indirect verification-by-execution" not in item and "(?:by|through|via|after|before)" in item and "(canonical or custom).group(\"next\")" in item),
+        None,
+    )
     recommendation_assertion = next(
         (item for item in assertions if isinstance(item, str) and "endors(?:e|es|ed|ing|ement)" in item and "(canonical or custom).group" in item),
         None,
@@ -581,7 +585,7 @@ def check_custom_label_contextual_claim_parity() -> None:
         (item for item in assertions if isinstance(item, str) and "validate|validates|validated|validating|validation" in item and "(canonical or custom).group" in item),
         None,
     )
-    if canonical_action_assertion is None or contextual_assertion is None or handoff_only_assertion is None or action_assertion is None or imperative_assertion is None or recommendation_assertion is None or pronoun_assertion is None or remainder_assertion is None or parsing_assertion is None or parsing_success_assertion is None or validation_success_assertion is None:
+    if canonical_action_assertion is None or contextual_assertion is None or handoff_only_assertion is None or action_assertion is None or imperative_assertion is None or indirect_execution_assertion is None or recommendation_assertion is None or pronoun_assertion is None or remainder_assertion is None or parsing_assertion is None or parsing_success_assertion is None or validation_success_assertion is None:
         fail("shell-command-construction output contract no longer has a shared contextual-claim policy")
 
     labels = ("Result", "Boundary assessment", "Shell candidate", "Authority", "Next construction action")
@@ -589,6 +593,14 @@ def check_custom_label_contextual_claim_parity() -> None:
     for output in (canonical_output(allowed_next_step), custom_output(labels, allowed_next_step)):
         if not all(evaluate_assertion(assertion, output, SCC_EVAL) for assertion in (contextual_assertion, action_assertion, pronoun_assertion)):
             fail("shared contextual-claim policy rejects review wording without a portability conclusion")
+
+    boundary_diagnosis = "The JSON payload is incorrectly quoted, so it splits into multiple arguments."
+    for output in (
+        canonical_output("Review the candidate boundary.").replace("The supplied bytes preserve the requested boundary.", boundary_diagnosis),
+        custom_output(labels, "Review the candidate boundary.").replace("The supplied bytes preserve the requested boundary.", boundary_diagnosis),
+    ):
+        if not evaluate_assertion(remainder_assertion, output, SCC_EVAL):
+            fail("shared downstream-semantic policy rejects a construction boundary diagnosis")
 
     for next_step in (
         "Proceed with a separate portability review of the exact candidate.",
@@ -629,6 +641,11 @@ def check_custom_label_contextual_claim_parity() -> None:
         for output in (canonical_output(next_step), custom_output(labels, next_step)):
             if not evaluate_assertion(imperative_assertion, output, SCC_EVAL):
                 fail(f"shared imperative policy rejects construction-only action: {next_step!r}")
+
+    for next_step in ("Verify the candidate by executing it.", "Check the candidate through running it."):
+        for output in (canonical_output(next_step), custom_output(labels, next_step)):
+            if evaluate_assertion(indirect_execution_assertion, output, SCC_EVAL):
+                fail(f"shared indirect-execution policy accepts execution advice: {next_step!r}")
 
     for next_step in (
         "Review the candidate; recommend deploying it.",
