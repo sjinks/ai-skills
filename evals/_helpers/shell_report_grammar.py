@@ -90,6 +90,20 @@ def _is_multiline_candidate(report: SCCReport) -> bool:
     )
 
 
+def _field_value(line: str, label: str, *, compact: bool = False, canonical: bool = False) -> str:
+    prefix = f"{label}: " if canonical else f"{label}:"
+    if not line.startswith(prefix):
+        raise GrammarError("SCC envelope has an unexpected label or field order")
+    value = line.removeprefix(prefix)
+    if canonical:
+        return value
+    if compact:
+        return value.lstrip(" \t")
+    if value.startswith(" "):
+        return value[1:]
+    return value.lstrip("\t")
+
+
 def render(report: SCCReport, labels: tuple[str, str, str, str, str] = SCC_CANONICAL_LABELS) -> str:
     """Serialize one unambiguous SCC envelope, including block candidates."""
 
@@ -119,17 +133,19 @@ def parse(output: str, labels: tuple[str, str, str, str, str] = SCC_CANONICAL_LA
         output = output[:-1]
     lines = output.split("\n")
     result_label, assessment_label, candidate_label, authority_label, next_label = labels
+    canonical = labels == SCC_CANONICAL_LABELS
     if len(lines) < len(labels):
         raise GrammarError("SCC envelope has an unexpected field count")
-    prefixes = (f"{result_label}: ", f"{assessment_label}: ", f"{candidate_label}: ")
-    if any(not line.startswith(prefix) for line, prefix in zip(lines[:3], prefixes)):
-        raise GrammarError("SCC envelope has an unexpected label or field order")
-    result = lines[0].removeprefix(prefixes[0])
-    assessment = lines[1].removeprefix(prefixes[1])
-    candidate = lines[2].removeprefix(prefixes[2])
+    result = _field_value(lines[0], result_label, compact=True, canonical=canonical)
+    assessment = _field_value(lines[1], assessment_label, canonical=canonical)
+    candidate_marker = (
+        lines[2] == f"{candidate_label}: |"
+        if canonical
+        else lines[2].removeprefix(f"{candidate_label}:").strip(" \t") == "|"
+    )
+    candidate = "|" if candidate_marker else _field_value(lines[2], candidate_label, canonical=canonical)
     index = 3
-    authority_prefix = f"{authority_label}: "
-    if candidate == "|":
+    if candidate_marker:
         payload: list[str] = []
         while index < len(lines) and lines[index].startswith("  "):
             payload.append(lines[index].removeprefix("  "))
@@ -141,13 +157,10 @@ def parse(output: str, labels: tuple[str, str, str, str, str] = SCC_CANONICAL_LA
         stripped = candidate.lstrip()
         if candidate == "Not provided" or (stripped.startswith("|") and not stripped[1:].strip()):
             raise GrammarError("SCC reserved and bare-pipe candidates require block serialization")
-    if index + 2 != len(lines) or not lines[index].startswith(authority_prefix):
+    if index + 2 != len(lines):
         raise GrammarError("SCC envelope has an unexpected authority field or trailing content")
-    authority = lines[index].removeprefix(authority_prefix)
-    next_prefix = f"{next_label}: "
-    if not lines[index + 1].startswith(next_prefix):
-        raise GrammarError("SCC envelope has an unexpected next-step field")
-    next_step = lines[index + 1].removeprefix(next_prefix)
+    authority = _field_value(lines[index], authority_label, compact=True, canonical=canonical)
+    next_step = _field_value(lines[index + 1], next_label, canonical=canonical)
     report = SCCReport(result, assessment, candidate, authority, next_step)
     validate_report(report)
     return report

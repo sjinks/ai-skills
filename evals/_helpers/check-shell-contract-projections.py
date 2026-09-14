@@ -456,6 +456,22 @@ def check_scc_grammar() -> None:
             fail("SCC grammar does not round-trip a semantic report")
         if parse_scc_report(f"{rendered}\n", labels) != report:
             fail("SCC grammar does not accept its optional terminal LF")
+        for separator in ("", "\t"):
+            alternate_spacing = rendered.replace(": ", f":{separator}")
+            if labels == SCC_CANONICAL_LABELS:
+                try:
+                    parse_scc_report(alternate_spacing, labels)
+                except GrammarError:
+                    pass
+                else:
+                    fail(f"SCC grammar accepts noncanonical {separator!r} post-colon framing")
+                if all(evaluate_assertion(assertion, alternate_spacing, SCC_EVAL) for assertion in load_projection(SCC_EVAL).assertions):
+                    fail(f"SCC output contract accepts noncanonical {separator!r} post-colon framing")
+            else:
+                if parse_scc_report(alternate_spacing, labels) != report:
+                    fail(f"SCC grammar does not accept {separator!r} custom post-colon framing")
+                if not all(evaluate_assertion(assertion, alternate_spacing, SCC_EVAL) for assertion in load_projection(SCC_EVAL).assertions):
+                    fail(f"SCC output contract rejects {separator!r} custom post-colon framing")
         try:
             parse_scc_report("\n".join(reversed(rendered.splitlines())), labels)
         except GrammarError:
