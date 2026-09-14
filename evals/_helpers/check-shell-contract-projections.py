@@ -512,7 +512,7 @@ def check_scc_grammar() -> None:
     rendered_multiline = render_scc_report(multiline)
     if parse_scc_report(rendered_multiline) != multiline:
         fail("SCC grammar does not round-trip a multiline candidate")
-    for candidate in ("Not provided", "|"):
+    for candidate in ("Not provided", "|", "| ", "|\t", "  | "):
         block_candidate = SCCReport(
             "VALID",
             "The candidate representation preserves the supplied literal data.",
@@ -520,8 +520,13 @@ def check_scc_grammar() -> None:
             "NOT ASSESSED BY THIS SKILL",
             "Review the candidate boundary.",
         )
-        if parse_scc_report(render_scc_report(block_candidate)) != block_candidate:
+        rendered_block = render_scc_report(block_candidate)
+        if "Construction candidate: |\n" not in rendered_block:
+            fail(f"SCC grammar does not block-encode the {candidate!r} inline candidate")
+        if parse_scc_report(rendered_block) != block_candidate:
             fail(f"SCC grammar does not disambiguate the {candidate!r} inline candidate")
+        if not all(evaluate_assertion(assertion, rendered_block, SCC_EVAL) for assertion in assertions):
+            fail(f"SCC output contract rejects the block-encoded {candidate!r} candidate")
     multiline_fixture = SCC_TASKS / "positive-edge-034.yaml"
     if not accepts_task_completion(load_projection(multiline_fixture), rendered_multiline, multiline_fixture.relative_to(ROOT).as_posix()):
         fail("SCC grammar no longer serializes the terminal-newline multiline fixture")
@@ -549,6 +554,22 @@ def check_scc_grammar() -> None:
             pass
         else:
             fail("SCC grammar accepts malformed block-candidate framing")
+    for labels in (SCC_CANONICAL_LABELS, custom_labels):
+        result_label, assessment_label, candidate_label, authority_label, next_label = labels
+        for result, candidate in (("VALID", "Not provided"), ("REWRITE", "Not provided"), ("VALID", "| "), ("REWRITE", "\t|\t")):
+            inline_reserved = "\n".join((
+                f"{result_label}: {result}",
+                f"{assessment_label}: The candidate boundary is represented.",
+                f"{candidate_label}: {candidate}",
+                f"{authority_label}: NOT ASSESSED BY THIS SKILL",
+                f"{next_label}: Review the candidate boundary.",
+            ))
+            try:
+                parse_scc_report(inline_reserved, labels)
+            except GrammarError:
+                pass
+            else:
+                fail(f"SCC parser accepts reserved inline candidate {candidate!r}")
     field_values = (
         "The JSON payload is incorrectly quoted, so it splits into multiple arguments.",
         'tool "hello world"',

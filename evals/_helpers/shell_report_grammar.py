@@ -82,7 +82,12 @@ def validate_report(report: SCCReport) -> None:
 
 
 def _is_multiline_candidate(report: SCCReport) -> bool:
-    return report.result != "BLOCKED" and ("\n" in report.candidate or report.candidate in {"Not provided", "|"})
+    if report.result == "BLOCKED":
+        return False
+    stripped = report.candidate.lstrip()
+    return "\n" in report.candidate or report.candidate == "Not provided" or (
+        stripped.startswith("|") and not stripped[1:].strip()
+    )
 
 
 def render(report: SCCReport, labels: tuple[str, str, str, str, str] = SCC_CANONICAL_LABELS) -> str:
@@ -132,6 +137,10 @@ def parse(output: str, labels: tuple[str, str, str, str, str] = SCC_CANONICAL_LA
         if not payload or not any(line.strip() for line in payload):
             raise GrammarError("SCC block candidate requires non-whitespace payload text")
         candidate = "\n".join(payload)
+    elif result != "BLOCKED":
+        stripped = candidate.lstrip()
+        if candidate == "Not provided" or (stripped.startswith("|") and not stripped[1:].strip()):
+            raise GrammarError("SCC reserved and bare-pipe candidates require block serialization")
     if index + 2 != len(lines) or not lines[index].startswith(authority_prefix):
         raise GrammarError("SCC envelope has an unexpected authority field or trailing content")
     authority = lines[index].removeprefix(authority_prefix)
