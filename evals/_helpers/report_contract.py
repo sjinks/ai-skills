@@ -198,9 +198,8 @@ class ReportContract:
             return index + 1
         if lines[index] != f"{self.findings_label}:":
             raise ContractError(f"{self.name}: findings are missing or out of order")
-        if verdict == "CLEAN":
-            raise ContractError(f"{self.name}: CLEAN must use Findings: None")
         number = 1
+        severities: list[str] = []
         index += 1
         while index < len(lines) and lines[index] != "":
             if lines[index] != f"{number}. " and not lines[index].startswith(f"{number}. "):
@@ -223,10 +222,14 @@ class ReportContract:
                 value = self._scalar(lines[index], f"  {label}")
                 if values is not None and value not in values:
                     raise ContractError(f"{self.name}: invalid {label} in finding {number}")
+                if label == "Severity":
+                    severities.append(value)
                 index += 1
             number += 1
         if number == 1:
             raise ContractError(f"{self.name}: non-CLEAN reports require a finding")
+        if verdict == "CLEAN" and any(severity != "LOW" for severity in severities):
+            raise ContractError(f"{self.name}: CLEAN findings must all have LOW severity")
         return index
 
     def _validate_insufficient_context(self, lines: list[str]) -> None:

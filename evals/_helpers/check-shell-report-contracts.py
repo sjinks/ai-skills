@@ -227,13 +227,34 @@ def check_mutation_matrix() -> int:
     )
     if CONTRACT.validate(concerns) != "normal":
         fail("non-CLEAN normal renderer did not round-trip")
+    clean_low = CONTRACT.render_normal(
+        verdict="CLEAN",
+        target=target,
+        interpreter=interpreter,
+        findings=(
+            Finding(
+                title="Whitespace-only output is target-specific",
+                severity="LOW",
+                classification="Accepted tradeoff",
+                evidence="No target-specific output was supplied",
+                rule="output-behavior",
+                risk="No material portability conclusion is supported",
+                portable_fix="Use printf where exact output matters",
+                verification="Compare captured output on declared targets",
+            ),
+        ),
+        checklist={item: "covered" for item in CONTRACT.checklist_items},
+        residual_risk="Low-severity output behavior remains to verify",
+    )
+    if CONTRACT.validate(clean_low) != "normal":
+        fail("CLEAN LOW-only normal renderer did not round-trip")
     mutations: list[tuple[str, Callable[[], str]]] = [
         ("missing target", lambda: normal.replace(normal_target + "\n", "", 1)),
         ("reordered target", lambda: normal.replace(normal_target + "\n" + normal_interpreter, normal_interpreter).replace(interpreter + "\n\n" + normal_findings, interpreter + "\n" + normal_target + "\n\n" + normal_findings)),
         ("duplicate verdict", lambda: normal.replace(f"{CONTRACT.target_label}:", normal_verdict + "\n" + f"{CONTRACT.target_label}:", 1)),
         ("invalid verdict", lambda: normal.replace(normal_verdict, f"{CONTRACT.verdict_label}: VALID", 1)),
         ("invalid checklist value", lambda: normal.replace("Bashisms: covered", "Bashisms: optional", 1)),
-        ("CLEAN with a finding", lambda: concerns.replace(f"{CONTRACT.verdict_label}: CONCERNS", normal_verdict, 1)),
+        ("CLEAN with a material finding", lambda: concerns.replace(f"{CONTRACT.verdict_label}: CONCERNS", normal_verdict, 1)),
         ("non-CLEAN with Findings: None", lambda: normal.replace(normal_verdict, f"{CONTRACT.verdict_label}: CONCERNS", 1)),
         ("invalid finding severity", lambda: concerns.replace("Severity: HIGH", "Severity: INFO", 1)),
         ("invalid finding classification", lambda: concerns.replace("Classification: Confirmed issue", "Classification: Unknown", 1)),
@@ -270,7 +291,8 @@ def check_mutation_matrix() -> int:
         for field, token in fields:
             mutations.append((f"missing {profile} {field}", lambda output=output, token=token: output.replace(token, "", 1)))
     for name, mutate in mutations:
-        expect_rejected(name, mutate())
+        output = mutate()
+        expect_rejected(name, output)
     return len(mutations)
 
 
