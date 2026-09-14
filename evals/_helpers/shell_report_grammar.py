@@ -1,8 +1,8 @@
 """Canonical, typed grammar for shell skill report envelopes.
 
-This module owns report field order and label validation for deterministic
-preflight checks. Waza still evaluates its serialized assertions independently,
-so projection checks must prove both surfaces agree.
+This module owns report field order and validation for deterministic preflight
+checks. Waza still evaluates its serialized assertions independently, so
+projection checks must prove both surfaces agree.
 """
 
 from __future__ import annotations
@@ -57,13 +57,17 @@ def validate_labels(labels: tuple[str, str, str, str, str]) -> None:
 
 
 def validate_report(report: SCCReport) -> None:
-    """Validate the inline SCC semantic fields shared by rendering and parsing."""
+    """Validate SCC semantic fields shared by rendering and parsing."""
 
     values = (report.result, report.assessment, report.candidate, report.authority, report.next)
     if not all(isinstance(value, str) for value in values):
         raise GrammarError("SCC field values must be strings")
-    if any("\x00" in value or any(separator in value for separator in LINE_SEPARATORS) for value in values):
-        raise GrammarError("SCC field values must not contain NUL or line separators")
+    if any("\x00" in value for value in values):
+        raise GrammarError("SCC field values must not contain NUL")
+    if any(any(separator in value for separator in LINE_SEPARATORS) for value in (report.result, report.assessment, report.authority, report.next)):
+        raise GrammarError("SCC result, assessment, authority, and next step must be one line")
+    if any(separator in report.candidate for separator in LINE_SEPARATORS if separator != "\n"):
+        raise GrammarError("SCC candidate must use LF for multiline serialization")
     if report.result not in RESULTS:
         raise GrammarError("SCC result must be VALID, REWRITE, or BLOCKED")
     if not report.assessment.strip() or not report.next.strip():
@@ -73,21 +77,33 @@ def validate_report(report: SCCReport) -> None:
     if report.result == "BLOCKED":
         if report.candidate != "Not provided":
             raise GrammarError("BLOCKED SCC reports must use the Not provided candidate")
-    elif not report.candidate.strip() or report.candidate == "Not provided" or report.candidate.strip() == "|":
-        raise GrammarError("VALID and REWRITE SCC reports require a nonempty inline candidate")
+    elif not report.candidate.strip():
+        raise GrammarError("VALID and REWRITE SCC reports require a nonempty candidate")
+
+
+def _is_multiline_candidate(report: SCCReport) -> bool:
+    return report.result != "BLOCKED" and ("\n" in report.candidate or report.candidate in {"Not provided", "|"})
 
 
 def render(report: SCCReport, labels: tuple[str, str, str, str, str] = SCC_CANONICAL_LABELS) -> str:
-    """Serialize one unambiguous one-line SCC envelope."""
+    """Serialize one unambiguous SCC envelope, including block candidates."""
 
     validate_labels(labels)
     validate_report(report)
-    values = (report.result, report.assessment, report.candidate, report.authority, report.next)
-    return "\n".join(f"{label}: {value}" for label, value in zip(labels, values))
+    result_label, assessment_label, candidate_label, authority_label, next_label = labels
+    lines = (
+        f"{result_label}: {report.result}",
+        f"{assessment_label}: {report.assessment}",
+    )
+    if _is_multiline_candidate(report):
+        lines += (f"{candidate_label}: |", *(f"  {line}" for line in report.candidate.split("\n")))
+    else:
+        lines += (f"{candidate_label}: {report.candidate}",)
+    return "\n".join((*lines, f"{authority_label}: {report.authority}", f"{next_label}: {report.next}"))
 
 
 def parse(output: str, labels: tuple[str, str, str, str, str] = SCC_CANONICAL_LABELS) -> SCCReport:
-    """Parse exactly one one-line SCC envelope with a caller-selected label map."""
+    """Parse exactly one SCC envelope with a caller-selected label map."""
 
     validate_labels(labels)
     if not isinstance(output, str):
@@ -97,17 +113,32 @@ def parse(output: str, labels: tuple[str, str, str, str, str] = SCC_CANONICAL_LA
     if output.endswith("\n"):
         output = output[:-1]
     lines = output.split("\n")
-    if len(lines) != len(labels):
+    result_label, assessment_label, candidate_label, authority_label, next_label = labels
+    if len(lines) < len(labels):
         raise GrammarError("SCC envelope has an unexpected field count")
-    values: list[str] = []
-    for label, line in zip(labels, lines):
-        prefix = f"{label}: "
-        if not line.startswith(prefix):
-            raise GrammarError("SCC envelope has an unexpected label or field order")
-        value = line.removeprefix(prefix)
-        if not value:
-            raise GrammarError("SCC envelope field values must be nonempty")
-        values.append(value)
-    report = SCCReport(*values)
+    prefixes = (f"{result_label}: ", f"{assessment_label}: ", f"{candidate_label}: ")
+    if any(not line.startswith(prefix) for line, prefix in zip(lines[:3], prefixes)):
+        raise GrammarError("SCC envelope has an unexpected label or field order")
+    result = lines[0].removeprefix(prefixes[0])
+    assessment = lines[1].removeprefix(prefixes[1])
+    candidate = lines[2].removeprefix(prefixes[2])
+    index = 3
+    authority_prefix = f"{authority_label}: "
+    if candidate == "|":
+        payload: list[str] = []
+        while index < len(lines) and lines[index].startswith("  "):
+            payload.append(lines[index].removeprefix("  "))
+            index += 1
+        if not payload or not any(line.strip() for line in payload):
+            raise GrammarError("SCC block candidate requires non-whitespace payload text")
+        candidate = "\n".join(payload)
+    if index + 2 != len(lines) or not lines[index].startswith(authority_prefix):
+        raise GrammarError("SCC envelope has an unexpected authority field or trailing content")
+    authority = lines[index].removeprefix(authority_prefix)
+    next_prefix = f"{next_label}: "
+    if not lines[index + 1].startswith(next_prefix):
+        raise GrammarError("SCC envelope has an unexpected next-step field")
+    next_step = lines[index + 1].removeprefix(next_prefix)
+    report = SCCReport(result, assessment, candidate, authority, next_step)
     validate_report(report)
     return report

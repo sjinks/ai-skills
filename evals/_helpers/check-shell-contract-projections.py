@@ -502,6 +502,40 @@ def check_scc_grammar() -> None:
         fail("SCC output contract accepts CR before a custom disposition")
     if evaluate_assertion(custom_contract_assertion, malformed_custom, SCC_EVAL):
         fail("custom SCC semantic policy bypasses CR before the disposition")
+    multiline = SCCReport(
+        "VALID",
+        "The quoted payload preserves each physical line and its terminal newline.",
+        "tool 'first\nsecond\n'\n",
+        "NOT ASSESSED BY THIS SKILL",
+        "Review the candidate boundary.",
+    )
+    rendered_multiline = render_scc_report(multiline)
+    if parse_scc_report(rendered_multiline) != multiline:
+        fail("SCC grammar does not round-trip a multiline candidate")
+    for candidate in ("Not provided", "|"):
+        block_candidate = SCCReport(
+            "VALID",
+            "The candidate representation preserves the supplied literal data.",
+            candidate,
+            "NOT ASSESSED BY THIS SKILL",
+            "Review the candidate boundary.",
+        )
+        if parse_scc_report(render_scc_report(block_candidate)) != block_candidate:
+            fail(f"SCC grammar does not disambiguate the {candidate!r} inline candidate")
+    multiline_fixture = SCC_TASKS / "positive-edge-034.yaml"
+    if not accepts_task_completion(load_projection(multiline_fixture), rendered_multiline, multiline_fixture.relative_to(ROOT).as_posix()):
+        fail("SCC grammar no longer serializes the terminal-newline multiline fixture")
+    for malformed_block in (
+        rendered_multiline.replace("  tool 'first", " tool 'first", 1),
+        rendered_multiline.replace("  second\n", "Execution authority: shadow\n", 1),
+        rendered_multiline.replace("  tool 'first", "Execution authority: shadow", 1),
+    ):
+        try:
+            parse_scc_report(malformed_block)
+        except GrammarError:
+            pass
+        else:
+            fail("SCC grammar accepts malformed block-candidate framing")
     field_values = (
         "The JSON payload is incorrectly quoted, so it splits into multiple arguments.",
         'tool "hello world"',
@@ -543,8 +577,6 @@ def check_scc_grammar() -> None:
         SCCReport("VALID", "assessment", "candidate", "APPROVED", "next"),
         SCCReport("VALID", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL", " "),
         SCCReport("BLOCKED", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL", "clarify one fact"),
-        SCCReport("VALID", "assessment", "Not provided", "NOT ASSESSED BY THIS SKILL", "review the boundary"),
-        SCCReport("VALID", "assessment", "|", "NOT ASSESSED BY THIS SKILL", "review the boundary"),
         SCCReport("VALID\x00", "assessment", "candidate", "NOT ASSESSED BY THIS SKILL", "next"),
         SCCReport("VALID", "assessment\x00", "candidate", "NOT ASSESSED BY THIS SKILL", "next"),
         SCCReport("VALID", "assessment", "candidate\x00", "NOT ASSESSED BY THIS SKILL", "next"),
