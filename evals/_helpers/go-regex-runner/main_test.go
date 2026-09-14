@@ -287,10 +287,10 @@ func TestCollectIgnoresRegexFieldsOnNonTextGraders(t *testing.T) {
 	}
 }
 
-func TestRunYAMLProjectionDecodesTextGraderContract(t *testing.T) {
+func TestRunYAMLProjectionDecodesTaskCompletionContract(t *testing.T) {
 	root := t.TempDir()
 	path := filepath.Join(root, "sample", "tasks", "task.yaml")
-	writeFile(t, path, "id: sample-task\ninputs:\n  prompt: |\n    Review this script.\ngraders:\n  - type: text\n    name: task_completion\n    config:\n      regex_match: ['^Verdict: CLEAN$']\n      regex_not_match: ['forbidden']\n      not_contains: ['Other report:']\n  - type: prompt\n    name: judge\n    config:\n      regex_match: ['ignored']\n")
+	writeFile(t, path, "id: sample-task\ninputs:\n  prompt: |\n    Review this script.\ngraders:\n  - type: text\n    name: task_completion\n    config:\n      regex_match: ['^Verdict: CLEAN$']\n      regex_not_match: ['forbidden']\n      not_contains: ['Other report:']\n  - type: text\n    name: unrelated_text_grader\n    config:\n      regex_match: ['unrelated marker']\n      regex_not_match: ['unrelated non-match']\n      not_contains: ['unrelated exclusion']\n")
 	var stdout, stderr bytes.Buffer
 	if err := run([]string{"--yaml-projection", path}, &stdout, &stderr); err != nil {
 		t.Fatal(err)
@@ -308,6 +308,28 @@ func TestRunYAMLProjectionRejectsConflictingFlags(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	err := run([]string{"--yaml-projection", "task.yaml", "--root", "evals"}, &stdout, &stderr)
 	if err == nil || !strings.Contains(err.Error(), "cannot be combined") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestRunYAMLProjectionRequiresTextTaskCompletionGrader(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "sample", "tasks", "task.yaml")
+	writeFile(t, path, "id: sample-task\ngraders:\n  - type: text\n    name: another_grader\n    config:\n      regex_match: ['^Verdict: CLEAN$']\n")
+	var stdout, stderr bytes.Buffer
+	err := run([]string{"--yaml-projection", path}, &stdout, &stderr)
+	if err == nil || !strings.Contains(err.Error(), "no text task_completion grader") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestRunYAMLProjectionRejectsMultipleTextTaskCompletionGraders(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "sample", "tasks", "task.yaml")
+	writeFile(t, path, "id: sample-task\ngraders:\n  - type: text\n    name: task_completion\n    config:\n      regex_match: ['^Verdict: CLEAN$']\n  - type: text\n    name: task_completion\n    config:\n      regex_match: ['^Findings: None$']\n")
+	var stdout, stderr bytes.Buffer
+	err := run([]string{"--yaml-projection", path}, &stdout, &stderr)
+	if err == nil || !strings.Contains(err.Error(), "multiple text task_completion graders") {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

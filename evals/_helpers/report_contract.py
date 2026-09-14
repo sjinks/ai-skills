@@ -1,8 +1,8 @@
-"""Canonical, executable grammar primitives for structured skill reports.
+"""Canonical, executable grammar for shell-portability reports.
 
-Keep the field order, enum domains, and report termination in one small
-module.  Suite-specific preflights should instantiate a contract here instead
-of maintaining divergent regex-shaped copies of the same envelope.
+This module deliberately owns the shell-portability finding schema as well as
+its field order, enum domains, and report termination. A different skill must
+define its own grammar rather than inherit shell-specific finding fields.
 """
 
 from __future__ import annotations
@@ -27,6 +27,11 @@ class Finding:
     risk: str
     portable_fix: str
     verification: str
+
+
+SHELL_PORTABILITY_RULES = frozenset(
+    ("interpreter-shebang", "bashisms", "utilities-flags", "output-behavior", "verification")
+)
 
 
 @dataclass(frozen=True)
@@ -162,6 +167,8 @@ class ReportContract:
         return verdict
 
     def _validate_normal(self, lines: list[str]) -> None:
+        if len(lines) < 4:
+            raise ContractError(f"{self.name}: normal report is truncated before findings")
         verdict = self._validate_verdict(lines[0])
         self._scalar(lines[1], self.target_label)
         self._scalar(lines[2], self.interpreter_label)
@@ -205,7 +212,7 @@ class ReportContract:
                 ("Severity", ("CRITICAL", "HIGH", "MEDIUM", "LOW")),
                 ("Classification", ("Confirmed issue", "Likely risk", "Open question", "Accepted tradeoff")),
                 ("Evidence", None),
-                ("Rule", ("interpreter-shebang", "bashisms", "utilities-flags", "output-behavior", "verification")),
+                ("Rule", SHELL_PORTABILITY_RULES),
                 ("Risk", None),
                 ("Portable fix", None),
                 ("Verification", None),
@@ -235,14 +242,16 @@ class ReportContract:
             ("Severity", "LOW"),
             ("Classification", "Open question"),
             ("Evidence", None),
-            ("Rule", None),
+            ("Rule", SHELL_PORTABILITY_RULES),
             ("Risk", None),
             ("Portable fix", None),
             ("Verification", "N/A"),
         )
         for line, (label, required) in zip(lines[5:], expected):
             value = self._scalar(line, f"  {label}")
-            if required is not None and value != required:
+            if required is not None and (
+                value not in required if isinstance(required, frozenset) else value != required
+            ):
                 raise ContractError(f"{self.name}: invalid insufficient-context {label}")
 
 

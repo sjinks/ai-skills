@@ -34,6 +34,8 @@ graders:
         - '(?is)\APortability verdict:\s*BLOCK\s*\r?\nPortability target:\s*[^\r\n]+\r?\n\r?\nPortability findings:\s*\r?\n1\.\s+[^\r\n]+\r?\n[ \t]+Severity:\s*LOW\s*\r?\n[ \t]+Classification:\s*Open question\s*\r?\n[ \t]+Evidence:\s*[^\r\n]*(?:no script|no code|not supplied|no commands)[^\r\n]*\r?\n[ \t]+Rule:\s*(?:interpreter-shebang|bashisms|utilities-flags|output-behavior|verification)\s*\r?\n[ \t]+Risk:\s*[^\r\n]+\r?\n[ \t]+Portable fix:\s*[^\r\n]*(?:provide|paste|supply)[^\r\n]*(?:script|code|commands)[^\r\n]*\r?\n[ \t]+Verification:\s*N/A\s*\r?\n?\z'
       not_contains:
         - "Portability checklist status:"
+        - "Portability interpreter:"
+        - "Portability residual risk:"
   - type: prompt
     name: task_completion_substance
     config:

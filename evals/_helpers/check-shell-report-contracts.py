@@ -59,23 +59,62 @@ def load_projection(path: Path) -> dict[str, object]:
 def check_skill_template() -> None:
     body = SKILL.read_text()
     try:
-        template = body.split("## Output Format\n", 1)[1].split("## Examples\n", 1)[0]
+        output_format = body.split("## Output Format\n", 1)[1].split("## Examples\n", 1)[0]
     except IndexError:
         fail("skills/shell-portability/SKILL.md has no bounded Output Format section")
-    for marker in CONTRACT.normal_markers:
-        if marker not in template:
-            fail(f"skills/shell-portability/SKILL.md is missing normal marker {marker!r}")
-    for marker in CONTRACT.reduced_markers:
-        if marker not in template:
-            fail(f"skills/shell-portability/SKILL.md is missing reduced marker {marker!r}")
+    templates = [part.split("```", 1)[0] for part in output_format.split("```text\n")[1:]]
+    if len(templates) != 2:
+        fail("skills/shell-portability/SKILL.md must define exactly normal and insufficient-context templates")
+    normal, reduced = templates
+    for profile, template, markers in (
+        ("normal", normal, CONTRACT.normal_markers),
+        ("insufficient-context", reduced, CONTRACT.reduced_markers),
+    ):
+        positions: list[int] = []
+        for marker in markers:
+            if template.count(marker) != 1:
+                fail(f"skills/shell-portability/SKILL.md {profile} template must contain {marker!r} exactly once")
+            positions.append(template.index(marker))
+        if positions != sorted(positions):
+            fail(f"skills/shell-portability/SKILL.md {profile} template markers are out of order")
+    for marker in sorted(set(CONTRACT.normal_markers) - set(CONTRACT.reduced_markers)):
+        if marker in reduced:
+            fail(f"skills/shell-portability/SKILL.md insufficient-context template must not contain {marker!r}")
 
 
 def requires_marker(task: Path, projection: dict[str, object], marker: str) -> None:
     patterns = projection.get("regex_match")
     if not isinstance(patterns, list):
         fail(f"{task.relative_to(ROOT)} has no regex_match projection")
-    if not any(marker.casefold() in pattern.casefold() for pattern in patterns):
-        fail(f"{task.relative_to(ROOT)} does not require {marker!r} in task_completion")
+    canonical_prefix = f"(?i){marker}".casefold()
+    if not any(pattern.casefold().startswith(canonical_prefix) for pattern in patterns):
+        fail(f"{task.relative_to(ROOT)} does not require {marker!r} with a canonical task_completion assertion")
+
+
+def check_weakened_marker_rejected(task: Path, projection: dict[str, object], marker: str) -> None:
+    """Prove that the assertion check rejects removed or optional markers."""
+
+    patterns = projection.get("regex_match")
+    if not isinstance(patterns, list):
+        fail(f"{task.relative_to(ROOT)} has no regex_match projection")
+    prefix = f"(?i){marker}"
+    matching = [pattern for pattern in patterns if pattern.casefold().startswith(prefix.casefold())]
+    if not matching:
+        fail(f"{task.relative_to(ROOT)} has no canonical assertion to mutate for {marker!r}")
+    removed = {**projection, "regex_match": [pattern for pattern in patterns if pattern not in matching]}
+    optional = {
+        **projection,
+        "regex_match": [
+            pattern.replace(prefix, f"(?i)(?:{marker})?", 1) if pattern in matching else pattern
+            for pattern in patterns
+        ],
+    }
+    for weakness, candidate in (("removed", removed), ("optional", optional)):
+        try:
+            requires_marker(task, candidate, marker)
+        except CheckError:
+            continue
+        fail(f"{task.relative_to(ROOT)} accepts a {weakness} {marker!r} assertion")
 
 
 def check_task_projections() -> None:
@@ -83,12 +122,20 @@ def check_task_projections() -> None:
     projection = load_projection(reduced)
     for marker in CONTRACT.reduced_markers:
         requires_marker(reduced, projection, marker)
+        check_weakened_marker_rejected(reduced, projection, marker)
+    forbidden_reduced = projection.get("not_contains")
+    if not isinstance(forbidden_reduced, list):
+        fail(f"{reduced.relative_to(ROOT)} has no not_contains projection")
+    for marker in sorted(set(CONTRACT.normal_markers) - set(CONTRACT.reduced_markers)):
+        if marker not in forbidden_reduced:
+            fail(f"{reduced.relative_to(ROOT)} does not reject normal-only marker {marker!r}")
     for task in sorted(TASKS.glob("positive-*.yaml")):
         if task == reduced:
             continue
         projection = load_projection(task)
         for marker in CONTRACT.normal_markers:
             requires_marker(task, projection, marker)
+            check_weakened_marker_rejected(task, projection, marker)
     for task in sorted(TASKS.glob("negative-*.yaml")):
         projection = load_projection(task)
         forbidden = projection.get("not_contains")
@@ -152,6 +199,11 @@ def check_mutation_matrix() -> int:
         ("invalid verdict", lambda: normal.replace("Verdict: CLEAN", "Verdict: VALID", 1)),
         ("invalid checklist value", lambda: normal.replace("Bashisms: covered", "Bashisms: optional", 1)),
         ("CLEAN with a finding", lambda: concerns.replace("Verdict: CONCERNS", "Verdict: CLEAN", 1)),
+        ("non-CLEAN with Findings: None", lambda: normal.replace("Verdict: CLEAN", "Verdict: CONCERNS", 1)),
+        ("invalid finding severity", lambda: concerns.replace("Severity: HIGH", "Severity: INFO", 1)),
+        ("invalid finding classification", lambda: concerns.replace("Classification: Confirmed issue", "Classification: Unknown", 1)),
+        ("invalid finding rule", lambda: concerns.replace("Rule: utilities-flags", "Rule: made-up-rule", 1)),
+        ("truncated normal report", lambda: "\n".join(normal.splitlines()[:3])),
         ("trailing prose", lambda: normal + "\nExtra explanation"),
         ("reduced wrong verdict", lambda: reduced.replace("Verdict: BLOCK", "Verdict: CLEAN", 1)),
         ("reduced full-only field", lambda: reduced.replace("\n\nFindings:", "\nInterpreter: undeclared\n\nFindings:", 1)),
