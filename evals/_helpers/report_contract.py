@@ -257,12 +257,12 @@ class ReportContract:
 
 SHELL_PORTABILITY_CONTRACT = ReportContract(
     name="shell-portability",
-    verdict_label="Verdict",
+    verdict_label="Portability verdict",
     verdicts=frozenset(("BLOCK", "CONCERNS", "CLEAN")),
-    target_label="Target",
-    interpreter_label="Interpreter",
-    findings_label="Findings",
-    checklist_label="Checklist status",
+    target_label="Portability target",
+    interpreter_label="Portability interpreter",
+    findings_label="Portability findings",
+    checklist_label="Portability checklist status",
     checklist_items=(
         "Interpreter and shebang",
         "Bashisms",
@@ -271,5 +271,5 @@ SHELL_PORTABILITY_CONTRACT = ReportContract(
         "Verification",
     ),
     checklist_values=frozenset(("covered", "missing", "n/a")),
-    residual_label="Residual risk",
+    residual_label="Portability residual risk",
 )

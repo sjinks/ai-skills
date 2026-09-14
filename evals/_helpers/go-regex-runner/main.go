@@ -32,8 +32,8 @@ type grader struct {
 }
 
 type task struct {
-	ID      string `yaml:"id"`
-	Inputs  struct {
+	ID     string `yaml:"id"`
+	Inputs struct {
 		Prompt string `yaml:"prompt"`
 	} `yaml:"inputs"`
 	Graders []grader `yaml:"graders"`
@@ -286,9 +286,6 @@ func projectYAML(path string, stdout io.Writer) error {
 		if grader.Type == "code" && grader.Name == "output_contract" {
 			projection.Assertions = grader.Config.Assertions
 		}
-	}
-	if !foundTaskCompletion {
-		return errors.New("task has no text task_completion grader")
 	}
 	return json.NewEncoder(stdout).Encode(projection)
 }

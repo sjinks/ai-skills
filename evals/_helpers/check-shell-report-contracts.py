@@ -86,9 +86,21 @@ def requires_marker(task: Path, projection: dict[str, object], marker: str) -> N
     patterns = projection.get("regex_match")
     if not isinstance(patterns, list):
         fail(f"{task.relative_to(ROOT)} has no regex_match projection")
-    canonical_prefix = f"(?i){marker}".casefold()
-    if not any(pattern.casefold().startswith(canonical_prefix) for pattern in patterns):
+    if not any(has_required_literal(pattern, marker) for pattern in patterns):
         fail(f"{task.relative_to(ROOT)} does not require {marker!r} with a canonical task_completion assertion")
+
+
+def has_required_literal(pattern: str, marker: str) -> bool:
+    """Recognize a literal marker that is not made optional by a local group."""
+
+    start = 0
+    while (index := pattern.casefold().find(marker.casefold(), start)) >= 0:
+        before = pattern[:index]
+        after = pattern[index + len(marker) :]
+        if not (before.endswith("(?:") and after.startswith(")?")):
+            return True
+        start = index + len(marker)
+    return False
 
 
 def check_weakened_marker_rejected(task: Path, projection: dict[str, object], marker: str) -> None:
@@ -97,15 +109,14 @@ def check_weakened_marker_rejected(task: Path, projection: dict[str, object], ma
     patterns = projection.get("regex_match")
     if not isinstance(patterns, list):
         fail(f"{task.relative_to(ROOT)} has no regex_match projection")
-    prefix = f"(?i){marker}"
-    matching = [pattern for pattern in patterns if pattern.casefold().startswith(prefix.casefold())]
+    matching = [pattern for pattern in patterns if has_required_literal(pattern, marker)]
     if not matching:
         fail(f"{task.relative_to(ROOT)} has no canonical assertion to mutate for {marker!r}")
     removed = {**projection, "regex_match": [pattern for pattern in patterns if pattern not in matching]}
     optional = {
         **projection,
         "regex_match": [
-            pattern.replace(prefix, f"(?i)(?:{marker})?", 1) if pattern in matching else pattern
+            pattern.replace(marker, f"(?:{marker})?", 1) if pattern in matching else pattern
             for pattern in patterns
         ],
     }
@@ -118,22 +129,26 @@ def check_weakened_marker_rejected(task: Path, projection: dict[str, object], ma
 
 
 def check_task_projections() -> None:
-    reduced = TASKS / "positive-edge-1.yaml"
-    projection = load_projection(reduced)
-    for marker in CONTRACT.reduced_markers:
-        requires_marker(reduced, projection, marker)
-        check_weakened_marker_rejected(reduced, projection, marker)
-    forbidden_reduced = projection.get("not_contains")
-    if not isinstance(forbidden_reduced, list):
-        fail(f"{reduced.relative_to(ROOT)} has no not_contains projection")
-    for marker in sorted(set(CONTRACT.normal_markers) - set(CONTRACT.reduced_markers)):
-        if marker not in forbidden_reduced:
-            fail(f"{reduced.relative_to(ROOT)} does not reject normal-only marker {marker!r}")
     for task in sorted(TASKS.glob("positive-*.yaml")):
-        if task == reduced:
-            continue
         projection = load_projection(task)
-        for marker in CONTRACT.normal_markers:
+        normal_only_markers = tuple(
+            marker for marker in CONTRACT.normal_markers if marker not in CONTRACT.reduced_markers
+        )
+        required_normal_only = [
+            marker
+            for marker in normal_only_markers
+            if any(has_required_literal(pattern, marker) for pattern in projection["regex_match"])
+        ]
+        if len(required_normal_only) == len(normal_only_markers):
+            markers = CONTRACT.normal_markers
+        elif required_normal_only:
+            fail(f"{task.relative_to(ROOT)} mixes normal and insufficient-context task_completion markers")
+        else:
+            markers = CONTRACT.reduced_markers
+            for marker in sorted(set(CONTRACT.normal_markers) - set(CONTRACT.reduced_markers)):
+                if not rejects_marker(projection, marker):
+                    fail(f"{task.relative_to(ROOT)} does not reject normal-only marker {marker!r}")
+        for marker in markers:
             requires_marker(task, projection, marker)
             check_weakened_marker_rejected(task, projection, marker)
     for task in sorted(TASKS.glob("negative-*.yaml")):
@@ -151,6 +166,17 @@ def check_task_projections() -> None:
                 fail(f"{task.relative_to(ROOT)} cannot forbid a marker present in its prompt")
 
 
+def rejects_marker(projection: dict[str, object], marker: str) -> bool:
+    """Accept literal exclusions and regex exclusions that name the label."""
+
+    forbidden = projection.get("not_contains")
+    patterns = projection.get("regex_not_match")
+    if not isinstance(forbidden, list) or not isinstance(patterns, list):
+        return False
+    label = marker.removesuffix(":")
+    return marker in forbidden or any(label.casefold() in pattern.casefold() for pattern in patterns)
+
+
 def expect_rejected(name: str, output: str) -> None:
     try:
         CONTRACT.validate(output)
@@ -160,10 +186,19 @@ def expect_rejected(name: str, output: str) -> None:
 
 
 def check_mutation_matrix() -> int:
+    target = "POSIX sh on macOS and Linux"
+    interpreter = "#!/bin/sh"
+    normal_target = f"{CONTRACT.target_label}: {target}"
+    normal_interpreter = f"{CONTRACT.interpreter_label}: {interpreter}"
+    normal_findings = f"{CONTRACT.findings_label}: None"
+    normal_verdict = f"{CONTRACT.verdict_label}: CLEAN"
+    reduced_verdict = f"{CONTRACT.verdict_label}: BLOCK"
+    reduced_target = f"{CONTRACT.target_label}: default baseline"
+    reduced_findings = f"{CONTRACT.findings_label}:"
     normal = CONTRACT.render_normal(
         verdict="CLEAN",
-        target="POSIX sh on macOS and Linux",
-        interpreter="#!/bin/sh",
+        target=target,
+        interpreter=interpreter,
         findings=(),
         checklist={item: "covered" for item in CONTRACT.checklist_items},
         residual_risk="None",
@@ -173,8 +208,8 @@ def check_mutation_matrix() -> int:
         fail("canonical renderers did not round-trip")
     concerns = CONTRACT.render_normal(
         verdict="CONCERNS",
-        target="POSIX sh on macOS and Linux",
-        interpreter="#!/bin/sh",
+        target=target,
+        interpreter=interpreter,
         findings=(
             Finding(
                 title="GNU-only flag",
@@ -193,35 +228,35 @@ def check_mutation_matrix() -> int:
     if CONTRACT.validate(concerns) != "normal":
         fail("non-CLEAN normal renderer did not round-trip")
     mutations: list[tuple[str, Callable[[], str]]] = [
-        ("missing target", lambda: normal.replace("Target: POSIX sh on macOS and Linux\n", "", 1)),
-        ("reordered target", lambda: normal.replace("Target: POSIX sh on macOS and Linux\nInterpreter", "Interpreter").replace("#!/bin/sh\n\nFindings", "#!/bin/sh\nTarget: POSIX sh on macOS and Linux\n\nFindings")),
-        ("duplicate verdict", lambda: normal.replace("Target:", "Verdict: CLEAN\nTarget:", 1)),
-        ("invalid verdict", lambda: normal.replace("Verdict: CLEAN", "Verdict: VALID", 1)),
+        ("missing target", lambda: normal.replace(normal_target + "\n", "", 1)),
+        ("reordered target", lambda: normal.replace(normal_target + "\n" + normal_interpreter, normal_interpreter).replace(interpreter + "\n\n" + normal_findings, interpreter + "\n" + normal_target + "\n\n" + normal_findings)),
+        ("duplicate verdict", lambda: normal.replace(f"{CONTRACT.target_label}:", normal_verdict + "\n" + f"{CONTRACT.target_label}:", 1)),
+        ("invalid verdict", lambda: normal.replace(normal_verdict, f"{CONTRACT.verdict_label}: VALID", 1)),
         ("invalid checklist value", lambda: normal.replace("Bashisms: covered", "Bashisms: optional", 1)),
-        ("CLEAN with a finding", lambda: concerns.replace("Verdict: CONCERNS", "Verdict: CLEAN", 1)),
-        ("non-CLEAN with Findings: None", lambda: normal.replace("Verdict: CLEAN", "Verdict: CONCERNS", 1)),
+        ("CLEAN with a finding", lambda: concerns.replace(f"{CONTRACT.verdict_label}: CONCERNS", normal_verdict, 1)),
+        ("non-CLEAN with Findings: None", lambda: normal.replace(normal_verdict, f"{CONTRACT.verdict_label}: CONCERNS", 1)),
         ("invalid finding severity", lambda: concerns.replace("Severity: HIGH", "Severity: INFO", 1)),
         ("invalid finding classification", lambda: concerns.replace("Classification: Confirmed issue", "Classification: Unknown", 1)),
         ("invalid finding rule", lambda: concerns.replace("Rule: utilities-flags", "Rule: made-up-rule", 1)),
         ("truncated normal report", lambda: "\n".join(normal.splitlines()[:3])),
         ("trailing prose", lambda: normal + "\nExtra explanation"),
-        ("reduced wrong verdict", lambda: reduced.replace("Verdict: BLOCK", "Verdict: CLEAN", 1)),
-        ("reduced full-only field", lambda: reduced.replace("\n\nFindings:", "\nInterpreter: undeclared\n\nFindings:", 1)),
+        ("reduced wrong verdict", lambda: reduced.replace(reduced_verdict, normal_verdict, 1)),
+        ("reduced full-only field", lambda: reduced.replace("\n\n" + reduced_findings, "\n" + f"{CONTRACT.interpreter_label}: undeclared" + "\n\n" + reduced_findings, 1)),
         ("reduced missing finding", lambda: reduced.replace("1. Missing context\n", "", 1)),
     ]
     normal_fields = (
-        ("verdict", "Verdict: CLEAN\n"),
-        ("target", "Target: POSIX sh on macOS and Linux\n"),
-        ("interpreter", "Interpreter: #!/bin/sh\n"),
-        ("findings", "Findings: None\n"),
-        ("checklist header", "Checklist status:\n"),
+        ("verdict", normal_verdict + "\n"),
+        ("target", normal_target + "\n"),
+        ("interpreter", normal_interpreter + "\n"),
+        ("findings", normal_findings + "\n"),
+        ("checklist header", f"{CONTRACT.checklist_label}:\n"),
         *((f"checklist {item}", f"- {item}: covered\n") for item in CONTRACT.checklist_items),
-        ("residual risk", "Residual risk: None"),
+        ("residual risk", f"{CONTRACT.residual_label}: None"),
     )
     reduced_fields = (
-        ("verdict", "Verdict: BLOCK\n"),
-        ("target", "Target: default baseline\n"),
-        ("findings header", "Findings:\n"),
+        ("verdict", reduced_verdict + "\n"),
+        ("target", reduced_target + "\n"),
+        ("findings header", reduced_findings + "\n"),
         ("numbered finding", "1. Missing context\n"),
         ("severity", "  Severity: LOW\n"),
         ("classification", "  Classification: Open question\n"),

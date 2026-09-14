@@ -312,14 +312,20 @@ func TestRunYAMLProjectionRejectsConflictingFlags(t *testing.T) {
 	}
 }
 
-func TestRunYAMLProjectionRequiresTextTaskCompletionGrader(t *testing.T) {
+func TestRunYAMLProjectionAllowsCodeContractWithoutTextTaskCompletion(t *testing.T) {
 	root := t.TempDir()
 	path := filepath.Join(root, "sample", "tasks", "task.yaml")
-	writeFile(t, path, "id: sample-task\ngraders:\n  - type: text\n    name: another_grader\n    config:\n      regex_match: ['^Verdict: CLEAN$']\n")
+	writeFile(t, path, "id: sample-task\ngraders:\n  - type: code\n    name: output_contract\n    config:\n      assertions: ['output is valid']\n")
 	var stdout, stderr bytes.Buffer
-	err := run([]string{"--yaml-projection", path}, &stdout, &stderr)
-	if err == nil || !strings.Contains(err.Error(), "no text task_completion grader") {
-		t.Fatalf("unexpected error: %v", err)
+	if err := run([]string{"--yaml-projection", path}, &stdout, &stderr); err != nil {
+		t.Fatal(err)
+	}
+	var projection yamlProjection
+	if err := json.Unmarshal(stdout.Bytes(), &projection); err != nil {
+		t.Fatalf("decode projection: %v", err)
+	}
+	if len(projection.RegexMatch) != 0 || len(projection.Assertions) != 1 || projection.Assertions[0] != "output is valid" {
+		t.Fatalf("unexpected projection: %#v", projection)
 	}
 }
 
