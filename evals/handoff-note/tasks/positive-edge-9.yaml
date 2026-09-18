@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-009
+name: Caller schema replaces default labels without losing safeguards
+description: |
+  A caller-required schema replaces the skill's default headings, but the
+  handoff must still retain evidence, avoided work, transfer status, ordered
+  actions, constraints, and unknowns.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Create a handoff using exactly this required schema and no other headings:
+    `# Continuation Packet: <work item>`, `## Objective`, `## State`,
+    `## Evidence`, `## Risks and Constraints`, `## Actions`, and `## Unknowns`.
+
+    Work item: finish the checkout retry fix. The current branch is
+    fix/checkout-retry. There are uncommitted, unpushed edits in
+    src/checkout/retry.ts; no patch has been exported, and the recipient will
+    work on another machine. The user states that the focused test was not run
+    after the latest edit. Raising retries to five hid the failure but caused
+    duplicate charges, so do not repeat it. First transfer the local change,
+    then add an idempotency test. Do not change payment-capture behavior.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/handoff-note/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - handoff-note
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)# Continuation Packet:'
+        - '(?i)## Objective'
+        - '(?i)## State'
+        - '(?i)## Evidence'
+        - '(?i)## Risks and Constraints'
+        - '(?i)## Actions'
+        - '(?i)## Unknowns'
+        - '(?is)State.{0,500}(uncommitted|unpushed).{0,300}(patch|transfer|unavailable)'
+        - '(?is)Evidence.{0,500}(not run|user-stated).{0,300}(focused test|test)'
+        - '(?is)Risks and Constraints.{0,500}(five|duplicate charges).{0,300}(do not repeat|avoid)'
+        - '(?is)Actions\s*\n\s*1\..{0,300}(transfer|patch|share|push|recreate)'
+        - '(?is)Actions.{0,500}idempotency test'
+        - '(?is)Risks and Constraints.{0,300}payment-capture'
+      not_contains:
+        - '## Goal'
+        - '## Current State'
+        - '## Completed Work'
+        - '## Tried and Avoid'
+        - '## Next Steps'
+        - '## Constraints and Boundaries'
+        - '## Open Questions'
+  - type: program
+    name: schema_contract
+    config:
+      command: python3
+      args:
+        - evals/handoff-note/check-report.py
+      timeout: 30

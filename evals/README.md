@@ -289,6 +289,13 @@ python3 evals/_helpers/check-eval-regexes.py --root evals/<skill>
 frontmatter, token budget, and eval presence checks. Run the regex validator
 whenever task YAML or grader contracts change; it also does not execute a model.
 
+The `handoff-note` caller-schema edge case additionally validates its exact
+heading set and order without a model:
+
+```bash
+python3 evals/handoff-note/check-report.py --self-test
+```
+
 Static checks validate only artifact structure and deterministic assertions; they do not prove any model's behavior. GPT-5.4 mini and Claude Haiku 4.5 are compatibility-floor evaluation goals, not proven outcomes. Live evidence is specific to the model, runtime, and settings, and each live evaluation remains explicitly approval-gated.
 
 Model evals are optional and require local Copilot authentication or a
