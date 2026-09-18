@@ -18,7 +18,7 @@ It helps an assistant:
 
 ## Weak-model path
 
-The skill begins with a short, fixed path: choose create, update, audit, audit + update, or BLOCK; sort statements by evidence; redact and check transferability; render one schema; then do a cold-resume check. This keeps the normal path shallow while retaining the evidence and safety boundaries needed for a portable handoff.
+The skill begins with a short, fixed path: resolve BLOCK or one required clarification; choose create, update, audit, or audit + update; sort statements by evidence; redact and check transferability; render the mode-specific schema; then do a cold-resume check. This keeps the normal path shallow while retaining the evidence and safety boundaries needed for a portable handoff.
 
 ## Model-evaluation plan
 
@@ -33,7 +33,7 @@ When a maintainer has explicit approval, run the same suite with provider-suppor
 | Broad synthesis: GPT-5.6 Terra and Claude Opus 5 | complex/untrusted-context and audit + update cases | Check that richer reasoning does not override boundaries or compress uncertainty. |
 | Remaining declared targets: GPT-5.5, GPT-5.6 Luna, GPT-5.6 Sol, Claude Opus 4.8, and Claude Fable 5 | normal create plus the floor probes | Establish model-specific evidence across the full declared roster; do not infer it from another profile. |
 
-The floor probes are `positive-edge-001`, `positive-edge-002`, `positive-edge-003`, `positive-edge-008`, and `positive-edge-009`. Use `waza models` to discover supported identifiers, then run only an approved command such as `waza run evals/handoff-note/eval.yaml --model <approved-model> --output <result-file>`.
+The floor probes are `positive-edge-001`, `positive-edge-002`, `positive-edge-003`, `positive-edge-008`, and `positive-edge-009`; `positive-edge-010` covers audit + update. Use `waza models` to discover supported identifiers, then run only an approved command such as `waza run evals/handoff-note/eval.yaml --model <approved-model> --output <result-file>`.
 
 ## Files
 

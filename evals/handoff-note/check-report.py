@@ -20,6 +20,19 @@ EXPECTED = (
     "## Actions",
     "## Unknowns",
 )
+AUDIT_UPDATE_EXPECTED = (
+    "# Review:",
+    "## Findings",
+    "## Corrections",
+    "## Ready",
+    "# Continuation:",
+    "## Objective",
+    "## State",
+    "## Evidence",
+    "## Risks",
+    "## Actions",
+    "## Unknowns",
+)
 
 
 def headings(text: str) -> list[str]:
@@ -27,13 +40,39 @@ def headings(text: str) -> list[str]:
 
 
 def validate(text: str) -> None:
+    if not re.match(r"\A# Continuation Packet: \S(?:.*\S)?\n", text):
+        raise ValueError("output must start with '# Continuation Packet: <work item>'")
     actual = headings(text)
     if len(actual) != len(EXPECTED):
         raise ValueError(f"expected exactly {len(EXPECTED)} headings, found {len(actual)}")
-    if not actual[0].startswith(EXPECTED[0]) or actual[0] == EXPECTED[0]:
+    if not re.fullmatch(r"# Continuation Packet: \S(?:.*\S)?", actual[0]):
         raise ValueError("first heading must be '# Continuation Packet: <work item>'")
     if tuple(actual[1:]) != EXPECTED[1:]:
         raise ValueError("headings must match the required labels and order exactly")
+    unknowns = text.splitlines()[text.splitlines().index("## Unknowns") + 1 :]
+    if any(line.strip() and not line.startswith("- ") for line in unknowns):
+        raise ValueError("Unknowns may contain only bullet entries; trailing prose is not allowed")
+
+
+def validate_audit_update(text: str) -> None:
+    if not re.match(r"\A# Review: \S(?:.*\S)?\n", text):
+        raise ValueError("output must start with '# Review: <work item>'")
+    actual = headings(text)
+    if len(actual) != len(AUDIT_UPDATE_EXPECTED):
+        raise ValueError(
+            f"expected exactly {len(AUDIT_UPDATE_EXPECTED)} headings, found {len(actual)}"
+        )
+    if not re.fullmatch(r"# Review: \S(?:.*\S)?", actual[0]):
+        raise ValueError("first heading must be '# Review: <work item>'")
+    if tuple(actual[1:4]) != AUDIT_UPDATE_EXPECTED[1:4]:
+        raise ValueError("review headings must match the required labels and order exactly")
+    if not re.fullmatch(r"# Continuation: \S(?:.*\S)?", actual[4]):
+        raise ValueError("continuation heading must be '# Continuation: <work item>'")
+    if tuple(actual[5:]) != AUDIT_UPDATE_EXPECTED[5:]:
+        raise ValueError("handoff headings must match the required labels and order exactly")
+    unknowns = text.splitlines()[text.splitlines().index("## Unknowns") + 1 :]
+    if any(line.strip() and not line.startswith("- ") for line in unknowns):
+        raise ValueError("Unknowns may contain only bullet entries; trailing prose is not allowed")
 
 
 def self_test() -> None:
@@ -62,6 +101,10 @@ def self_test() -> None:
         ),
         valid + "### Extra status\n- Not allowed.\n",
         valid.replace("## Unknowns", "## Open Questions", 1),
+        valid.replace("# Continuation Packet: retry fix", "# Continuation Packet:retry fix", 1),
+        valid.replace("# Continuation Packet: retry fix", "# Continuation Packet:", 1),
+        "Preamble\n" + valid,
+        valid + "Unscoped epilogue.\n",
     )
     for mutation in mutations:
         try:
@@ -70,13 +113,57 @@ def self_test() -> None:
             continue
         raise AssertionError("invalid schema mutation passed")
 
+    audit_update = """# Review: retry fix
+## Findings
+- Missing validation status.
+## Corrections
+1. Add the missing evidence.
+## Ready
+- No.
+# Continuation: retry fix
+## Objective
+- Finish it.
+## State
+- Dirty.
+## Evidence
+- Not run.
+## Risks
+- Do not change capture.
+## Actions
+1. Add a test.
+## Unknowns
+- None.
+"""
+    validate_audit_update(audit_update)
+    audit_mutations = (
+        audit_update.replace("## Corrections\n", "", 1),
+        audit_update.replace("# Continuation: retry fix", "# Continuation:retry fix", 1),
+        audit_update.replace("## Findings\n", "## Ready\n", 1),
+        audit_update + "### Extra status\n- Not allowed.\n",
+        "Preamble\n" + audit_update,
+        audit_update + "Unscoped epilogue.\n",
+    )
+    for mutation in audit_mutations:
+        try:
+            validate_audit_update(mutation)
+        except ValueError:
+            continue
+        raise AssertionError("invalid audit-update schema mutation passed")
+
 
 def main() -> int:
     if sys.argv[1:] == ["--self-test"]:
         self_test()
         return 0
+    if sys.argv[1:] == ["--audit-update"]:
+        validator = validate_audit_update
+    elif not sys.argv[1:]:
+        validator = validate
+    else:
+        print("usage: check-report.py [--audit-update | --self-test]", file=sys.stderr)
+        return 2
     try:
-        validate(sys.stdin.read())
+        validator(sys.stdin.read())
     except ValueError as error:
         print(f"handoff schema contract failed: {error}", file=sys.stderr)
         return 1

@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-010
+name: Audit and update preserve caller-provided two-part schema
+description: |
+  An audit + update request requires the audit first and the corrected handoff
+  second. A caller schema may replace both layouts only when it supplies a
+  distinct layout for each output.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Audit and update this handoff. Use exactly these two required layouts and
+    no other headings. Emit the review first:
+    `# Review: <work item>`, `## Findings`, `## Corrections`, `## Ready`;
+    then emit the updated handoff:
+    `# Continuation: <work item>`, `## Objective`, `## State`,
+    `## Evidence`, `## Risks`, `## Actions`, `## Unknowns`.
+
+    Existing handoff: the checkout retry fix is on branch fix/checkout-retry,
+    but it has no validation status, avoided approach, constraints, or open
+    questions. New facts: the focused test was not run after the latest edit.
+    Raising retries to five hid the failure but caused duplicate charges, so
+    do not repeat it. First add an idempotency test. Do not change
+    payment-capture behavior.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/handoff-note/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - handoff-note
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?is)# Review:.{0,1000}## Findings.{0,1000}## Corrections.{0,1000}## Ready.{0,1000}# Continuation:'
+        - '(?is)# Continuation:.{0,1000}## Objective.{0,1000}## State.{0,1000}## Evidence.{0,1000}## Risks.{0,1000}## Actions.{0,1000}## Unknowns'
+        - '(?is)Evidence.{0,500}((not run).{0,300}(focused test|test)|(focused test|test).{0,300}(not run))'
+        - '(?is)Risks.{0,500}(five|duplicate charges).{0,300}(do not repeat|avoid)'
+        - '(?is)Actions.{0,500}idempotency test'
+        - '(?is)Risks.{0,300}payment-capture'
+      not_contains:
+        - '# Handoff Audit:'
+        - '# Handoff Note:'
+        - '## Completeness Findings'
+        - '## Required Corrections'
+        - '## Ready to Hand Off'
+        - '## Goal'
+        - '## Current State'
+        - '## Completed Work'
+        - '## Tried and Avoid'
+        - '## Next Steps'
+        - '## Constraints and Boundaries'
+        - '## Open Questions'
+  - type: program
+    name: schema_contract
+    config:
+      command: python3
+      args:
+        - evals/handoff-note/check-report.py
+        - --audit-update
+      timeout: 30
