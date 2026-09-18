@@ -68,6 +68,19 @@ def omit_section_body(text: str, heading: str) -> str:
     return "".join(lines[: start + 1] + lines[end:])
 
 
+def validate_unknowns(lines: list[str]) -> None:
+    entries = [line.strip() for line in lines if line.strip()]
+    if entries and all(entry.startswith("- ") for entry in entries):
+        return
+    if entries == ["unknown"]:
+        return
+    if len(entries) == 1 and re.fullmatch(r"Unknown: \S.*", entries[0]):
+        return
+    raise ValueError(
+        "Unknowns must contain bullets, 'unknown', or 'Unknown: <missing obligation>'"
+    )
+
+
 def validate(text: str) -> None:
     if not re.match(r"\A# Continuation Packet: \S(?:.*\S)?\n", text):
         raise ValueError("output must start with '# Continuation Packet: <work item>'")
@@ -82,8 +95,7 @@ def validate(text: str) -> None:
     positions = heading_positions(lines)
     require_nonempty_sections(lines, positions[1:])
     unknowns = lines[lines.index("## Unknowns") + 1 :]
-    if any(line.strip() and not line.startswith("- ") for line in unknowns):
-        raise ValueError("Unknowns may contain only bullet entries; trailing prose is not allowed")
+    validate_unknowns(unknowns)
 
 
 def validate_audit_update(text: str) -> None:
@@ -115,8 +127,7 @@ def validate_audit_update(text: str) -> None:
     ):
         raise ValueError("Ready must contain exactly '- yes|no, <reason>'")
     unknowns = lines[lines.index("## Unknowns") + 1 :]
-    if any(line.strip() and not line.startswith("- ") for line in unknowns):
-        raise ValueError("Unknowns may contain only bullet entries; trailing prose is not allowed")
+    validate_unknowns(unknowns)
 
 
 def self_test() -> None:
@@ -150,6 +161,8 @@ def self_test() -> None:
         "Preamble\n" + valid,
         valid + "Unscoped epilogue.\n",
     ]
+    for sentinel in ("unknown", "Unknown: missing obligation"):
+        validate(valid.replace("- None.", sentinel, 1))
     mutations.extend(omit_section_body(valid, heading) for heading in EXPECTED[1:])
     for mutation in mutations:
         try:
@@ -199,6 +212,8 @@ def self_test() -> None:
             1,
         ),
     ]
+    for sentinel in ("unknown", "Unknown: missing obligation"):
+        validate_audit_update(audit_update.replace("- None.", sentinel, 1))
     audit_mutations.extend(
         omit_section_body(audit_update, heading)
         for heading in AUDIT_UPDATE_EXPECTED[1:4] + AUDIT_UPDATE_EXPECTED[5:]

@@ -44,3 +44,5 @@ graders:
         - '(?i)## Ready to Hand Off'
         - '(?is)(Completed Work|Tried and Avoid|Constraints and Boundaries|Open Questions|validation)'
         - '(?is)Ready to Hand Off.{0,200}(no|not yet)'
+      not_contains:
+        - '# Handoff Note:'
