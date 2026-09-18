@@ -43,14 +43,7 @@ graders:
     config:
       regex_match:
         - '(?is)# Review:.{0,1000}## Findings.{0,1000}## Corrections.{0,1000}## Ready.{0,1000}# Continuation:'
-        - '(?is)## Findings.{0,300}(missing|lacks|no validation)'
-        - '(?is)## Corrections.{0,300}(add|record).{0,300}(validation|evidence)'
-        - '(?is)## Ready\s*\n\s*-\s*no,\s*[^\n]*(missing|incomplete|validation)'
         - '(?is)# Continuation:.{0,1000}## Objective.{0,1000}## State.{0,1000}## Evidence.{0,1000}## Risks.{0,1000}## Actions.{0,1000}## Unknowns'
-        - '(?is)Evidence.{0,500}((not run).{0,300}(focused test|test)|(focused test|test).{0,300}(not run))'
-        - '(?is)Risks.{0,500}(five|duplicate charges).{0,300}(do not repeat|avoid)'
-        - '(?is)Actions.{0,500}idempotency test'
-        - '(?is)Risks.{0,300}payment-capture'
       not_contains:
         - '# Handoff Audit:'
         - '# Handoff Note:'

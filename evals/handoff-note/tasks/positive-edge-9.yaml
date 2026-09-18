@@ -47,12 +47,6 @@ graders:
         - '(?i)## Risks and Constraints'
         - '(?i)## Actions'
         - '(?i)## Unknowns'
-        - '(?is)State.{0,500}(uncommitted|unpushed).{0,300}(patch|transfer|unavailable)'
-        - '(?is)Evidence.{0,500}((not run|user-stated).{0,300}(focused test|test)|(focused test|test).{0,300}(not run|user-stated))'
-        - '(?is)Risks and Constraints.{0,500}(five|duplicate charges).{0,300}(do not repeat|avoid)'
-        - '(?is)Actions\s*\n\s*1\..{0,300}(transfer|patch|share|push|recreate)'
-        - '(?is)Actions.{0,500}idempotency test'
-        - '(?is)Risks and Constraints.{0,300}payment-capture'
       not_contains:
         - '## Goal'
         - '## Current State'

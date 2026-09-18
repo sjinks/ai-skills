@@ -33,7 +33,7 @@ When a maintainer has explicit approval, run the same suite with provider-suppor
 | Broad synthesis: GPT-5.6 Terra and Claude Opus 5 | complex/untrusted-context and audit + update cases | Check that richer reasoning does not override boundaries or compress uncertainty. |
 | Remaining declared targets: GPT-5.5, GPT-5.6 Luna, GPT-5.6 Sol, Claude Opus 4.8, and Claude Fable 5 | normal create plus the floor probes | Establish model-specific evidence across the full declared roster; do not infer it from another profile. |
 
-The floor probes are `positive-edge-001`, `positive-edge-002`, `positive-edge-003`, `positive-edge-008`, and `positive-edge-009`; `positive-edge-010` covers audit + update, `positive-edge-011` covers the clarification-only path, and `positive-edge-012` covers a missing audit + update layout. Use `waza models` to discover supported identifiers, then run only an approved command such as `waza run evals/handoff-note/eval.yaml --model <approved-model> --output <result-file>`.
+The floor probes are `positive-edge-001`, `positive-edge-002`, `positive-edge-003`, `positive-edge-008`, and `positive-edge-009`; `positive-edge-010` covers audit + update, `positive-edge-011` covers the clarification-only path, `positive-edge-012` covers a missing audit + update layout, and `positive-edge-013` covers audit-only caller schemas. Use `waza models` to discover supported identifiers, then run only an approved command such as `waza run evals/handoff-note/eval.yaml --model <approved-model> --output <result-file>`.
 
 ## Files
 

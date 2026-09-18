@@ -294,7 +294,12 @@ heading set and order without a model:
 
 ```bash
 python3 evals/handoff-note/check-report.py --self-test
+python3 evals/handoff-note/test_check_report.py
 ```
+
+The projection test verifies that exact-schema profiles use the matching checker
+and that negative and stop-path tasks exclude the distinctive custom top-level
+markers without banning broad headings such as `## Risks`.
 
 Static checks validate only artifact structure and deterministic assertions; they do not prove any model's behavior. GPT-5.4 mini and Claude Haiku 4.5 are compatibility-floor evaluation goals, not proven outcomes. Live evidence is specific to the model, runtime, and settings, and each live evaluation remains explicitly approval-gated.
 
