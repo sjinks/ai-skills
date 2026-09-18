@@ -39,6 +39,35 @@ def headings(text: str) -> list[str]:
     return [line.strip() for line in text.splitlines() if re.match(r"^#{1,6}\s+", line)]
 
 
+def heading_positions(lines: list[str]) -> list[tuple[int, str]]:
+    return [
+        (index, line.strip())
+        for index, line in enumerate(lines)
+        if re.match(r"^#{1,6}\s+", line)
+    ]
+
+
+def require_nonempty_sections(lines: list[str], positions: list[tuple[int, str]]) -> None:
+    for offset, (start, heading) in enumerate(positions):
+        end = positions[offset + 1][0] if offset + 1 < len(positions) else len(lines)
+        if not any(line.strip() for line in lines[start + 1 : end]):
+            raise ValueError(f"{heading} requires a nonempty body")
+
+
+def omit_section_body(text: str, heading: str) -> str:
+    lines = text.splitlines(keepends=True)
+    start = next(index for index, line in enumerate(lines) if line.strip() == heading)
+    end = next(
+        (
+            index
+            for index in range(start + 1, len(lines))
+            if re.match(r"^#{1,6}\s+", lines[index])
+        ),
+        len(lines),
+    )
+    return "".join(lines[: start + 1] + lines[end:])
+
+
 def validate(text: str) -> None:
     if not re.match(r"\A# Continuation Packet: \S(?:.*\S)?\n", text):
         raise ValueError("output must start with '# Continuation Packet: <work item>'")
@@ -49,7 +78,10 @@ def validate(text: str) -> None:
         raise ValueError("first heading must be '# Continuation Packet: <work item>'")
     if tuple(actual[1:]) != EXPECTED[1:]:
         raise ValueError("headings must match the required labels and order exactly")
-    unknowns = text.splitlines()[text.splitlines().index("## Unknowns") + 1 :]
+    lines = text.splitlines()
+    positions = heading_positions(lines)
+    require_nonempty_sections(lines, positions[1:])
+    unknowns = lines[lines.index("## Unknowns") + 1 :]
     if any(line.strip() and not line.startswith("- ") for line in unknowns):
         raise ValueError("Unknowns may contain only bullet entries; trailing prose is not allowed")
 
@@ -71,6 +103,8 @@ def validate_audit_update(text: str) -> None:
     if tuple(actual[5:]) != AUDIT_UPDATE_EXPECTED[5:]:
         raise ValueError("handoff headings must match the required labels and order exactly")
     lines = text.splitlines()
+    positions = heading_positions(lines)
+    require_nonempty_sections(lines, positions[1:4] + positions[5:])
     continuation_index = next(
         index for index, line in enumerate(lines) if line.startswith("# Continuation: ")
     )
@@ -101,7 +135,7 @@ def self_test() -> None:
 - None.
 """
     validate(valid)
-    mutations = (
+    mutations = [
         valid.replace("## Evidence\n", "", 1),
         valid.replace("## State\n", "## State\n- Duplicate.\n## State\n", 1),
         valid.replace(
@@ -115,7 +149,8 @@ def self_test() -> None:
         valid.replace("# Continuation Packet: retry fix", "# Continuation Packet:", 1),
         "Preamble\n" + valid,
         valid + "Unscoped epilogue.\n",
-    )
+    ]
+    mutations.extend(omit_section_body(valid, heading) for heading in EXPECTED[1:])
     for mutation in mutations:
         try:
             validate(mutation)
@@ -145,7 +180,7 @@ def self_test() -> None:
 - None.
 """
     validate_audit_update(audit_update)
-    audit_mutations = (
+    audit_mutations = [
         audit_update.replace("## Corrections\n", "", 1),
         audit_update.replace("# Continuation: retry fix", "# Continuation:retry fix", 1),
         audit_update.replace("## Findings\n", "## Ready\n", 1),
@@ -163,6 +198,10 @@ def self_test() -> None:
             "- No, validation status is missing.\n- No, another reason.",
             1,
         ),
+    ]
+    audit_mutations.extend(
+        omit_section_body(audit_update, heading)
+        for heading in AUDIT_UPDATE_EXPECTED[1:4] + AUDIT_UPDATE_EXPECTED[5:]
     )
     for mutation in audit_mutations:
         try:
@@ -170,6 +209,13 @@ def self_test() -> None:
         except ValueError:
             continue
         raise AssertionError("invalid audit-update schema mutation passed")
+
+    for validator, other_fixture in ((validate, audit_update), (validate_audit_update, valid)):
+        try:
+            validator(other_fixture)
+        except ValueError:
+            continue
+        raise AssertionError("profile crossover passed")
 
 
 def main() -> int:

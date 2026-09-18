@@ -1,19 +1,18 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
-id: positive-edge-011
-name: One critical next-action gap asks one clarification only
+id: positive-edge-012
+name: Audit and update without two caller layouts asks one clarification
 description: |
-  When a known work item lacks the one detail required to choose a safe next
-  action, the skill must ask exactly one clarification and stop without
-  rendering a handoff, audit, or BLOCK template.
+  An audit + update request with a caller-required audit layout but no distinct
+  corrected-handoff layout must ask only for the missing layout and stop.
 tags:
   - positive-trigger
   - positive-edge
 inputs:
   prompt: |
-    I need a handoff to continue the payment callback retry fix. The work item
-    is known, but the next action depends on whether production uses the legacy
-    callback endpoint or the v2 endpoint; I do not know which one it uses.
-    Ask only for the detail you need before creating anything.
+    Audit and update the checkout retry handoff. I require this audit layout:
+    `# Review: <work item>`, `## Findings`, `## Corrections`, `## Ready`.
+    I have not supplied the required layout for the corrected handoff. Ask only
+    for the detail you need before creating anything.
 expected:
   should_trigger: true
 graders:
@@ -34,7 +33,7 @@ graders:
     config:
       regex_match:
         - '(?s)^[^?]*\?\s*$'
-        - '(?is)(legacy callback endpoint|v2 endpoint)'
+        - '(?is)(corrected handoff layout|handoff layout|updated handoff layout)'
       not_contains:
         - '# Handoff Note'
         - 'Handoff Note:'
