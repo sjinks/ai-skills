@@ -70,7 +70,17 @@ def validate_audit_update(text: str) -> None:
         raise ValueError("continuation heading must be '# Continuation: <work item>'")
     if tuple(actual[5:]) != AUDIT_UPDATE_EXPECTED[5:]:
         raise ValueError("handoff headings must match the required labels and order exactly")
-    unknowns = text.splitlines()[text.splitlines().index("## Unknowns") + 1 :]
+    lines = text.splitlines()
+    continuation_index = next(
+        index for index, line in enumerate(lines) if line.startswith("# Continuation: ")
+    )
+    ready = lines[lines.index("## Ready") + 1 : continuation_index]
+    ready_entries = [line.strip() for line in ready if line.strip()]
+    if len(ready_entries) != 1 or not re.fullmatch(
+        r"- (?:yes|no), \S.*", ready_entries[0], flags=re.IGNORECASE
+    ):
+        raise ValueError("Ready must contain exactly '- yes|no, <reason>'")
+    unknowns = lines[lines.index("## Unknowns") + 1 :]
     if any(line.strip() and not line.startswith("- ") for line in unknowns):
         raise ValueError("Unknowns may contain only bullet entries; trailing prose is not allowed")
 
@@ -119,7 +129,7 @@ def self_test() -> None:
 ## Corrections
 1. Add the missing evidence.
 ## Ready
-- No.
+- No, validation status is missing.
 # Continuation: retry fix
 ## Objective
 - Finish it.
@@ -142,6 +152,17 @@ def self_test() -> None:
         audit_update + "### Extra status\n- Not allowed.\n",
         "Preamble\n" + audit_update,
         audit_update + "Unscoped epilogue.\n",
+        audit_update.replace(
+            "- No, validation status is missing.",
+            "- Maybe, validation status is missing.",
+            1,
+        ),
+        audit_update.replace("- No, validation status is missing.", "- No.", 1),
+        audit_update.replace(
+            "- No, validation status is missing.",
+            "- No, validation status is missing.\n- No, another reason.",
+            1,
+        ),
     )
     for mutation in audit_mutations:
         try:

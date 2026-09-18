@@ -33,9 +33,9 @@ When a maintainer has explicit approval, run the same suite with provider-suppor
 | Broad synthesis: GPT-5.6 Terra and Claude Opus 5 | complex/untrusted-context and audit + update cases | Check that richer reasoning does not override boundaries or compress uncertainty. |
 | Remaining declared targets: GPT-5.5, GPT-5.6 Luna, GPT-5.6 Sol, Claude Opus 4.8, and Claude Fable 5 | normal create plus the floor probes | Establish model-specific evidence across the full declared roster; do not infer it from another profile. |
 
-The floor probes are `positive-edge-001`, `positive-edge-002`, `positive-edge-003`, `positive-edge-008`, and `positive-edge-009`; `positive-edge-010` covers audit + update. Use `waza models` to discover supported identifiers, then run only an approved command such as `waza run evals/handoff-note/eval.yaml --model <approved-model> --output <result-file>`.
+The floor probes are `positive-edge-001`, `positive-edge-002`, `positive-edge-003`, `positive-edge-008`, and `positive-edge-009`; `positive-edge-010` covers audit + update and `positive-edge-011` covers the clarification-only path. Use `waza models` to discover supported identifiers, then run only an approved command such as `waza run evals/handoff-note/eval.yaml --model <approved-model> --output <result-file>`.
 
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.
-- `evals/handoff-note/` — approval-gated model-evaluation suite and deterministic task assertions.
+- [`evals/handoff-note/`](https://github.com/sjinks/ai-skills/tree/master/evals/handoff-note) — approval-gated model-evaluation suite and deterministic task assertions.
