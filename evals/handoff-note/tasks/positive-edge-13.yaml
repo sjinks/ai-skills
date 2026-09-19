@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-013
+name: Audit-only caller schema does not append a handoff
+description: |
+  An audit-only request with a caller-required schema must use that audit layout,
+  report the mapped audit obligations, and not append a corrected handoff.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Audit this incomplete checkout retry handoff. Do not rewrite it. Use exactly
+    this required schema and no other headings: `# Review: <work item>`,
+    `## Findings`, `## Corrections`, `## Ready`.
+
+    The existing handoff says only that the checkout retry fix is on branch
+    fix/checkout-retry. It has no validation status, avoided approach,
+    constraints, or open questions. The focused test has not been run after the
+    latest edit.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/handoff-note/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - handoff-note
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?is)# Review:.{0,800}## Findings.{0,800}## Corrections.{0,800}## Ready'
+      not_contains:
+        - '# Handoff Note:'
+        - '# Handoff Audit:'
+        - '# Continuation Packet:'
+        - '# Continuation:'
+        - '## Goal'
+        - '## Current State'
+        - '## Completed Work'
+        - '## Tried and Avoid'
+        - '## Next Steps'
+        - '## Constraints and Boundaries'
+        - '## Open Questions'
+  - type: program
+    name: schema_contract
+    config:
+      command: python3
+      args:
+        - evals/handoff-note/check-report.py
+        - --audit-only
+      timeout: 30
