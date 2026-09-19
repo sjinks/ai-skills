@@ -27,11 +27,15 @@ metrics:
     threshold: 0.9
     description: Skill is invoked on positive tasks that should activate it.
   - name: task_completion
-    weight: 0.40
+    weight: 0.25
     threshold: 0.8
     description: Output carries the factcheck contract and applies claim, evidence, verdict, confidence, correction, and uncertainty rules.
+  - name: report_contract
+    weight: 0.20
+    threshold: 0.9
+    description: Program validation enforces report order, evidence-access, claim-class, evidence-locator, claim-support, and claim-cardinality contracts.
   - name: efficiency
-    weight: 0.15
+    weight: 0.10
     threshold: 0.7
     description: Stays within tool-call and total-token budgets.
 graders:

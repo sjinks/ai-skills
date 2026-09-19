@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-011
+name: Stale evidence cannot establish a current claim
+description: A dated source alone must not support a current-state claim.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use factcheck. Report only and use only the supplied evidence.
+
+    Claim: "The mayor of Northport is Dana Lee."
+    Context: Check the claim as of September 2026.
+    Evidence: The city archive page, last updated January 2024, says Dana Lee
+    was mayor in 2024. No current city record is supplied.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/factcheck/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - factcheck
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Verdict:[^\S\r\n]*UNVERIFIABLE'
+        - '(?i)Claim class:[^\S\r\n]*current-state'
+        - '(?i)Evidence access:[^\S\r\n]*supplied-only'
+        - '(?i)Date/currentness:[\s\S]{0,100}(2024|outdated|stale)'
+        - '(?i)Locator:[^\S\r\n]*\S'
+        - '(?i)Claim support:[^\S\r\n]*(contextual|none|partial)'
+      not_contains:
+        - 'Verdict: SUPPORTED'
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/factcheck/check-report.py
+        - positive-edge-011
+      timeout: 30

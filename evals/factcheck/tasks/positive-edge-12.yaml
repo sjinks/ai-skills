@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-012
+name: Association does not establish causation
+description: An observational association must not be reported as causal support.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use factcheck. Report only and use only the supplied evidence.
+
+    Claim: "The new cycling lanes reduced asthma admissions citywide."
+    Evidence: A university observational study found that neighbourhoods with
+    new cycling lanes had lower asthma-admission rates during the same period.
+    The study says it cannot establish causation and covered 12 of 40
+    neighbourhoods.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/factcheck/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - factcheck
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Claim class:[\s\S]{0,80}(causal|universal/scope)'
+        - '(?i)Claim support:[^\S\r\n]*(partial|contextual|none)'
+        - '(?i)Verdict:[^\S\r\n]*(MIXED|UNSUPPORTED|UNVERIFIABLE)'
+        - '(?i)(causation|causal|association|observational)'
+      not_contains:
+        - 'Verdict: SUPPORTED'
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/factcheck/check-report.py
+        - positive-edge-012
+      timeout: 30
