@@ -49,7 +49,8 @@ def heading_positions(lines: list[str]) -> list[tuple[int, str]]:
     return [
         (index, line.strip())
         for index, line in enumerate(lines)
-        if re.match(r"^#{1,6}\s+", line)
+        # CommonMark permits up to three leading spaces before an ATX heading.
+        if re.match(r"^ {0,3}#{1,6}\s+", line)
     ]
 
 
@@ -121,14 +122,18 @@ def validate_packet(text: str) -> None:
     )
     bodies = section_bodies(lines, positions)
     require_nonempty(bodies, PACKET_HEADINGS[1:])
+    require_match(bodies["## State"], r"fix/checkout-retry", "## State")
+    require_match(bodies["## State"], r"src/checkout/retry\.ts", "## State")
     require_match(bodies["## State"], r"uncommitted|unpushed", "## State")
     require_match(bodies["## State"], r"patch|transfer|unavailable", "## State")
     require_match(
         bodies["## Evidence"],
-        r"(?:not run.{0,300}(?:focused test|test)|(?:focused test|test).{0,300}not run|user-stated)",
+        r"(?:not run.{0,300}(?:focused test|test)|(?:focused test|test).{0,300}not run)",
         "## Evidence",
     )
-    require_match(bodies["## Risks and Constraints"], r"five|duplicate charges", "## Risks and Constraints")
+    require_match(bodies["## Evidence"], r"user[- ]stated|user (?:states|said|reported|provided)", "## Evidence")
+    require_match(bodies["## Risks and Constraints"], r"(?:retries|retry).{0,80}\bfive\b|\bfive\b.{0,80}(?:retries|retry)", "## Risks and Constraints")
+    require_match(bodies["## Risks and Constraints"], r"duplicate charges", "## Risks and Constraints")
     require_match(bodies["## Risks and Constraints"], r"do not repeat|avoid", "## Risks and Constraints")
     require_match(bodies["## Risks and Constraints"], r"payment-capture", "## Risks and Constraints")
     if not re.match(r"1\. .*?(?:transfer|patch|share|push|recreate)", bodies["## Actions"][0], re.I):
@@ -148,10 +153,14 @@ def validate_audit_update(text: str) -> None:
     require_match(bodies["## Corrections"], r"add|record", "## Corrections")
     require_match(bodies["## Corrections"], r"validation|evidence", "## Corrections")
     validate_ready(bodies["## Ready"], required_value="no")
+    require_match(bodies["## State"], r"fix/checkout-retry", "## State")
+    require_match(bodies["## State"], r"src/checkout/retry\.ts", "## State")
     require_match(
         bodies["## Evidence"], r"not run.{0,300}(?:focused test|test)|(?:focused test|test).{0,300}not run", "## Evidence"
     )
-    require_match(bodies["## Risks"], r"five|duplicate charges", "## Risks")
+    require_match(bodies["## Evidence"], r"user[- ]stated|user (?:states|said|reported|provided)", "## Evidence")
+    require_match(bodies["## Risks"], r"(?:retries|retry).{0,80}\bfive\b|\bfive\b.{0,80}(?:retries|retry)", "## Risks")
+    require_match(bodies["## Risks"], r"duplicate charges", "## Risks")
     require_match(bodies["## Risks"], r"do not repeat|avoid", "## Risks")
     require_match(bodies["## Risks"], r"payment-capture", "## Risks")
     require_match(bodies["## Actions"], r"idempotency test", "## Actions")
@@ -192,7 +201,7 @@ def omit_body(text: str, heading: str) -> str:
     lines = text.splitlines(keepends=True)
     start = next(index for index, line in enumerate(lines) if line.strip() == heading)
     end = next(
-        (index for index in range(start + 1, len(lines)) if re.match(r"^#{1,6}\s+", lines[index])),
+        (index for index in range(start + 1, len(lines)) if re.match(r"^ {0,3}#{1,6}\s+", lines[index])),
         len(lines),
     )
     return "".join(lines[: start + 1] + lines[end:])
@@ -211,9 +220,9 @@ def self_test() -> None:
 ## Objective
 - Finish it.
 ## State
-- Uncommitted local retry edits need transfer by patch.
+- Branch: fix/checkout-retry; uncommitted local edits in src/checkout/retry.ts need transfer by patch.
 ## Evidence
-- Focused test: not run after the latest edit.
+- User-stated focused test: not run after the latest edit.
 ## Risks and Constraints
 - Raising retries to five caused duplicate charges; do not repeat it. Do not change payment-capture behavior.
 ## Actions
@@ -233,9 +242,9 @@ def self_test() -> None:
 ## Objective
 - Finish it.
 ## State
-- Branch: fix/checkout-retry.
+- Branch: fix/checkout-retry; changed file: src/checkout/retry.ts.
 ## Evidence
-- Focused test: not run after the latest edit.
+- User-stated focused test: not run after the latest edit.
 ## Risks
 - Raising retries to five caused duplicate charges; do not repeat it. Do not change payment-capture behavior.
 ## Actions
@@ -254,6 +263,7 @@ def self_test() -> None:
     validate_packet(packet)
     validate_audit_update(audit_update)
     validate_audit_only(audit_only)
+    validate_packet(packet.replace("## Objective", "  ## Objective", 1))
 
     for validator, fixture in ((validate_packet, packet), (validate_audit_update, audit_update)):
         for sentinel in ("unknown", "Unknown: missing obligation"):
@@ -273,6 +283,19 @@ def self_test() -> None:
     assert_rejected(validate_packet, packet.replace("- None.", "Known", 1))
     assert_rejected(validate_audit_update, audit_update.replace("- No,", "- Maybe,"))
     assert_rejected(validate_audit_only, audit_only.replace("- No,", "- Maybe,"))
+    assert_rejected(validate_packet, packet.replace("fix/checkout-retry", "another branch", 1))
+    assert_rejected(validate_packet, packet.replace("src/checkout/retry.ts", "src/other.ts", 1))
+    assert_rejected(validate_audit_update, audit_update.replace("fix/checkout-retry", "another branch", 1))
+    assert_rejected(validate_audit_update, audit_update.replace("src/checkout/retry.ts", "src/other.ts", 1))
+    assert_rejected(validate_packet, packet.replace("User-stated", "Unattributed", 1))
+    assert_rejected(validate_audit_update, audit_update.replace("User-stated", "Unattributed", 1))
+    for fixture, validator, heading in (
+        (packet, validate_packet, "## Risks and Constraints"),
+        (audit_update, validate_audit_update, "## Risks"),
+    ):
+        assert_rejected(validator, fixture.replace("five", "many", 1))
+        assert_rejected(validator, fixture.replace("duplicate charges", "billing confusion", 1))
+    assert_rejected(validate_packet, packet.replace("## Evidence\n", "  ## Undeclared Heading\n\n## Evidence\n", 1))
     assert_rejected(validate_packet, packet + "Unscoped epilogue.\n")
     assert_rejected(validate_audit_update, audit_update + "Unscoped epilogue.\n")
     assert_rejected(validate_audit_only, audit_only + "Unscoped epilogue.\n")

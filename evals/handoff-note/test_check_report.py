@@ -19,15 +19,7 @@ NEGATIVE_MARKERS = {
     "# Review:",
     "# Continuation:",
     "handoff-note",
-    "## Objective",
-    "## State",
-    "## Evidence",
     "## Risks and Constraints",
-    "## Actions",
-    "## Unknowns",
-    "## Findings",
-    "## Corrections",
-    "## Ready",
     "## Goal",
     "## Current State",
     "## Completed Work",
@@ -41,6 +33,11 @@ NEGATIVE_MARKERS = {
     "Verdict: BLOCK",
     "Missing input:",
     "Smallest addition to proceed:",
+}
+DISTINCTIVE_CUSTOM_PROFILE_START_MARKERS = {
+    "# Continuation Packet:",
+    "# Review:",
+    "# Continuation:",
 }
 STOP_MARKERS = NEGATIVE_MARKERS | {"## Risks"}
 
@@ -64,8 +61,16 @@ class HandoffProjectionTests(unittest.TestCase):
         for path in sorted(TASKS.glob("negative-*.yaml")):
             with self.subTest(path=path.name):
                 self.assertTrue(NEGATIVE_MARKERS <= not_contains(task(path.name)))
+                self.assertTrue(
+                    DISTINCTIVE_CUSTOM_PROFILE_START_MARKERS <= not_contains(task(path.name))
+                )
                 # The prompt itself asks for risks; do not forbid ordinary English.
                 self.assertNotIn("## Risks", not_contains(task(path.name)))
+                for marker in (
+                    "## Objective", "## State", "## Evidence", "## Actions", "## Unknowns",
+                    "## Findings", "## Corrections", "## Ready",
+                ):
+                    self.assertNotIn(marker, not_contains(task(path.name)))
 
     def test_exact_schema_tasks_use_the_matching_validator_profile(self) -> None:
         self.assertEqual(
