@@ -35,11 +35,18 @@ graders:
       regex_match:
         - "(?i)(structured output|deterministic validator|exact serialization|machine-readable)"
         - "(?i)(concise|short)"
-        - "(?i)(Required outcomes|Invariants|Default workflow|Completion criteria)"
+        - "(?i)(outcome|verification|definition of done)"
         - "(?i)Finished artifact:"
         - "(?i)Material assumptions:"
         - "(?i)Runtime adapter:"
         - "(?i)Compatibility note:"
+  - type: program
+    name: standard_output_contract
+    config:
+      command: python3
+      args:
+        - evals/cross-model-instruction-authoring/check-standard-output.py
+      timeout: 30
   - type: prompt
     name: task_completion_substance
     config:

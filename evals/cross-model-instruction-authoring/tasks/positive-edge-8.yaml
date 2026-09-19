@@ -38,9 +38,17 @@ graders:
         - '(?i)(model-neutral core|runtime-specific adapters|runtime adapter)'
         - '(?i)(evidence rules|stopping conditions|return contract|completion)'
         - '(?i)(smaller|faster|frontier|portable)'
+        - '(?i)(compatibility floor|capability ceiling)'
         - '(?i)Finished artifact:'
         - '(?i)Material assumptions:'
         - '(?i)Runtime adapter:'
         - '(?i)Compatibility note:'
       not_contains:
         - 'Verdict:'
+  - type: program
+    name: standard_output_contract
+    config:
+      command: python3
+      args:
+        - evals/cross-model-instruction-authoring/check-standard-output.py
+      timeout: 30
