@@ -62,14 +62,11 @@ graders:
         - '(?i)Confidence reason:[^\S\r\n]*\S'
         - '(?i)Evidence:[^\S\r\n]*\S'
         - '(?i)Reasoning:[^\S\r\n]*\S'
-        - '(?m)^Claims Checked$(?:(?!^Evidence Reviewed$)[\s\S])*^- C1:[^\r\n]+'
         - '(?i)Claims Checked[\s\S]{0,480}- C2:'
         - '(?i)Claims Checked[\s\S]{0,720}- C3:'
-        - '(?m)^Findings$(?:(?!^Recommended Corrections$)[\s\S])*^- C1\n(?:(?!^- C[0-9]+$)[\s\S])*^  Verdict:'
         - '(?i)Findings[\s\S]{0,240}- C1[\s\S]{0,240}Verdict:[^\S\r\n]*(SUPPORTED|MOSTLY_SUPPORTED)'
         - '(?i)Findings[\s\S]{0,480}- C2[\s\S]{0,240}Verdict:[^\S\r\n]*(SUPPORTED|MOSTLY_SUPPORTED)'
         - '(?i)Findings[\s\S]{0,720}- C3[\s\S]{0,240}Verdict:[^\S\r\n]*CONTRADICTED'
-        - '(?m)^Recommended Corrections$(?:(?!^Open Questions$)[\s\S])*^- C1:[^\r\n]+'
         - '(?i)Recommended Corrections[\s\S]{0,480}C2:[^\S\r\n]*\S'
         - '(?i)Recommended Corrections[\s\S]{0,720}C3:[\s\S]{0,240}(Paris|France)'
         - "(?i)Fact-Check Summary"
@@ -111,3 +108,11 @@ graders:
         0.0 = response is wrong, missing the required judgement, or did not
               perform the skill at all.
       mode: independent
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/factcheck/check-report.py
+        - positive-trigger-001
+      timeout: 30
