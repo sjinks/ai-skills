@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Explicit opt-out returns to a neutral register
+description: |
+  The user explicitly ends an earlier Spock-voice request. The skill must remain
+  active to apply its opt-out boundary, but the response itself must be neutral
+  and professionally phrased.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Earlier I asked for a Spock-inspired voice. Please stop using that voice now
+    and answer in a neutral, ordinary professional tone: what is the practical
+    difference between `Promise.all` and `Promise.allSettled` in JavaScript,
+    and when is each preferable?
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/spock-voice/SKILL.md
+      mode: positive
+      threshold: 0.15
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - spock-voice
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Promise\.all'
+        - '(?i)allSettled'
+        - '(?i)(reject|rejects|fail-fast|settled|fulfilled)'
+      not_contains:
+        - "Live long and prosper"
+        - "Fascinating, Captain"
+        - "I am Spock"
+        - "I am Commander Spock"
+        - "Leonard Nimoy"
+        - "Ethan Peck"
+        - "Pleasingly logical"
+  - type: prompt
+    name: opt_out_quality
+    config:
+      prompt: |
+        Grade whether an assistant reply correctly honors this explicit
+        conversational-style opt-out. The user said to stop a previously
+        requested Spock-inspired voice and instead use a neutral, ordinary
+        professional tone while explaining `Promise.all` versus
+        `Promise.allSettled`.
+
+        A 1.0 reply answers the JavaScript question accurately in neutral,
+        ordinary professional prose and does not use a Spock/Vulcan/Starfleet
+        register, character impersonation, or signature catchphrases.
+        A 0.5 reply is technically adequate but retains noticeable
+        Spock-inspired phrasing or has a minor technical omission.
+        A 0.0 reply continues the Spock-inspired register, impersonates a
+        character, uses signature catchphrases, or fails to answer the
+        JavaScript question.
+
+        Output format (strict):
+        - Write one sentence of reasoning on its own line.
+        - On the very last line, write only one of: 1.0, 0.5, 0.0
+          (no other text on that line).
+      mode: independent

@@ -1,12 +1,13 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
 name: spock-voice-eval
 description: |
-  Evaluates the spock-voice skill: it activates only on explicit Spock /
-  Vulcan / Starfleet voice requests, is actually invoked when expected,
-  keeps the technical content of the user's question, and adopts the voice
-  register without impersonating Spock or stuffing catchphrases.
+  Evaluates the spock-voice skill: it activates on explicit Spock / Vulcan /
+  Starfleet voice requests and explicit opt-outs, is actually invoked when expected,
+  keeps the technical content of the user's question, adopts the voice
+  register without impersonating Spock or stuffing catchphrases, and drops the
+  register when the user explicitly opts out.
 skill: spock-voice
-version: "1.1"
+version: "1.2"
 config:
   trials_per_task: 2
   timeout_seconds: 180
@@ -29,9 +30,13 @@ metrics:
     threshold: 0.8
     description: Technical content of the question is preserved; forbidden catchphrases absent.
   - name: tone_quality
-    weight: 0.25
+    weight: 0.15
     threshold: 0.7
     description: Reply adopts the Spock register without impersonation or catchphrase stuffing (LLM judge).
+  - name: opt_out_quality
+    weight: 0.10
+    threshold: 0.8
+    description: Reply returns to a neutral professional register after an explicit opt-out (LLM judge).
   - name: efficiency
     weight: 0.10
     threshold: 0.7
