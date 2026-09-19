@@ -1,25 +1,24 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
-id: positive-edge-009
-name: Profile recommendation rejects name-only adaptation
+id: positive-edge-011
+name: Non-reproducing patch is removed
 description: |
-  A new target model with no behavioral evidence needs a task-derived profile
-  and an evidence plan, not a family-specific patch inferred from its name.
+  A model-specific behavioral patch is removed when the cited failure no
+  longer reproduces; a target name alone cannot retain it.
 tags:
   - positive-trigger
   - positive-edge
   - model-portability
 inputs:
   prompt: |
-    Recommend a cross-model instruction profile for a newly deployed
-    code-specialized model. The task is to make bounded repository changes with
-    explicit scope, verification, and a definition of done. We have no model
-    evaluation results, provider guidance, or observed failures.
+    Recommend a cross-model instruction profile for a coding agent that makes
+    bounded repository changes. A previous completion-persistence patch was
+    added after a tool failure, but the same evaluation has now passed across
+    the supported runtime settings without reproducing that failure.
 
-    Do not write the instruction artifact. Return exactly these headings in
-    order: `Profile recommendation:`, `Justified behavioral patches:`, and
-    `Evidence still needed:`. Select the least-prescriptive suitable profile,
-    apply no model-specific behavioral patch merely from the model name, and
-    state the smallest evaluation needed before any patch is introduced.
+    Do not write the instruction artifact. Return exactly `Profile
+    recommendation:`, `Justified behavioral patches:`, and `Evidence still
+    needed:` in order. Select the suitable profile, remove the stale patch,
+    and state the smallest ongoing evaluation needed to detect regression.
 expected:
   should_trigger: true
 graders:
@@ -40,10 +39,9 @@ graders:
     config:
       regex_match:
         - '(?ms)^Profile recommendation:$.*?^Justified behavioral patches:$.*?^Evidence still needed:$'
-        - '(?i)(coding-agent|least-prescriptive)'
-        - '(?i)(none|no model-specific patch|no patch)'
-        - '(?i)(eval|evaluation|reproducible failure)'
-        - '(?i)(scope|verification|definition of done)'
+        - '(?i)coding-agent'
+        - '(?i)(none|no patch|remove.*completion-persistence|completion-persistence.*remove)'
+        - '(?i)(retest|evaluation|regression|reproduce)'
       not_contains:
         - 'Finished artifact:'
         - 'Material assumptions:'

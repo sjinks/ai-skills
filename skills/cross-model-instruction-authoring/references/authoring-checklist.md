@@ -1,135 +1,41 @@
+When to read: before finalizing a portable instruction artifact or its evals.
+
 # Authoring Checklist
 
-Use this checklist after drafting. Correct material failures before delivering the artifact.
+## Portable Core
+- [ ] Outcome, inputs, constraints, permissions, defaults, failure behavior, output, verification, and done condition are clear.
+- [ ] Verification distinguishes attempted from successful checks.
 
-## A. Purpose and Routing
+## Portability
+- [ ] No unnecessary provider vocabulary or chain-of-thought request.
+- [ ] No duplicated tool-schema prose.
+- [ ] No fixed tool/search/edit order without a correctness reason.
+- [ ] Runtime protocol is separated from task behavior.
 
-- [ ] The artifact has one primary purpose.
-- [ ] The artifact type is correct: skill, custom agent, or persistent project instruction.
-- [ ] A skill description says when to use it and when not to use it.
-- [ ] An agent description says when to delegate, what it returns, and what it excludes.
-- [ ] Trigger or delegation wording uses recognizable user intent and domain terms.
-- [ ] The artifact does not depend on self-identification of the model.
+## Compatibility Floor
+- [ ] Weakest intended profile can follow the normal path.
+- [ ] Required branches/criteria are explicit enough.
+- [ ] Prompt size is not compensating for insufficient capability.
 
-## B. Outcomes and Boundaries
+## Capability Ceiling
+- [ ] Strong models retain strategy freedom.
+- [ ] No unnecessary plans/progress narration, redundant confirmation, or forced exploration.
 
-- [ ] The deliverable is explicit.
-- [ ] Analysis-only and implementation tasks are distinguished.
-- [ ] Required outcomes are separate from default strategy.
-- [ ] Scope limits are explicit.
-- [ ] Permitted side effects are explicit.
-- [ ] Destructive and irreversible actions have an approval rule.
-- [ ] "Smallest complete change" is defined where implementation is involved.
-- [ ] The artifact prohibits fabricated validation and progress claims.
+## Adaptations
+- [ ] Every non-universal rule has an evidence class.
+- [ ] Model name alone caused no patch.
+- [ ] Observed behavior is provisional.
+- [ ] Harness quirks are not model quirks.
+- [ ] Universal patches were promoted; stale patches can be removed.
 
-## C. Decision Quality
+## Output Contract
+- [ ] A caller-supplied schema replaces the default wrapper only when required.
+- [ ] The selected default mode uses its exact labels once, in order, with nonempty bodies.
+- [ ] The terminal field ends the response: `Compatibility note:` for artifact modes and the final evidence bullet for Profile Recommendation.
 
-- [ ] Terms with special meaning are defined.
-- [ ] Quantifiers and scope words are explicit where material.
-- [ ] Every reachable decision branch has an action or default.
-- [ ] Overlapping rules have a precedence rule.
-- [ ] The ask-versus-assume policy is explicit.
-- [ ] Exceptional paths do not obscure the normal path.
-- [ ] There are no contradictory output or stopping rules.
-
-## D. Tool and Runtime Portability
-
-- [ ] The portable core describes capabilities rather than provider tool names.
-- [ ] Required tools or environment dependencies are declared.
-- [ ] Optional capability absence has a fallback.
-- [ ] Tool use is tied to evidence requirements.
-- [ ] Exact tool names, permissions, hooks, and model settings are isolated in runtime adapters.
-- [ ] Runtime policy, not prompt text alone, enforces dangerous-action boundaries.
-- [ ] Delegation is optional unless guaranteed by the runtime.
-
-## E. Small-Model Executability
-
-- [ ] The normal path is short and shallow.
-- [ ] Essential behavior is not implicit.
-- [ ] Material tool parameters are not guessed.
-- [ ] The artifact does not combine unrelated workstreams.
-- [ ] The output grammar is proportionate to the task.
-- [ ] Subtle boundaries have a concise example.
-- [ ] Long background material is moved to references.
-- [ ] Deterministic checks are scripts or validators where appropriate.
-
-## F. Frontier-Model Freedom
-
-- [ ] The workflow is marked as adaptable unless sequence is mandatory.
-- [ ] The artifact does not force a plan for trivial work.
-- [ ] The artifact does not force progress updates at a fixed cadence.
-- [ ] The artifact does not require permission for safe reversible actions already authorized by the request.
-- [ ] It does not prescribe internal reasoning.
-- [ ] It does not duplicate capable runtime defaults.
-- [ ] It prohibits unrequested cleanup and speculative abstraction.
-
-## G. Evidence, Validation, and Completion
-
-- [ ] Claims dependent on current state require tools or supplied evidence.
-- [ ] Passed, failed, blocked, and not-run checks are distinguished.
-- [ ] An attempted command is not treated as a passing check.
-- [ ] Completion criteria are observable.
-- [ ] The final output or parent-agent return contract is explicit.
-- [ ] Assumptions and unresolved risks are reported.
-- [ ] Long-run progress claims are grounded in tool results.
-
-## H. Skill Packaging
-
-Apply only to Agent Skills.
-
-- [ ] `name` is lowercase, hyphenated, and matches the directory.
-- [ ] `description` is concise and front-loads the primary trigger.
-- [ ] The portable core uses standard frontmatter fields.
-- [ ] Execution rules are in the body, not only in metadata.
-- [ ] References and scripts are linked with clear conditions for use.
-- [ ] The main file contains the normal path.
-- [ ] Rare cases and large examples are progressively disclosed.
-
-## I. Agent Prompt Quality
-
-Apply only to custom agents or subagents.
-
-- [ ] The role is narrow and task ownership is clear.
-- [ ] Read, edit, execute, browse, and delegation authority are defined.
-- [ ] Evidence standards are defined.
-- [ ] Autonomy and escalation boundaries are defined.
-- [ ] Stopping conditions are defined.
-- [ ] The parent-agent or user return contract is defined.
-- [ ] Long reusable procedures are delegated to skills rather than duplicated.
-
-## J. Cross-Model Review
-
-- [ ] GPT-5.4 mini can execute the normal path without guessing.
-- [ ] GPT-5.4 can choose an efficient approach.
-- [ ] GPT-5.5 is not burdened by process-heavy legacy scaffolding.
-- [ ] GPT-5.6 Luna receives outcomes and boundaries without a fixed execution strategy.
-- [ ] GPT-5.6 Terra retains freedom for broad synthesis and optional delegation.
-- [ ] GPT-5.6 Sol has a concise mission, hard boundaries, and grounded completion criteria.
-- [ ] Claude Haiku 4.5 has explicit defaults and parameters.
-- [ ] Claude Sonnet 5 receives explicit broad scope.
-- [ ] Claude Opus 4.8 has tool and evidence triggers where needed.
-- [ ] Claude Opus 5 has outcome-first complex-work guidance and explicit stopping boundaries.
-- [ ] Claude Fable 5 has boundaries and grounded long-run progress rules.
-- [ ] A real evaluation plan covers the actual runtime and model settings.
-
-## Severity Guidance
-
-Treat a failure as **blocking** when it can cause:
-
-- unsafe or unauthorized actions;
-- the wrong deliverable;
-- silent scope expansion;
-- contradictory behavior;
-- fabricated validation;
-- unusable activation or delegation;
-- failure on the compatibility-floor models.
-
-Treat a failure as **material** when it can cause:
-
-- inconsistent execution;
-- unnecessary clarification;
-- excessive tool use;
-- avoidable model-specific degradation;
-- output that cannot be consumed reliably.
-
-Treat purely stylistic preferences as optional polish.
+## Evals
+- [ ] Portable-core behavior is covered.
+- [ ] Weak-target omission and strong-target overconstraint are covered.
+- [ ] Folklore rejection and runtime-vs-model distinction are covered.
+- [ ] Patch addition and patch removal are both tested.
+- [ ] Deterministic wrapper tests cover omission, reorder, duplicate, invalid profile, profile crossover, and trailing prose.

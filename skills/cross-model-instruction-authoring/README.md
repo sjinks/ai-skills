@@ -2,19 +2,25 @@
 
 > Use when: creating, revising, or adapting Agent Skills, custom agent prompts, subagent instructions, or instruction packages that should work across multiple models or runtimes, especially smaller/faster and frontier GPT/Claude models.
 
-This skill is aimed at instruction artifacts that need a model-neutral core, runtime-specific adapters, and behavior that stays usable across both smaller models and frontier models.
+This skill authors instruction artifacts from a portable core, a
+least-prescriptive capability profile, narrow evidence-backed behavioral
+patches, and separate runtime adapters. It does not turn model-family folklore
+or harness quirks into model behavior.
 
 It helps an assistant:
 
-- extract required outcomes, invariants, evidence needs, completion criteria, and return contracts
-- separate portable core guidance from runtime-specific adapters and invocation details
-- check small-model executability without forcing every model into the same implementation strategy
-- catch frontier-model overconstraint, unnecessary routing, and duplicated runtime assumptions
-- produce a finished instruction artifact with assumptions, adapters, and compatibility notes when needed
+- extract a behavioral contract before selecting an implementation strategy
+- protect the compatibility floor without compensating for a capability mismatch with a larger prompt
+- preserve capability-ceiling strategy freedom
+- classify adaptations by evidence and remove stale patches
+- separate runtime mechanics from portable task behavior
 
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.
-- [`references/model-profiles.md`](references/model-profiles.md) — model-specific tradeoffs and compatibility notes.
-- [`references/authoring-checklist.md`](references/authoring-checklist.md) — finalization checklist for complex or production-bound artifacts.
-- [`references/templates.md`](references/templates.md) — starting structures for common instruction surfaces.
+- [`references/capability-profiles.md`](references/capability-profiles.md) — task-derived capability profiles and selection rule.
+- [`references/behavioral-patches.md`](references/behavioral-patches.md) — narrow failure-mode corrections and their lifecycle.
+- [`references/model-profiles.md`](references/model-profiles.md) — conservative target-family defaults, never a source of automatic patches.
+- [`references/evidence.md`](references/evidence.md) — adaptation evidence classes and anti-folklore policy.
+- [`references/authoring-checklist.md`](references/authoring-checklist.md) — finalization and evaluation checks.
+- [Canonical Waza suite](https://github.com/sjinks/ai-skills/tree/master/evals/cross-model-instruction-authoring) — trigger and behavior suite.
