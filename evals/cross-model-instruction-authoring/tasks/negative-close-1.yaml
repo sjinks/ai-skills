@@ -43,3 +43,6 @@ graders:
         - "Material assumptions:"
         - "Runtime adapter:"
         - "Compatibility note:"
+        - "Profile recommendation:"
+        - "Justified behavioral patches:"
+        - "Evidence still needed:"

@@ -187,6 +187,18 @@ metric → grader weighting takes effect.
   words echoed from the prompt. Positive tasks also `not_contains`
   the structured-output markers of unrelated skills so cross-skill
   leakage fails the task.
+
+The `cross-model-instruction-authoring` suite validates its conditional
+profile-recommendation output with
+`python3 evals/cross-model-instruction-authoring/check-profile-recommendation.py --self-test`.
+The checker owns heading order, profile and patch value domains, required
+section bodies, profile crossover, and terminal output for the
+Profile Recommendation tasks.
+It validates the shared Author/Adapt/Review-and-Rewrite wrapper with
+`python3 evals/cross-model-instruction-authoring/check-standard-output.py --self-test`.
+That checker owns label order and cardinality, required section bodies,
+preamble rejection, and terminal compatibility-note handling for every
+positive task using the standard wrapper.
 - `output_contract` (eval-level `code`) — validates a suite-defined structured
   output contract. Shell-command-construction validates canonical
   construction-shaped output while allowing ordinary markerless prose for

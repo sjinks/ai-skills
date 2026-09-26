@@ -37,7 +37,15 @@ graders:
         - "(?i)(safety gate|safety gates|material behavioral change)"
         - "(?i)(GPT-5.5|Fable 5)"
         - "(?i)(permission|cadence|subagent)"
+        - "(?i)(HARNESS_REQUIREMENT|runtime adapter|not model behavior)"
         - "(?i)Finished artifact:"
         - "(?i)Material assumptions:"
         - "(?i)Runtime adapter:"
         - "(?i)Compatibility note:"
+  - type: program
+    name: standard_output_contract
+    config:
+      command: python3
+      args:
+        - evals/cross-model-instruction-authoring/check-standard-output.py
+      timeout: 30

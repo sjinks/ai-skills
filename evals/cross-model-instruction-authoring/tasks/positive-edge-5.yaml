@@ -34,8 +34,15 @@ graders:
     config:
       regex_match:
         - "(?i)(ask-versus-assume|safe reversible defaults|explicit decision policy|material assumptions)"
-        - "(?i)(Required outcomes|Invariants|Default workflow|Completion criteria)"
+        - "(?i)(outcome|defaults|blocked behavior|verification)"
         - "(?i)Finished artifact:"
         - "(?i)Material assumptions:"
         - "(?i)Runtime adapter:"
         - "(?i)Compatibility note:"
+  - type: program
+    name: standard_output_contract
+    config:
+      command: python3
+      args:
+        - evals/cross-model-instruction-authoring/check-standard-output.py
+      timeout: 30

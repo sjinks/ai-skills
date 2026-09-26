@@ -35,8 +35,9 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - "(?i)(Portable Core|Runtime Adapter|Model Routing)"
-        - "(?i)(Required outcomes|Invariants|Default workflow|Completion criteria)"
+        - "(?i)(Portable Core|Runtime Adapter|capability profile)"
+        - "(?i)(outcome|constraints|verification|definition of done)"
+        - "(?i)(evidence class|EVAL_EVIDENCE|no model-specific patch)"
         - "(?i)(model-neutral core|runtime-specific adapters|validation|return contract)"
         - "(?i)Finished artifact:"
         - "(?i)Material assumptions:"
@@ -45,3 +46,10 @@ graders:
       not_contains:
         - "Verdict:"
         - "Gate decision:"
+  - type: program
+    name: standard_output_contract
+    config:
+      command: python3
+      args:
+        - evals/cross-model-instruction-authoring/check-standard-output.py
+      timeout: 30
