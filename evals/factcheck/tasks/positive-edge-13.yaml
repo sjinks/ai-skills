@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-013
+name: Official but irrelevant evidence is not entailment
+description: An official source that does not address the claim cannot support it.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Use factcheck. Report only and use only the supplied evidence.
+
+    Claim: "The City Library is open every Sunday until 8 p.m."
+    Evidence: An official City Library annual report says the library served
+    500,000 visitors last year. It contains no opening-hours information.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/factcheck/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - factcheck
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?i)Type:[^\S\r\n]*[^\r\n]*(official|primary)'
+        - '(?i)Claim support:[^\S\r\n]*none'
+        - '(?i)Verdict:[^\S\r\n]*(UNSUPPORTED|UNVERIFIABLE)'
+        - '(?i)(irrelevant|does not address|opening.hours|not.*support)'
+      not_contains:
+        - 'Verdict: SUPPORTED'
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/factcheck/check-report.py
+        - positive-edge-013
+      timeout: 30

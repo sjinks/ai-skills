@@ -28,3 +28,7 @@ graders:
         - "Recommended Corrections\n- C1:"
         - "Verification Limits\n- "
         - "Residual Uncertainty\n- "
+        - "Evidence access:"
+        - "Claim class:"
+        - "Locator:"
+        - "Claim support:"

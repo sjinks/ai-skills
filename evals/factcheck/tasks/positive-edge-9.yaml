@@ -57,9 +57,6 @@ graders:
         - '(?i)Confidence reason:[^\S\r\n]*\S'
         - '(?i)Evidence:[^\S\r\n]*\S'
         - '(?i)Reasoning:[^\S\r\n]*\S'
-        - '(?m)^Claims Checked$(?:(?!^Evidence Reviewed$)[\s\S])*^- C1:[^\r\n]+'
-        - '(?m)^Findings$(?:(?!^Recommended Corrections$)[\s\S])*^- C1\n(?:(?!^- C[0-9]+$)[\s\S])*^  Verdict:'
-        - '(?m)^Recommended Corrections$(?:(?!^Open Questions$)[\s\S])*^- C1:[^\r\n]+'
         - "(?i)Fact-Check Summary"
         - "(?i)Claims Checked"
         - "(?i)Findings"
@@ -71,3 +68,12 @@ graders:
         - "Verdict: BLOCK"
         - "Verdict: UNSUPPORTED"
         - "Rewritten draft:"
+
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/factcheck/check-report.py
+        - positive-edge-009
+      timeout: 30
