@@ -1,0 +1,69 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-011
+name: One critical next-action gap asks one clarification only
+description: |
+  When a known work item lacks the one detail required to choose a safe next
+  action, the skill must ask exactly one clarification and stop without
+  rendering a handoff, audit, or BLOCK template.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    I need a handoff to continue the payment callback retry fix. The work item
+    is known, but the next action depends on whether production uses the legacy
+    callback endpoint or the v2 endpoint; I do not know which one it uses.
+    Ask only for the detail you need before creating anything.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/handoff-note/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - handoff-note
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?s)^[^?]*\?\s*$'
+        - '(?is)(legacy callback endpoint|v2 endpoint)'
+      not_contains:
+        - '# Handoff Note'
+        - 'Handoff Note:'
+        - '# Handoff Audit'
+        - '# Continuation Packet:'
+        - '# Review:'
+        - '# Continuation:'
+        - '## Goal'
+        - '## Current State'
+        - '## Completed Work'
+        - '## Tried and Avoid'
+        - '## Next Steps'
+        - '## Constraints and Boundaries'
+        - '## Open Questions'
+        - '## Completeness Findings'
+        - '## Required Corrections'
+        - '## Ready to Hand Off'
+        - '## Objective'
+        - '## State'
+        - '## Evidence'
+        - '## Risks and Constraints'
+        - '## Actions'
+        - '## Unknowns'
+        - '## Findings'
+        - '## Corrections'
+        - '## Ready'
+        - '## Risks'
+        - 'Verdict: BLOCK'
+        - 'Missing input:'
+        - 'Smallest addition to proceed:'
+        - 'handoff-note'
+        - 'handoff-note'

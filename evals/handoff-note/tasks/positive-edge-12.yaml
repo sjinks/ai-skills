@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-012
+name: Audit and update without two caller layouts asks one clarification
+description: |
+  An audit + update request with a caller-required audit layout but no distinct
+  corrected-handoff layout must ask only for the missing layout and stop.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Audit and update the checkout retry handoff. I require this audit layout:
+    `# Review: <work item>`, `## Findings`, `## Corrections`, `## Ready`.
+    I have not supplied the required layout for the corrected handoff. Ask only
+    for the detail you need before creating anything.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/handoff-note/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - handoff-note
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?s)^[^?]*\?\s*$'
+        - '(?is)(corrected handoff layout|handoff layout|updated handoff layout)'
+      not_contains:
+        - '# Handoff Note'
+        - 'Handoff Note:'
+        - '# Handoff Audit'
+        - '# Continuation Packet:'
+        - '# Review:'
+        - '# Continuation:'
+        - '## Findings'
+        - '## Corrections'
+        - '## Ready'
+        - '## Goal'
+        - '## Current State'
+        - '## Completed Work'
+        - '## Tried and Avoid'
+        - '## Next Steps'
+        - '## Constraints and Boundaries'
+        - '## Open Questions'
+        - '## Completeness Findings'
+        - '## Required Corrections'
+        - '## Ready to Hand Off'
+        - '## Objective'
+        - '## State'
+        - '## Evidence'
+        - '## Risks and Constraints'
+        - '## Actions'
+        - '## Unknowns'
+        - '## Findings'
+        - '## Corrections'
+        - '## Ready'
+        - '## Risks'
+        - 'Verdict: BLOCK'
+        - 'Missing input:'
+        - 'Smallest addition to proceed:'
+        - 'handoff-note'
+        - 'handoff-note'

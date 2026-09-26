@@ -6,14 +6,16 @@ description: |
   completed work, current state, next steps, failed attempts, and
   constraints, and stays silent on general summaries or status reports.
 skill: handoff-note
-version: "1.0"
+version: "1.1"
 config:
   trials_per_task: 2
   timeout_seconds: 300
   parallel: true
   workers: 4
   executor: copilot-sdk
-  model: claude-sonnet-4.6
+  # Default structural baseline only. README.md defines the approval-gated
+  # target-model matrix; do not treat this executor as roster evidence.
+  model: claude-sonnet-5
   max_attempts: 2
 metrics:
   - name: trigger_accuracy
@@ -25,9 +27,13 @@ metrics:
     threshold: 0.9
     description: Skill is invoked on positive tasks that should activate it.
   - name: task_completion
-    weight: 0.40
+    weight: 0.30
     threshold: 0.8
     description: Output carries a portable handoff with current state, completed work, tried-and-avoid entries, next steps, constraints, and open questions.
+  - name: schema_contract
+    weight: 0.10
+    threshold: 0.9
+    description: Program validation enforces the exact caller-required schema for its dedicated edge case.
   - name: efficiency
     weight: 0.15
     threshold: 0.7
