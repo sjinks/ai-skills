@@ -8,21 +8,25 @@ MARKERS = ("Test cases:", "Evidence:", "Verification:")
 PROFILES = {"plan", "implement", "assessment", "blocked", "changed"}
 
 
-def validate(report: str, profile: str) -> None:
+def validate(report: str, profile: str, labels: tuple[str, str, str] = MARKERS) -> None:
     """Check label order, required content, branch, and terminal status."""
     if profile not in PROFILES:
         raise ValueError("invalid profile")
+    if len(labels) != 3 or len(set(labels)) != 3 or any("\n" in label or not label.endswith(":") for label in labels):
+        raise ValueError("invalid labels")
     lines = report.replace("\r\n", "\n").replace("\r", "\n").strip().split("\n")
+    if labels != MARKERS and any(line.startswith(marker) for line in lines for marker in MARKERS if marker not in labels):
+        raise ValueError("default labels cannot appear when caller labels replace them")
     positions = []
-    for marker in MARKERS:
+    for marker in labels:
         matching = [index for index, line in enumerate(lines) if line.startswith(marker)]
         if len(matching) != 1:
             raise ValueError(f"{marker} must occur once")
         positions.append(matching[0])
     if positions != sorted(positions) or positions[0] != 0:
         raise ValueError("labels must be ordered and start the report")
-    cases = "\n".join(lines[positions[0]:positions[1]])[len(MARKERS[0]):].strip()
-    evidence = "\n".join(lines[positions[1]:positions[2]])[len(MARKERS[1]):].strip()
+    cases = "\n".join(lines[positions[0]:positions[1]])[len(labels[0]):].strip()
+    evidence = "\n".join(lines[positions[1]:positions[2]])[len(labels[1]):].strip()
     if not evidence:
         raise ValueError("evidence must be nonempty")
     if profile == "blocked":
@@ -32,7 +36,7 @@ def validate(report: str, profile: str) -> None:
         raise ValueError("nonblocked profile requires cases")
     if positions[2] != len(lines) - 1:
         raise ValueError("verification must be the final line")
-    verification = lines[-1][len(MARKERS[2]):].strip()
+    verification = lines[-1][len(labels[2]):].strip()
     if profile in {"blocked", "plan", "assessment", "implement"}:
         if verification != "Not run; no tests changed.":
             raise ValueError("this profile requires the no-changes verification status")
@@ -47,12 +51,15 @@ VALID = {
     "blocked": "Test cases: Blocked.\nEvidence: Need the feature behavior.\nVerification: Not run; no tests changed.",
     "changed": "Test cases: - clamp below min; expected min; catches wrong bound\nEvidence: contract and repository test pattern\nVerification: Ran: npm test passed",
 }
+CUSTOM_LABELS = ("Case set:", "Design basis:", "Run record:")
+CUSTOM_BLOCKED = "Case set: Blocked.\nDesign basis: Need the feature behavior.\nRun record: Not run; no tests changed."
 
 
 def self_test() -> None:
     """Exercise valid profiles and deterministic mutation classes."""
     for profile, report in VALID.items():
         validate(report, profile)
+    validate(CUSTOM_BLOCKED, "blocked", CUSTOM_LABELS)
     validate(VALID["changed"].replace("Ran: npm test passed", "Unverified: test runner unavailable"), "changed")
     base = VALID["plan"]
     invalid = {
@@ -75,6 +82,16 @@ def self_test() -> None:
         pass
     else:
         raise AssertionError("accepted reverse profile crossover")
+    for name, report in {
+        "default label in custom report": CUSTOM_BLOCKED.replace("Case set:", "Test cases:"),
+        "custom blocked trailing prose": CUSTOM_BLOCKED + "\nExtra text.",
+        "custom blocked wrong branch": CUSTOM_BLOCKED.replace("Blocked.", "a planned case"),
+    }.items():
+        try:
+            validate(report, "blocked", CUSTOM_LABELS)
+        except ValueError:
+            continue
+        raise AssertionError(f"accepted {name}")
     try:
         validate(VALID["changed"].replace("Ran: npm test passed", "Passed"), "changed")
     except ValueError:
@@ -89,10 +106,11 @@ def main() -> None:
     if len(sys.argv) == 2 and sys.argv[1] == "--self-test":
         self_test()
         return
-    if len(sys.argv) != 2:
-        raise SystemExit("usage: check-report.py <profile>|--self-test")
+    if len(sys.argv) not in (2, 5):
+        raise SystemExit("usage: check-report.py <profile> [case-label evidence-label verification-label]|--self-test")
     try:
-        validate(sys.stdin.read(), sys.argv[1])
+        labels = tuple(sys.argv[2:]) if len(sys.argv) == 5 else MARKERS
+        validate(sys.stdin.read(), sys.argv[1], labels)
     except ValueError as error:
         raise SystemExit(str(error)) from error
 

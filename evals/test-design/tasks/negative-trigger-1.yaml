@@ -24,4 +24,7 @@ graders:
         - "Test cases:"
         - "Evidence:"
         - "Verification:"
+        - "Case set:"
+        - "Design basis:"
+        - "Run record:"
         - "test-design"

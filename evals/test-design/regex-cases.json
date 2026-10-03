@@ -10,13 +10,22 @@
       "does_not_match": ["Preface Test cases: valid transfer", "Test case: valid transfer"]
     },
     {
-      "name": "blocked case marker",
+      "name": "caller-selected blocked case marker",
       "task": "tasks/positive-edge-1.yaml",
       "grader": "task_completion",
       "list": "regex_match",
       "index": 0,
-      "matches": ["Test cases: Blocked."],
-      "does_not_match": ["Test cases: planned transfer", "Blocked."]
+      "matches": ["Case set: Blocked."],
+      "does_not_match": ["Test cases: Blocked.", "Case set: planned transfer"]
+    },
+    {
+      "name": "changed-test verification status",
+      "task": "tasks/positive-edge-2.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 2,
+      "matches": ["Verification: Ran: node --test test/clamp.test.js passed", "Verification: Unverified: node unavailable"],
+      "does_not_match": ["Verification: Not run; no tests changed.", "Verification: Ran:"]
     },
     {
       "name": "atomic rollback signal",

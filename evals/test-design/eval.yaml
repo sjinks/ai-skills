@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
 name: test-design-eval
-description: Checks feature-level test selection, implementation or gap assessment, blocked input, and boundaries with neighboring test tasks.
+description: Checks feature-level test selection, changed-test implementation, gap assessment, blocked input, and boundaries with neighboring test tasks.
 skill: test-design
 version: "1.0"
 config:
@@ -13,7 +13,7 @@ config:
   max_attempts: 2
 metrics:
   - name: trigger_accuracy
-    weight: 0.35
+    weight: 0.30
     threshold: 0.8
     description: Prompt and skill trigger alignment.
   - name: skill_invocation
@@ -29,9 +29,13 @@ metrics:
     threshold: 0.9
     description: Program validator enforces label order, cardinality, blocked branch, and final verification status.
   - name: efficiency
-    weight: 0.15
+    weight: 0.10
     threshold: 0.7
     description: Stays within tool and token budget.
+  - name: changed_test_file
+    weight: 0.10
+    threshold: 0.9
+    description: The implementation task edits the supplied test file with boundary assertions.
 graders:
   - type: behavior
     name: efficiency

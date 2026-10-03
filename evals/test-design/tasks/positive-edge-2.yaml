@@ -1,18 +1,37 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 id: positive-edge-002
-name: Implement tests from an inline contract
-description: Request test code with contract-based assertions rather than only a plan.
+name: Implement and verify test-file changes
+description: The agent must edit a supplied test file and report its execution result.
 tags:
   - positive-trigger
   - positive-edge
 inputs:
   prompt: |
-    Write a complete Vitest test file for `clamp(value, min, max)` from
-    `./clamp.js`. Its contract returns min below range, max above range, and
-    value within the inclusive range. Assume min <= max and numeric inputs.
-    Include representative boundary cases; no repository is available and do
-    not execute anything. Show test code, plus why the chosen assertions would
-    catch plausible defects. Do not change implementation behavior.
+    Extend the supplied `test/clamp.test.js` in the workspace. The contract for
+    `clamp(value, min, max)` returns min below range, max above range, and the
+    value within the inclusive range. Keep its existing interior case. Add
+    `node:test` cases using `assert.equal` to check that `clamp(-1, 0, 10)` is
+    `0` and `clamp(11, 0, 10)` is `10`. Edit the test file; do not merely show
+    code in your reply or change `clamp.js`. Run `node --test test/clamp.test.js`
+    when available, then report the cases, contract evidence, and actual
+    verification result. If execution is unavailable, say why.
+  files:
+    - path: package.json
+      content: '{"type":"module"}'
+    - path: clamp.js
+      content: |
+        export function clamp(value, min, max) {
+          return Math.max(min, Math.min(value, max));
+        }
+    - path: test/clamp.test.js
+      content: |
+        import test from 'node:test';
+        import assert from 'node:assert/strict';
+        import { clamp } from '../clamp.js';
+
+        test('keeps an in-range value', () => {
+          assert.equal(clamp(5, 0, 10), 5);
+        });
 expected:
   should_trigger: true
 graders:
@@ -34,15 +53,26 @@ graders:
       regex_match:
         - '(?m)^Test cases:'
         - '(?m)^Evidence:'
-        - '(?m)^Verification:'
-        - '(?i)(vitest|describe\(|test\(|it\()'
-        - '(?i)(toBe\(0\)|toEqual\(0\)|below.{0,60}min)'
-        - '(?i)(boundary|inclusive|equal.{0,20}(min|max))'
+        - '(?m)^Verification: (?:Ran|Unverified): .+'
+        - '(?i)(below|min|lower).{0,120}(above|max|upper)|(above|max|upper).{0,120}(below|min|lower)'
+      not_contains:
+        - 'Verification: Not run; no tests changed.'
   - type: program
     name: report_contract
     config:
       command: python3
       args:
         - evals/test-design/check-report.py
-        - implement
+        - changed
       timeout: 30
+  - type: file
+    name: changed_test_file
+    config:
+      must_exist:
+        - test/clamp.test.js
+      content_patterns:
+        - path: test/clamp.test.js
+          must_match:
+            - 'assert\.(?:equal|strictEqual)\s*\(\s*clamp\(-1,\s*0,\s*10\),\s*0\s*\)'
+            - 'assert\.(?:equal|strictEqual)\s*\(\s*clamp\(11,\s*0,\s*10\),\s*10\s*\)'
+            - 'clamp\(5,\s*0,\s*10\)'

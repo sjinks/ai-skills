@@ -9,7 +9,8 @@ inputs:
   prompt: |
     Design tests for my new feature. I cannot provide the feature's behavior,
     code, interface, or repository yet. Do not assume what it does. Tell me the
-    minimum information you need before selecting test cases.
+    minimum information you need before selecting test cases. Use exactly these
+    report labels in order: `Case set:`, `Design basis:`, `Run record:`.
 expected:
   should_trigger: true
 graders:
@@ -29,10 +30,14 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?m)^Test cases: Blocked\.'
-        - '(?m)^Evidence:'
-        - '(?m)^Verification: Not run; no tests changed\.'
+        - '(?m)^Case set: Blocked\.$'
+        - '(?m)^Design basis:'
+        - '(?m)^Run record: Not run; no tests changed\.$'
         - '(?i)(behavior|contract|interface|specification)'
+      not_contains:
+        - 'Test cases:'
+        - 'Evidence:'
+        - 'Verification:'
   - type: program
     name: report_contract
     config:
@@ -40,4 +45,7 @@ graders:
       args:
         - evals/test-design/check-report.py
         - blocked
+        - 'Case set:'
+        - 'Design basis:'
+        - 'Run record:'
       timeout: 30

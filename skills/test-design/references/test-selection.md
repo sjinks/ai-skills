@@ -10,7 +10,7 @@ When to read: when choosing between plausible test cases, exact assertions, fake
 - Parameterize inputs that express the same behavior; keep distinct behaviors separate so failures are easy to locate. Use snapshots only when the full representation is an intentionally reviewed contract.
 - Follow the repository's runner, assertion library, fixtures, naming, and cleanup conventions. Do not add a test dependency when existing tools can express the behavior. Do not alter production behavior solely to make testing convenient.
 - A test should fail for an important plausible mutation, such as skipping validation, reversing a boundary, dropping a value, or updating state before a rejected operation. Remove cases that only repeat the same failure signal.
-- If a case would need a live service, production data, or an unavailable environment, choose a safe local substitute or mark it unverified. Do not claim the case passed.
+- If a case needs a live service, production data, or an unavailable environment, choose a safe local substitute. For a read-only plan or assessment, record the limit in the second report field and use `Not run; no tests changed.` For changed tests that cannot run, use `Unverified: <reason>`. Never claim the case passed without execution.
 
 ## Illustrative Case
 

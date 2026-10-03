@@ -305,7 +305,9 @@ frontmatter, token budget, and eval presence checks. Run the regex validator
 whenever task YAML or grader contracts change; it also does not execute a model.
 
 `test-design` uses a 0.45 trigger threshold and a 7,000-token budget. Its
-suite-local report validator checks the three output labels and blocked branch:
+suite-local report validator checks default and caller-selected labels, blocked
+and changed-test branches, and verification status. The implementation edge uses
+supplied repository files and a file grader to require new test assertions:
 
 ```bash
 python3 evals/test-design/check-report.py --self-test

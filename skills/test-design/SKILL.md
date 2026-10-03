@@ -1,32 +1,32 @@
 ---
 name: test-design
 description: >-
-  USE FOR: selecting feature tests; writing tests from a contract; assessing
-  suite gaps. DO NOT USE FOR: single-test audits, flaky-test diagnosis, or
-  review-finding test plans. Framework-independent.
+  USE FOR: selecting feature/module test case sets; implementing tests from
+  those sets; assessing suite gaps. DO NOT USE FOR: writing or auditing one
+  test, dedicated framework testing, flaky tests, or review-finding plans.
 argument-hint: "Feature contract, files, and requested mode."
 ---
 
 # Test Design
 
-Choose tests that catch plausible behavioral defects.
+Catch plausible behavioral defects.
 
-**WORKFLOW SKILL.** INVOKES: repository inspection and changed-test execution. FOR SINGLE OPERATIONS: plan, implement, or assess as requested.
+**WORKFLOW SKILL.** INVOKES: repository inspection and test execution. FOR SINGLE OPERATIONS: plan, implement, or assess.
 
 ## Scope
 
-Plan or assess without editing; implement when requested. Inspect the contract, instructions, interfaces, code, and nearby tests. Code alone cannot define expected behavior.
+Plan or assess without editing; implement selected cases when requested. For framework-specific testing, use its dedicated workflow when available. Inspect the contract, instructions, interfaces, code, and nearby tests; code alone cannot define expectations.
 
 ## Workflow
 
 1. Model inputs, outputs, side effects, errors, and state changes.
 2. Select distinct normal, boundary, and failure cases by risk; name each expected result and defect caught.
 3. Assert contractual results at a faithful layer. Follow repository conventions.
-4. Run changed tests; diagnose failures before changing expectations. Remove brittle or redundant cases.
+4. Run changed tests; diagnose failures. Remove brittle or redundant cases.
 
 ## Decision Rules
 
-Case count and coverage percentage are not goals. Keep tests deterministic and isolated; fake external boundaries. Read [test selection guidance](references/test-selection.md) for assertions, expected values, and async cases.
+Ignore test counts and coverage targets. Keep tests deterministic and isolated; fake external boundaries. Read [test selection guidance](references/test-selection.md) for oracles and async cases.
 
 ## Error Handling
 
@@ -34,7 +34,7 @@ If behavior remains unclear, name the missing decision and design only supported
 
 ## Output
 
-Default: use labels once, in order. Caller-required labels replace them exactly.
+Use each label once in order; caller-required labels replace them exactly.
 
 `Test cases:` Each behavior, expected result, and defect caught; for assessment, gaps or why none is justified.
 
@@ -42,7 +42,7 @@ Default: use labels once, in order. Caller-required labels replace them exactly.
 
 `Verification:` Final line: `Ran: <command and result>` or `Unverified: <reason>` for changed tests; otherwise `Not run; no tests changed.`
 
-If blocked, use `Test cases: Blocked.`, name missing input under `Evidence:`, and end with `Verification: Not run; no tests changed.`
+If blocked, put `Blocked.` in the first field, the missing input in the second, and `Not run; no tests changed.` in the final field. Caller-required labels still replace all three.
 
 ## Checklist
 
@@ -51,8 +51,8 @@ If blocked, use `Test cases: Blocked.`, name missing input under `Evidence:`, an
 
 ## Example
 
-For insufficient funds, assert the error and unchanged balances; this catches premature debit.
+For insufficient funds, assert the error and unchanged balances; catch premature debit.
 
 ## Definition of Done
 
-Stop when selected cases pass the checklist and changed tests are verified or marked unverified.
+Stop when cases pass the checklist and changed tests are verified or unverified.
