@@ -3,13 +3,12 @@ name: test-design
 description: >-
   USE FOR: selecting feature/module test case sets; implementing tests from
   those sets; assessing suite gaps. DO NOT USE FOR: writing or auditing one
-  test, dedicated framework testing, flaky tests, or review-finding plans.
+  test, framework testing with an available dedicated workflow, flaky tests,
+  or review-finding plans.
 argument-hint: "Feature contract, files, and requested mode."
 ---
 
 # Test Design
-
-Catch plausible behavioral defects.
 
 **WORKFLOW SKILL.** INVOKES: repository inspection and test execution. FOR SINGLE OPERATIONS: plan, implement, or assess.
 
@@ -40,9 +39,9 @@ Use each label once in order; caller-required labels replace them exactly.
 
 `Evidence:` Contract, repository evidence, assumptions, or missing input.
 
-`Verification:` Final line: `Ran: <command and result>` or `Unverified: <reason>` for changed tests; otherwise `Not run; no tests changed.`
+`Verification:` Final line: `Ran: <command and pass/fail/exit result>` or `Unverified: <reason>` for changed tests; otherwise `Not run; no tests changed.`
 
-If blocked, put `Blocked.` in the first field, the missing input in the second, and `Not run; no tests changed.` in the final field. Caller-required labels still replace all three.
+If blocked: `Blocked.` in the first field, missing input in the second, and `Not run; no tests changed.` in the final field. Caller-required labels replace all three.
 
 ## Checklist
 

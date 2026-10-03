@@ -5,7 +5,7 @@ import re
 import sys
 
 MARKERS = ("Test cases:", "Evidence:", "Verification:")
-PROFILES = {"plan", "implement", "assessment", "blocked", "changed"}
+PROFILES = {"plan", "implement", "assessment", "blocked"}
 
 
 def validate(report: str, profile: str, labels: tuple[str, str, str] = MARKERS) -> None:
@@ -37,19 +37,23 @@ def validate(report: str, profile: str, labels: tuple[str, str, str] = MARKERS) 
     if positions[2] != len(lines) - 1:
         raise ValueError("verification must be the final line")
     verification = lines[-1][len(labels[2]):].strip()
-    if profile in {"blocked", "plan", "assessment", "implement"}:
+    if profile in {"blocked", "plan", "assessment"}:
         if verification != "Not run; no tests changed.":
             raise ValueError("this profile requires the no-changes verification status")
     elif not re.fullmatch(r"(?:Ran|Unverified): .+", verification):
         raise ValueError("invalid verification status")
+    elif verification.startswith("Ran:") and not re.search(
+        r"\b(?:pass(?:ed)?|fail(?:ed)?|exit(?:ed)?(?:\s+(?:code|status|with))?\s*[:=]?\s*-?\d+)\b",
+        verification, re.IGNORECASE,
+    ):
+        raise ValueError("Ran requires a pass/fail/exit result")
 
 
 VALID = {
     "plan": "Test cases: - valid transfer; expected balances; catches wrong debit\nEvidence: supplied contract\nVerification: Not run; no tests changed.",
-    "implement": "Test cases: - clamp below min; expected min; catches wrong bound\nEvidence: supplied contract\nVerification: Not run; no tests changed.",
+    "implement": "Test cases: - clamp below min; expected min; catches wrong bound\nEvidence: contract and repository test pattern\nVerification: Ran: node --test test/clamp.test.js; 3 tests passed",
     "assessment": "Test cases: - invalid middle row; zero persisted; catches partial commit\nEvidence: supplied contract and suite list\nVerification: Not run; no tests changed.",
     "blocked": "Test cases: Blocked.\nEvidence: Need the feature behavior.\nVerification: Not run; no tests changed.",
-    "changed": "Test cases: - clamp below min; expected min; catches wrong bound\nEvidence: contract and repository test pattern\nVerification: Ran: npm test passed",
 }
 CUSTOM_LABELS = ("Case set:", "Design basis:", "Run record:")
 CUSTOM_BLOCKED = "Case set: Blocked.\nDesign basis: Need the feature behavior.\nRun record: Not run; no tests changed."
@@ -60,7 +64,24 @@ def self_test() -> None:
     for profile, report in VALID.items():
         validate(report, profile)
     validate(CUSTOM_BLOCKED, "blocked", CUSTOM_LABELS)
-    validate(VALID["changed"].replace("Ran: npm test passed", "Unverified: test runner unavailable"), "changed")
+    assert set(VALID) == PROFILES, "every supported profile needs a valid fixture"
+    # Independent contract matrix: modes are checked against both status families.
+    for profile in ("plan", "assessment", "blocked", "implement"):
+        prefix = VALID[profile].rsplit("Verification:", 1)[0]
+        for status, changed in (
+            ("Not run; no tests changed.", False),
+            ("Ran: node --test; 3 tests passed", True),
+            ("Ran: node --test; 1 test failed", True),
+            ("Ran: node --test; exit code 1", True),
+            ("Unverified: test runner unavailable", True),
+        ):
+            expected = changed if profile == "implement" else not changed
+            try:
+                validate(prefix + "Verification: " + status, profile)
+            except ValueError:
+                assert not expected, (profile, status, "unexpected rejection")
+            else:
+                assert expected, (profile, status, "unexpected acceptance")
     base = VALID["plan"]
     invalid = {
         "omission": base.replace("Evidence: supplied contract\n", ""),
@@ -92,12 +113,19 @@ def self_test() -> None:
         except ValueError:
             continue
         raise AssertionError(f"accepted {name}")
+    for status in ("Passed", "Ran: node --test test/clamp.test.js", "Ran:", "Unverified:"):
+        report = VALID["implement"].rsplit("Verification:", 1)[0] + "Verification: " + status
+        try:
+            validate(report, "implement")
+        except ValueError:
+            continue
+        raise AssertionError(f"accepted implementation invalid status: {status}")
     try:
-        validate(VALID["changed"].replace("Ran: npm test passed", "Passed"), "changed")
+        validate(VALID["implement"], "changed")
     except ValueError:
         pass
     else:
-        raise AssertionError("accepted changed-profile invalid status")
+        raise AssertionError("accepted obsolete changed profile")
     print("test-design report contract: valid profiles and mutations passed")
 
 

@@ -14,7 +14,8 @@ inputs:
     `0` and `clamp(11, 0, 10)` is `10`. Edit the test file; do not merely show
     code in your reply or change `clamp.js`. Run `node --test test/clamp.test.js`
     when available, then report the cases, contract evidence, and actual
-    verification result. If execution is unavailable, say why.
+    verification result and the defect each case catches. No dedicated testing
+    workflow is available for this framework. If execution is unavailable, say why.
   files:
     - path: package.json
       content: '{"type":"module"}'
@@ -53,8 +54,9 @@ graders:
       regex_match:
         - '(?m)^Test cases:'
         - '(?m)^Evidence:'
-        - '(?m)^Verification: (?:Ran|Unverified): .+'
+        - '(?im)^Verification: (?:Unverified: .+|Ran: .+\b(?:pass(?:ed)?|fail(?:ed)?|exit(?:ed)?(?:\s+(?:code|status|with))?\s*[:=]?\s*-?\d+)\b.*)$'
         - '(?i)(below|min|lower).{0,120}(above|max|upper)|(above|max|upper).{0,120}(below|min|lower)'
+        - '(?i)(defect|bug|regress|incorrect|wrong|mistake)'
       not_contains:
         - 'Verification: Not run; no tests changed.'
   - type: program
@@ -63,7 +65,7 @@ graders:
       command: python3
       args:
         - evals/test-design/check-report.py
-        - changed
+        - implement
       timeout: 30
   - type: file
     name: changed_test_file

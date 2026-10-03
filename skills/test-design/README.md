@@ -8,3 +8,8 @@ This framework-independent skill derives feature or module case sets from observ
 
 - [`SKILL.md`](SKILL.md) — workflow, decisions, output, and completion checklist.
 - [`references/test-selection.md`](references/test-selection.md) — detailed guidance for choosing cases and assertions.
+
+The eval suite checks planning, implementation, assessment, missing input, and
+activation boundaries. Its additional `report_contract` and `changed_test_file`
+metrics validate the report grammar and actual test-file edits. The implementation
+profile requires a pass/fail/exit result or an explicit unavailable-run reason.

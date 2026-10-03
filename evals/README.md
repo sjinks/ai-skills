@@ -306,11 +306,21 @@ whenever task YAML or grader contracts change; it also does not execute a model.
 
 `test-design` uses a 0.45 trigger threshold and a 7,000-token budget. Its
 suite-local report validator checks default and caller-selected labels, blocked
-and changed-test branches, and verification status. The implementation edge uses
-supplied repository files and a file grader to require new test assertions:
+and implementation branches, and verification status. The only implementation
+profile is `implement`: it accepts `Ran:` with a pass/fail/exit result or
+`Unverified:` with a reason, and rejects the no-change status. Its self-test
+checks every supported profile against both status families. The implementation
+edge uses supplied repository files and a file grader to require new assertions,
+plus text assertions for the defect caught and execution outcome.
+
+The isolated-test audit and available-framework precedence are independent
+negative-close tasks. The implementation edge supplies the positive framework
+fallback when no dedicated workflow exists; flaky-test diagnosis has its own
+negative-close task.
 
 ```bash
 python3 evals/test-design/check-report.py --self-test
+python3 evals/test-design/check-projections.py
 python3 evals/_helpers/check-eval-regexes.py --root evals/test-design --cases evals/test-design/regex-cases.json
 ```
 

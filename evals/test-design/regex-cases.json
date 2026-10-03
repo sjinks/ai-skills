@@ -19,13 +19,22 @@
       "does_not_match": ["Test cases: Blocked.", "Case set: planned transfer"]
     },
     {
-      "name": "changed-test verification status",
+      "name": "implementation outcome status",
       "task": "tasks/positive-edge-2.yaml",
       "grader": "task_completion",
       "list": "regex_match",
       "index": 2,
-      "matches": ["Verification: Ran: node --test test/clamp.test.js passed", "Verification: Unverified: node unavailable"],
-      "does_not_match": ["Verification: Not run; no tests changed.", "Verification: Ran:"]
+      "matches": ["Verification: Ran: node --test test/clamp.test.js; 3 tests passed", "Verification: Ran: node --test; exit code 1", "Verification: Unverified: node unavailable"],
+      "does_not_match": ["Verification: Not run; no tests changed.", "Verification: Ran:", "Verification: Ran: node --test test/clamp.test.js"]
+    },
+    {
+      "name": "implementation defect signal",
+      "task": "tasks/positive-edge-2.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 4,
+      "matches": ["catches the wrong lower bound", "detects a regression in upper clamping"],
+      "does_not_match": ["both bounds considered", "checks below and above range"]
     },
     {
       "name": "atomic rollback signal",

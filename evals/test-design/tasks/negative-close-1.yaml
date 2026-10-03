@@ -1,21 +1,20 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
 id: negative-close-001
-name: Isolated NestJS test audit and fix
-description: Review and rewrite one NestJS test without selecting a feature-level case set.
+name: Isolated test quality audit
+description: Audit one existing test without a framework-precedence cue.
 tags:
   - negative-close
 inputs:
   prompt: |
-    In a NestJS app, review and rewrite only this existing Jest test for
-    `UsersService.create`. The contract requires `ConflictException` when
-    `findByEmail` finds a user. Does this test detect the wrong behavior?
-    Give one corrected test, not a feature-level case plan.
+    Review only this existing test for assertion quality. The contract says
+    `double(4)` returns `8`. Does the test detect a wrong implementation?
+    No dedicated framework testing workflow is available. Do not select a
+    feature-level case set; explain the quality defect in this test.
 
-    ```ts
-    it('rejects a duplicate email', async () => {
-      users.findByEmail.mockResolvedValue({ id: '1' });
-      await service.create({ email: 'a@b.c' });
-      expect(users.findByEmail).toHaveBeenCalled();
+    ```js
+    test('doubles', () => {
+      const result = double(4);
+      expect(result).toBe(result);
     });
     ```
 expected:
