@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-001
+name: Isolated test quality audit
+description: An existing single test needs assertion-quality review, not feature-level case selection.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Review only this existing test for assertion quality. Does it actually
+    detect a wrong implementation? Do not suggest a feature-level case plan.
+
+    ```js
+    test('doubles', () => {
+      const result = double(4);
+      expect(result).toBe(result);
+    });
+    ```
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-design/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Test cases:"
+        - "Evidence:"
+        - "Verification:"
+        - "test-design"

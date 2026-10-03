@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Select cases from a behavior contract
+description: Plan a compact set of cases with independent observations and plausible defects.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Design automated test cases for a transfer function. The contract says a
+    positive amount moves funds from one account to another, preserving the
+    combined balance. If the source lacks funds, it returns InsufficientFunds
+    and leaves both accounts unchanged. Zero and negative amounts are rejected
+    with InvalidAmount and leave both accounts unchanged. Assume an in-memory
+    deterministic implementation; propose cases only and do not inspect files.
+    Keep the set small. For each case, give the expected observation and a
+    plausible defect it would catch.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - test-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?m)^Test cases:'
+        - '(?m)^Evidence:'
+        - '(?m)^Verification: Not run; no tests changed\.'
+        - '(?i)InsufficientFunds.{0,180}(unchanged|preserv)|unchanged.{0,180}InsufficientFunds'
+        - '(?i)(InvalidAmount|zero|negative).{0,180}(unchanged|reject)|(unchanged|reject).{0,180}(InvalidAmount|zero|negative)'
+        - '(?i)(defect|bug|regress|incorrect|mistake)'
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/test-design/check-report.py
+        - plan
+      timeout: 30

@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-002
+name: Implement tests from an inline contract
+description: Request test code with contract-based assertions rather than only a plan.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Write a complete Vitest test file for `clamp(value, min, max)` from
+    `./clamp.js`. Its contract returns min below range, max above range, and
+    value within the inclusive range. Assume min <= max and numeric inputs.
+    Include representative boundary cases; no repository is available and do
+    not execute anything. Show test code, plus why the chosen assertions would
+    catch plausible defects. Do not change implementation behavior.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - test-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?m)^Test cases:'
+        - '(?m)^Evidence:'
+        - '(?m)^Verification:'
+        - '(?i)(vitest|describe\(|test\(|it\()'
+        - '(?i)(toBe\(0\)|toEqual\(0\)|below.{0,60}min)'
+        - '(?i)(boundary|inclusive|equal.{0,20}(min|max))'
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/test-design/check-report.py
+        - implement
+      timeout: 30

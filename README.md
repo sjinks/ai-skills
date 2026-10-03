@@ -55,6 +55,7 @@ The repository currently contains the following skills, grouped by area. Each li
 - [`fix-blast-radius`](skills/fix-blast-radius/README.md) — Assessing what a drafted fix could newly break before it is pushed, tracing impact across callers, shared state, contracts, behavioral siblings, and previously resolved findings, with one verification step per risk.
 - [`equivalence-class-audit`](skills/equivalence-class-audit/README.md) — Turning one concrete defect, incident, review finding, test failure, or bug report into a locked-scope audit of equivalent defects across sibling fields, mirror use sites, bounds, contracts, paths, modes, tests, docs, and projections.
 - [`test-gap-to-test-plan`](skills/test-gap-to-test-plan/README.md) — Converting review findings and unverified behaviors into a prioritized, owned, layer-typed test plan that tracks the test evidence a downstream merge gate will require.
+- [`test-design`](skills/test-design/README.md) — Designing and implementing a compact set of behavior-driven automated tests for a feature or module, or assessing suite-level gaps, with explicit defect signals and honest verification.
 - [`test-quality-review`](skills/test-quality-review/README.md) — Auditing an individual test (not a test plan) for quality: whether it can fail for one behavioral reason, targets observable behavior over incidental detail, is deterministic and isolated, and covers the negative/boundary paths it claims, returning a per-test `solid`/`weak`/`cannot-fail` verdict.
 
 ### Debugging & Refactoring

@@ -163,6 +163,7 @@ metric → grader weighting takes effect.
   - `shell-command-construction`: 0.45
   - `flaky-test-diagnosis`: 0.45
   - `test-quality-review`: 0.45
+  - `test-design`: 0.45
   - `perf-measurement`: 0.45
   - `doc-source-reconciliation`: 0.45
   - `artifact-consolidation`: 0.45
@@ -302,6 +303,14 @@ python3 evals/_helpers/check-eval-regexes.py --root evals/<skill>
 `waza check` does not execute a model and is the default validation path for
 frontmatter, token budget, and eval presence checks. Run the regex validator
 whenever task YAML or grader contracts change; it also does not execute a model.
+
+`test-design` uses a 0.45 trigger threshold and a 7,000-token budget. Its
+suite-local report validator checks the three output labels and blocked branch:
+
+```bash
+python3 evals/test-design/check-report.py --self-test
+python3 evals/_helpers/check-eval-regexes.py --root evals/test-design --cases evals/test-design/regex-cases.json
+```
 
 The `handoff-note` caller-schema edge case additionally validates its exact
 heading set and order without a model:

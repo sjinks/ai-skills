@@ -1,0 +1,31 @@
+{
+  "cases": [
+    {
+      "name": "ordered test-case marker",
+      "task": "tasks/positive-trigger-1.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 0,
+      "matches": ["Test cases: valid transfer"],
+      "does_not_match": ["Preface Test cases: valid transfer", "Test case: valid transfer"]
+    },
+    {
+      "name": "blocked case marker",
+      "task": "tasks/positive-edge-1.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 0,
+      "matches": ["Test cases: Blocked."],
+      "does_not_match": ["Test cases: planned transfer", "Blocked."]
+    },
+    {
+      "name": "atomic rollback signal",
+      "task": "tasks/positive-edge-3.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 4,
+      "matches": ["none persisted", "zero rows written"],
+      "does_not_match": ["one row persisted", "all rows accepted"]
+    }
+  ]
+}

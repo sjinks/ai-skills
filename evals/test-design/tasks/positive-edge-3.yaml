@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Assess suite-level missing behavior
+description: Identify a distinct high-risk gap in an existing feature suite.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Assess the suite-level gaps for a batch importer. Contract: valid rows
+    are persisted atomically; if any row is invalid, the import reports the
+    offending row and persists none. The current suite tests a fully valid
+    batch and an empty batch only. Propose the smallest material missing case
+    or cases. Give the expected observation and defect caught. This is a
+    read-only assessment; do not inspect files or run tests.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - test-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?m)^Test cases:'
+        - '(?m)^Evidence:'
+        - '(?m)^Verification: Not run; no tests changed\.'
+        - '(?i)(invalid|malformed).{0,180}(row|batch)'
+        - '(?i)(none|nothing|zero).{0,90}(persist|saved|written)|(persist|saved|written).{0,90}(none|nothing|zero)'
+        - '(?i)(partial|atomic|rollback|all-or-nothing)'
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/test-design/check-report.py
+        - assessment
+      timeout: 30

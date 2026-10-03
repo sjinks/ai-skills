@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-001
+name: Missing contract blocks case selection
+description: No target behavior can be inferred from the supplied request.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Design tests for my new feature. I cannot provide the feature's behavior,
+    code, interface, or repository yet. Do not assume what it does. Tell me the
+    minimum information you need before selecting test cases.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - test-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?m)^Test cases: Blocked\.'
+        - '(?m)^Evidence:'
+        - '(?m)^Verification: Not run; no tests changed\.'
+        - '(?i)(behavior|contract|interface|specification)'
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/test-design/check-report.py
+        - blocked
+      timeout: 30
