@@ -18,11 +18,12 @@ graders:
     name: task_completion
     config:
       not_contains:
-        - "Attempt Timeline:"
-        - "Assessment:"
-        - "Learnings:"
-        - "Prevention:"
-        - "Next Checks:"
-        - "Skill Candidate:"
-        - "Retrospective:"
-        - "Verdict:"
+        - 'Retrospective Attempts:'
+        - 'Retrospective Assessment:'
+        - 'Retrospective Learnings:'
+        - 'Retrospective Prevention:'
+        - 'Retrospective Next Checks:'
+        - 'Retrospective Skill Candidate:'
+        - 'Retrospective:'
+        - 'Retrospective Verdict:'
+        - iteration-retrospective

@@ -5,6 +5,8 @@ inputs:
   prompt: |
     Retrospect two independent repository incidents. In repo A and repo B, agents repeatedly fixed review comments one by one because each lacked a method to cluster equivalent findings. Both histories show the same root cause, a stable clustering procedure, and repeated review churn.
     Decide whether reusable guidance is warranted and cite the evidence.
+
+    Treat each repository incident as one supplied attempt. Evidence establishes that clustering requires contextual judgment, the procedure has portable inputs/outputs, no established guidance covers it, and no deterministic check, helper, local instruction, or refactor resolves it.
 expected:
   should_trigger: true
 graders:
@@ -17,18 +19,34 @@ graders:
   - type: skill_invocation
     name: skill_invocation
     config:
-      required_skills: [iteration-retrospective]
+      required_skills:
+        - iteration-retrospective
       mode: any_order
   - type: text
     name: task_completion
     config:
       regex_match:
-        - "Attempt Timeline:"
-        - "Evidence:"
-        - "Skill Candidate: new skill"
-        - "Prevention:"
-        - "Next Checks:"
-        - "Verdict: CLEAN"
+        - 'Retrospective Attempts:'
+        - 'Evidence:'
+        - 'Retrospective Skill Candidate: new skill'
+        - 'Retrospective Prevention:'
+        - 'Retrospective Next Checks:'
+        - 'Retrospective Verdict: CLEAN'
       not_contains:
-        - "Fact-Check Summary"
-        - "Gate decision:"
+        - Fact-Check Summary
+        - 'Gate decision:'
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/iteration-retrospective/check-report.py
+        - --verdict
+        - CLEAN
+        - --candidate
+        - new skill
+        - --attempt-count
+        - '2'
+        - --mechanisms
+        - reusable skill
+      timeout: 30

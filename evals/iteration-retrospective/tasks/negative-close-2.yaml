@@ -2,7 +2,7 @@
 id: negative-close-002
 name: Generic lessons request
 inputs:
-  prompt: "What are some general lessons learned from software projects?"
+  prompt: What are some general lessons learned from software projects?
 expected:
   should_trigger: false
 graders:
@@ -16,11 +16,12 @@ graders:
     name: task_completion
     config:
       not_contains:
-        - "Attempt Timeline:"
-        - "Assessment:"
-        - "Learnings:"
-        - "Prevention:"
-        - "Next Checks:"
-        - "Skill Candidate:"
-        - "Retrospective:"
-        - "Verdict:"
+        - 'Retrospective Attempts:'
+        - 'Retrospective Assessment:'
+        - 'Retrospective Learnings:'
+        - 'Retrospective Prevention:'
+        - 'Retrospective Next Checks:'
+        - 'Retrospective Skill Candidate:'
+        - 'Retrospective:'
+        - 'Retrospective Verdict:'
+        - iteration-retrospective

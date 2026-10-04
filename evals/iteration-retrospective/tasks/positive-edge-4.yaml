@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-004
+name: Known outcomes and refactor mapping-4
+inputs:
+  prompt: |-
+    Retrospect the following history. Goal: unify duplicated configuration definitions. Evidence supports every stated action, result and success criterion.
+    A1 attempted to unify all definitions. It unified only half; evaluation recorded partial success. A2 later replaced A1's approach, but A1's evaluated outcome remains known.
+    A2 attempted full unification, and evaluation recorded success.
+    A3 proposed another approach; A4 replaced A3 before any evaluation, so A3 has no established outcome.
+    A4 is pending evaluation and has no established outcome; no replacement is recorded.
+    The confirmed failure cause is duplicated sources of truth. The smallest prevention is a source-of-truth change; no check, helper, or guidance update can resolve duplication. Record it using the canonical mechanism domain. There is only one incident. Unresolved A4 validation could change the next action. Recommend prevention without creating artifacts.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/iteration-retrospective/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - iteration-retrospective
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?m)^- A1 \| Status: partly-worked \|'
+        - '(?m)^- A2 \| Status: worked \|'
+        - '(?m)^- A3 \| Status: superseded \|'
+        - '(?m)^- A4 \| Status: inconclusive \|'
+        - 'Mechanism: refactor'
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/iteration-retrospective/check-report.py
+        - --verdict
+        - CONCERNS
+        - --candidate
+        - no new skill
+        - --attempt-count
+        - '4'
+        - --mechanisms
+        - refactor
+      timeout: 30

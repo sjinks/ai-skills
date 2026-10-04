@@ -475,3 +475,40 @@ See [the manifest contract and workflow](../docs/review-evidence.md).
 python3 -m unittest discover -s evals/_helpers -p test_check_review_evidence.py
 python3 evals/_helpers/check-review-evidence.py /tmp/review-evidence.json --repo "$PWD"
 ```
+
+
+### Iteration retrospective report validation
+
+`iteration-retrospective` uses a 0.45 trigger threshold and an 8,000-token budget.
+Every positive task invokes the suite-local `report_contract` program grader
+with task-specific verdict, candidate, and attempt-count expectations. The
+validator owns marker spelling/order/cardinality, row fields and numbering,
+value domains, default/caller-label profiles, the blocked branch, and termination.
+Text graders assert the contextual status and mechanism decisions separately.
+Negative exclusions cover every top-level report marker and the skill name. Default markers use a `Retrospective` prefix; generic row fields such as `Status:` and `Result:` are not independent forbidden tokens.
+
+Existing tasks cover unknown causes, guidance precedence, blocked default labels,
+known failures, and independent new-skill eligibility. `positive-edge-4.yaml`
+adds evaluated partial success versus unevaluated replacement and pending outcomes,
+and source-of-truth mapping; existing histories do not contain those combinations.
+`positive-edge-5.yaml` adds valid caller labels, mechanism tie-breaking, preserved known failed outcomes, and an unselected established-guidance update;
+existing tasks previously used only default labels. `positive-edge-1.yaml` passes
+ignored caller labels that collide with blocked-report content to the validator.
+`positive-edge-6.yaml` discriminates new repository guidance from extension of an
+established workflow; no existing task selects new guidance.
+`positive-edge-7.yaml` discriminates aggregation across selected reusable-skill
+and established-guidance rows; existing tasks select only one mechanism.
+The new-guidance task cannot reuse the existing-guidance fixture without losing
+its extension assertion. The aggregation task needs multiple selected patterns;
+adding them to existing single-pattern fixtures would remove their isolation.
+The checker enforces candidate/mechanism compatibility; evidence that guidance
+is established and that a new skill is eligible remains a contextual assertion.
+No paid model run is implied.
+
+```bash
+python3 evals/iteration-retrospective/check-report.py --self-test
+python3 evals/iteration-retrospective/check-projections.py
+python3 evals/iteration-retrospective/check-projections.py --negative-task negative-trigger-1.yaml < response.txt
+python3 evals/iteration-retrospective/check-report.py --verdict CLEAN < report.txt
+python3 evals/_helpers/check-eval-regexes.py --root evals/iteration-retrospective
+```

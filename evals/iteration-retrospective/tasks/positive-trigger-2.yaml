@@ -18,21 +18,35 @@ graders:
   - type: skill_invocation
     name: skill_invocation
     config:
-      required_skills: [iteration-retrospective]
+      required_skills:
+        - iteration-retrospective
       mode: any_order
   - type: text
     name: task_completion
     config:
       regex_match:
-        - "Attempt Timeline:"
-        - "Action:"
-        - "Result:"
-        - "Evidence:"
-        - "Status: failed"
-        - "Cause: confirmed"
-        - "Prevention:"
-        - "Next Checks:"
-        - "Verdict: CLEAN"
+        - 'Retrospective Attempts:'
+        - 'Action:'
+        - 'Result:'
+        - 'Evidence:'
+        - 'Status: failed'
+        - 'Cause: confirmed'
+        - 'Retrospective Prevention:'
+        - 'Retrospective Next Checks:'
+        - 'Retrospective Verdict: CLEAN'
       not_contains:
-        - "Fact-Check Summary"
-        - "Gate decision:"
+        - Fact-Check Summary
+        - 'Gate decision:'
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/iteration-retrospective/check-report.py
+        - --verdict
+        - CLEAN
+        - --candidate
+        - no new skill
+        - --attempt-count
+        - '3'
+      timeout: 30

@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-006
+name: New repository guidance does not extend existing guidance
+inputs:
+  prompt: |
+    Retrospect this completed local investigation. Goal: obtain the required diagnostic evidence before changing a parser.
+    A1 changed the parser without collecting diagnostics and failed to resolve the import failure. Its action, failure and missing diagnostics are recorded in the investigation log.
+    A2 collected the required diagnostics, corrected the evidenced cause and passed validation. The log and validation output establish the cause and outcome.
+    There is no established debugging guidance in this repository. The selected smallest prevention is new repository guidance defining the diagnostic-evidence prerequisite. No deterministic check, shared helper or refactor addresses the workflow failure. This is one incident, all uncertainties are resolved, and no follow-up check remains. Select one prevention row and derive the skill candidate from that selected mechanism. Do not create files.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/iteration-retrospective/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - iteration-retrospective
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - 'Retrospective Prevention:'
+        - 'Retrospective Skill Candidate: no new skill'
+        - 'Retrospective Verdict: CLEAN'
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/iteration-retrospective/check-report.py
+        - --verdict
+        - CLEAN
+        - --candidate
+        - no new skill
+        - --attempt-count
+        - '2'
+        - --mechanisms
+        - repository guidance
+      timeout: 30
