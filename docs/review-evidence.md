@@ -51,6 +51,9 @@ explicit adapter; do not weaken the expected failure into any nonzero code.
 
 `scope` lists existing regular files relative to the repository root. Each must
 exist in the tree and match the current working bytes and owner-executable bit.
+Every gate Git invocation, including raw blob reads, uses
+`git --no-replace-objects` so replacement refs cannot substitute a recorded tree
+or blob ID; see the [Git replacement documentation](https://git-scm.com/docs/git-replace).
 Both pre- and post-probe comparisons disable external diff drivers and textconv
 with `--no-ext-diff --no-textconv`; the meaning of those flags is defined in the
 [Git diff documentation](https://git-scm.com/docs/git-diff). Raw blob bytes and the executable bit are checked separately so clean filters,

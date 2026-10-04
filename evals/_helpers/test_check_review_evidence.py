@@ -192,6 +192,71 @@ class EvidenceGateTest(unittest.TestCase):
                     gate.check(self.manifest, self.root)
                 self.assertEqual(gate.git(self.root, "diff", "--no-ext-diff", "--no-textconv", self.manifest["tree"], "--", "validator.py"), "")
 
+    def test_replacements_cannot_hide_pre_or_post_changes(self):
+        """Reject substituted trees and blobs, including normalization-hidden blobs."""
+        for kind in ("tree", "blob"):
+            for phase in ("pre", "post"):
+                with self.subTest(kind=kind, phase=phase):
+                    (self.root / ".gitattributes").write_text("")
+                    source = 'import sys, subprocess\nif sys.stdin.read() != "valid":\n'
+                    if phase == "post":
+                        source += '    with open(__file__, "a") as file:\n        file.write("# replaced probe edit\\n")\n'
+                        if kind == "tree":
+                            source += '    subprocess.run(["git", "add", "validator.py"], check=True)\n    replacement = subprocess.check_output(["git", "write-tree"], text=True).strip()\n'
+                        else:
+                            source += '    replacement = subprocess.check_output(["git", "hash-object", "-w", "--no-filters", "validator.py"], text=True).strip()\n'
+                        source += '    subprocess.run(["git", "replace", sys.argv[1], replacement], check=True)\n'
+                    source += '    sys.exit("invalid input")\n'
+                    self.bind_validator(source)
+                    original = self.manifest["tree"] if kind == "tree" else gate.git(self.root, "rev-parse", self.manifest["tree"] + ":validator.py")
+                    self.manifest["rules"][0]["command"] = ["python3", "validator.py", original]
+                    if kind == "blob":
+                        helper = self.root / "clean.py"
+                        helper.write_text("import sys\nsys.stdout.buffer.write(" + repr(source.encode()) + ")\n")
+                        (self.root / ".gitattributes").write_text("validator.py filter=normalize\n")
+                        gate.git(self.root, "config", "filter.normalize.clean", shlex.quote(sys.executable) + " " + shlex.quote(str(helper)))
+                    if phase == "pre":
+                        with (self.root / "validator.py").open("a") as file:
+                            file.write("# replaced pre edit\n")
+                        if kind == "tree":
+                            gate.git(self.root, "add", "validator.py")
+                            replacement = gate.git(self.root, "write-tree")
+                        else:
+                            replacement = gate.git(self.root, "hash-object", "-w", "--no-filters", "validator.py")
+                        gate.git(self.root, "replace", original, replacement)
+                    try:
+                        diagnostic = "working scope differs from tree" if phase == "pre" else "probe changed scoped files"
+                        with self.assertRaisesRegex(ValueError, "^" + diagnostic + "$"):
+                            gate.check(self.manifest, self.root)
+                        # Ordinary object lookup shows the substituted identity/data.
+                        if kind == "tree":
+                            shown = subprocess.check_output(["git", "-C", str(self.root), "ls-tree", "-z", original, "--", "validator.py"])
+                            real = subprocess.check_output(["git", "--no-replace-objects", "-C", str(self.root), "ls-tree", "-z", original, "--", "validator.py"])
+                            self.assertNotEqual(shown, real)
+                        else:
+                            shown = subprocess.check_output(["git", "-C", str(self.root), "cat-file", "blob", original])
+                            self.assertEqual(shown, (self.root / "validator.py").read_bytes())
+                            self.assertNotEqual(shown, source.encode())
+                            self.assertEqual(gate.git(self.root, "diff", "--no-ext-diff", "--no-textconv", self.manifest["tree"], "--", "validator.py"), "")
+                    finally:
+                        gate.git(self.root, "replace", "-d", original)
+
+    def test_replacements_preserve_valid_unchanged_scope(self):
+        """Replacements alone must not reject genuine original scoped contents."""
+        original_tree = self.manifest["tree"]
+        original_blob = gate.git(self.root, "rev-parse", original_tree + ":validator.py")
+        source = (self.root / "validator.py").read_text()
+        self.bind_validator(source + "# replacement-only content\n")
+        replacement_tree = self.manifest["tree"]
+        replacement_blob = gate.git(self.root, "rev-parse", replacement_tree + ":validator.py")
+        (self.root / "validator.py").write_text(source)
+        self.manifest["tree"] = original_tree
+        gate.git(self.root, "replace", original_tree, replacement_tree)
+        gate.git(self.root, "replace", original_blob, replacement_blob)
+        result = gate.check(self.manifest, self.root)
+        self.assertEqual(result["tree"], original_tree)
+        self.assertEqual(result["contrastive-checks"], "passed")
+
     def test_stale_scope(self):
         """Reject working files that changed after the immutable tree was recorded."""
         (self.root / "validator.py").write_text("changed")

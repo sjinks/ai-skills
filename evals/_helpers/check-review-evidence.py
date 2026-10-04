@@ -25,9 +25,18 @@ def populated(value: object) -> bool:
     return isinstance(value, str) and bool(value.strip())
 
 
+def git_command(root: Path, *args: str) -> list[str]:
+    """Build every gate Git invocation with literal, non-replacing object lookup.
+
+    Text metadata and raw blob reads share this policy so neither can silently
+    substitute replacement refs for the recorded immutable identity.
+    """
+    return ["git", "--no-replace-objects", "-C", str(root), "--literal-pathspecs", *args]
+
+
 def git(root: Path, *args: str) -> str:
     """Read repository identity and tracked scope without executing a shell."""
-    return subprocess.check_output(["git", "-C", str(root), "--literal-pathspecs", *args], text=True).strip()
+    return subprocess.check_output(git_command(root, *args), text=True).strip()
 
 
 
@@ -48,7 +57,7 @@ def scope_diff(root: Path, tree: str, scope: list[str]) -> str:
         file = root / path
         if file.is_symlink() or not file.is_file():
             return "scoped file is no longer regular: " + path
-        content = subprocess.check_output(["git", "-C", str(root), "cat-file", "blob", object_id])
+        content = subprocess.check_output(git_command(root, "cat-file", "blob", object_id))
         executable = bool(file.stat().st_mode & stat.S_IXUSR)
         if file.read_bytes() != content or executable != (mode == "100755"):
             return "scoped bytes or executable mode differ: " + path
