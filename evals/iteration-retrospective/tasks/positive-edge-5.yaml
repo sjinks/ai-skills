@@ -29,6 +29,7 @@ graders:
         - '(?m)^- A1 \| Status: failed \|'
         - '(?m)^- A2 \| Status: worked \|'
         - 'Mechanism: deterministic check'
+        - '(?m)^Goal:'
   - type: program
     name: report_contract
     config:

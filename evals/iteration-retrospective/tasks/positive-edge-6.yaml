@@ -31,6 +31,7 @@ graders:
         - 'Retrospective Skill Candidate: no new skill'
         - 'Retrospective Verdict: CONCERNS'
         - '(?im)^- N[1-9][0-9]*: .*(cost|dependenc|workflow.step|step.count)'
+        - '(?m)^Retrospective:'
   - type: program
     name: report_contract
     config:

@@ -33,6 +33,7 @@ graders:
         - '(?m)^- A3 \| Status: superseded \|'
         - '(?m)^- A4 \| Status: inconclusive \|'
         - 'Mechanism: refactor'
+        - '(?m)^Retrospective:'
   - type: program
     name: report_contract
     config:

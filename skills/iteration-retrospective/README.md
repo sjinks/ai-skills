@@ -8,7 +8,7 @@ Requests about multiple attempts or an explicitly abandoned approach reach the m
 
 The report defines attempt statuses, evidence-bound cause grouping, skill candidates derived from selected prevention, and `CLEAN` / `CONCERNS` / `BLOCK` verdicts. Nonblocked failed or partially successful attempts require cause learnings, and `CONCERNS` requires next checks. Missing comparison costs leave the affected prevention unselected while preserving other selections. Static report validation covers default and caller-selected labels and the blocked branch; live model behavior remains separate evidence.
 
-Default report markers use the `Retrospective` prefix so negative evals permit ordinary status and review labels. Caller-selected labels remain supported for nonblocked reports. Labels containing control or Unicode line separators are invalid. Invalid nonblocked labels produce a fixed two-line label clarification instead of a report; blocked reports ignore all replacements.
+Default report markers use the `Retrospective` prefix so negative evals permit ordinary status and review labels. Caller-selected labels remain supported for nonblocked reports. Labels containing C0/C1 controls (U+0000–U+001F and U+007F–U+009F) or Unicode line separators (U+2028/U+2029) are invalid. Invalid nonblocked labels produce a fixed two-line label clarification instead of a report; blocked reports ignore all replacements.
 
 ## Files
 

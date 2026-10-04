@@ -23,6 +23,7 @@ def valid_labels(labels: tuple[str, ...]) -> bool:
     """
     return (len(labels) == len(MARKERS) and len(set(labels)) == len(labels)
             and all(label.splitlines() == [label] and re.fullmatch(r'[^:]+:', label) and label[:-1].strip()
+                    and not any(ord(char) < 0x20 or 0x7f <= ord(char) <= 0x9f for char in label)
                     and not label.startswith('- ') for label in labels))
 
 
@@ -314,7 +315,7 @@ def self_test() -> None:
     boundaries = ('\n', '\r', '\r\n', '\v', '\f', '\x1c', '\x1d', '\x1e', '\x85', '\u2028', '\u2029')
     for boundary in boundaries:
         for slot in range(len(CUSTOM)):
-            labels = tuple('Go' + boundary + 'al:' if i == slot else label for i, label in enumerate(CUSTOM))
+            labels = tuple(label[:-1] + boundary + ':' if i == slot else label for i, label in enumerate(CUSTOM))
             assert not valid_labels(labels), 'line boundary accepted in label'
             validate_clarification(clarification, labels)
             validate(BLOCK, labels)
@@ -325,6 +326,24 @@ def self_test() -> None:
                 checks += 1
             else:
                 raise AssertionError('accepted split-line label')
+    # C0, DEL and C1 include controls that splitlines does not recognize.
+    controls = tuple(chr(code) for code in (*range(0x20), *range(0x7f, 0xa0)))
+    for control in controls:
+        for slot in range(len(CUSTOM)):
+            labels = tuple(label[:-1] + control + ':' if i == slot else label for i, label in enumerate(CUSTOM))
+            assert not valid_labels(labels), 'control accepted in label'
+            validate_clarification(clarification, labels)
+            validate(BLOCK, labels)
+            try:
+                validate(custom, labels)
+            except ValueError as error:
+                assert str(error) == 'invalid caller labels', str(error)
+                checks += 1
+            else:
+                raise AssertionError('accepted control in caller labels')
+    for label in ('Goal with spaces:', 'Ціль:', '目標:', 'Go\u00a0al:'):
+        labels = (label, *CUSTOM[1:])
+        validate(replace_labels(VALID, labels), labels)
     for labels in (invalid_labels, ('Missing colon', *CUSTOM[1:]), ('- N1:', *CUSTOM[1:]), (' ', *CUSTOM[1:])):
         validate_clarification(clarification, labels)
         validate(BLOCK, labels)

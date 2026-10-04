@@ -515,6 +515,14 @@ Missing-evidence requests about a single explicitly abandoned approach activate 
 a single nonabandoned attempt and generic reflection remain excluded.
 Label mutations cover every line boundary documented for Python `str.splitlines()`;
 nonblocked labels must remain a single unchanged line under that same operation.
+They also reject every C0/C1 control (U+0000–U+001F and U+007F–U+009F),
+including controls that are not line boundaries, in every label slot.
+Every positive `task_completion` text grader asserts its active profile's literal
+first marker with `(?m)^`; the projection checker rejects omitted, row-only,
+inactive and unanchored replacements. Default, custom, BLOCK and clarification
+profiles use their respective active marker. The envelope-only response probe
+checks that assertion independently of the program report grader. The `--label-set`
+probe validates a JSON array of caller labels independently of response formatting.
 The boundary-test debugging task also requires the selected `deterministic check`
 mechanism, rejecting an empty prevention section or an unrelated mechanism.
 Nonblocked failed/partly-worked timelines require learning rows; `CONCERNS`
@@ -528,6 +536,8 @@ No paid model run is implied.
 ```bash
 python3 evals/iteration-retrospective/check-report.py --self-test
 python3 evals/iteration-retrospective/check-projections.py
+python3 evals/iteration-retrospective/check-projections.py --label-set < labels.json
+python3 evals/iteration-retrospective/check-projections.py --positive-envelope-task positive-edge-5.yaml < response.txt
 python3 evals/iteration-retrospective/check-projections.py --negative-task negative-trigger-1.yaml < response.txt
 python3 evals/iteration-retrospective/check-report.py --verdict CLEAN < report.txt
 python3 evals/_helpers/check-eval-regexes.py --root evals/iteration-retrospective

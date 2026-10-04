@@ -37,6 +37,7 @@ graders:
         - 'Retrospective Skill Candidate: no new skill'
         - 'Retrospective Verdict: CLEAN'
         - '(?m)^- A1 \| Status: failed \|'
+        - '(?m)^Retrospective:'
       not_contains:
         - Fact-Check Summary
         - 'Gate decision:'

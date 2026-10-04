@@ -38,6 +38,7 @@ graders:
         - 'Retrospective Skill Candidate: extend existing guidance'
         - 'Retrospective Verdict: CONCERNS'
         - 'Cause: unknown'
+        - '(?m)^Retrospective:'
       not_contains:
         - Fact-Check Summary
         - 'Gate decision:'

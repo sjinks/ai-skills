@@ -29,6 +29,7 @@ graders:
       regex_match:
         - '(?m)^Retrospective Label Conflict: .*([Dd]uplicate|[Dd]istinct|[Uu]nique|[Rr]epeated)'
         - '(?m)^Retrospective Label Request: .*([Pp]rovide|[Ss]upply|[Ss]end|[Cc]hoose|[Rr]eplace|[Ss]pecify).*([Ll]abel)'
+        - '(?m)^Retrospective\ Label\ Conflict:'
       not_contains:
         - 'Retrospective Attempts:'
         - 'Retrospective Verdict:'

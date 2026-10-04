@@ -36,6 +36,7 @@ graders:
         - '(?im)^Missing: .*(outcome|result|evaluation|validation|evidence)'
         - 'Retrospective Skill Candidate: not assessed'
         - 'Retrospective Verdict: BLOCK'
+        - '(?m)^Retrospective:'
       not_contains:
         - Fact-Check Summary
         - 'Gate decision:'
