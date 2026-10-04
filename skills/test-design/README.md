@@ -26,3 +26,10 @@ The assessment edge requests a JSON case array with `behavior`, `expected`, and
 `defect` string fields. Its report grader uses `--case-count 1` to enforce exactly
 one case; ordinary assessments remain unrestricted in case count. Execution-line
 examples distinguish the final field's position from its literal label and status.
+
+All nonblocked positive eval tasks request counted JSON records so every selected
+case has its own behavior, expected observation and defect. A substance grader
+checks each mapping independently; generic defect placeholders are structurally
+rejected. Both clamp tasks require the target test command in the report.
+Implementation fixtures preserve `package.json` as well as production code,
+and a workspace grader rejects known dependency-installation artifacts.

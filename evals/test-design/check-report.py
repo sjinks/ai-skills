@@ -32,7 +32,7 @@ def parse_args(arguments: list[str]) -> argparse.Namespace:
     parser.add_argument("profile", choices=sorted(PROFILES))
     parser.add_argument("labels", nargs="*")
     parser.add_argument("--case-count", type=int)
-    return parser.parse_args(arguments)
+    return parser.parse_intermixed_args(arguments)
 
 
 def validate(
@@ -77,6 +77,8 @@ def validate(
                 raise ValueError("each case requires exactly behavior, expected, and defect")
             if any(not isinstance(value, str) or not value.strip() for value in case.values()):
                 raise ValueError("case fields must be nonempty strings")
+            if re.fullmatch(r"(?:defect|bug|regression|wrong|incorrect|mistake)[.! ]*", case["defect"], re.IGNORECASE):
+                raise ValueError("defect must describe a concrete failure, not a generic placeholder")
     if positions[2] != len(lines) - 1:
         raise ValueError("verification must be the final line")
     verification = lines[-1][len(labels[2]):].strip()
@@ -97,6 +99,35 @@ SINGLE_CASE = [{"behavior": "invalid middle row", "expected": "reports the offen
 SINGLE_ASSESSMENT = "Designed cases: " + json.dumps(SINGLE_CASE) + "\nDesign evidence: supplied contract; retain required 90% coverage gate; retry decision missing\nTest execution: Not run; no tests changed."
 CUSTOM_LABELS = ("Case set:", "Design basis:", "Run record:")
 CUSTOM_BLOCKED = "Case set: Blocked.\nDesign basis: Need the feature behavior.\nRun record: Not run; no tests changed."
+
+
+COUNTED_CASES = {
+    "transfer": [
+        {"behavior": "valid positive transfer", "expected": "debits source and credits destination; combined balance unchanged", "defect": "omits the destination credit"},
+        {"behavior": "insufficient source funds", "expected": "InsufficientFunds; both balances unchanged", "defect": "debits before validating available funds"},
+        {"behavior": "zero amount", "expected": "InvalidAmount; rejected with both balances unchanged", "defect": "accepts zero amount"},
+        {"behavior": "negative amount", "expected": "InvalidAmount; rejected with both balances unchanged", "defect": "accepts a negative transfer and reverses the debit"},
+    ],
+    "clamp": [
+        {"behavior": "clamp(5, 0, 10) interior", "expected": "5", "defect": "always returns a bound instead of preserving the interior value"},
+        {"behavior": "clamp(-1, 0, 10) below min", "expected": "0", "defect": "returns the input below the lower bound"},
+        {"behavior": "clamp(11, 0, 10) above max", "expected": "10", "defect": "returns the input above the upper bound"},
+    ],
+    "hardware": [{"behavior": "physical calibration in 20 Celsius chamber", "expected": "readCelsius reports 20 Celsius", "defect": "sensor offset or scale calibration reports an incorrect temperature"}],
+}
+
+
+def counted_fixture(kind: str, status: str) -> str:
+    """Build a structurally complete multi-case fixture for projection checks.
+
+    Substance grading separately assesses each record's semantic correctness.
+    """
+    evidence = "supplied behavior contract and repository conventions"
+    if kind == "hardware":
+        evidence += "; physical sensor and chamber unavailable; no faithful substitute"
+    elif kind == "clamp" and "=> failed" in status:
+        evidence += "; clamp.js production defect returns input"
+    return "Designed cases: " + json.dumps(COUNTED_CASES[kind]) + "\nDesign evidence: " + evidence + "\nTest execution: " + status
 
 
 def self_test() -> None:
@@ -135,6 +166,30 @@ def self_test() -> None:
                 assert not expected, (profile, status, "unexpected rejection")
             else:
                 assert expected, (profile, status, "unexpected acceptance")
+    for kind, selected in COUNTED_CASES.items():
+        status = "Not run; no tests changed." if kind == "transfer" else "Unverified: " + ("hardware unavailable" if kind == "hardware" else "node unavailable")
+        profile = "plan" if kind == "transfer" else "implement"
+        fixture = counted_fixture(kind, status)
+        validate(fixture, profile, case_count=len(selected))
+        for index in range(len(selected)):
+            for field in ("behavior", "expected", "defect"):
+                for value in ("", None):
+                    mutated = [dict(case) for case in selected]
+                    mutated[index][field] = value
+                    candidate = fixture.replace(json.dumps(selected), json.dumps(mutated))
+                    try:
+                        validate(candidate, profile, case_count=len(selected))
+                    except ValueError:
+                        continue
+                    raise AssertionError((kind, index, field, "accepted incomplete record"))
+            for value in ("defect", "bug", "wrong", "regression"):
+                mutated = [dict(case) for case in selected]
+                mutated[index]["defect"] = value
+                try:
+                    validate(fixture.replace(json.dumps(selected), json.dumps(mutated)), profile, case_count=len(selected))
+                except ValueError:
+                    continue
+                raise AssertionError((kind, index, "accepted generic defect"))
     validate(SINGLE_ASSESSMENT, "assessment", case_count=1)
     validate(SINGLE_ASSESSMENT.replace(json.dumps(SINGLE_CASE), json.dumps([dict(reversed(list(SINGLE_CASE[0].items())))], indent=2)), "assessment", case_count=1)
     validate(SINGLE_ASSESSMENT.replace("Designed cases:", "Case set:").replace("Design evidence:", "Design basis:").replace("Test execution:", "Run record:"), "assessment", CUSTOM_LABELS, case_count=1)
@@ -150,6 +205,7 @@ def self_test() -> None:
         "missing case field": json.dumps([{"behavior": "invalid row", "expected": "zero persisted"}]),
         "wrong field type": json.dumps([dict(SINGLE_CASE[0], expected=["zero persisted"])]),
         "empty field": json.dumps([dict(SINGLE_CASE[0], defect=" ")]),
+        "generic defect": json.dumps([dict(SINGLE_CASE[0], defect="defect")]),
         "duplicate JSON key": '[{"behavior":"first","behavior":"second","expected":"zero","defect":"commit"}]',
         "trailing case prose": json.dumps(SINGLE_CASE) + "\nAnother invalid row case.",
     }.items():

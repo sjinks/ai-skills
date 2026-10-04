@@ -399,3 +399,25 @@ python3 evals/test-quality-review/check-report.py author --verdict solid < repor
 python3 evals/test-design/check-projections.py
 python3 evals/_helpers/check-eval-regexes.py --root evals/test-quality-review --cases evals/test-quality-review/regex-cases.json
 ```
+
+Feature-test evals now require counted JSON records on every nonblocked positive
+case. Structural grading verifies field presence per record and rejects generic
+defect placeholders; `case_substance` independently judges each behavior,
+observation and plausible defect mapping. This adds judge calls to future paid
+runs; no live run was used to validate this revision. The threshold is 1.0.
+Both clamp task execution assertions name their supplied target command.
+Implementation fixtures snapshot `package.json`, and `workspace_integrity`
+(threshold 1.0) rejects changed/missing package configuration and known package
+or lockfile/install artifacts inside `WAZA_WORKSPACE_DIR`. It fails closed if that
+variable is absent. The guard is read-only and does not inspect installations
+outside the task workspace or prove that no command was attempted.
+The workspace boundary follows the [Waza v0.33.0 program grader](https://github.com/microsoft/waza/blob/v0.33.0/docs/graders/program.md).
+
+```bash
+python3 evals/test-design/check-workspace.py --self-test
+python3 evals/test-design/check-report.py implement --case-count 3 < report.txt
+```
+
+The approved isolated-authoring missing-context edge uses `check-report.py missing`
+and requires the absent behavior/expected-result contract without invented code.
+The projection map now covers review, authoring, and missing-context tasks.

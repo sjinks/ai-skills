@@ -22,5 +22,5 @@ It helps an assistant:
 Authoring reports put generated code under `Authored test:` after the verdict
 and findings. Findings cite real reviewed files or supplied/generated snippet
 lines; authoring does not require an existing file. The suite-local deterministic
-validator checks both review and authoring branches plus missing-context fixtures.
+validator checks both review and authoring branches plus a missing-context eval that requests the absent expected behavior and emits no invented code.
 Live model behavior remains unmeasured.

@@ -33,6 +33,8 @@ def main() -> None:
     metrics = {metric["name"]: metric for metric in manifest["metrics"]}
     assert abs(sum(metric["weight"] for metric in metrics.values()) - 1.0) < 1e-9
     assert metrics["production_unchanged"]["threshold"] == 1.0
+    assert metrics["workspace_integrity"]["threshold"] == 1.0
+    assert metrics["case_substance"]["threshold"] == 1.0
     for path in sorted((root / "tasks").glob("*.yaml")):
         task = yaml.safe_load(path.read_text())
         graders = {grader["name"]: grader for grader in task["graders"]}
@@ -44,14 +46,21 @@ def main() -> None:
             options = report.parse_args(args[1:])
             labels = tuple(options.labels) if options.labels else report.MARKERS
             fixture = report.CUSTOM_BLOCKED if labels == report.CUSTOM_LABELS else report.VALID[args[1]]
-            if path.name == "positive-edge-3.yaml":
-                assert options.case_count == 1, "singleton task needs machine enforcement"
+            counts = {"positive-trigger-1.yaml": 4, "positive-edge-2.yaml": 3, "positive-edge-3.yaml": 1, "positive-edge-4.yaml": 3, "positive-edge-5.yaml": 1}
+            if path.name in counts:
+                assert options.case_count == counts[path.name], "every supported case needs a record"
                 assert '"behavior", "expected", "defect"' in task["inputs"]["prompt"]
-                fixture = report.SINGLE_ASSESSMENT
-            elif path.name == "positive-edge-4.yaml":
-                fixture = fixture.replace("=> passed", "=> failed")
-            elif path.name == "positive-edge-5.yaml":
-                fixture = fixture.rsplit("Test execution:", 1)[0] + "Test execution: Unverified: physical sensor unavailable"
+                assert graders["case_substance"]["type"] == "prompt"
+                assert "EVERY record separately" in graders["case_substance"]["config"]["prompt"]
+                if path.name == "positive-edge-3.yaml":
+                    fixture = report.SINGLE_ASSESSMENT
+                elif path.name == "positive-trigger-1.yaml":
+                    fixture = report.counted_fixture("transfer", "Not run; no tests changed.")
+                elif path.name == "positive-edge-5.yaml":
+                    fixture = report.counted_fixture("hardware", "Unverified: physical sensor unavailable")
+                else:
+                    outcome = "failed" if path.name == "positive-edge-4.yaml" else "passed"
+                    fixture = report.counted_fixture("clamp", "Ran: node --test test/clamp.test.js => " + outcome)
             report.validate(fixture, args[1], labels, options.case_count)
             for label in labels:
                 assert any(label in pattern for pattern in text["regex_match"]), (path.name, label)
@@ -72,11 +81,11 @@ def main() -> None:
     assert expected_test != "// " + expected_test.replace("\n", "\n// "), "comments cannot replace tests"
     patterns = graders["task_completion"]["config"]["regex_match"]
     assert "defect" in patterns[4]
-    assert patterns[2] == "(?m)^" + report.MARKERS[2] + " " + report.IMPLEMENT_STATUS_PATTERN + "$"
+    assert patterns[2] == r"(?m)^Test execution: (?:Unverified: \S[^\n]*|Ran: node --test test/clamp\.test\.js => (?:passed|failed|exit -?\d+))$"
     diff = graders["production_unchanged"]
     assert diff["type"] == "diff" and diff["config"]["update_snapshots"] is False
     expectation = diff["config"]["expected_files"]
-    assert expectation == [{"path": "clamp.js", "snapshot": "snapshots/clamp.js"}]
+    assert expectation == [{"path": "clamp.js", "snapshot": "snapshots/clamp.js"}, {"path": "package.json", "snapshot": "snapshots/package.json"}]
     repo = root.parents[1]
     snapshot = repo / diff["config"]["context_dir"] / expectation[0]["snapshot"]
     fixture = next(file["content"] for file in task["inputs"]["files"] if file["path"] == "clamp.js")
@@ -102,6 +111,11 @@ def main() -> None:
         task = yaml.safe_load((root / "tasks" / name).read_text())
         graders = {grader["name"]: grader for grader in task["graders"]}
         assert graders["changed_test_file"]["type"] == "diff", name
+        assert graders["workspace_integrity"]["config"]["args"] == ["evals/test-design/check-workspace.py"]
+        package_expectation = {"path": "package.json", "snapshot": "snapshots/package.json"}
+        assert package_expectation in graders["production_unchanged"]["config"]["expected_files"]
+        package = next(file["content"] for file in task["inputs"]["files"] if file["path"] == "package.json")
+        assert (root / "snapshots/package.json").read_bytes() == package.encode()
         for metric in ("changed_test_file", "production_unchanged"):
             config = graders[metric]["config"]
             assert config["context_dir"] == "evals/test-design" and config["update_snapshots"] is False
@@ -133,6 +147,9 @@ def main() -> None:
     quality_metrics = {m["name"]: m for m in quality_manifest["metrics"]}
     assert "report_contract" in quality_metrics
     assert abs(sum(m["weight"] for m in quality_metrics.values()) - 1.0) < 1e-9
+    quality_profiles = {"positive-trigger-1.yaml": "review", "positive-trigger-2.yaml": "review", "positive-edge-1.yaml": "author", "positive-edge-2.yaml": "missing"}
+    assert set(quality_profiles.values()) == quality_report.PROFILES
+    assert set(quality_profiles) == {path.name for path in (quality_root / "tasks").glob("positive*.yaml")}
     for path in (quality_root / "tasks").glob("*.yaml"):
         quality_task = yaml.safe_load(path.read_text())
         quality_graders = {g["name"]: g for g in quality_task["graders"]}
@@ -141,20 +158,23 @@ def main() -> None:
             patterns = assertions["regex_match"]
             assert any("^Verdict:" in pattern for pattern in patterns), path
             assert any("^Findings:" in pattern for pattern in patterns), path
-            profile = "author" if path.name == "positive-edge-1.yaml" else "review"
+            profile = quality_profiles[path.name]
             args = quality_graders["report_contract"]["config"]["args"]
             assert args[1] == profile
             assert ("--wire-fixture" in args) == (profile == "author")
-            expected_verdict = {"positive-trigger-1.yaml": "cannot-fail", "positive-trigger-2.yaml": "weak", "positive-edge-1.yaml": "solid"}[path.name]
+            expected_verdict = {"positive-trigger-1.yaml": "cannot-fail", "positive-trigger-2.yaml": "weak", "positive-edge-1.yaml": "solid", "positive-edge-2.yaml": "insufficient-context"}[path.name]
             assert args[args.index("--verdict") + 1] == expected_verdict
             fixture = quality_report.VALID[profile]
             if profile == "review":
                 fixture = fixture.replace("cannot-fail", expected_verdict)
-            else:
+            elif profile == "author":
                 fixture = fixture.split("```cpp", 1)[0] + "```cpp\n" + quality_report.WIRE_CODE + "\n```"
             quality_report.validate(fixture, profile, expected=expected_verdict, wire_fixture=profile == "author")
             if profile == "author":
                 assert any("^Authored test:" in pattern for pattern in patterns), path
+            elif profile == "missing":
+                assert "Authored test:" in assertions["not_contains"]
+                assert "expected behavior" in quality_task["inputs"]["prompt"]
         else:
             forbidden = set(quality_report.MARKERS + ("test-quality-review",))
             assert set(assertions["not_contains"]) == forbidden, path

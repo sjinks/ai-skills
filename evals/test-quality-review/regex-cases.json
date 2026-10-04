@@ -27,6 +27,21 @@
         "EXPECT_EQ(bytes, std::vector<uint8_t>({0x09, 0x00, 0x12, 0x34}));",
         "TEST(FrameTest, SerializesPingFrame) { Frame frame = Frame::ping(0x1234); EXPECT_EQ(bytes, std::vector<uint8_t>({0x09, 0x00, 0x12, 0x34})); }"
       ]
+    },
+    {
+      "name": "missing contract rather than missing authoring source",
+      "task": "tasks/positive-edge-2.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 1,
+      "matches": [
+        "Findings: Missing: expected behavior for normalize(value)",
+        "Findings: Missing: contract or expected result"
+      ],
+      "does_not_match": [
+        "Findings: Missing: existing test body",
+        "Findings: None. normalize trims spaces."
+      ]
     }
   ]
 }

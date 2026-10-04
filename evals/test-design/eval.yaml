@@ -21,9 +21,13 @@ metrics:
     threshold: 0.9
     description: Positive tasks invoke the skill.
   - name: task_completion
-    weight: 0.15
+    weight: 0.10
     threshold: 0.8
     description: Cases identify behavior, expected observation, defect, evidence, and verification status.
+  - name: case_substance
+    weight: 0.05
+    threshold: 1.0
+    description: Every case maps concrete behavior to correct observation and plausible defect.
   - name: report_contract
     weight: 0.10
     threshold: 0.9
@@ -33,9 +37,13 @@ metrics:
     threshold: 0.7
     description: Stays within tool and token budget.
   - name: changed_test_file
-    weight: 0.10
+    weight: 0.05
     threshold: 0.9
     description: Exact snapshot equality requires runnable interior and boundary tests in the implementation fixture.
+  - name: workspace_integrity
+    weight: 0.05
+    threshold: 1.0
+    description: Supplied package configuration and absence of installation artifacts.
   - name: production_unchanged
     weight: 0.10
     threshold: 1.0
