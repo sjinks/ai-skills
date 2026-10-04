@@ -2,7 +2,6 @@
 name: dependency-choice-review
 description: "Use when: deciding at design time whether to build, buy, or adopt a library, framework, service, or platform dependency: maintenance signals, API stability, lock-in and exit cost, operational burden, license fit, and the conditions under which the choice should be reversed."
 argument-hint: "The capability needed, the candidate dependencies or the build option, and project constraints (license policy, stack, team capacity)."
-user-invocable: true
 ---
 
 # Dependency Choice Review

@@ -2,7 +2,6 @@
 name: type-safe-design
 description: 'Use when: designing, reviewing, refactoring, or test-planning type-safe architecture, compiler-enforced contracts, validation-as-types, explicit interfaces, generic misuse, reflection boundaries, polymorphic factories, closure-based extension, SOLID change complexity, or change-locality risks.'
 argument-hint: 'Describe the design, code, refactor, or review target where type safety and change locality matter.'
-user-invocable: true
 ---
 # Type-Safe Design
 

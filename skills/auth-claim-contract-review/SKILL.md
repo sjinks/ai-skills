@@ -2,7 +2,6 @@
 name: auth-claim-contract-review
 description: "Use when: reviewing, designing, implementing, or testing auth/security claim contracts for optional claims, JWT/OIDC/SAML/session/token claims, missing-vs-invalid semantics, issuer-validator-consumer drift, role/scope/permission/tenant/org/account mapping, claim origin, propagation, serialization/cache/session restoration, revocation/freshness, fallback defaults, or confused-deputy risks."
 argument-hint: "Target file(s), diff, design, or review finding; claim source and consumers; expected missing-vs-invalid semantics; token/session/cache boundaries and tests."
-user-invocable: true
 ---
 
 # Auth Claim Contract Review

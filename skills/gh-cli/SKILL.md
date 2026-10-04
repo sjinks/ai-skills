@@ -2,7 +2,6 @@
 name: gh-cli
 description: "Use when: scripting or running GitHub CLI (`gh`) commands — especially `gh api` calls, posting or editing PR/issue comments and review-thread replies, passing multi-line or special-character bodies, choosing `-f` vs `-F` fields, pagination, jq filtering, and avoiding silent wrong-output from quoting or stdin mistakes."
 argument-hint: "Describe the gh task (e.g. reply to a PR review comment, query the API, edit a comment) and any body text."
-user-invocable: true
 ---
 
 # GitHub CLI (gh)

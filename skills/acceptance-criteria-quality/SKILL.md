@@ -2,7 +2,6 @@
 name: acceptance-criteria-quality
 description: "Use when: writing, rewriting, or auditing acceptance criteria, definition-of-done lists, or user-story AC for quality: testable, observable, single, scoped, and implementation-neutral, plus a coverage check, so each criterion can be objectively verified before work starts."
 argument-hint: "The draft acceptance criteria or user story to audit or rewrite, plus the feature description or spec they belong to when available."
-user-invocable: true
 ---
 
 # Acceptance Criteria Quality

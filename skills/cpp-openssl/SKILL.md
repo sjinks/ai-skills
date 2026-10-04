@@ -2,7 +2,6 @@
 name: cpp-openssl
 description: "Use when: designing, implementing, reviewing, or debugging C/C++ that calls the OpenSSL (or LibreSSL/BoringSSL) library API directly: SSL_CTX/SSL setup, TLS handshakes, certificate and key loading, peer and hostname verification, ALPN/SNI, the EVP cipher/digest/PKEY interfaces, AEAD, key derivation, RAND, the error queue, BIO chains, object lifetime and refcounts, and 1.1.1-vs-3.0 provider portability. Not the openssl(1) command-line tool."
 argument-hint: "Describe the OpenSSL API design, bug, review target, TLS flow, certificate/verification question, or crypto operation you want help with."
-user-invocable: true
 ---
 
 # C/C++ OpenSSL API Skill

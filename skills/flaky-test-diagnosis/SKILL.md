@@ -2,7 +2,6 @@
 name: flaky-test-diagnosis
 description: "Use when: a test passes and fails non-deterministically (flaky), fails only under load/parallelism/sanitizers, fails in CI but not locally, or fails depending on run order - diagnosing timing races, order dependence, shared global state, unseeded RNG, real-clock/timezone/locale reliance, real network/filesystem dependence, and hash/iteration-order assumptions, then making it deterministic."
 argument-hint: "The flaky test (name/file) and any signal: how often it fails, under what conditions (parallel, sanitizer, CI, specific order), and the failure output."
-user-invocable: true
 ---
 
 # Flaky Test Diagnosis

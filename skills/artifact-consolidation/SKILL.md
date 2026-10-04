@@ -2,7 +2,6 @@
 name: artifact-consolidation
 description: "Use when: merging, unifying, or de-duplicating several same-kind planning artifacts (multiple specifications, architectures, or test plans) into one; reconciling colliding stable IDs across documents; building a single open-questions ledger; or marking superseded source documents for removal without losing requirements."
 argument-hint: "The set of same-kind artifacts to merge (paths or content) plus the target single artifact, and any concern labels to namespace by."
-user-invocable: true
 ---
 
 # Artifact Consolidation

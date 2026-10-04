@@ -2,7 +2,6 @@
 name: cpp-data-structure-selection
 description: "Use when: choosing or replacing the C++ container/data structure behind a lookup, membership test, dedup, ordering, or accumulation, when a loop scans a collection that grows with input (linear scan, nested scan, repeated find), or when deciding between linear scan, hash map/set, sorted vector, balanced tree, or a small fixed table — including the crossover-size and measure-first reasoning."
 argument-hint: "Describe the access pattern (lookup/insert/iterate/dedup/order), the element type, the expected and worst-case element count, and any ordering/stability/allocation constraints."
-user-invocable: true
 ---
 
 # C++ Data Structure Selection

@@ -2,7 +2,6 @@
 name: interface-contract-design
 description: "Use when: designing or auditing the contract of a boundary before implementation: API, service interface, module boundary, message schema, or webhook — operations, inputs and outputs, error semantics, idempotency, ordering, versioning posture, and invariant ownership."
 argument-hint: "The boundary to design or the existing contract to audit, plus consumers, constraints, and any project API conventions."
-user-invocable: true
 ---
 
 # Interface Contract Design

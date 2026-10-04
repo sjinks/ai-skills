@@ -2,7 +2,6 @@
 name: implementation-task-decomposition
 description: "Use when: decomposing an approved spec, design, or feature into an ordered sequence of small implementation steps before coding starts: per-step scope, verification check, and do-not-touch boundary, with explicit dependencies and no step too large to verify in one sitting."
 argument-hint: "The spec or design to decompose, the codebase areas it touches, and any ordering constraints or deadlines."
-user-invocable: true
 ---
 
 # Implementation Task Decomposition

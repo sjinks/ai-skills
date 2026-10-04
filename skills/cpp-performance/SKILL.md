@@ -2,7 +2,6 @@
 name: cpp-performance
 description: "Use when: reviewing, designing, implementing, or debugging C++ performance hot spots involving unnecessary copies, pass-by-value of expensive types, range-for copies, misused std::move, missing noexcept on move/swap/destructor, inefficient container or string operations, missing reserve, STL algorithms on associative containers, std::endl flushing, float-to-double math promotion, oversized enums, integer-to-pointer casts, or redundant string/string_view conversions."
 argument-hint: "Describe the code, API, hot path, or review target where copies, allocations, move semantics, or other runtime overhead are in question."
-user-invocable: true
 ---
 
 # C++ Performance

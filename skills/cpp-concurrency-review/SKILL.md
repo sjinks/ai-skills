@@ -2,7 +2,6 @@
 name: cpp-concurrency-review
 description: "Use when: reviewing, designing, implementing, or debugging C++ multithreaded code using std::thread, std::jthread, std::mutex, std::atomic, condition variables, memory ordering, data races, deadlock, lock ordering, double-checked locking, thread_local, call_once, shared_ptr cross-thread aliasing, false sharing, cross-thread signal/observer/callback dispatch, or shutdown/join semantics."
 argument-hint: "Describe the threaded code, shared state, synchronization primitives, suspected race or deadlock, and review target."
-user-invocable: true
 ---
 
 # C++ Concurrency Review

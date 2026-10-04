@@ -2,7 +2,6 @@
 name: doc-source-reconciliation
 description: "Use when: a specification, architecture, README, or other doc claims to reflect the current implementation ('amended from implementation', 'current state') and may have drifted; verifying file extensions, target/example names, dependency lists, public type/option/enumerator names, and baked-in counts against the live tree; or flagging stale 'excluded/absent' claims before trusting a doc."
 argument-hint: "The doc that claims to reflect current source, plus the repository/path to reconcile it against."
-user-invocable: true
 ---
 
 # Doc–Source Reconciliation

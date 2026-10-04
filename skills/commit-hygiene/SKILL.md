@@ -2,7 +2,6 @@
 name: commit-hygiene
 description: "Use when: cleaning up a branch's commit history before review or merge: squashing fixup/WIP commits, dropping dead or accidental commits, flagging weak messages for reword, splitting a mixed commit, and reordering for a reviewable, bisectable sequence — producing a recommended rebase plan, never running git itself."
 argument-hint: "The branch's commit list (git log --oneline of the range to be merged), ideally with per-commit one-line diffstats or short summaries, plus the base branch and the repo's merge style when known (merge and rebase both map to the `preserve` output token; squash maps to `squash`)."
-user-invocable: true
 ---
 
 # Commit Hygiene

@@ -19,7 +19,6 @@ inputs:
     name: incident-summary
     description: Use when summarizing a supplied incident report for an internal status update.
     argument-hint: Incident report text and any known audience constraints.
-    user-invocable: true
     ---
 
     # Incident Summary

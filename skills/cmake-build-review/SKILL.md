@@ -2,7 +2,6 @@
 name: cmake-build-review
 description: "Use when: reviewing, designing, or refactoring CMake build configuration, CMakeLists.txt, target-based usage requirements, PUBLIC PRIVATE INTERFACE propagation, find_package vs FetchContent dependency policy, toolchain files, presets, generator expressions, install and package config files, sanitizer or LTO or warning configurations, or cross-platform build correctness."
 argument-hint: "Describe the CMakeLists, build issue, dependency policy, target structure, or configuration under review."
-user-invocable: true
 ---
 
 # CMake Build Review

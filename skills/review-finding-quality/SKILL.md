@@ -2,7 +2,6 @@
 name: review-finding-quality
 description: "Use when: writing, rewriting, or auditing code review findings, review comments, or PR feedback for quality: severity tag, evidence anchor, concrete expected fix, and an explicit acceptance condition, so each finding is actionable and closable without extra clarification rounds."
 argument-hint: "The draft findings or review comments to audit or rewrite, plus the diff or code context they refer to when available."
-user-invocable: true
 ---
 
 # Review Finding Quality

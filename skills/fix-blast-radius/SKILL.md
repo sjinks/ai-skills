@@ -2,7 +2,6 @@
 name: fix-blast-radius
 description: "Use when: assessing what a proposed fix or patch could newly break before it is pushed, tracing fix impact through callers, shared state, and contracts, checking whether a fix regresses other resolved findings, or attaching a verification step to each impact risk of a fix."
 argument-hint: "The fix description or diff, the finding it addresses, surrounding code context, and other recently resolved findings when available."
-user-invocable: true
 ---
 
 # Fix Blast Radius

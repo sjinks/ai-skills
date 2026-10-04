@@ -2,7 +2,6 @@
 name: review-cycle-gatekeeper
 description: "Use when: enforcing review-fix cycle quality gates, verifying review findings are closed, checking merge readiness, validating fix evidence after a review round, deciding go/no-go on merge, auditing unresolved or reopened review threads, confirming regressions introduced by fixes are tracked, and producing a final pre-merge gate decision."
 argument-hint: "Findings list, fix summary, verification evidence, and unresolved discussion threads."
-user-invocable: true
 ---
 
 # Review Cycle Gatekeeper

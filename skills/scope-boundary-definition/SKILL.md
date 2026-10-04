@@ -2,7 +2,6 @@
 name: scope-boundary-definition
 description: "Use when: defining or auditing the scope of a feature, project, spec, or task: explicit in-scope and out-of-scope lists, non-goals, deferred items, smallest valuable slice, and scope-creep risks, before work is planned or estimated."
 argument-hint: "The feature description, spec, or task text whose scope needs boundaries, plus any constraints, deadlines, or stakeholder asks already known."
-user-invocable: true
 ---
 
 # Scope Boundary Definition

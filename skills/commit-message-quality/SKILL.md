@@ -2,7 +2,6 @@
 name: commit-message-quality
 description: "Use when: writing, rewriting, validating, or auditing a single git commit message for quality: a conventional subject (type, scope, breaking marker, imperative ≤72-char description), a body that explains why rather than restating the diff, valid footers, and no leaked secrets — so history stays reviewable and bisectable."
 argument-hint: "The draft commit message to audit or rewrite, or the staged diff / change summary to draft one from, plus any issue key and the repo's commit convention when known."
-user-invocable: true
 ---
 
 # Commit Message Quality

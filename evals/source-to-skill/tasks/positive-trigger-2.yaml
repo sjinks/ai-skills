@@ -55,7 +55,6 @@ graders:
         - "Updated files"
         - "Generated SKILL.md"
         - "Here is the generated skill"
-        - "user-invocable: true"
         - "argument-hint:"
         - "```markdown\n---"
   - type: prompt

@@ -2,7 +2,6 @@
 name: single-pass-review-completeness
 description: "Use when: making one review round complete instead of incremental, enumerating review dimensions up front, sweeping a whole diff per dimension, declaring review coverage and uncovered dimensions, or preventing new findings on unchanged code in later review rounds."
 argument-hint: "The diff or change set to review, the change intent, and any dimensions the requester wants prioritized or excluded."
-user-invocable: true
 ---
 
 # Single-Pass Review Completeness

@@ -2,7 +2,6 @@
 name: cpp-object-lifetime
 description: "Use when: reviewing, designing, implementing, or debugging C++ object lifetime, dangling pointers or references, iterator invalidation, reference invalidation, string_view or span escaping its owner, temporaries bound to references, lambda captures outliving scope, use-after-move, use-after-free, returning references to locals, container reallocation, or RAII ownership boundaries."
 argument-hint: "Describe the code, API, bug, or review target where object lifetime, ownership, or invalidation is in question."
-user-invocable: true
 ---
 
 # C++ Object Lifetime

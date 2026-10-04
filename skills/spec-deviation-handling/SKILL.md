@@ -2,7 +2,6 @@
 name: spec-deviation-handling
 description: "Use when: implementation work discovers the spec or design is wrong, incomplete, ambiguous, or infeasible mid-build: classifying the deviation, deciding proceed/pause/escalate, routing the decision to the owner, and recording the divergence instead of silently coding around it."
 argument-hint: "What the spec or design says, what the implementation discovered, and how far the build has progressed."
-user-invocable: true
 ---
 
 # Spec Deviation Handling

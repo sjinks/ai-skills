@@ -2,7 +2,6 @@
 name: cpp-struct-layout
 description: "Use when: reviewing, designing, or shrinking the in-memory layout of a C/C++ class, struct, or union to remove padding waste by reordering data members from largest to smallest alignment, or when sizeof seems larger than the sum of its members."
 argument-hint: "Describe the class/struct/union (or file/diff) whose member layout, sizeof, padding, or alignment you want audited."
-user-invocable: true
 ---
 
 # C++ Struct Layout

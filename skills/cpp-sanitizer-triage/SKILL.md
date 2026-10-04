@@ -2,7 +2,6 @@
 name: cpp-sanitizer-triage
 description: "Use when: triaging, interpreting, or acting on AddressSanitizer, ThreadSanitizer, UndefinedBehaviorSanitizer, MemorySanitizer, or LeakSanitizer reports, including heap-use-after-free, heap-buffer-overflow, stack-use-after-return, data race reports, ODR violation reports, suppression files, sanitizer flags and runtime options, symbolization problems, false-positive claims, and deciding whether a report is real, its root cause frame, and the fix owner."
 argument-hint: "Paste or describe the sanitizer report, the sanitizer and flags in use, and what decision you need (real or not, root cause, suppression, fix)."
-user-invocable: true
 ---
 
 # C++ Sanitizer Triage

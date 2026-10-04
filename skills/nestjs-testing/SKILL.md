@@ -2,7 +2,6 @@
 name: nestjs-testing
 description: "Use when: designing test strategy, writing, or fixing tests for NestJS applications; choosing unit vs integration vs e2e layering, building the testing module with @nestjs/testing, overriding providers, guards, interceptors, and pipes, mocking repositories and ORM tokens, writing Supertest e2e tests, testing async and error paths, faking transports for microservices, designing fixtures, and triaging flaky or coverage-gap tests."
 argument-hint: "Describe what needs testing, the test layer, NestJS/Node version, ORM choice, auth strategy, transports, and existing test conventions."
-user-invocable: true
 ---
 
 # NestJS Testing

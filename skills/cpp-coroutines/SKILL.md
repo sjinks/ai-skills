@@ -2,7 +2,6 @@
 name: cpp-coroutines
 description: 'Use when: designing, implementing, reviewing, or debugging C++20 coroutines, co_await, co_return, co_yield, promise_type, coroutine_handle, awaiter, awaitable, task, generator, scheduler, cancellation, exception propagation, coroutine lifetime, frame allocation, symmetric transfer, or async control-flow code.'
 argument-hint: 'Describe the coroutine design, bug, review target, awaitable/task type, generator, scheduler, or lifetime issue.'
-user-invocable: true
 ---
 
 # C++ Coroutines Skill

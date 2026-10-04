@@ -1,7 +1,6 @@
 ---
 name: source-to-skill
 description: "Use when: converting books, articles, documentation, notes, transcripts, or other source material into reusable agent skills; extracting frameworks, decision rules, workflows, checklists, examples, provenance, and validation gates for high-value generated skills."
-user-invocable: true
 argument-hint: "source path, URL, or note; optional skill slug and mode"
 ---
 # Source to Skill
@@ -184,7 +183,6 @@ Use this shape unless the target skill system requires something else:
 ---
 name: SKILL_SLUG
 description: "Use when: <specific triggers, artifacts, workflows, domain terms, and user intents>."
-user-invocable: true
 argument-hint: "<optional concrete input hint>"
 ---
 ```

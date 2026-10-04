@@ -2,7 +2,6 @@
 name: boost-asio
 description: 'Use when: designing, implementing, reviewing, or debugging Boost.Asio, asio, async I/O, boost::asio::awaitable, co_spawn, io_context, executor, strand, cancellation, timer, socket, TLS, backpressure, or thread-pool code.'
 argument-hint: 'Describe the Asio design, bug, review target, or code you want help with.'
-user-invocable: true
 ---
 
 # Boost.Asio Skill

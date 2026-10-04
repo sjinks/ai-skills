@@ -2,7 +2,6 @@
 name: unicode-text-security-review
 description: "Use when: reviewing, designing, implementing, or testing security-sensitive Unicode text handling, UTF-8 decoding, invalid byte sequences, overlong encodings, surrogate handling, NFC/NFKC normalization, canonical equivalence, compatibility characters, fullwidth or halfwidth bypasses, byte-vs-character validation drift, database charset mismatch, case folding, Unicode identifiers, confusables, mixed scripts, or text parser-consumer mismatch."
 argument-hint: "Describe the text input boundary, encoding/normalization policy, security decision, downstream consumer, and tests."
-user-invocable: true
 ---
 
 # Unicode Text Security Review

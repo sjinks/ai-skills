@@ -2,7 +2,6 @@
 name: fix-batching-and-root-cause
 description: "Use when: planning fixes for a batch of review findings, clustering findings by shared root cause, deciding root-cause versus symptom-level fixes, ordering a fix batch for one review round, or labeling each finding's fix depth before pushing fixes."
 argument-hint: "The findings list to fix, the relevant code context, and any constraints on fix scope or timing."
-user-invocable: true
 ---
 
 # Fix Batching And Root Cause

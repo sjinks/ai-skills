@@ -2,7 +2,6 @@
 name: dependency-audit
 description: "Use when: auditing application or tooling dependencies for known vulnerabilities, license risk, maintenance health in audit/risk/release context, abandoned packages, unused-dependency removal risk, dependency bloat with policy/security/release impact, transitive risk, supply-chain integrity, lockfile evidence gaps, or scanner findings that need evidence-based triage."
 argument-hint: "Describe the package ecosystem, manifests and lockfiles, production/dev/runtime scope, distribution model, advisory or scanner evidence, CI/tests, and deployment/reachability context."
-user-invocable: true
 ---
 
 # Dependency Audit

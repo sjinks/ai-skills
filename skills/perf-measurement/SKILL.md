@@ -2,7 +2,6 @@
 name: perf-measurement
 description: "Use when: optimizing or investigating the throughput, latency, or per-request cost of a C++ network server (or similar hot-path service); deciding whether a change actually helped; choosing a metric that resists noise; isolating where time/allocations go with profiling and controls; or avoiding common measurement mistakes (noisy benchmarks, contaminated runs, blaming the wrong layer, custom-allocator cargo-culting)."
 argument-hint: "Describe the server/hot path, the change you want to evaluate, or the throughput/latency/allocation question you need measured rather than guessed."
-user-invocable: true
 ---
 
 # Performance Measurement Methodology

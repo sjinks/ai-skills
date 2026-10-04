@@ -2,7 +2,6 @@
 name: boost-beast
 description: 'Use when: designing, implementing, reviewing, or debugging Boost.Beast, beast::http, websocket, HTTP/1.1, parser, serializer, flat_buffer, tcp_stream, ssl_stream, async_read, async_write, body limits, keep-alive, chunked encoding, pipelining, upgrades, or protocol adapter code.'
 argument-hint: 'Describe the Beast design, bug, review target, parser behavior, HTTP/WebSocket flow, or code you want help with.'
-user-invocable: true
 ---
 
 # Boost.Beast Skill

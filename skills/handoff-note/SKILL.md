@@ -2,7 +2,6 @@
 name: handoff-note
 description: "Use when: creating, updating, or auditing a portable handoff document for another agent or person to continue active work with little or no prior context: current goal, repository state, completed work, current blocker or position, next steps, tried approaches not to repeat, validation evidence, and context gaps. Not for general onboarding, status reports, changelogs, or PR summaries unless active continuation is required."
 argument-hint: "The current task, repo or files involved, known progress, commands run, failed attempts, decisions, blockers, and intended recipient."
-user-invocable: true
 ---
 
 # Handoff Note

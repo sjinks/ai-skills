@@ -2,7 +2,6 @@
 name: filesystem-path-safety
 description: "Use when: auditing code that builds filesystem paths from external input and then reads, creates, mutates, or deletes files under a trusted root. Detects traversal, symlink-follow, TOCTOU, file-type confusion, validator error-contract drift, and resource-ordering issues."
 argument-hint: "Target file(s) or diff; trusted-root identifier; the external-input fields whose values flow into the path."
-user-invocable: true
 ---
 
 # Filesystem Path Safety

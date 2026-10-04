@@ -2,7 +2,6 @@
 name: cpp-api-abi-review
 description: "Use when: reviewing, designing, or evolving C++ library public headers and binary interfaces, including ABI stability, ABI breaks, ODR violations, noexcept contracts, pimpl, inline functions and templates at API boundaries, default arguments vs overloads, extern \"C\" boundaries, symbol visibility, versioned or inline namespaces, header hygiene, and shared-library compatibility."
 argument-hint: "Describe the public header, API change, library boundary, versioning policy, or compatibility question under review."
-user-invocable: true
 ---
 
 # C++ API And ABI Review
