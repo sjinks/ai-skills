@@ -1,0 +1,135 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-004
+name: Diagnosed regression failure permits completion
+description: Changed tests expose an existing production defect; report failure without unauthorized
+  production repair.
+tags:
+- positive-trigger
+- positive-edge
+inputs:
+  prompt: |
+    Extend the supplied `test/clamp.test.js` in the workspace. The contract for
+    `clamp(value, min, max)` returns min below range, max above range, and the
+    value within the inclusive range. Keep its existing interior case. Add
+    `node:test` cases using `assert.equal` to check that `clamp(-1, 0, 10)` is
+    `0` and `clamp(11, 0, 10)` is `10`. Edit the test file; do not merely show
+    code in your reply or change `clamp.js`. Run `node --test test/clamp.test.js`
+    when available, then report the cases, contract evidence, and actual
+    verification result and the defect each case catches. No dedicated testing
+    workflow is available for this framework. If execution is unavailable, say why.
+    Keep package.json unchanged; do not install dependencies or create package/install artifacts.
+    Execute the final edited tests. If diagnosis changes tests, rerun them and
+    report the latest outcome; a run before those changes is not final evidence.
+    Preserve the supplied file verbatim and append one blank line followed by
+    exactly these declarations (this fixture checks exact file contents):
+
+    test('clamps below range', () => {
+      assert.equal(clamp(-1, 0, 10), 0);
+    });
+
+    test('clamps above range', () => {
+      assert.equal(clamp(11, 0, 10), 10);
+    });
+
+    The supplied clamp implementation contains an existing production defect. Node is available. Run the changed tests and diagnose the failures. Leave production code unchanged and report the unresolved cause; do not weaken assertions to make the run pass.
+    Under Designed cases:, use a raw JSON array containing exactly 3 objects,
+    with exactly these keys: "behavior", "expected", "defect".
+    Each value must be a nonempty string.
+    Each object must map its own behavior to its observation and concrete defect;
+    do not use a generic defect word, a code fence, or extra case prose.
+    Include the retained interior case and both boundary cases separately.
+  files:
+  - path: package.json
+    content: '{"type":"module"}'
+  - path: clamp.js
+    content: |
+      export function clamp(value, min, max) {
+        return value;
+      }
+  - path: test/clamp.test.js
+    content: |
+      import test from 'node:test';
+      import assert from 'node:assert/strict';
+      import { clamp } from '../clamp.js';
+
+      test('keeps an in-range value', () => {
+        assert.equal(clamp(5, 0, 10), 5);
+      });
+expected:
+  should_trigger: true
+graders:
+- type: trigger
+  name: trigger_accuracy
+  config:
+    skill_path: skills/test-design/SKILL.md
+    mode: positive
+    threshold: 0.45
+- type: skill_invocation
+  name: skill_invocation
+  config:
+    required_skills:
+    - test-design
+    mode: any_order
+- type: text
+  name: task_completion
+  config:
+    regex_match:
+    - '(?m)^Designed cases:'
+    - '(?m)^Design evidence:'
+    - '(?m)^Test execution: Ran: node --test test/clamp\.test\.js => (?:failed|exit 1)$'
+    - '(?ims)^Designed cases:.*(?:(below|min|lower).{0,120}(above|max|upper)|(above|max|upper).{0,120}(below|min|lower)).*\nDesign evidence:'
+    - '(?ims)^Designed cases:.*(?:(defect|bug|regress|incorrect|wrong|mistake)).*\nDesign evidence:'
+    - '(?ims)^Design evidence:.*(?:(production|clamp\.js|implementation).{0,150}(defect|bug|unresolved|returns? (?:the )?(?:input|value))|(defect|bug|unresolved).{0,150}(production|clamp\.js|implementation)).*\nTest execution:'
+    not_contains:
+    - 'Test execution: Not run; no tests changed.'
+- type: program
+  name: report_contract
+  config:
+    command: python3
+    args:
+    - evals/test-design/check-report.py
+    - implement
+    - --case-count
+    - "3"
+    timeout: 30
+- type: diff
+  name: changed_test_file
+  config:
+    context_dir: evals/test-design
+    update_snapshots: false
+    expected_files:
+    - path: test/clamp.test.js
+      snapshot: snapshots/clamp.test.js
+- type: diff
+  name: production_unchanged
+  config:
+    context_dir: evals/test-design
+    update_snapshots: false
+    expected_files:
+    - path: clamp.js
+      snapshot: snapshots/clamp-bug.js
+    - path: package.json
+      snapshot: snapshots/package.json
+- type: prompt
+  name: case_substance
+  config:
+    mode: independent
+    prompt: |
+      Judge the selected-case JSON records against this task's contract. Examine
+      EVERY record separately, not the aggregate keyword coverage. Each must
+      identify a concrete behavior/input, the correct expected observation, and
+      a plausible implementation defect that THAT test would catch. Reject
+      generic defect words, assertions of correctness without a failure mechanism,
+      swapped defect mappings, tautologies, expectations copied from buggy code,
+      and missing normal/boundary/error observations required by the task.
+      A standalone or unrelated defect statement cannot repair incomplete records.
+      Also reject omitted required cases or an invented hardware verification claim.
+      Return one reasoning sentence, then only 1.0 (all records complete and correct),
+      0.5 (partially correct), or 0.0 (incorrect or mappings absent) on the last line.
+- type: program
+  name: workspace_integrity
+  config:
+    command: python3
+    args:
+    - evals/test-design/check-workspace.py
+    timeout: 30

@@ -1,0 +1,84 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-001
+name: Select cases from a behavior contract
+description: Plan a compact set of cases with independent observations and plausible defects.
+tags:
+  - positive-trigger
+inputs:
+  prompt: |
+    Help me test a transfer function. The contract says a
+    positive amount moves funds from one account to another, preserving the
+    combined balance. If the source lacks funds, it returns InsufficientFunds
+    and leaves both accounts unchanged. Zero and negative amounts are rejected
+    with InvalidAmount and leave both accounts unchanged. Assume an in-memory
+    deterministic implementation; use only this supplied contract. I have not
+    requested file changes.
+    Keep the set small. For each case, give the expected observation and a
+    plausible defect it would catch.
+    Under Designed cases:, use a raw JSON array containing exactly 4 objects,
+    with exactly these keys: "behavior", "expected", "defect".
+    Each value must be a nonempty string.
+    Each object must map its own behavior to its observation and concrete defect;
+    do not use a generic defect word, a code fence, or extra case prose.
+    Cover a valid transfer, insufficient funds, zero amount, and negative amount separately.
+
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-design/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - test-design
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?m)^Designed cases:'
+        - '(?m)^Design evidence:'
+        - '(?m)^Test execution: Not run; no tests changed\.'
+        - '(?ims)^Designed cases:.*(?:InsufficientFunds.{0,180}(unchanged|preserv)|unchanged.{0,180}InsufficientFunds).*\nDesign evidence:'
+        - '(?ims)^Designed cases:.*(?:(InvalidAmount|zero|negative).{0,180}(unchanged|reject)|(unchanged|reject).{0,180}(InvalidAmount|zero|negative)).*\nDesign evidence:'
+        - '(?ims)^Designed cases:.*(?:(defect|bug|regress|incorrect|mistake)).*\nDesign evidence:'
+        - '(?ims)^Designed cases:.*(?:(positive|valid|success).{0,160}(transfer|moves?|debit|credit)|(transfer|moves?|debit|credit).{0,160}(positive|valid|success)).*\nDesign evidence:'
+        - '(?ims)^Designed cases:.*(?:(combined|total|sum).{0,100}(balance|funds).{0,100}(preserv|unchanged|constant)|(preserv|unchanged|constant).{0,100}(combined|total|sum).{0,100}(balance|funds)).*\nDesign evidence:'
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/test-design/check-report.py
+        - plan
+        - --case-count
+        - "4"
+      timeout: 30
+  - type: prompt
+    name: case_substance
+    config:
+      mode: independent
+      prompt: |
+        Judge the selected-case JSON records against this task's contract. Examine
+        EVERY record separately, not the aggregate keyword coverage. Each must
+        identify a concrete behavior/input, the correct expected observation, and
+        a plausible implementation defect that THAT test would catch. Reject
+        generic defect words, assertions of correctness without a failure mechanism,
+        swapped defect mappings, tautologies, expectations copied from buggy code,
+        and missing normal/boundary/error observations required by the task.
+        A standalone or unrelated defect statement cannot repair incomplete records.
+        Also reject omitted required cases or an invented hardware verification claim.
+        Return one reasoning sentence, then only 1.0 (all records complete and correct),
+        0.5 (partially correct), or 0.0 (incorrect or mappings absent) on the last line.
+  - type: program
+    name: workspace_unchanged
+    config:
+      command: python3
+      args:
+        - evals/_helpers/check-empty-workspace.py
+      timeout: 30

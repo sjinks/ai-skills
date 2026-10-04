@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-004
+name: Review findings become a remediation test plan
+description: Existing review findings need traceable test planning rather than feature-case discovery.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Convert these supplied review findings into a prioritized, owned test plan
+    for merge. Do not perform another review or invent feature coverage.
+    Changed files: src/importer.js and src/accounts.js. The project uses an
+    in-memory unit suite under test/ with existing success-path tests; no
+    dedicated framework testing workflow is available.
+    - HIGH F-1, src/importer.js: an invalid middle row leaves earlier rows
+      persisted. The contract requires atomic rejection with zero persistence.
+    - MEDIUM F-2, src/accounts.js: a rejected debit changes the balance. The
+      contract requires an unchanged balance on rejection.
+    Give each finding a proposed assertion, faithful layer, priority, owner
+    (Import team for F-1; Accounts team for F-2), and evidence needed before merge.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-design/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - 'Designed cases:'
+        - 'Design evidence:'
+        - 'Test execution:'
+        - 'Case set:'
+        - 'Design basis:'
+        - 'Run record:'
+        - 'test-design'

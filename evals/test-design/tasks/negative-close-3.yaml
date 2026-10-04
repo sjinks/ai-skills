@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-003
+name: Available dedicated framework workflow takes precedence
+description: Feature-level NestJS case-set design uses the available dedicated framework workflow.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Design a feature-level test case set for a NestJS UsersService. Its contract
+    creates a user for a new email and throws ConflictException without saving
+    for a duplicate email. A dedicated NestJS testing workflow is available in
+    this environment. Choose normal and failure cases and appropriate
+    testing-module fixtures. This is new feature coverage, not an audit of an
+    existing test.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-design/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - 'Designed cases:'
+        - 'Design evidence:'
+        - 'Test execution:'
+        - 'Case set:'
+        - 'Design basis:'
+        - 'Run record:'
+        - 'test-design'

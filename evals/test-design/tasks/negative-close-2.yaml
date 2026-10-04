@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-002
+name: Diagnose intermittent CI failure
+description: Root-cause investigation of a flaky test does not ask for a new test set.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    This existing test passes alone but fails intermittently when the CI suite
+    runs in parallel. Help diagnose the race or shared-state leak and fix the
+    cause. Do not plan new test coverage for the module.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-design/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - "Designed cases:"
+        - "Design evidence:"
+        - "Test execution:"
+        - "Case set:"
+        - "Design basis:"
+        - "Run record:"
+        - "test-design"

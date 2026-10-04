@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
+name: test-design-eval
+description: Checks feature-level test selection, changed-test implementation, gap assessment, blocked input, and boundaries with neighboring test tasks.
+skill: test-design
+version: "1.0"
+config:
+  trials_per_task: 2
+  timeout_seconds: 300
+  parallel: true
+  workers: 4
+  executor: copilot-sdk
+  model: claude-sonnet-4.6
+  max_attempts: 2
+metrics:
+  - name: trigger_accuracy
+    weight: 0.25
+    threshold: 0.8
+    description: Prompt and skill trigger alignment.
+  - name: skill_invocation
+    weight: 0.15
+    threshold: 0.9
+    description: Positive tasks invoke the skill.
+  - name: task_completion
+    weight: 0.10
+    threshold: 0.8
+    description: Cases identify behavior, expected observation, defect, evidence, and verification status.
+  - name: case_substance
+    weight: 0.05
+    threshold: 1.0
+    description: Every case maps concrete behavior to correct observation and plausible defect.
+  - name: report_contract
+    weight: 0.10
+    threshold: 0.9
+    description: Program validator enforces label order, cardinality, blocked branch, and final verification status.
+  - name: efficiency
+    weight: 0.10
+    threshold: 0.7
+    description: Stays within tool and token budget.
+  - name: changed_test_file
+    weight: 0.05
+    threshold: 0.9
+    description: Exact snapshot equality requires runnable interior and boundary tests in the implementation fixture.
+  - name: workspace_integrity
+    weight: 0.05
+    threshold: 1.0
+    description: Supplied package configuration and absence of installation artifacts.
+  - name: production_unchanged
+    weight: 0.10
+    threshold: 1.0
+    description: Exact snapshot equality requires the production fixture to remain unchanged.
+  - name: workspace_unchanged
+    weight: 0.05
+    threshold: 1.0
+    description: Initially empty read-only or snippet-only task workspace remains empty.
+graders:
+  - type: behavior
+    name: efficiency
+    config:
+      max_tool_calls: 10
+      max_tokens: 7000
+tasks:
+  - "tasks/*.yaml"

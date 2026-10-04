@@ -13,7 +13,7 @@
 
 - Canonical repository skills live at `skills/<name>/SKILL.md`; the folder name equals frontmatter `name`. When a compatibility symlink exists, edit only the canonical path and verify the resolved files match with `cmp`.
 - Skills are standalone: do not name other repository skills. State the boundary as self-contained guidance instead.
-- Keep `SKILL.md` operational: triggers, workflow, decision rules, checklist, output format, examples, and definition of done. Put provenance in `references/source-map.md`; long catalogs and matrices in `references/*.md`; every reference starts with when to read it, and `SKILL.md` gives each reference a concise summary and link (including a `## Provenance` pointer for its source map).
+- Keep `SKILL.md` operational: triggers, workflow, decision rules, checklist, output format, examples, and definition of done. Put long catalogs and matrices in `references/*.md`; every reference starts with when to read it, and `SKILL.md` gives each reference a concise summary and link.
 - Review-style skills define a severity rubric, deterministic verdict mapping, no-findings path, and deterministic insufficient-context template. Preserve established verdict vocabularies; use `BLOCK`/`CONCERNS`/`CLEAN` only when canonical for that skill.
 - Keep output labels and enums exact across templates, checklists, references, and evals. State any mapping from a richer reference vocabulary. The checklist is the gating source when it overlaps decision rules.
 - The `## Output` section defines distinctive labels, not prose-only output. Default labels may be caller-replaced only when the skill explicitly permits it; when that option exists, preserve the caller's requested labels exactly. Negative evals must use the same canonical labels.

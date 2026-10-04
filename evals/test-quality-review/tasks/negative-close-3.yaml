@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-003
+name: Available dedicated framework workflow owns isolated writing
+description: Requesting one preselected test must use the available dedicated framework workflow.
+tags:
+  - negative-close
+inputs:
+  prompt: |
+    Write one preselected Jest test for double(4), whose expected result is 8.
+    A dedicated Jest testing workflow is available in this workspace and owns
+    test authoring for this framework. Use that available workflow and its
+    conventions. Return the Jest test, not a generic test-quality audit.
+expected:
+  should_trigger: false
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-quality-review/SKILL.md
+      mode: negative
+      threshold: 0.45
+  - type: text
+    name: task_completion
+    config:
+      not_contains:
+        - 'Verdict:'
+        - 'Findings:'
+        - 'Authored test:'
+        - 'test-quality-review'

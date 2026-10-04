@@ -1,0 +1,77 @@
+{
+  "cases": [
+    {
+      "name": "authored code marker",
+      "task": "tasks/positive-edge-1.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 6,
+      "matches": [
+        "Authored test:\n```cpp"
+      ],
+      "does_not_match": [
+        "Here is Authored test:",
+        "Findings: None."
+      ]
+    },
+    {
+      "name": "constructed declaration setup serialization and assertion",
+      "task": "tasks/positive-edge-1.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 7,
+      "matches": [
+        "TEST(FrameTest, SerializesPingFrame) {\nFrame frame = Frame::ping(0x1234);\nauto bytes = serialize(frame);\nEXPECT_EQ(bytes, std::vector<uint8_t>({0x09, 0x00, 0x12, 0x34}));\n}"
+      ],
+      "does_not_match": [
+        "EXPECT_EQ(bytes, std::vector<uint8_t>({0x09, 0x00, 0x12, 0x34}));",
+        "TEST(FrameTest, SerializesPingFrame) { Frame frame = Frame::ping(0x1234); EXPECT_EQ(bytes, std::vector<uint8_t>({0x09, 0x00, 0x12, 0x34})); }"
+      ]
+    },
+    {
+      "name": "missing contract rather than missing authoring source",
+      "task": "tasks/positive-edge-2.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 1,
+      "matches": [
+        "Findings: Missing: expected behavior for normalize(value)",
+        "Findings: Missing: contract or expected result"
+      ],
+      "does_not_match": [
+        "Findings: Missing: existing test body",
+        "Findings: None. normalize trims spaces."
+      ]
+    },
+    {
+      "name": "first report identifies tautology and fixes contract value",
+      "task": "tasks/positive-edge-3.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 3,
+      "matches": [
+        "- 1 | supplied snippet:3 | self-comparison ignores behavior | compare result with 8"
+      ],
+      "does_not_match": [
+        "- 1 | supplied snippet:6 | self-comparison ignores behavior | compare result with 8",
+        "- 1 | supplied snippet:3 | checks expected result | compare result with 8",
+        "- 1 | supplied snippet:3 | tautology | improve assertion",
+        "- 1 | supplied snippet:3 | tautology\n | compare result with 8"
+      ]
+    },
+    {
+      "name": "authored marker literals stay inside code fence",
+      "task": "tasks/positive-edge-1.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 8,
+      "matches": [
+        "Authored test:\n```cpp\n/*\nVerdict: parser fixture\nFindings: parser fixture\nAuthored test: parser fixture\n*/\nTEST("
+      ],
+      "does_not_match": [
+        "Authored test:\n```cpp\nTEST(",
+        "/*\nVerdict: parser fixture\nFindings: parser fixture\nAuthored test: parser fixture\n*/\nAuthored test:\n```cpp\nTEST("
+      ]
+    }
+  ]
+}

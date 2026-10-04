@@ -43,6 +43,8 @@ graders:
     name: task_completion
     config:
       regex_match:
+        - '(?m)^Verdict: (?:solid|weak|cannot-fail)$'
+        - '(?m)^Findings:'
         - '(?i)(cannot-?fail|can.?t fail|never fails?|tautolog|no-?op|would (still )?pass)'
         - '(?i)EXPECT_EQ\(total, total\)|EXPECT_TRUE\(true\)|asserts? (a )?(tautolog|constant|itself)'
         - '(?i)(would|does not).{0,30}fail.{0,20}(if|when).{0,30}(deleted|inverted|regress|broken|removed)'
@@ -61,7 +63,7 @@ graders:
           regressed?) and answers no, marking that the top/blocking finding.
         - The concrete fix is a real assertion on the expected discounted total
           (1000 - 10% = 900), i.e. EXPECT_EQ(total, 900).
-        - It returns a per-test verdict (cannot-fail / weak).
+        - It returns a per-test verdict (cannot-fail).
         A correct response is keyed to the quality checklist.
 
         Output format (strict):
@@ -75,3 +77,20 @@ graders:
         0.0 = response is wrong, missing the required judgement, or did not
               perform the skill at all.
       mode: independent
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/test-quality-review/check-report.py
+        - review
+        - --verdict
+        - cannot-fail
+      timeout: 30
+  - type: program
+    name: workspace_unchanged
+    config:
+      command: python3
+      args:
+        - evals/_helpers/check-empty-workspace.py
+      timeout: 30

@@ -163,6 +163,7 @@ metric → grader weighting takes effect.
   - `shell-command-construction`: 0.45
   - `flaky-test-diagnosis`: 0.45
   - `test-quality-review`: 0.45
+  - `test-design`: 0.45
   - `perf-measurement`: 0.45
   - `doc-source-reconciliation`: 0.45
   - `artifact-consolidation`: 0.45
@@ -303,6 +304,50 @@ python3 evals/_helpers/check-eval-regexes.py --root evals/<skill>
 frontmatter, token budget, and eval presence checks. Run the regex validator
 whenever task YAML or grader contracts change; it also does not execute a model.
 
+`test-design` uses a 0.45 trigger threshold and a 7,000-token budget. Its
+suite-local report validator checks default and caller-selected labels, blocked
+and implementation branches, and verification status. The only implementation
+profile is `implement`: it accepts `Ran:` with a pass/fail/exit result or
+`Unverified:` with a reason, and rejects the no-change status. The exact run
+grammar is `Ran: <command> => <passed|failed|exit N>`, with a nonempty command
+and integer N. Its self-test
+checks every supported profile against both status families. The implementation
+edge uses supplied repository files and an exact test-file diff snapshot to require
+executable interior and boundary tests (with an explicit formatting contract),
+plus text assertions for the defect caught and execution outcome.
+
+The isolated-test audit, writing one preselected test, and available-framework precedence are independent
+negative-close tasks. The implementation edge supplies the positive framework
+fallback when no dedicated workflow exists; flaky-test diagnosis has its own
+negative-close task.
+
+Default report labels are `Designed cases:`, `Design evidence:`, and
+`Test execution:`. The projection check scans sibling skill packages for
+marker collisions and permits the review-plan workflow's `Test cases:` marker
+in negative responses. A separate review-findings negative case covers that
+route. Bounded semantic regexes use DOTALL and have multiline contrastive cases,
+including positive-transfer balance preservation and reporting the offending row.
+The assessment edge checks singleton selection with a JSON case array and
+`check-report.py assessment --case-count 1`; each object requires nonempty
+`behavior`, `expected`, and `defect` strings. The count constraint applies only
+when requested, not to ordinary assessments. It also checks partial contracts
+and an explicit coverage gate; those two evidence assertions cannot match case or execution content. Reports start with their first label, without a blank or whitespace preamble. The diagnosed-failure task requires the exact supplied test command in the execution report.
+Additional implementation edges require an unavailable-run status when hardware
+has no faithful substitute and a diagnosed failure against unchanged buggy
+production code. The user approved this expanded coverage matrix.
+The isolated test-quality workflow owns writing one caller-preselected test; its existing byte-exact positive edge exercises that branch. Feature case selection and implementation remain in the feature workflow even if selection yields one case.
+The `production_unchanged` diff grader compares `clamp.js` with the exact
+snapshot under `evals/test-design/snapshots/`, with `update_snapshots: false`.
+Snapshot comparison follows the [Waza v0.33.0 diff grader](https://github.com/microsoft/waza/blob/v0.33.0/docs/graders/diff.md).
+
+```bash
+python3 evals/test-design/check-report.py --self-test
+# Validate a supplied singleton assessment report without model calls:
+python3 evals/test-design/check-report.py assessment --case-count 1 < report.txt
+python3 evals/test-design/check-projections.py
+python3 evals/_helpers/check-eval-regexes.py --root evals/test-design --cases evals/test-design/regex-cases.json
+```
+
 The `handoff-note` caller-schema edge case additionally validates its exact
 heading set and order without a model:
 
@@ -336,3 +381,80 @@ waza run evals/<skill>/eval.yaml \
   --reporter junit:junit.xml \
   -v
 ```
+
+`test-quality-review` retains its per-test verdict vocabulary and adds
+`Authored test:` after `Verdict:` and `Findings:` for writing only. Its
+`report_contract` program metric validates conditional labels, findings syntax,
+verdict domains, file/snippet location syntax, generated snippet bounds, fenced code and termination. Negative
+tasks exclude all three labels and the skill name. The byte-contract edge supplies
+API/behavior constraints instead of a completed test; graders require generated
+setup, serialization and assertion. Its declared formatting constraints allow
+exact structural validation with `--wire-fixture`, rejecting comment-only bodies,
+omitted setup/calls and altered expected bytes. Existing review cases use the review profile.
+The suite uses a 0.45 trigger threshold and an 8,000-token budget.
+
+```bash
+python3 evals/test-quality-review/check-report.py --self-test
+python3 evals/test-quality-review/check-report.py author --verdict solid < report.txt
+python3 evals/test-design/check-projections.py
+python3 evals/_helpers/check-eval-regexes.py --root evals/test-quality-review --cases evals/test-quality-review/regex-cases.json
+```
+
+Feature-test evals now require counted JSON records on every nonblocked positive
+case. Structural grading verifies field presence per record and rejects generic
+defect placeholders; `case_substance` independently judges each behavior,
+observation and plausible defect mapping. This adds judge calls to future paid
+runs; no live run was used to validate this revision. The threshold is 1.0.
+Both clamp task execution assertions name their supplied target command.
+Implementation fixtures snapshot `package.json`, and `workspace_integrity`
+(threshold 1.0) rejects changed/missing package configuration and known package
+or lockfile/install artifacts inside `WAZA_WORKSPACE_DIR`. It fails closed if that
+variable is absent. The guard is read-only and does not inspect installations
+outside the task workspace or prove that no command was attempted.
+The workspace boundary follows the [Waza v0.33.0 program grader](https://github.com/microsoft/waza/blob/v0.33.0/docs/graders/program.md).
+
+```bash
+python3 evals/test-design/check-workspace.py --self-test
+python3 evals/test-design/check-report.py implement --case-count 3 < report.txt
+```
+
+The approved isolated-authoring missing-context edge uses `check-report.py missing`
+and requires the absent behavior/expected-result contract without invented code.
+The projection map now covers review, authoring, and missing-context tasks.
+
+The feature plan task now discriminates the read-only default when no test
+modification was requested. The runnable clamp edge explicitly provides Node
+and requires the supplied command to pass; failed and unavailable execution
+remain separate edges. Quality authoring accepts an existing draft body.
+Its framework-precedence negative and two-test review edge were user-approved.
+Multiple review reports use the same grammar in input order, separated by a
+blank line. Authoring remains singular; missing-context reports may occur per
+reviewed test. Validate batches with:
+
+```bash
+python3 evals/test-quality-review/check-report.py review --test-count 2 --verdicts cannot-fail,solid < report.txt
+```
+
+Both testing suites register `workspace_unchanged` at threshold 1.0 for every
+initially empty positive workspace that must remain read-only, including blocked
+and missing context and snippet-only authoring. The shared semantic contract
+is an existing real task directory with no entries at grading time; both suites
+use `evals/_helpers/check-empty-workspace.py`. It rejects files, hidden entries,
+empty directories and symlinks, and fails closed when the directory is absent.
+The projection checker verifies the guarded tasks supply no resource files.
+This is final-state evidence, not a trace of transient or outside-workspace
+changes. The pinned [Waza program-grader contract](https://github.com/microsoft/waza/blob/v0.33.0/docs/graders/program.md)
+provides `WAZA_WORKSPACE_DIR`; pinned workspace setup creates a temporary directory
+and writes supplied resources. The Copilot session may restore files before
+grading, so changes restored before grading are outside this guard's evidence.
+
+```bash
+python3 evals/_helpers/check-empty-workspace.py --self-test
+WAZA_WORKSPACE_DIR=/path/to/task-workspace python3 evals/_helpers/check-empty-workspace.py
+```
+
+Authored report labels are counted only in the envelope, through `Authored test:`;
+label-looking text inside the code fence is data. The existing wire authoring
+edge now requires a multiline fixture comment with every canonical marker.
+Default/custom-label fixtures cover solid, weak and cannot-fail author outcomes;
+envelope duplicates and labels outside the closing fence remain invalid.

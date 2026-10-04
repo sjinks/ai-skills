@@ -45,6 +45,8 @@ graders:
     name: task_completion
     config:
       regex_match:
+        - '(?m)^Verdict: (?:solid|weak|cannot-fail)$'
+        - '(?m)^Findings:'
         - '(?i)(over-?mock|mock call count|call count|times\(1\)|asserts.{0,20}(was )?called|implementation.{0,10}shape)'
         - '(?i)(effect|observable|return value|result|Ok|the user).{0,40}(assert|instead|rather)|assert.{0,20}(the )?(effect|result|return)'
         - '(?i)(negative|error|failure|NotFound|Err).{0,30}(path|case|not.{0,10}(tested|covered|exercised)|missing)'
@@ -77,3 +79,20 @@ graders:
         0.0 = response is wrong, missing the required judgement, or did not
               perform the skill at all.
       mode: independent
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/test-quality-review/check-report.py
+        - review
+        - --verdict
+        - weak
+      timeout: 30
+  - type: program
+    name: workspace_unchanged
+    config:
+      command: python3
+      args:
+        - evals/_helpers/check-empty-workspace.py
+      timeout: 30
