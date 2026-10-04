@@ -38,13 +38,18 @@ def main() -> None:
         if task["expected"]["should_trigger"]:
             args = graders["report_contract"]["config"]["args"]
             assert args[1] == expected[path.name], (path.name, "wrong profile")
-            labels = tuple(args[2:]) if len(args) > 2 else report.MARKERS
+            options = report.parse_args(args[1:])
+            labels = tuple(options.labels) if options.labels else report.MARKERS
             fixture = report.CUSTOM_BLOCKED if labels == report.CUSTOM_LABELS else report.VALID[args[1]]
-            if path.name == "positive-edge-4.yaml":
+            if path.name == "positive-edge-3.yaml":
+                assert options.case_count == 1, "singleton task needs machine enforcement"
+                assert '"behavior", "expected", "defect"' in task["inputs"]["prompt"]
+                fixture = report.SINGLE_ASSESSMENT
+            elif path.name == "positive-edge-4.yaml":
                 fixture = fixture.replace("=> passed", "=> failed")
             elif path.name == "positive-edge-5.yaml":
                 fixture = fixture.rsplit("Test execution:", 1)[0] + "Test execution: Unverified: physical sensor unavailable"
-            report.validate(fixture, args[1], labels)
+            report.validate(fixture, args[1], labels, options.case_count)
             for label in labels:
                 assert any(label in pattern for pattern in text["regex_match"]), (path.name, label)
         else:

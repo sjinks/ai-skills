@@ -21,3 +21,8 @@ unavailable hardware without a faithful substitute from a diagnosed production
 regression failure. Exact snapshots verify executable tests and unchanged
 production files; semantic contrastive cases check success invariants and
 offending-row reporting.
+
+The assessment edge requests a JSON case array with `behavior`, `expected`, and
+`defect` string fields. Its report grader uses `--case-count 1` to enforce exactly
+one case; ordinary assessments remain unrestricted in case count. Execution-line
+examples distinguish the final field's position from its literal label and status.

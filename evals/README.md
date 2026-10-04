@@ -327,7 +327,10 @@ marker collisions and permits the review-plan workflow's `Test cases:` marker
 in negative responses. A separate review-findings negative case covers that
 route. Bounded semantic regexes use DOTALL and have multiline contrastive cases,
 including positive-transfer balance preservation and reporting the offending row.
-The assessment edge independently checks singleton selection, partial contracts,
+The assessment edge checks singleton selection with a JSON case array and
+`check-report.py assessment --case-count 1`; each object requires nonempty
+`behavior`, `expected`, and `defect` strings. The count constraint applies only
+when requested, not to ordinary assessments. It also checks partial contracts
 and an explicit coverage gate. Reports start with their first label.
 Additional implementation edges require an unavailable-run status when hardware
 has no faithful substitute and a diagnosed failure against unchanged buggy
@@ -338,6 +341,8 @@ Snapshot comparison follows the [Waza v0.33.0 diff grader](https://github.com/mi
 
 ```bash
 python3 evals/test-design/check-report.py --self-test
+# Validate a supplied singleton assessment report without model calls:
+python3 evals/test-design/check-report.py assessment --case-count 1 < report.txt
 python3 evals/test-design/check-projections.py
 python3 evals/_helpers/check-eval-regexes.py --root evals/test-design --cases evals/test-design/regex-cases.json
 ```

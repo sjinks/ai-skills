@@ -10,14 +10,18 @@ inputs:
     Assess the suite-level gaps for a batch importer. Contract: valid rows
     are persisted atomically; if any row is invalid, the import reports the
     offending row and persists none. The current suite tests a fully valid
-    batch and an empty batch only. Propose the smallest material missing case
-    or cases. Give the expected observation and defect caught. This is a
+    batch and an empty batch only. Propose the smallest material missing case.
+    Give the expected observation and defect caught. This is a
     read-only assessment; do not inspect files or run tests. Select exactly one
     missing case. The repository requires 90% coverage; retain that gate as an
     explicit requirement, without inventing a measured coverage result.
     Retry behavior is undecided. Assess the supported invalid-row behavior and
     identify the missing retry decision; do not block all selection or invent
-    retry expectations.
+    retry expectations. Under Designed cases:, use a JSON array containing
+    exactly one object with exactly these keys: "behavior", "expected", "defect".
+    Each value must be a nonempty string. Do not use a code fence or additional
+    case prose. Put coverage constraints and the missing retry decision under
+    Design evidence:.
 expected:
   should_trigger: true
 graders:
@@ -55,4 +59,6 @@ graders:
       args:
         - evals/test-design/check-report.py
         - assessment
+        - --case-count
+        - "1"
       timeout: 30

@@ -47,7 +47,9 @@
         "Test execution: Ran: 3 tests passed",
         "Test execution: Ran: => passed",
         "Test execution: Ran: node --test =>",
-        "Test execution: Ran: node --test => exit unknown"
+        "Test execution: Ran: node --test => exit unknown",
+        "Test execution: Final line: Ran: node --test => passed",
+        "Test execution: Final line: Unverified: node unavailable"
       ]
     },
     {

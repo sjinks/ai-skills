@@ -1,4 +1,4 @@
-When to read: when choosing between plausible test cases, exact assertions, fakes, or asynchronous checks.
+When to read: when choosing between plausible test cases, exact assertions, fakes, asynchronous checks, or execution-line syntax.
 
 # Test Selection Guidance
 
@@ -17,3 +17,27 @@ When to read: when choosing between plausible test cases, exact assertions, fake
 ## Illustrative Case
 
 For a transfer that rejects insufficient funds without changing either balance, start below the requested amount, assert the specific rejection and both unchanged balances, and catch a debit-before-validation defect. Repeating several arbitrary insufficient amounts adds little evidence unless a boundary changes behavior.
+
+## Execution-Line Examples
+
+These snippets show only the final execution field. The cases and evidence fields must precede it; all three fields remain required. Replace the execution label when the caller requires a different label.
+
+For changed tests that ran, use a complete line such as:
+
+```text
+Test execution: Ran: node --test test/clamp.test.js => passed
+```
+
+For changed tests that could not run:
+
+```text
+Test execution: Unverified: physical sensor unavailable
+```
+
+For plans, assessments, or blocked input before any edits:
+
+```text
+Test execution: Not run; no tests changed.
+```
+
+With caller labels `Case set:`, `Design basis:`, and `Run record:`, the last example becomes `Run record: Not run; no tests changed.` after the caller's cases and evidence fields. Never insert the explanatory text `Final line:` between the execution label and its status.

@@ -23,7 +23,7 @@ Route by task, regardless of case count. Plan or assess without editing. Impleme
 
 ## Decision Rules
 
-Honor required coverage. Do not select cases solely for counts or percentages. Keep tests deterministic and isolated. Fake boundaries only when faithful. Read [selection guidance](references/test-selection.md) for oracles and async cases.
+Honor required coverage. Do not select cases solely for counts or percentages. Keep tests deterministic and isolated. Fake boundaries only when faithful. Read [selection guidance](references/test-selection.md) for assertions and output examples.
 
 ## Error Handling
 
@@ -37,7 +37,7 @@ Start with the first label. Use labels once, ordered. Caller-required labels rep
 
 `Design evidence:` Contract, repository evidence, assumptions, missing decisions, environment limits, unresolved failures.
 
-`Test execution:` Final line: `Ran: <command> => <passed|failed|exit N>` (integer N) or `Unverified: <reason>` for changed tests; otherwise `Not run; no tests changed.`
+`Test execution:` must be the last line. Use `Ran: <command> => <passed|failed|exit N>` (integer N) or `Unverified: <reason>` for changed tests; otherwise `Not run; no tests changed.`
 
 If blocked: cases contain only `Blocked.`, evidence names missing input, execution uses the no-changes status. Caller labels apply.
 
@@ -48,7 +48,7 @@ If blocked: cases contain only `Blocked.`, evidence names missing input, executi
 
 ## Example
 
-Assert insufficient-funds rejection and unchanged balances to catch premature debit.
+For insufficient funds, assert rejection and unchanged balances.
 
 ## Definition of Done
 
