@@ -308,7 +308,9 @@ whenever task YAML or grader contracts change; it also does not execute a model.
 suite-local report validator checks default and caller-selected labels, blocked
 and implementation branches, and verification status. The only implementation
 profile is `implement`: it accepts `Ran:` with a pass/fail/exit result or
-`Unverified:` with a reason, and rejects the no-change status. Its self-test
+`Unverified:` with a reason, and rejects the no-change status. The exact run
+grammar is `Ran: <command> => <passed|failed|exit N>`, with a nonempty command
+and integer N. Its self-test
 checks every supported profile against both status families. The implementation
 edge uses supplied repository files and a file grader to require new assertions,
 plus text assertions for the defect caught and execution outcome.
@@ -317,6 +319,15 @@ The isolated-test audit and available-framework precedence are independent
 negative-close tasks. The implementation edge supplies the positive framework
 fallback when no dedicated workflow exists; flaky-test diagnosis has its own
 negative-close task.
+
+Default report labels are `Designed cases:`, `Design evidence:`, and
+`Test execution:`. The projection check scans sibling skill packages for
+marker collisions and permits the review-plan workflow's `Test cases:` marker
+in negative responses. A separate review-findings negative case covers that
+route. Bounded semantic regexes use DOTALL and have multiline contrastive cases.
+The `production_unchanged` diff grader compares `clamp.js` with the exact
+snapshot under `evals/test-design/snapshots/`, with `update_snapshots: false`.
+Snapshot comparison follows the [Waza v0.33.0 diff grader](https://github.com/microsoft/waza/blob/v0.33.0/docs/graders/diff.md).
 
 ```bash
 python3 evals/test-design/check-report.py --self-test

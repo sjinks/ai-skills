@@ -4,8 +4,9 @@
 import re
 import sys
 
-MARKERS = ("Test cases:", "Evidence:", "Verification:")
+MARKERS = ("Designed cases:", "Design evidence:", "Test execution:")
 PROFILES = {"plan", "implement", "assessment", "blocked"}
+IMPLEMENT_STATUS_PATTERN = r"(?:Unverified: \S[^\n]*|Ran: \S(?:[^\n]*\S)? => (?:passed|failed|exit -?\d+))"
 
 
 def validate(report: str, profile: str, labels: tuple[str, str, str] = MARKERS) -> None:
@@ -40,20 +41,15 @@ def validate(report: str, profile: str, labels: tuple[str, str, str] = MARKERS) 
     if profile in {"blocked", "plan", "assessment"}:
         if verification != "Not run; no tests changed.":
             raise ValueError("this profile requires the no-changes verification status")
-    elif not re.fullmatch(r"(?:Ran|Unverified): .+", verification):
+    elif not re.fullmatch(IMPLEMENT_STATUS_PATTERN, verification):
         raise ValueError("invalid verification status")
-    elif verification.startswith("Ran:") and not re.search(
-        r"\b(?:pass(?:ed)?|fail(?:ed)?|exit(?:ed)?(?:\s+(?:code|status|with))?\s*[:=]?\s*-?\d+)\b",
-        verification, re.IGNORECASE,
-    ):
-        raise ValueError("Ran requires a pass/fail/exit result")
 
 
 VALID = {
-    "plan": "Test cases: - valid transfer; expected balances; catches wrong debit\nEvidence: supplied contract\nVerification: Not run; no tests changed.",
-    "implement": "Test cases: - clamp below min; expected min; catches wrong bound\nEvidence: contract and repository test pattern\nVerification: Ran: node --test test/clamp.test.js; 3 tests passed",
-    "assessment": "Test cases: - invalid middle row; zero persisted; catches partial commit\nEvidence: supplied contract and suite list\nVerification: Not run; no tests changed.",
-    "blocked": "Test cases: Blocked.\nEvidence: Need the feature behavior.\nVerification: Not run; no tests changed.",
+    "plan": "Designed cases: - valid transfer; expected balances; catches wrong debit\nDesign evidence: supplied contract\nTest execution: Not run; no tests changed.",
+    "implement": "Designed cases: - clamp below min; expected min; catches wrong bound\nDesign evidence: contract and repository test pattern\nTest execution: Ran: node --test test/clamp.test.js => passed",
+    "assessment": "Designed cases: - invalid middle row; zero persisted; catches partial commit\nDesign evidence: supplied contract and suite list\nTest execution: Not run; no tests changed.",
+    "blocked": "Designed cases: Blocked.\nDesign evidence: Need the feature behavior.\nTest execution: Not run; no tests changed.",
 }
 CUSTOM_LABELS = ("Case set:", "Design basis:", "Run record:")
 CUSTOM_BLOCKED = "Case set: Blocked.\nDesign basis: Need the feature behavior.\nRun record: Not run; no tests changed."
@@ -67,26 +63,26 @@ def self_test() -> None:
     assert set(VALID) == PROFILES, "every supported profile needs a valid fixture"
     # Independent contract matrix: modes are checked against both status families.
     for profile in ("plan", "assessment", "blocked", "implement"):
-        prefix = VALID[profile].rsplit("Verification:", 1)[0]
+        prefix = VALID[profile].rsplit("Test execution:", 1)[0]
         for status, changed in (
             ("Not run; no tests changed.", False),
-            ("Ran: node --test; 3 tests passed", True),
-            ("Ran: node --test; 1 test failed", True),
-            ("Ran: node --test; exit code 1", True),
+            ("Ran: node --test => passed", True),
+            ("Ran: node --test => failed", True),
+            ("Ran: node --test => exit 1", True),
             ("Unverified: test runner unavailable", True),
         ):
             expected = changed if profile == "implement" else not changed
             try:
-                validate(prefix + "Verification: " + status, profile)
+                validate(prefix + "Test execution: " + status, profile)
             except ValueError:
                 assert not expected, (profile, status, "unexpected rejection")
             else:
                 assert expected, (profile, status, "unexpected acceptance")
     base = VALID["plan"]
     invalid = {
-        "omission": base.replace("Evidence: supplied contract\n", ""),
-        "reorder": base.replace("Evidence: supplied contract\nVerification: Not run; no tests changed.", "Verification: Not run; no tests changed.\nEvidence: supplied contract"),
-        "duplicate": base.replace("Evidence: supplied contract", "Evidence: supplied contract\nEvidence: duplicate"),
+        "omission": base.replace("Design evidence: supplied contract\n", ""),
+        "reorder": base.replace("Design evidence: supplied contract\nTest execution: Not run; no tests changed.", "Test execution: Not run; no tests changed.\nDesign evidence: supplied contract"),
+        "duplicate": base.replace("Design evidence: supplied contract", "Design evidence: supplied contract\nDesign evidence: duplicate"),
         "invalid status": base.replace("Not run; no tests changed.", "Passed"),
         "profile crossover": VALID["blocked"],
         "trailing prose": base + "\nAdditional prose.",
@@ -104,7 +100,7 @@ def self_test() -> None:
     else:
         raise AssertionError("accepted reverse profile crossover")
     for name, report in {
-        "default label in custom report": CUSTOM_BLOCKED.replace("Case set:", "Test cases:"),
+        "default label in custom report": CUSTOM_BLOCKED.replace("Case set:", "Designed cases:"),
         "custom blocked trailing prose": CUSTOM_BLOCKED + "\nExtra text.",
         "custom blocked wrong branch": CUSTOM_BLOCKED.replace("Blocked.", "a planned case"),
     }.items():
@@ -113,8 +109,13 @@ def self_test() -> None:
         except ValueError:
             continue
         raise AssertionError(f"accepted {name}")
-    for status in ("Passed", "Ran: node --test test/clamp.test.js", "Ran:", "Unverified:"):
-        report = VALID["implement"].rsplit("Verification:", 1)[0] + "Verification: " + status
+    for status in (
+        "Passed", "Ran: node --test test/clamp.test.js", "Ran:", "Unverified:",
+        "Ran: 3 tests passed", "Ran: => passed", "Ran:    => failed",
+        "Ran: node --test =>", "Ran: node --test => exit unknown",
+        "Ran: node --test => passed and extra prose",
+    ):
+        report = VALID["implement"].rsplit("Test execution:", 1)[0] + "Test execution: " + status
         try:
             validate(report, "implement")
         except ValueError:

@@ -6,8 +6,13 @@
       "grader": "task_completion",
       "list": "regex_match",
       "index": 0,
-      "matches": ["Test cases: valid transfer"],
-      "does_not_match": ["Preface Test cases: valid transfer", "Test case: valid transfer"]
+      "matches": [
+        "Designed cases: valid transfer"
+      ],
+      "does_not_match": [
+        "Preface Designed cases: valid transfer",
+        "Test case: valid transfer"
+      ]
     },
     {
       "name": "caller-selected blocked case marker",
@@ -15,8 +20,13 @@
       "grader": "task_completion",
       "list": "regex_match",
       "index": 0,
-      "matches": ["Case set: Blocked."],
-      "does_not_match": ["Test cases: Blocked.", "Case set: planned transfer"]
+      "matches": [
+        "Case set: Blocked."
+      ],
+      "does_not_match": [
+        "Designed cases: Blocked.",
+        "Case set: planned transfer"
+      ]
     },
     {
       "name": "implementation outcome status",
@@ -24,8 +34,21 @@
       "grader": "task_completion",
       "list": "regex_match",
       "index": 2,
-      "matches": ["Verification: Ran: node --test test/clamp.test.js; 3 tests passed", "Verification: Ran: node --test; exit code 1", "Verification: Unverified: node unavailable"],
-      "does_not_match": ["Verification: Not run; no tests changed.", "Verification: Ran:", "Verification: Ran: node --test test/clamp.test.js"]
+      "matches": [
+        "Test execution: Ran: node --test test/clamp.test.js => passed",
+        "Test execution: Ran: node --test => failed",
+        "Test execution: Ran: node --test => exit 1",
+        "Test execution: Unverified: node unavailable"
+      ],
+      "does_not_match": [
+        "Test execution: Not run; no tests changed.",
+        "Test execution: Ran:",
+        "Test execution: Ran: node --test test/clamp.test.js",
+        "Test execution: Ran: 3 tests passed",
+        "Test execution: Ran: => passed",
+        "Test execution: Ran: node --test =>",
+        "Test execution: Ran: node --test => exit unknown"
+      ]
     },
     {
       "name": "implementation defect signal",
@@ -33,8 +56,14 @@
       "grader": "task_completion",
       "list": "regex_match",
       "index": 4,
-      "matches": ["catches the wrong lower bound", "detects a regression in upper clamping"],
-      "does_not_match": ["both bounds considered", "checks below and above range"]
+      "matches": [
+        "catches the wrong lower bound",
+        "detects a regression in upper clamping"
+      ],
+      "does_not_match": [
+        "both bounds considered",
+        "checks below and above range"
+      ]
     },
     {
       "name": "atomic rollback signal",
@@ -42,8 +71,72 @@
       "grader": "task_completion",
       "list": "regex_match",
       "index": 4,
-      "matches": ["none persisted", "zero rows written"],
-      "does_not_match": ["one row persisted", "all rows accepted"]
+      "matches": [
+        "none persisted",
+        "zero rows written",
+        "zero\nrows persisted",
+        "persisted rows:\nnone"
+      ],
+      "does_not_match": [
+        "one row persisted",
+        "all rows accepted"
+      ]
+    },
+    {
+      "name": "multiline insufficient-funds observation",
+      "task": "tasks/positive-trigger-1.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 3,
+      "matches": [
+        "InsufficientFunds\n- both balances unchanged",
+        "balances unchanged\n- InsufficientFunds"
+      ],
+      "does_not_match": [
+        "InsufficientFunds\n- debit succeeded"
+      ]
+    },
+    {
+      "name": "multiline invalid-amount observation",
+      "task": "tasks/positive-trigger-1.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 4,
+      "matches": [
+        "InvalidAmount\n- rejected without mutation",
+        "zero amount\n- rejected"
+      ],
+      "does_not_match": [
+        "positive amount\n- successful transfer"
+      ]
+    },
+    {
+      "name": "multiline invalid-row behavior",
+      "task": "tasks/positive-edge-3.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 3,
+      "matches": [
+        "invalid\n- row in the middle",
+        "malformed\n- batch input"
+      ],
+      "does_not_match": [
+        "valid row\n- complete batch"
+      ]
+    },
+    {
+      "name": "multiline implementation bounds",
+      "task": "tasks/positive-edge-2.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 3,
+      "matches": [
+        "below range\n- above range",
+        "upper threshold\n- lower threshold"
+      ],
+      "does_not_match": [
+        "only in-range value"
+      ]
     }
   ]
 }

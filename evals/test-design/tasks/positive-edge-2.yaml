@@ -52,13 +52,13 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?m)^Test cases:'
-        - '(?m)^Evidence:'
-        - '(?im)^Verification: (?:Unverified: .+|Ran: .+\b(?:pass(?:ed)?|fail(?:ed)?|exit(?:ed)?(?:\s+(?:code|status|with))?\s*[:=]?\s*-?\d+)\b.*)$'
-        - '(?i)(below|min|lower).{0,120}(above|max|upper)|(above|max|upper).{0,120}(below|min|lower)'
+        - '(?m)^Designed cases:'
+        - '(?m)^Design evidence:'
+        - '(?m)^Test execution: (?:Unverified: \S[^\n]*|Ran: \S(?:[^\n]*\S)? => (?:passed|failed|exit -?\d+))$'
+        - '(?is)(below|min|lower).{0,120}(above|max|upper)|(above|max|upper).{0,120}(below|min|lower)'
         - '(?i)(defect|bug|regress|incorrect|wrong|mistake)'
       not_contains:
-        - 'Verification: Not run; no tests changed.'
+        - 'Test execution: Not run; no tests changed.'
   - type: program
     name: report_contract
     config:
@@ -78,3 +78,11 @@ graders:
             - 'assert\.(?:equal|strictEqual)\s*\(\s*clamp\(-1,\s*0,\s*10\),\s*0\s*\)'
             - 'assert\.(?:equal|strictEqual)\s*\(\s*clamp\(11,\s*0,\s*10\),\s*10\s*\)'
             - 'clamp\(5,\s*0,\s*10\)'
+  - type: diff
+    name: production_unchanged
+    config:
+      context_dir: evals/test-design
+      update_snapshots: false
+      expected_files:
+        - path: clamp.js
+          snapshot: snapshots/clamp.js

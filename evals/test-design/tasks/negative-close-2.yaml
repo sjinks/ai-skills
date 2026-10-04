@@ -22,9 +22,9 @@ graders:
     name: task_completion
     config:
       not_contains:
-        - "Test cases:"
-        - "Evidence:"
-        - "Verification:"
+        - "Designed cases:"
+        - "Design evidence:"
+        - "Test execution:"
         - "Case set:"
         - "Design basis:"
         - "Run record:"

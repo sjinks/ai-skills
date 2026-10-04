@@ -33,11 +33,11 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?m)^Test cases:'
-        - '(?m)^Evidence:'
-        - '(?m)^Verification: Not run; no tests changed\.'
-        - '(?i)InsufficientFunds.{0,180}(unchanged|preserv)|unchanged.{0,180}InsufficientFunds'
-        - '(?i)(InvalidAmount|zero|negative).{0,180}(unchanged|reject)|(unchanged|reject).{0,180}(InvalidAmount|zero|negative)'
+        - '(?m)^Designed cases:'
+        - '(?m)^Design evidence:'
+        - '(?m)^Test execution: Not run; no tests changed\.'
+        - '(?is)InsufficientFunds.{0,180}(unchanged|preserv)|unchanged.{0,180}InsufficientFunds'
+        - '(?is)(InvalidAmount|zero|negative).{0,180}(unchanged|reject)|(unchanged|reject).{0,180}(InvalidAmount|zero|negative)'
         - '(?i)(defect|bug|regress|incorrect|mistake)'
   - type: program
     name: report_contract

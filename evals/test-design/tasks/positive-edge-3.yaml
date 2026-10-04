@@ -32,11 +32,11 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?m)^Test cases:'
-        - '(?m)^Evidence:'
-        - '(?m)^Verification: Not run; no tests changed\.'
-        - '(?i)(invalid|malformed).{0,180}(row|batch)'
-        - '(?i)(none|nothing|zero).{0,90}(persist|saved|written)|(persist|saved|written).{0,90}(none|nothing|zero)'
+        - '(?m)^Designed cases:'
+        - '(?m)^Design evidence:'
+        - '(?m)^Test execution: Not run; no tests changed\.'
+        - '(?is)(invalid|malformed).{0,180}(row|batch)'
+        - '(?is)(none|nothing|zero).{0,90}(persist|saved|written)|(persist|saved|written).{0,90}(none|nothing|zero)'
         - '(?i)(partial|atomic|rollback|all-or-nothing)'
   - type: program
     name: report_contract

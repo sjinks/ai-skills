@@ -10,7 +10,7 @@ argument-hint: "Feature contract, files, and requested mode."
 
 # Test Design
 
-**WORKFLOW SKILL.** INVOKES: repository inspection and test execution. FOR SINGLE OPERATIONS: plan, implement, or assess.
+**WORKFLOW SKILL.** INVOKES: inspection and test execution. FOR SINGLE OPERATIONS: plan, implement, or assess.
 
 ## Scope
 
@@ -25,21 +25,21 @@ Plan or assess without editing; implement selected cases when requested. For fra
 
 ## Decision Rules
 
-Ignore test counts and coverage targets. Keep tests deterministic and isolated; fake external boundaries. Read [test selection guidance](references/test-selection.md) for oracles and async cases.
+Ignore test counts and coverage targets. Keep tests deterministic and isolated; fake external boundaries. Read [selection guidance](references/test-selection.md) for oracles and async cases.
 
 ## Error Handling
 
-If behavior remains unclear, name the missing decision and design only supported cases. Mark unrun changed tests unverified. Do not weaken valid expectations.
+If behavior is unclear, name missing decisions and design only supported cases. Mark unrun changed tests unverified. Do not weaken valid expectations.
 
 ## Output
 
 Use each label once in order; caller-required labels replace them exactly.
 
-`Test cases:` Each behavior, expected result, and defect caught; for assessment, gaps or why none is justified.
+`Designed cases:` Behavior, expected result, defect caught; for assessment, gaps or why none is justified.
 
-`Evidence:` Contract, repository evidence, assumptions, or missing input.
+`Design evidence:` Contract, repository evidence, assumptions, or missing input.
 
-`Verification:` Final line: `Ran: <command and pass/fail/exit result>` or `Unverified: <reason>` for changed tests; otherwise `Not run; no tests changed.`
+`Test execution:` Final line: `Ran: <command> => <passed|failed|exit N>` (integer N) or `Unverified: <reason>` for changed tests; otherwise `Not run; no tests changed.`
 
 If blocked: `Blocked.` in the first field, missing input in the second, and `Not run; no tests changed.` in the final field. Caller-required labels replace all three.
 
@@ -50,8 +50,8 @@ If blocked: `Blocked.` in the first field, missing input in the second, and `Not
 
 ## Example
 
-For insufficient funds, assert the error and unchanged balances; catch premature debit.
+For insufficient funds, assert error and unchanged balances; catch premature debit.
 
 ## Definition of Done
 
-Stop when cases pass the checklist and changed tests are verified or unverified.
+Finish when checklist passes and changed tests are verified or unverified.

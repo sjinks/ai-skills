@@ -35,9 +35,9 @@ graders:
         - '(?m)^Run record: Not run; no tests changed\.$'
         - '(?i)(behavior|contract|interface|specification)'
       not_contains:
-        - 'Test cases:'
-        - 'Evidence:'
-        - 'Verification:'
+        - 'Designed cases:'
+        - 'Design evidence:'
+        - 'Test execution:'
   - type: program
     name: report_contract
     config:

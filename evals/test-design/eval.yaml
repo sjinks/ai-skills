@@ -13,7 +13,7 @@ config:
   max_attempts: 2
 metrics:
   - name: trigger_accuracy
-    weight: 0.30
+    weight: 0.25
     threshold: 0.8
     description: Prompt and skill trigger alignment.
   - name: skill_invocation
@@ -21,7 +21,7 @@ metrics:
     threshold: 0.9
     description: Positive tasks invoke the skill.
   - name: task_completion
-    weight: 0.20
+    weight: 0.15
     threshold: 0.8
     description: Cases identify behavior, expected observation, defect, evidence, and verification status.
   - name: report_contract
@@ -36,6 +36,10 @@ metrics:
     weight: 0.10
     threshold: 0.9
     description: The implementation task edits the supplied test file with boundary assertions.
+  - name: production_unchanged
+    weight: 0.10
+    threshold: 1.0
+    description: Exact snapshot equality requires the production fixture to remain unchanged.
 graders:
   - type: behavior
     name: efficiency
