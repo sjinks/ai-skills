@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-007
+name: Reusable skill takes precedence across selected prevention rows
+inputs:
+  prompt: |
+    Retrospect these completed independent incidents. Goal: prevent review churn and missing diagnostic evidence. All stated actions, outcomes and causes are established by the supplied incident records.
+    A1 in repository A handled equivalent review comments separately and produced repeated review churn; its review log establishes failure of the no-repeat-review success condition.
+    A2 in repository B repeated the same decision failure with the same recorded outcome.
+    A3 in repository C skipped diagnostic evidence required by an established investigation checklist and failed its investigation success condition.
+    Two distinct failure patterns require prevention. For the review-clustering pattern, a stable portable decision procedure requires contextual judgment, recurrence has concrete review cost, the lesson is not incident-specific or speculative, and no deterministic check, helper, repository guidance or refactor addresses it. Select reusable skill for this pattern.
+    For the diagnostic-evidence pattern, updating the established investigation checklist is the smallest supported prevention. Select repository guidance for this pattern.
+    Use exactly two prevention rows in that order. Derive one skill candidate across both selected mechanisms. No cause, prevention decision or validation gap remains unresolved. Do not create artifacts.
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/iteration-retrospective/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - iteration-retrospective
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - 'Retrospective Prevention:'
+        - 'Retrospective Skill Candidate: new skill'
+        - 'Retrospective Verdict: CLEAN'
+        - '(?m)^Retrospective:'
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/iteration-retrospective/check-report.py
+        - --verdict
+        - CLEAN
+        - --candidate
+        - new skill
+        - --attempt-count
+        - '3'
+        - --mechanisms
+        - reusable skill,repository guidance
+      timeout: 30

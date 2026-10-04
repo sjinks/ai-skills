@@ -2,7 +2,7 @@
 id: negative-trigger-001
 name: Status update request
 inputs:
-  prompt: "Give me a concise status update on the current implementation work."
+  prompt: Give me a concise status update on the current implementation work.
 expected:
   should_trigger: false
 graders:
@@ -16,11 +16,14 @@ graders:
     name: task_completion
     config:
       not_contains:
-        - "Attempt Timeline:"
-        - "Assessment:"
-        - "Learnings:"
-        - "Prevention:"
-        - "Next Checks:"
-        - "Skill Candidate:"
-        - "Retrospective:"
-        - "Verdict:"
+        - 'Retrospective Attempts:'
+        - 'Retrospective Assessment:'
+        - 'Retrospective Learnings:'
+        - 'Retrospective Prevention:'
+        - 'Retrospective Next Checks:'
+        - 'Retrospective Skill Candidate:'
+        - 'Retrospective:'
+        - 'Retrospective Verdict:'
+        - 'Retrospective Label Conflict:'
+        - 'Retrospective Label Request:'
+        - iteration-retrospective

@@ -475,3 +475,70 @@ See [the manifest contract and workflow](../docs/review-evidence.md).
 python3 -m unittest discover -s evals/_helpers -p test_check_review_evidence.py
 python3 evals/_helpers/check-review-evidence.py /tmp/review-evidence.json --repo "$PWD"
 ```
+
+
+### Iteration retrospective report validation
+
+`iteration-retrospective` uses a 0.45 trigger threshold and an 8,000-token budget.
+Positive report tasks invoke the suite-local `report_contract` program grader
+with task-specific verdict, candidate, and attempt-count expectations.
+The invalid-label task uses the same grader with `--profile label-clarification`,
+which validates a clarification response instead of requiring a report. The
+validator owns marker spelling/order/cardinality, row fields and numbering,
+value domains, default/caller-label profiles, the blocked branch, and termination.
+Text graders assert the contextual status and mechanism decisions separately.
+Negative exclusions cover every top-level report and clarification marker and the skill name. Default markers use a `Retrospective` prefix; generic row fields such as `Status:` and `Result:` are not independent forbidden tokens.
+
+Existing tasks cover unknown causes, guidance precedence, blocked default labels,
+known failures, and independent new-skill eligibility. `positive-edge-4.yaml`
+adds evaluated partial success versus unevaluated replacement and pending outcomes,
+and source-of-truth mapping; existing histories do not contain those combinations.
+`positive-edge-5.yaml` adds valid caller labels, mechanism tie-breaking, preserved known failed outcomes, and an unselected established-guidance update;
+existing tasks previously used only default labels. `positive-edge-1.yaml` now covers one explicitly abandoned unevaluated approach and passes
+ignored caller labels that collide with blocked-report content to the validator.
+`positive-edge-6.yaml` discriminates new repository guidance from extension of an
+established workflow and retains that selected mechanism while a second pattern
+has unrankable comparison costs. It requires `CONCERNS` and a cost-evidence next check.
+`positive-edge-7.yaml` discriminates aggregation across selected reusable-skill
+and established-guidance rows; existing tasks select only one mechanism.
+The new-guidance task cannot reuse the existing-guidance fixture without losing
+its extension assertion. The aggregation task needs multiple selected patterns;
+adding them to existing single-pattern fixtures would remove their isolation.
+The checker enforces candidate/mechanism compatibility; evidence that guidance
+is established and that a new skill is eligible remains a contextual assertion.
+`positive-edge-8.yaml` exercises duplicate nonblocked labels and requires only
+the fixed conflict/request clarification. Existing custom-label and blocked
+fixtures remain report tasks, so neither can cover this branch without losing
+its independent assertion. Deterministic mutations also cover malformed, empty
+and row-shaped labels, invalid profile crossovers, and BLOCK precedence.
+Missing-evidence requests about a single explicitly abandoned approach activate the blocked fixture;
+a single nonabandoned attempt and generic reflection remain excluded.
+Label mutations cover every line boundary documented for Python `str.splitlines()`;
+nonblocked labels must remain a single unchanged line under that same operation.
+They also reject every C0/C1 control (U+0000–U+001F and U+007F–U+009F),
+including controls that are not line boundaries, in every label slot.
+Every positive `task_completion` text grader asserts its active profile's literal
+first marker with `(?m)^`; the projection checker rejects omitted, row-only,
+inactive and unanchored replacements. Default, custom, BLOCK and clarification
+profiles use their respective active marker. The envelope-only response probe
+checks that assertion independently of the program report grader. The `--label-set`
+probe validates a JSON array of caller labels independently of response formatting.
+The boundary-test debugging task also requires the selected `deterministic check`
+mechanism, rejecting an empty prevention section or an unrelated mechanism.
+Nonblocked failed/partly-worked timelines require learning rows; `CONCERNS`
+requires next-check rows. Success-only no-learning and blocked missing-evidence
+profiles remain valid. Unknown costs do not authorize guessing or early list-order
+tie-breaking. Repurposed edge fixtures retain their previous label/guidance
+assertions; no additional task is introduced. Empty-history BLOCK remains covered
+by deterministic profile tests.
+No paid model run is implied.
+
+```bash
+python3 evals/iteration-retrospective/check-report.py --self-test
+python3 evals/iteration-retrospective/check-projections.py
+python3 evals/iteration-retrospective/check-projections.py --label-set < labels.json
+python3 evals/iteration-retrospective/check-projections.py --positive-envelope-task positive-edge-5.yaml < response.txt
+python3 evals/iteration-retrospective/check-projections.py --negative-task negative-trigger-1.yaml < response.txt
+python3 evals/iteration-retrospective/check-report.py --verdict CLEAN < report.txt
+python3 evals/_helpers/check-eval-regexes.py --root evals/iteration-retrospective
+```

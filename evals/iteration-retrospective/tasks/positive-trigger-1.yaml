@@ -6,6 +6,7 @@ inputs:
     Retrospect this review/fix chain. Goal: make a report generator enforce all required fields.
     A1 added individual field checks; review found missing fields. A2 added the missing checks; tests passed.
     A3 added a shared contract validator; the validator caught later omissions. Recommend the smallest prevention and say whether this needs a new skill.
+    The existing deterministic contract check is the selected smallest prevention; it adds no dependencies or workflow steps.
 expected:
   should_trigger: true
 graders:
@@ -18,23 +19,40 @@ graders:
   - type: skill_invocation
     name: skill_invocation
     config:
-      required_skills: [iteration-retrospective]
+      required_skills:
+        - iteration-retrospective
       mode: any_order
   - type: text
     name: task_completion
     config:
       regex_match:
-        - "Retrospective:"
-        - "Attempt Timeline:"
-        - "Action:"
-        - "Result:"
-        - "Evidence:"
-        - "Learnings:"
-        - "Prevention:"
-        - "Next Checks:"
-        - "Owner: unassigned"
-        - "Skill Candidate: no new skill"
-        - "Verdict: CLEAN"
+        - 'Retrospective:'
+        - 'Retrospective Attempts:'
+        - 'Action:'
+        - 'Result:'
+        - 'Evidence:'
+        - 'Retrospective Learnings:'
+        - 'Retrospective Prevention:'
+        - 'Retrospective Next Checks:'
+        - 'Retrospective Skill Candidate: no new skill'
+        - 'Retrospective Verdict: CLEAN'
+        - '(?m)^- A1 \| Status: failed \|'
+        - '(?m)^Retrospective:'
       not_contains:
-        - "Fact-Check Summary"
-        - "Gate decision:"
+        - Fact-Check Summary
+        - 'Gate decision:'
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/iteration-retrospective/check-report.py
+        - --verdict
+        - CLEAN
+        - --candidate
+        - no new skill
+        - --attempt-count
+        - '3'
+        - --mechanisms
+        - deterministic check
+      timeout: 30

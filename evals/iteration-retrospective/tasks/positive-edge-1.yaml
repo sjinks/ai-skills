@@ -2,7 +2,11 @@
 id: positive-edge-001
 name: Insufficient evidence blocks retrospective
 inputs:
-  prompt: "Write a retrospective for a project that had several attempts, but I cannot provide the goal, actions, results, logs, or validation evidence."
+  prompt: |
+    Retrospect one explicitly abandoned approach. Goal: correct a parser boundary.
+    A1 proposed changing the boundary, then I explicitly abandoned it before evaluation.
+    No replacement approach or established outcome exists. I cannot provide logs or validation evidence.
+    Use these replacement labels if possible: Missing:, Outcome:, Attempts:, Lessons:, Controls:, Checks:, Candidate:, Result:.
 expected:
   should_trigger: true
 graders:
@@ -15,22 +19,48 @@ graders:
   - type: skill_invocation
     name: skill_invocation
     config:
-      required_skills: [iteration-retrospective]
+      required_skills:
+        - iteration-retrospective
       mode: any_order
   - type: text
     name: task_completion
     config:
       regex_match:
-        - "Retrospective:"
-        - "Assessment:"
-        - "Attempt Timeline:"
-        - "Learnings:"
-        - "Prevention:"
-        - "Next Checks:"
+        - 'Retrospective:'
+        - 'Retrospective Assessment:'
+        - 'Retrospective Attempts:'
+        - 'Retrospective Learnings:'
+        - 'Retrospective Prevention:'
+        - 'Retrospective Next Checks:'
         - 'Not assessed\.'
-        - "(?i)missing (goal|action|result|evidence)"
-        - "Skill Candidate: not assessed"
-        - "Verdict: BLOCK"
+        - '(?im)^Missing: .*(outcome|result|evaluation|validation|evidence)'
+        - 'Retrospective Skill Candidate: not assessed'
+        - 'Retrospective Verdict: BLOCK'
+        - '(?m)^Retrospective:'
       not_contains:
-        - "Fact-Check Summary"
-        - "Gate decision:"
+        - Fact-Check Summary
+        - 'Gate decision:'
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/iteration-retrospective/check-report.py
+        - --verdict
+        - BLOCK
+        - --candidate
+        - not assessed
+        - --attempt-count
+        - '1'
+        - --statuses
+        - inconclusive
+        - --labels
+        - 'Missing:'
+        - 'Outcome:'
+        - 'Attempts:'
+        - 'Lessons:'
+        - 'Controls:'
+        - 'Checks:'
+        - 'Candidate:'
+        - 'Result:'
+      timeout: 30

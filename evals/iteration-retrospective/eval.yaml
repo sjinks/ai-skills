@@ -4,7 +4,7 @@ description: |
   Evaluates evidence-bound retrospectives for multi-attempt work and prevention
   decisions.
 skill: iteration-retrospective
-version: "1.0"
+version: '1.0'
 config:
   trials_per_task: 2
   timeout_seconds: 300
@@ -15,7 +15,7 @@ config:
   max_attempts: 2
 metrics:
   - name: trigger_accuracy
-    weight: 0.30
+    weight: 0.3
     threshold: 0.8
     description: Heuristic prompt-vs-SKILL.md keyword alignment matches the task's expected mode.
   - name: skill_invocation
@@ -23,13 +23,18 @@ metrics:
     threshold: 0.9
     description: Skill is invoked on positive tasks that should activate it.
   - name: task_completion
-    weight: 0.40
+    weight: 0.3
     threshold: 0.8
     description: Output preserves the retrospective evidence, prevention, and decision contract.
   - name: efficiency
-    weight: 0.15
+    weight: 0.1
     threshold: 0.7
     description: Stays within tool-call and total-token budgets.
+  - name: report_contract
+    weight: 0.15
+    threshold: 1.0
+    description: Suite-local validator checks report and invalid-label clarification profiles, markers,
+      order, fields, domains, cardinality, caller labels, blocked branch and termination.
 graders:
   - type: behavior
     name: efficiency
@@ -37,4 +42,4 @@ graders:
       max_tool_calls: 8
       max_tokens: 8000
 tasks:
-  - "tasks/*.yaml"
+  - tasks/*.yaml
