@@ -4,7 +4,7 @@
 
 This framework-independent skill derives feature or module case sets from observable behavior, requires each case to catch a plausible defect, follows repository test conventions, and reports verification honestly. A dedicated framework testing workflow takes precedence when available; isolated test-code quality work and flaky-test diagnosis remain outside its scope.
 
-Route by the design task, including a case set with one case. Honor explicit coverage requirements without using percentages as the sole selection criterion. A missing contract blocks selection only when no expected behavior is established; partial contracts permit supported cases. Changed tests may finish with a diagnosed failure or an explicit unavailable-run reason. A local substitute must preserve the tested behavior and observation.
+Route by the design task, including a case set with one case. Honor explicit coverage requirements without using percentages as the sole selection criterion. A missing contract blocks selection only when no expected behavior is established; partial contracts permit supported cases. Changed tests may finish with a diagnosed failure or an explicit unavailable-run reason. Execution evidence must describe the final edited tests; diagnostic edits require another run. A local substitute must preserve the tested behavior and observation.
 
 ## Files
 

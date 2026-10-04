@@ -8,7 +8,7 @@ argument-hint: "Contract, files, mode."
 
 # Test Design
 
-**WORKFLOW SKILL.** INVOKES: inspection and testing. FOR SINGLE OPERATIONS: plan, implement, assess.
+**WORKFLOW SKILL.** INVOKES: inspection, testing. FOR SINGLE OPERATIONS: plan, implement, assess.
 
 ## Scope
 
@@ -18,12 +18,12 @@ Route by task, regardless of case count. Plan or assess without editing. Impleme
 
 1. Model inputs, outputs, side effects, errors, and state changes.
 2. Select distinct normal, boundary, and failure cases by risk. Name expected results and defects caught.
-3. Assert contractual results at a faithful layer. Follow repository conventions.
-4. Run changed tests. Diagnose failures and record causes. Remove brittle or redundant cases.
+3. Assert expected results at a faithful layer. Follow repository conventions. Remove brittle or redundant cases.
+4. Run final changed tests. Diagnose failures. If tests change, rerun. Record outcomes and causes.
 
 ## Decision Rules
 
-Honor required repository and caller coverage. Do not select cases solely for counts or percentages. Keep tests deterministic and isolated. Fake boundaries only when faithful. Read [selection guidance](references/test-selection.md) for oracles and async cases.
+Honor required coverage. Do not select cases solely for counts or percentages. Keep tests deterministic and isolated. Fake boundaries only when faithful. Read [selection guidance](references/test-selection.md) for oracles and async cases.
 
 ## Error Handling
 
@@ -44,7 +44,7 @@ If blocked: cases contain only `Blocked.`, evidence names missing input, executi
 ## Checklist
 
 - Does each case catch a distinct plausible defect through stable observations?
-- Are outcomes recorded, failures diagnosed, unresolved causes identified, and unrun changes explicitly unverified?
+- Are final outcomes recorded, including diagnosed failures, with unresolved causes identified and unrun changes unverified?
 
 ## Example
 
@@ -52,4 +52,4 @@ Assert insufficient-funds rejection and unchanged balances to catch premature de
 
 ## Definition of Done
 
-Finish when the checklist passes. Diagnosed failures permit completion. Fix production defects only when authorized.
+Finish when checklist passes. Fix production defects only when authorized.

@@ -16,6 +16,8 @@ inputs:
     when available, then report the cases, contract evidence, and actual
     verification result and the defect each case catches. No dedicated testing
     workflow is available for this framework. If execution is unavailable, say why.
+    Execute the final edited tests. If diagnosis changes tests, rerun them and
+    report the latest outcome; a run before those changes is not final evidence.
     Preserve the supplied file verbatim and append one blank line followed by
     exactly these declarations (this fixture checks exact file contents):
 

@@ -114,7 +114,13 @@ def main() -> None:
     source = (repo / "skills/test-design/SKILL.md").read_text()
     assert "Start with the first label." in source
     assert "regardless of case count" in source
-    assert "Diagnosed failures permit completion." in source
+    assert "Run final changed tests." in source
+    assert "If tests change, rerun." in source
+    for name in ("positive-edge-2.yaml", "positive-edge-4.yaml"):
+        task = yaml.safe_load((root / "tasks" / name).read_text())
+        assert "Execute the final edited tests." in task["inputs"]["prompt"]
+        assert "If diagnosis changes tests, rerun them" in task["inputs"]["prompt"]
+    assert "including diagnosed failures" in source
     assert "verified or" not in source
     print("test-design task/profile/label projections: passed")
 
