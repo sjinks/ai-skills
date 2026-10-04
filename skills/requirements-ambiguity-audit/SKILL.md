@@ -2,7 +2,6 @@
 name: requirements-ambiguity-audit
 description: "Use when: auditing a draft specification, requirements document, feature request, user story, or product brief for ambiguity: vague quantifiers, undefined terms, TBD placeholders, conflicting requirements, missing actors, or untestable wording, before implementation planning starts."
 argument-hint: "The draft spec, requirements list, or user story text to audit, plus any glossary or context that defines project terms."
-user-invocable: true
 ---
 
 # Requirements Ambiguity Audit

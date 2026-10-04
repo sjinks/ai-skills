@@ -2,7 +2,6 @@
 name: pr-scope-slicer
 description: "Use when: deciding whether a pull request, diff, or change set is too large or mixed to review in one pass, splitting an oversized PR into reviewable slices, separating refactor from behavior change or mechanical from semantic edits, or planning stacked or sequential PRs for a large change."
 argument-hint: "Change inventory: files with change sizes, the concerns the change mixes, and any project-specific size thresholds."
-user-invocable: true
 ---
 
 # PR Scope Slicer

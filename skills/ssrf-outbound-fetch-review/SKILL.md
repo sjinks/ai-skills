@@ -2,7 +2,6 @@
 name: ssrf-outbound-fetch-review
 description: "Use when: performing code review, pull request review, security review, designing, implementing, or testing SSRF fixes, outbound HTTP requests, outbound fetch helpers, user-supplied URLs, URL validation, DNS lookup, private IP blocking, proxies, redirects, archive/plugin downloads, crawlers, importers, webhook fetches, HTTP client wrappers, or egress policy changes."
 argument-hint: "Describe the outbound fetch change, affected files, threat model, runtime/client library, and tests or PR context."
-user-invocable: true
 ---
 
 # SSRF Outbound Fetch Review

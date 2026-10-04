@@ -2,7 +2,6 @@
 name: review-disagreement-resolution
 description: "Use when: resolving a stalled disagreement between reviewer and author in a code review thread, classifying a review dispute as fact versus standard versus preference, anchoring a dispute to a verifiable source, or applying a decision rule to end review-thread ping-pong."
 argument-hint: "The disputed thread (both positions with their stated reasons), the code or diff in question, and any applicable project standards."
-user-invocable: true
 ---
 
 # Review Disagreement Resolution

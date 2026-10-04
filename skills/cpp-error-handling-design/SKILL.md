@@ -2,7 +2,6 @@
 name: cpp-error-handling-design
 description: "Use when: designing, reviewing, or refactoring C++ error handling policy, exceptions vs std::expected vs error codes, exception safety guarantees (basic, strong, nothrow), RAII rollback, noexcept and move semantics interactions, error propagation across module or ABI or thread or coroutine boundaries, std::error_code categories, terminate paths, or destructor and swap exception rules."
 argument-hint: "Describe the code, API, error policy, or boundary where error handling design or exception safety is in question."
-user-invocable: true
 ---
 
 # C++ Error Handling Design

@@ -2,7 +2,6 @@
 name: cpp-server-hardening-review
 description: "Use when: reviewing, designing, or hardening a C++ network server (HTTP/TLS/socket) against connection-holding DoS, resource exhaustion, weak crypto defaults, and per-connection state leaks; deciding safe defaults for timeouts, connection caps, TLS minimums; or ensuring guaranteed teardown and bounded caches under untrusted load."
 argument-hint: "Describe the server component, the option/default to review, or the DoS/resource concern to assess."
-user-invocable: true
 ---
 
 # C++ Server Hardening Review

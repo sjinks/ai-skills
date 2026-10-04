@@ -2,7 +2,6 @@
 name: requirement-sharpening
 description: "Use when: sharpening a software requirement or a requirement set so it is buildable and decidable rather than merely well-formed - replacing vague quality words and quantifiers with a measured threshold plus a named measurement method, eliminating requirements that defer their own observable behavior to a later decision, decoupling a requirement from named implementation files or symbols so it survives refactors, making MUST/SHOULD/MAY rankings actually discriminate instead of everything being mandatory, adding a completeness matrix against a standard or dependency the spec leans on, and asserting a bidirectional traceability invariant as a mechanical gate."
 argument-hint: "The requirement, requirements section, or SRS to sharpen, plus any sibling architecture/test-plan docs and the measurement tooling (benchmarks, profilers) available."
-user-invocable: true
 ---
 
 # Requirement Sharpening

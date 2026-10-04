@@ -2,7 +2,6 @@
 name: cpp-cert
 description: "Use when: reviewing, designing, implementing, or debugging C/C++ for SEI CERT secure-coding violations detected by clang-tidy cert-* checks: unchecked standard-library return values, command injection via system()/popen(), raw memory operations on non-trivial types, pointer arithmetic on polymorphic objects, exception throw/copy safety, signal-handler async-safety, predictable or unseeded RNGs, deprecated unsafe C functions, and other undefined-behavior or security-sensitive constructs."
 argument-hint: "Describe the code, API, bug, or review target where a CERT C/C++ secure-coding rule may be violated."
-user-invocable: true
 ---
 
 # C++ CERT Secure Coding

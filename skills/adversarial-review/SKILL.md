@@ -7,7 +7,6 @@ description: >-
   idiomatic-style, or general best-practices review without an explicit
   failure, misuse, edge-case, or risk objective.
 argument-hint: "Describe the spec, design, implementation, workflow, migration, runbook, or test plan to challenge."
-user-invocable: true
 ---
 
 # Adversarial Review

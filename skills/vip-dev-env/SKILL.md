@@ -2,7 +2,6 @@
 name: vip-dev-env
 description: WordPress VIP Local Development Environment guidance using VIP-CLI (`vip dev-env`). Use when creating or updating local VIP dev environments, loading app code, inspecting stack services/logs, troubleshooting startup or 500 errors, or explaining VIP WordPress skeleton repo structure and local-vs-container code boundaries.
 argument-hint: "Environment slug, primary symptom or task, and exact CLI error text when troubleshooting."
-user-invocable: true
 ---
 
 # VIP Dev Env

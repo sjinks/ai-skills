@@ -2,7 +2,6 @@
 name: iteration-retrospective
 description: "Use when: retrospecting multiple attempts or an abandoned approach, even when evidence is unavailable. Excludes status updates, ordinary reviews, single nonabandoned attempts, and generic lessons."
 argument-hint: "Goal, attempts, outcomes, evidence, constraints."
-user-invocable: true
 ---
 
 # Iteration Retrospective

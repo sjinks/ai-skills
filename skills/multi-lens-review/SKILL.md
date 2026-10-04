@@ -2,7 +2,6 @@
 name: multi-lens-review
 description: "Use when: structuring a multi-lens review of a change, spec, design, or implementation; combining intent, design, implementation, security, adversarial, and verification perspectives, then synthesizing them into a single integrated decision."
 argument-hint: "Describe the change, artifact, or decision and the lenses worth applying."
-user-invocable: true
 ---
 
 # Multi-Lens Review

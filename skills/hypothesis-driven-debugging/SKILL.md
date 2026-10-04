@@ -2,7 +2,6 @@
 name: hypothesis-driven-debugging
 description: "Use when: debugging a failure, bug, flaky test, or unexpected behavior with a disciplined loop: reproduce first, falsifiable hypothesis, cheapest discriminating experiment, evidence log, root-cause versus symptom decision, and a regression check before the fix counts as done."
 argument-hint: "The failure description, error output, or bug report, plus reproduction info and any experiments already tried."
-user-invocable: true
 ---
 
 # Hypothesis-Driven Debugging

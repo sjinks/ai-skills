@@ -2,7 +2,6 @@
 name: cpp-correctness-review
 description: "Use when: reviewing, debugging, or designing bounded C or C++ operation correctness, including wrong conditions, invalid state transitions, off-by-one errors, signed/unsigned mistakes, truncation, size calculations, iterator misuse in single-threaded flows, partial operation handling, stale cached state, overload mistakes, boundary cases, or tests that contradict implementation. Do not use for lifetime, concurrency, security, performance, sanitizer triage, or broad architecture review."
 argument-hint: "Describe the C/C++ operation, state transition, boundary case, failing input, or diff whose functional correctness is in question."
-user-invocable: true
 ---
 
 # C/C++ Correctness Review

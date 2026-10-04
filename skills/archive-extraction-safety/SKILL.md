@@ -2,7 +2,6 @@
 name: archive-extraction-safety
 description: "Use when: reviewing, designing, implementing, or testing safe archive extraction for ZIP, TAR, tar.gz, tgz, package importers, backup restore, plugin/theme upload, artifact unpacking, decompression bomb controls, Zip Slip, Tar Slip, symlink and hardlink entries, absolute paths, Windows drive, UNC, namespace, device, ADS, or normalization hazards, Unicode path normalization, nested archives, parser mismatch, extraction destination-root trust and containment, race-resistant writes, overwrite policy, and cleanup after partial extraction."
 argument-hint: "Archive format(s), extraction code or design, destination-root trust, allowed entry types, resource limits, overwrite policy, and tests."
-user-invocable: true
 ---
 
 # Archive Extraction Safety

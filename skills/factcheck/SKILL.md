@@ -2,7 +2,6 @@
 name: factcheck
 description: "Use when: fact-checking factual claims, verifying citations/source support, checking draft/report accuracy, reviewing evidence quality, assigning supported/unsupported/unverifiable verdicts, identifying minimal corrections, or deciding whether sources support statements."
 argument-hint: "Provide claims/draft, citations/sources, URLs/files, scope/date/domain/jurisdiction, allowed tools/sources, and report-only vs approved corrections."
-user-invocable: true
 ---
 
 # Factcheck

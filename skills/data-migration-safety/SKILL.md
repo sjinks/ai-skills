@@ -2,7 +2,6 @@
 name: data-migration-safety
 description: "Use when: planning or auditing the implementation of a schema or data migration: expand-contract sequencing, backfill idempotency and batching, dual-write or dual-read windows, rollback paths per phase, verification queries, and cutover/contract criteria."
 argument-hint: "The schema or data change to implement, current shape and target shape, data volume, and the system's availability requirements."
-user-invocable: true
 ---
 
 # Data Migration Safety

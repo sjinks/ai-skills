@@ -2,7 +2,6 @@
 name: pr-description-quality
 description: "Use when: writing, rewriting, updating from the branch's commit history, validating, or auditing one pull request's title and description for quality: a title that names the whole PR, a body that explains what changed and why with honest testing notes, linked issues, risks, and no leaked secrets — honoring the repo's PR template when one exists."
 argument-hint: "The draft PR title and body to audit or rewrite, or the branch's commits / change summary to draft or update the description from, plus any issue key, repo PR template, and merge style when known."
-user-invocable: true
 ---
 
 # PR Description Quality

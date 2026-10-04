@@ -2,7 +2,6 @@
 name: architecture-tradeoff-analysis
 description: "Use when: comparing two or more candidate architectures, designs, or technical approaches against weighted quality attributes: performance, consistency and correctness, operability, cost, evolvability, team fit — making what each option worsens explicit before the choice is made."
 argument-hint: "The candidate options, the quality attributes that matter with any known weights, and the constraints the choice must respect."
-user-invocable: true
 ---
 
 # Architecture Tradeoff Analysis

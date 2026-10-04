@@ -11,7 +11,6 @@ description: >-
 argument-hint: >-
   Agent or skill text, a file or package path, optional execution-path name,
   target models, target runtimes, and acceptance constraints.
-user-invocable: true
 ---
 
 # Agent/Skill Readiness Audit

@@ -12,7 +12,6 @@ description: >-
 argument-hint: >-
   Instruction text, file or package path, optional execution-path name, and
   any trusted custom diagnostic rules.
-user-invocable: true
 ---
 
 # Instruction Quality Audit

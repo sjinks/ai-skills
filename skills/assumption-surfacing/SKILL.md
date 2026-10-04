@@ -2,7 +2,6 @@
 name: assumption-surfacing
 description: "Use when: surfacing implicit assumptions in a spec, plan, design, or estimate before work starts: data shapes, ordering, scale, auth context, environment, compatibility, dependency behavior, and people-process expectations, classifying each as verify-before-build or accept-with-risk."
 argument-hint: "The spec, plan, design, or estimate text to sweep for implicit assumptions, plus any context about the system it targets."
-user-invocable: true
 ---
 
 # Assumption Surfacing

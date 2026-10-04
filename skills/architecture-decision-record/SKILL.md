@@ -2,7 +2,6 @@
 name: architecture-decision-record
 description: "Use when: writing, rewriting, or auditing an architecture decision record (ADR), design decision log entry, or technical decision write-up: context, decision drivers, options considered with costs, chosen option, positive and negative consequences, and revisit triggers."
 argument-hint: "The decision context, options considered, and constraints — or an existing ADR to audit, plus any project decision-log conventions."
-user-invocable: true
 ---
 
 # Architecture Decision Record

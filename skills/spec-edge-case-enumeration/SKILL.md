@@ -2,7 +2,6 @@
 name: spec-edge-case-enumeration
 description: "Use when: enumerating edge cases for a feature spec, user story, or behavior description before implementation: empty and boundary inputs, error paths, permissions, concurrency, time, locale and text, limits, and lifecycle states, deciding which belong in the spec."
 argument-hint: "The feature spec, story, or behavior description to enumerate edge cases for, plus any known constraints or existing edge-case notes."
-user-invocable: true
 ---
 
 # Spec Edge Case Enumeration

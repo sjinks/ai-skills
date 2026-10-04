@@ -2,7 +2,6 @@
 name: test-quality-review
 description: "Use when: writing one preselected test, reviewing, or auditing test code (not selecting cases or a test plan) for assertion quality, determinism, isolation, and behavioral focus."
 argument-hint: "Test code to audit, or one preselected behavior and expected result to test."
-user-invocable: true
 ---
 
 # Test Quality Review

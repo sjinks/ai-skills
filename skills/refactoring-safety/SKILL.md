@@ -2,7 +2,6 @@
 name: refactoring-safety
 description: "Use when: planning or executing a behavior-preserving refactor: characterization coverage before touching code, small reversible steps with a green check after each, strict separation of restructuring from behavior change, and a stop-and-reclassify tripwire when behavior shifts."
 argument-hint: "The code to refactor, the goal of the restructuring, existing test coverage signals, and any known consumers of the touched surface."
-user-invocable: true
 ---
 
 # Refactoring Safety

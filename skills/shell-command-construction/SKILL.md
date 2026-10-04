@@ -2,7 +2,6 @@
 name: shell-command-construction
 description: "Use when constructing, repairing, or validating a concrete supplied shell command, fragment, heredoc, redirection, or payload interface where literal/expansion intent, argv or stream boundaries, multiline data, or transport is primary. Do not use for general shell grammar/debugging, generic goals without a supplied shell target, generic shell tutoring, prose-only drafting, non-shell work, portability-only analysis, or GitHub CLI interface semantics."
 argument-hint: "Provide the concrete command or fragment, shell/interpreter, and intended literal/expansion, argv, and transport boundaries."
-user-invocable: true
 ---
 
 # Shell Command Construction

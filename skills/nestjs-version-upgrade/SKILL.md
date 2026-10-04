@@ -2,7 +2,6 @@
 name: nestjs-version-upgrade
 description: "Use when: planning or executing a NestJS version upgrade or major migration; bumping @nestjs/* across majors, upgrading the underlying platform adapter (Express or Fastify), bumping RxJS or TypeScript, triaging breaking changes and deprecations, sequencing peer-dependency and ORM/Passport/config-package bumps, updating bootstrap and decorator usage, and producing a reversible, verifiable upgrade plan."
 argument-hint: "Describe the current and target NestJS versions, platform adapter, Node/TypeScript versions, ORM and auth packages, and how the app is tested and deployed."
-user-invocable: true
 ---
 
 # NestJS Version Upgrade

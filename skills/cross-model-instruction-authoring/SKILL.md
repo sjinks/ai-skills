@@ -9,7 +9,6 @@ description: >-
   overconstraint. Do not use for a review-only audit when no authored or
   revised artifact is requested.
 argument-hint: "Instruction artifact(s) to create/revise, target runtimes, target model set (or subset), hard constraints/side-effect policy, and required output/return contract."
-user-invocable: true
 ---
 
 # Cross-Model Instruction Authoring

@@ -138,7 +138,6 @@ The current skills use frontmatter fields such as:
 - `name`
 - `description`
 - `argument-hint`
-- `user-invocable`
 
 ## How To Use
 

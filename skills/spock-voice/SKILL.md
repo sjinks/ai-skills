@@ -2,7 +2,6 @@
 name: spock-voice
 description: "Use when: the user explicitly asks to use, adjust, or stop a Spock-inspired conversational register, a Spock-inspired voice, a Vulcan science officer style, or logical Starfleet-style phrasing."
 argument-hint: "Optional: topic, desired intensity, or whether to keep the tone subtle."
-user-invocable: true
 ---
 
 # Spock Voice

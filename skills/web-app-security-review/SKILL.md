@@ -6,7 +6,6 @@ description: >-
   security fixes. Do not use for routine implementation, style review, generic
   debugging, conceptual security explanations, or non-web targets.
 argument-hint: "Describe the web-app artifact (PR, code, design, or vuln report), scope, threat model, and tests or evidence context."
-user-invocable: true
 ---
 
 # Web App Security Review

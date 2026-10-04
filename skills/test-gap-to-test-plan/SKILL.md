@@ -2,7 +2,6 @@
 name: test-gap-to-test-plan
 description: "Use when: converting review findings, identified test gaps, or unverified behaviors into a concrete, prioritized test plan with assertions, layer choice, ownership, and a merge-gate-ready evidence trail."
 argument-hint: "Findings list with location and severity labels when available, changed files or modules, existing test coverage signals, and any prior review output."
-user-invocable: true
 ---
 
 # Test Gap To Test Plan

@@ -2,7 +2,6 @@
 name: cpp-const-correctness
 description: "Use when: fixing or reviewing clang-tidy misc-const-correctness findings, or deciding whether a local variable, reference, or pointer that is never modified after initialization should be declared const."
 argument-hint: "Describe the local variable, file, or diff where a missing const qualifier may need to be added."
-user-invocable: true
 ---
 
 # C++ Const Correctness

@@ -2,7 +2,6 @@
 name: failure-mode-design
 description: "Use when: designing failure behavior for an architecture or component design before implementation: per-dependency failure modes (slow, down, wrong, partial), degradation policy, retry, timeout, idempotency and backpressure decisions, blast-radius containment, and failure observability."
 argument-hint: "The design or architecture sketch to harden, its components and dependencies, and any known SLOs or operational constraints."
-user-invocable: true
 ---
 
 # Failure Mode Design

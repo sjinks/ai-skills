@@ -2,7 +2,6 @@
 name: pre-review-self-audit
 description: "Use when: auditing your own change before requesting review, running a pre-review or pre-PR self-check, checking diff hygiene, leftover debug code, commented-out code, unrelated changes, missing tests for changed behavior, commit atomicity, PR description accuracy, or repeated templated edits applied consistently across files before opening or updating a pull request."
 argument-hint: "The diff or changed files, the intended behavior of the change, and the draft PR description or commit messages when available."
-user-invocable: true
 ---
 
 # Pre-Review Self-Audit
