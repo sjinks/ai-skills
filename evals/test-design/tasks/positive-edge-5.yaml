@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-005
+name: Unavailable hardware has no faithful substitute
+description: Implement a hardware measurement case without executing it or claiming a fake verifies
+  calibration.
+tags:
+- positive-trigger
+- positive-edge
+inputs:
+  prompt: |
+    Implement the selected calibration test in test/sensor.test.js. Contract: the physical sensor in a calibrated 20 Celsius chamber reports 20 through readCelsius(). The observation tests actual sensor calibration, not a software wrapper. The SDK, physical sensor and chamber are unavailable, and no emulator or faithful local substitute exists. No dedicated framework testing workflow is available. Do not execute hardware tests or install the SDK. Do not substitute a fake temperature value or change sensor.js. Write exactly the following test file, then report the case, expected observation, defect caught and environment limitation:
+
+    import test from 'node:test';
+    import assert from 'node:assert/strict';
+    import { readCelsius } from '../sensor.js';
+
+    test('reads the calibrated chamber', async () => {
+      assert.equal(await readCelsius(), 20);
+    });
+  files:
+  - path: package.json
+    content: '{"type":"module"}'
+  - path: sensor.js
+    content: |
+      import { readCelsius } from '@lab/calibrated-sensor';
+      export { readCelsius };
+  - path: test/sensor.test.js
+    content: ''
+expected:
+  should_trigger: true
+graders:
+- type: trigger
+  name: trigger_accuracy
+  config:
+    skill_path: skills/test-design/SKILL.md
+    mode: positive
+    threshold: 0.45
+- type: skill_invocation
+  name: skill_invocation
+  config:
+    required_skills:
+    - test-design
+    mode: any_order
+- type: program
+  name: report_contract
+  config:
+    command: python3
+    args:
+    - evals/test-design/check-report.py
+    - implement
+    timeout: 30
+- type: text
+  name: task_completion
+  config:
+    regex_match:
+    - '(?m)^Designed cases:'
+    - '(?m)^Design evidence:'
+    - '(?m)^Test execution: Unverified: \S[^\n]*$'
+    - (?is)(sensor|hardware|chamber).{0,150}(unavailable|missing|absent)|(unavailable|missing|absent).{0,150}(sensor|hardware|chamber)
+    - (?i)(calibrat|wrong|incorrect|defect)
+    not_contains:
+    - 'Test execution: Ran:'
+    - 'Designed cases: Blocked.'
+- type: diff
+  name: changed_test_file
+  config:
+    context_dir: evals/test-design
+    update_snapshots: false
+    expected_files:
+    - path: test/sensor.test.js
+      snapshot: snapshots/sensor.test.js
+- type: diff
+  name: production_unchanged
+  config:
+    context_dir: evals/test-design
+    update_snapshots: false
+    expected_files:
+    - path: sensor.js
+      snapshot: snapshots/sensor.js

@@ -312,7 +312,8 @@ profile is `implement`: it accepts `Ran:` with a pass/fail/exit result or
 grammar is `Ran: <command> => <passed|failed|exit N>`, with a nonempty command
 and integer N. Its self-test
 checks every supported profile against both status families. The implementation
-edge uses supplied repository files and a file grader to require new assertions,
+edge uses supplied repository files and an exact test-file diff snapshot to require
+executable interior and boundary tests (with an explicit formatting contract),
 plus text assertions for the defect caught and execution outcome.
 
 The isolated-test audit and available-framework precedence are independent
@@ -324,7 +325,13 @@ Default report labels are `Designed cases:`, `Design evidence:`, and
 `Test execution:`. The projection check scans sibling skill packages for
 marker collisions and permits the review-plan workflow's `Test cases:` marker
 in negative responses. A separate review-findings negative case covers that
-route. Bounded semantic regexes use DOTALL and have multiline contrastive cases.
+route. Bounded semantic regexes use DOTALL and have multiline contrastive cases,
+including positive-transfer balance preservation and reporting the offending row.
+The assessment edge independently checks singleton selection, partial contracts,
+and an explicit coverage gate. Reports start with their first label.
+Additional implementation edges require an unavailable-run status when hardware
+has no faithful substitute and a diagnosed failure against unchanged buggy
+production code. The user approved this expanded coverage matrix.
 The `production_unchanged` diff grader compares `clamp.js` with the exact
 snapshot under `evals/test-design/snapshots/`, with `update_snapshots: false`.
 Snapshot comparison follows the [Waza v0.33.0 diff grader](https://github.com/microsoft/waza/blob/v0.33.0/docs/graders/diff.md).

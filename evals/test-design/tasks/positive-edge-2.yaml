@@ -16,6 +16,17 @@ inputs:
     when available, then report the cases, contract evidence, and actual
     verification result and the defect each case catches. No dedicated testing
     workflow is available for this framework. If execution is unavailable, say why.
+    Preserve the supplied file verbatim and append one blank line followed by
+    exactly these declarations (this fixture checks exact file contents):
+
+    test('clamps below range', () => {
+      assert.equal(clamp(-1, 0, 10), 0);
+    });
+
+    test('clamps above range', () => {
+      assert.equal(clamp(11, 0, 10), 10);
+    });
+
   files:
     - path: package.json
       content: '{"type":"module"}'
@@ -67,17 +78,14 @@ graders:
         - evals/test-design/check-report.py
         - implement
       timeout: 30
-  - type: file
+  - type: diff
     name: changed_test_file
     config:
-      must_exist:
-        - test/clamp.test.js
-      content_patterns:
+      context_dir: evals/test-design
+      update_snapshots: false
+      expected_files:
         - path: test/clamp.test.js
-          must_match:
-            - 'assert\.(?:equal|strictEqual)\s*\(\s*clamp\(-1,\s*0,\s*10\),\s*0\s*\)'
-            - 'assert\.(?:equal|strictEqual)\s*\(\s*clamp\(11,\s*0,\s*10\),\s*10\s*\)'
-            - 'clamp\(5,\s*0,\s*10\)'
+          snapshot: snapshots/clamp.test.js
   - type: diff
     name: production_unchanged
     config:

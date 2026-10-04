@@ -137,6 +137,119 @@
       "does_not_match": [
         "only in-range value"
       ]
+    },
+    {
+      "name": "positive transfer",
+      "task": "tasks/positive-trigger-1.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 6,
+      "matches": [
+        "positive transfer debits source and credits destination",
+        "successful transfer\n- moves funds"
+      ],
+      "does_not_match": [
+        "InsufficientFunds returns error; InvalidAmount rejects"
+      ]
+    },
+    {
+      "name": "combined balance invariant",
+      "task": "tasks/positive-trigger-1.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 7,
+      "matches": [
+        "combined balance remains unchanged",
+        "preserves\n- total funds"
+      ],
+      "does_not_match": [
+        "source balance decreases and destination increases"
+      ]
+    },
+    {
+      "name": "offending row observation",
+      "task": "tasks/positive-edge-3.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 6,
+      "matches": [
+        "reports\n- the offending row",
+        "invalid row\n- error identifies its index"
+      ],
+      "does_not_match": [
+        "invalid middle row; persists none; catches partial commit"
+      ]
+    },
+    {
+      "name": "required coverage",
+      "task": "tasks/positive-edge-3.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 7,
+      "matches": [
+        "retain the 90% coverage gate",
+        "90% coverage is required"
+      ],
+      "does_not_match": [
+        "ignore coverage targets"
+      ]
+    },
+    {
+      "name": "partial contract decision",
+      "task": "tasks/positive-edge-3.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 8,
+      "matches": [
+        "retry behavior is undecided",
+        "missing decision: retry policy"
+      ],
+      "does_not_match": [
+        "retry succeeds twice"
+      ]
+    },
+    {
+      "name": "failed changed tests status",
+      "task": "tasks/positive-edge-4.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 2,
+      "matches": [
+        "Test execution: Ran: node --test => failed",
+        "Test execution: Ran: node --test => exit 1"
+      ],
+      "does_not_match": [
+        "Test execution: Ran: node --test => passed",
+        "Test execution: Unverified: unavailable"
+      ]
+    },
+    {
+      "name": "unavailable changed tests status",
+      "task": "tasks/positive-edge-5.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 2,
+      "matches": [
+        "Test execution: Unverified: physical sensor unavailable"
+      ],
+      "does_not_match": [
+        "Test execution: Ran: node --test => passed",
+        "Test execution: Not run; no tests changed."
+      ]
+    },
+    {
+      "name": "unresolved production cause",
+      "task": "tasks/positive-edge-4.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 5,
+      "matches": [
+        "production implementation contains a defect",
+        "clamp.js returns the input value"
+      ],
+      "does_not_match": [
+        "test run failed"
+      ]
     }
   ]
 }

@@ -39,6 +39,8 @@ graders:
         - '(?is)InsufficientFunds.{0,180}(unchanged|preserv)|unchanged.{0,180}InsufficientFunds'
         - '(?is)(InvalidAmount|zero|negative).{0,180}(unchanged|reject)|(unchanged|reject).{0,180}(InvalidAmount|zero|negative)'
         - '(?i)(defect|bug|regress|incorrect|mistake)'
+        - '(?is)(positive|valid|success).{0,160}(transfer|moves?|debit|credit)|(transfer|moves?|debit|credit).{0,160}(positive|valid|success)'
+        - '(?is)(combined|total|sum).{0,100}(balance|funds).{0,100}(preserv|unchanged|constant)|(preserv|unchanged|constant).{0,100}(combined|total|sum).{0,100}(balance|funds)'
   - type: program
     name: report_contract
     config:

@@ -2,6 +2,8 @@ When to read: when choosing between plausible test cases, exact assertions, fake
 
 # Test Selection Guidance
 
+- Inspect repository instructions, interfaces, implementation, and nearby tests to establish test conventions and evidence. Establish expected behavior from the contract; implementation alone cannot define expectations.
+
 - Favor cases for costly, subtle, security-sensitive, destructive, or historically fragile failures. Add absent, empty, invalid, duplicate, threshold-adjacent, retry, partial-failure, cancellation, or concurrency cases when their contract path is reachable and materially distinct.
 - For stateful behavior, identify initial state, operation, resulting state, repeated and invalid transitions, and preservation or rollback after failure. Test invariants such as no mutation on rejection or at-most-once effects when promised.
 - Assert the strongest stable result. Existence, non-throwing execution, and mock calls are weak oracles unless they are the promised behavior. Exact bytes or call order are appropriate when those are contractually required.
@@ -10,7 +12,7 @@ When to read: when choosing between plausible test cases, exact assertions, fake
 - Parameterize inputs that express the same behavior; keep distinct behaviors separate so failures are easy to locate. Use snapshots only when the full representation is an intentionally reviewed contract.
 - Follow the repository's runner, assertion library, fixtures, naming, and cleanup conventions. Do not add a test dependency when existing tools can express the behavior. Do not alter production behavior solely to make testing convenient.
 - A test should fail for an important plausible mutation, such as skipping validation, reversing a boundary, dropping a value, or updating state before a rejected operation. Remove cases that only repeat the same failure signal.
-- If a case needs a live service, production data, or an unavailable environment, choose a safe local substitute. For a read-only plan or assessment, record the limit in the second report field and use `Not run; no tests changed.` For changed tests that cannot run, use `Unverified: <reason>`. Never claim the case passed without execution.
+- If a case needs a live service, production data, or an unavailable environment, use a safe local substitute only if it preserves the behavior and observation being tested. If no faithful substitute exists, record the environment limitation and leave the case unrun. For a read-only plan or assessment, record the limit in the second report field and use `Not run; no tests changed.` For changed tests that cannot run, use `Unverified: <reason>`. Never claim the case passed without execution.
 
 ## Illustrative Case
 

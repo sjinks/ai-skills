@@ -35,7 +35,7 @@ metrics:
   - name: changed_test_file
     weight: 0.10
     threshold: 0.9
-    description: The implementation task edits the supplied test file with boundary assertions.
+    description: Exact snapshot equality requires runnable interior and boundary tests in the implementation fixture.
   - name: production_unchanged
     weight: 0.10
     threshold: 1.0

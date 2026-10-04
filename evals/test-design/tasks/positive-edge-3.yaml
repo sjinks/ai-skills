@@ -12,7 +12,12 @@ inputs:
     offending row and persists none. The current suite tests a fully valid
     batch and an empty batch only. Propose the smallest material missing case
     or cases. Give the expected observation and defect caught. This is a
-    read-only assessment; do not inspect files or run tests.
+    read-only assessment; do not inspect files or run tests. Select exactly one
+    missing case. The repository requires 90% coverage; retain that gate as an
+    explicit requirement, without inventing a measured coverage result.
+    Retry behavior is undecided. Assess the supported invalid-row behavior and
+    identify the missing retry decision; do not block all selection or invent
+    retry expectations.
 expected:
   should_trigger: true
 graders:
@@ -38,6 +43,11 @@ graders:
         - '(?is)(invalid|malformed).{0,180}(row|batch)'
         - '(?is)(none|nothing|zero).{0,90}(persist|saved|written)|(persist|saved|written).{0,90}(none|nothing|zero)'
         - '(?i)(partial|atomic|rollback|all-or-nothing)'
+        - '(?is)(report|identify|return|error|offending).{0,100}(invalid|offending|malformed|index|row)|(invalid|offending|malformed).{0,100}(row|index).{0,100}(report|identify|return|error)'
+        - '(?is)90%.{0,100}(requir|gate|retain|honor)|(requir|gate|retain|honor).{0,100}90%'
+        - '(?is)retry.{0,100}(undecided|unspecified|unknown|missing|decision)|(undecided|unspecified|unknown|missing|decision).{0,100}retry'
+      not_contains:
+        - 'Designed cases: Blocked.'
   - type: program
     name: report_contract
     config:

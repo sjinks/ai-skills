@@ -80,6 +80,7 @@ def self_test() -> None:
                 assert expected, (profile, status, "unexpected acceptance")
     base = VALID["plan"]
     invalid = {
+        "preamble": "Here is the report.\n" + base,
         "omission": base.replace("Design evidence: supplied contract\n", ""),
         "reorder": base.replace("Design evidence: supplied contract\nTest execution: Not run; no tests changed.", "Test execution: Not run; no tests changed.\nDesign evidence: supplied contract"),
         "duplicate": base.replace("Design evidence: supplied contract", "Design evidence: supplied contract\nDesign evidence: duplicate"),
