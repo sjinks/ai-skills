@@ -33,8 +33,8 @@ metrics:
   - name: report_contract
     weight: 0.15
     threshold: 1.0
-    description: Suite-local validator checks report markers, order, fields, domains, cardinality, caller
-      labels, blocked branch and termination.
+    description: Suite-local validator checks report and invalid-label clarification profiles, markers,
+      order, fields, domains, cardinality, caller labels, blocked branch and termination.
 graders:
   - type: behavior
     name: efficiency

@@ -26,4 +26,6 @@ graders:
         - 'Retrospective Skill Candidate:'
         - 'Retrospective:'
         - 'Retrospective Verdict:'
+        - 'Retrospective Label Conflict:'
+        - 'Retrospective Label Request:'
         - iteration-retrospective

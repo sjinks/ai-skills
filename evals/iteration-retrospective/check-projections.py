@@ -35,9 +35,10 @@ def check() -> None:
     """
     skill = (ROOT / 'skills/iteration-retrospective/SKILL.md').read_text()
     reference = (ROOT / 'skills/iteration-retrospective/references/report-format.md').read_text()
-    template = re.search(r'```text\n(.*?)\n```', skill, re.S).group(1)
-    markers = tuple(line.split(':', 1)[0] + ':' for line in template.splitlines() if not line.startswith('- '))
-    assert markers == REPORT.MARKERS, 'source marker order differs from validator'
+    templates = re.findall(r'```text\n(.*?)\n```', skill, re.S)
+    markers = [tuple(line.split(':', 1)[0] + ':' for line in template.splitlines() if not line.startswith('- '))
+               for template in templates]
+    assert markers == [REPORT.CLARIFICATION_MARKERS, REPORT.MARKERS], 'source marker order differs from validator'
     for value in (*REPORT.STATUSES, *REPORT.CAUSES, *REPORT.MECHANISMS, *REPORT.CANDIDATES, *REPORT.VERDICTS, 'not assessed'):
         assert f'`{value}`' in reference, 'source domain missing: ' + value
     assert not re.search(r'\bowner\b', skill + reference, re.I), 'removed field remains in source'
@@ -57,8 +58,17 @@ def check() -> None:
             assert config['command'] == 'python3', 'program command drift'
             args = config['args']
             assert args[0] == 'evals/iteration-retrospective/check-report.py', 'wrong checker'
-            for flag in ('--verdict', '--candidate', '--attempt-count'):
-                assert args.count(flag) == 1, 'missing task expectation: ' + flag
+            clarification = path.name == 'positive-edge-8.yaml'
+            if clarification:
+                assert args.count('--profile') == 1 and args[args.index('--profile') + 1] == 'label-clarification', 'clarification profile required'
+                assert not set(('--verdict', '--candidate', '--attempt-count', '--statuses', '--causes', '--mechanisms')) & set(args), 'clarification has report expectations'
+                assert '--labels' in args and not REPORT.valid_labels(tuple(args[args.index('--labels') + 1:])), 'clarification requires invalid labels'
+                assertions = [token for g in graders if g['type'] == 'text' for token in g['config'].get('regex_match', [])]
+                assert all(any(marker in token for token in assertions) for marker in REPORT.CLARIFICATION_MARKERS), 'clarification assertions missing'
+            else:
+                assert '--profile' not in args, 'report task profile drift'
+                for flag in ('--verdict', '--candidate', '--attempt-count'):
+                    assert args.count(flag) == 1, 'missing task expectation: ' + flag
             assert any(g['type'] == 'skill_invocation' for g in graders), 'positive invocation missing'
             if '--labels' in args:
                 assert len(args[args.index('--labels') + 1:]) == 8, 'caller-label cardinality'
@@ -68,11 +78,11 @@ def check() -> None:
             for grader in graders:
                 if grader['type'] == 'text':
                     forbidden.update(grader['config'].get('not_contains', []))
-            assert set((*REPORT.MARKERS, 'iteration-retrospective')) <= forbidden, 'negative exclusions incomplete'
+            assert set((*REPORT.MARKERS, *REPORT.CLARIFICATION_MARKERS, 'iteration-retrospective')) <= forbidden, 'negative exclusions incomplete'
             assert not set(GENERIC_FIELDS) & forbidden, 'generic field must not be a negative exclusion'
             ordinary = 'Status: Implementation complete.\nResult: Changes are ready.\nEvidence: Local checks passed.\nAssessment: Ready.\nVerdict: Accept.'
             negative_response(ordinary, forbidden)
-            for marker in REPORT.MARKERS:
+            for marker in (*REPORT.MARKERS, *REPORT.CLARIFICATION_MARKERS):
                 try:
                     negative_response(marker, forbidden)
                 except ValueError:

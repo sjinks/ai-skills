@@ -13,6 +13,32 @@ CAUSES = ('confirmed', 'likely', 'unknown')
 MECHANISMS = ('deterministic check', 'shared helper', 'repository guidance', 'refactor', 'reusable skill')
 CANDIDATES = ('new skill', 'extend existing guidance', 'no new skill')
 VERDICTS = ('CLEAN', 'CONCERNS', 'BLOCK')
+CLARIFICATION_MARKERS = ('Retrospective Label Conflict:', 'Retrospective Label Request:')
+
+
+def valid_labels(labels: tuple[str, ...]) -> bool:
+    """Check the effective caller-label set before nonblocked report formatting.
+
+    Blocked reports ignore this set; clarification requires it to be invalid.
+    """
+    return (len(labels) == len(MARKERS) and len(set(labels)) == len(labels)
+            and all(re.fullmatch(r'[^\r\n:]+:', label) and label[:-1].strip()
+                    and not label.startswith('- ') for label in labels))
+
+
+def validate_clarification(text: str, labels: tuple[str, ...]) -> None:
+    """Validate the fixed two-line clarification for invalid nonblocked labels.
+
+    Explanation and request semantics remain contextual task assertions.
+    """
+    if valid_labels(labels):
+        raise ValueError('clarification requires invalid caller labels')
+    lines = [line for line in text.splitlines() if line.strip()]
+    if '\x00' in text or len(lines) != 2:
+        raise ValueError('clarification requires exactly two marker lines')
+    for line, marker in zip(lines, CLARIFICATION_MARKERS):
+        if not line.startswith(marker + ' ') or not line[len(marker):].strip():
+            raise ValueError('invalid clarification marker order or value')
 
 
 def rows(lines: list[str], prefix: str, fields: tuple[str, ...], domains: dict[str, tuple[str, ...]]) -> None:
@@ -45,8 +71,7 @@ def validate(text: str, labels: tuple[str, ...] = MARKERS, expected: str | None 
     if not lines or '\x00' in text:
         raise ValueError('empty or invalid report')
     blocked = lines[-1] == 'Retrospective Verdict: BLOCK'
-    if not blocked and (len(labels) != len(MARKERS) or len(set(labels)) != len(labels)
-            or any(not re.fullmatch(r'[^\r\n:]+:', label) or not label[:-1].strip() or label.startswith('- ') for label in labels)):
+    if not blocked and not valid_labels(labels):
         raise ValueError('invalid caller labels')
     if attempt_count is not None and attempt_count < 0:
         raise ValueError('invalid attempt count')
@@ -76,6 +101,8 @@ def validate(text: str, labels: tuple[str, ...] = MARKERS, expected: str | None 
         if lines[positions[i]] != active[i]:
             raise ValueError('section marker must stand alone')
     verdict = scalar[7]
+    if verdict == 'BLOCK' and not blocked:
+        raise ValueError('BLOCK requires default labels and blocked profile')
     if verdict not in VERDICTS or (expected is not None and verdict != expected):
         raise ValueError('invalid or unexpected verdict')
     allowed = ('not assessed',) if blocked else CANDIDATES
@@ -229,6 +256,15 @@ def self_test() -> None:
             checks += 1
         else:
             raise AssertionError('accepted candidate/mechanism mismatch')
+    for labels in (CUSTOM, (*MARKERS[:-1], 'Result:')):
+        crossover = replace_labels(VALID, labels).replace('Result: CLEAN', 'Result: BLOCK')
+        try:
+            validate(crossover, labels)
+        except ValueError as error:
+            assert str(error) == 'BLOCK requires default labels and blocked profile', str(error)
+            checks += 1
+        else:
+            raise AssertionError('accepted custom-labeled BLOCK')
     validate(VALID.replace('Retrospective Verdict: CLEAN', 'Retrospective Verdict: CONCERNS'))
     validate(VALID.replace('Retrospective Learnings:\n- L1 | Cause: confirmed | Lesson: Centralize checks | Evidence: Review', 'Retrospective Learnings:\nNone.').replace('Retrospective Prevention:\n- P1 | Mechanism: deterministic check | Decision: Reuse validator', 'Retrospective Prevention:\nNone.'))
     partial_labels = ('Goal:', *MARKERS[1:])
@@ -245,6 +281,34 @@ def self_test() -> None:
             raise AssertionError('accepted invalid labels')
     validate(VALID.replace('Evidence: Review', 'Evidence: Review includes Retrospective Verdict: BLOCK'))
     validate(BLOCK.replace('Not assessed.\nRetrospective Learnings:', '- A1 | Status: inconclusive | Action: unknown | Result: unknown | Evidence: unavailable\nRetrospective Learnings:'))
+    clarification = 'Retrospective Label Conflict: Duplicate labels are not distinct.\nRetrospective Label Request: Please provide distinct valid replacement labels.'
+    invalid_labels = (CUSTOM[0], CUSTOM[0], *CUSTOM[2:])
+    for labels in (invalid_labels, ('Missing colon', *CUSTOM[1:]), ('- N1:', *CUSTOM[1:]), (' ', *CUSTOM[1:])):
+        validate_clarification(clarification, labels)
+        validate(BLOCK, labels)
+    clarification_lines = clarification.splitlines()
+    bad_clarifications = [VALID, BLOCK, custom, clarification + '\nTrailing prose',
+                          '\n'.join(reversed(clarification_lines))]
+    for line in clarification_lines:
+        bad_clarifications += [line, clarification + '\n' + line]
+    for marker in CLARIFICATION_MARKERS:
+        bad_clarifications += [clarification.replace(marker, 'Other:'),
+                               clarification.replace(next(line for line in clarification_lines if line.startswith(marker)), marker)]
+    for mutation in bad_clarifications:
+        try:
+            validate_clarification(mutation, invalid_labels)
+        except ValueError:
+            checks += 1
+        else:
+            raise AssertionError('accepted clarification mutation')
+    for report, labels, validator in ((clarification, MARKERS, validate_clarification),
+                                      (clarification, invalid_labels, validate)):
+        try:
+            validator(report, labels)
+        except ValueError:
+            checks += 1
+        else:
+            raise AssertionError('accepted profile crossover')
     print(f'report profiles and {checks} deterministic mutations: passed')
 
 
@@ -273,6 +337,7 @@ def main() -> None:
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--self-test', action='store_true')
+    parser.add_argument('--profile', choices=('report', 'label-clarification'), default='report')
     parser.add_argument('--labels', nargs=8, default=MARKERS)
     parser.add_argument('--verdict', choices=VERDICTS)
     parser.add_argument('--candidate', choices=(*CANDIDATES, 'not assessed'))
@@ -286,8 +351,14 @@ def main() -> None:
         return
     try:
         text = sys.stdin.read()
-        validate(text, tuple(args.labels), args.verdict, args.candidate, args.attempt_count)
-        expectations(text, {'Status': args.statuses, 'Cause': args.causes, 'Mechanism': args.mechanisms})
+        if args.profile == 'label-clarification':
+            if any(value is not None for value in (args.verdict, args.candidate, args.attempt_count,
+                                                  args.statuses, args.causes, args.mechanisms)):
+                raise ValueError('clarification cannot use report expectations')
+            validate_clarification(text, tuple(args.labels))
+        else:
+            validate(text, tuple(args.labels), args.verdict, args.candidate, args.attempt_count)
+            expectations(text, {'Status': args.statuses, 'Cause': args.causes, 'Mechanism': args.mechanisms})
     except ValueError as error:
         print(str(error), file=sys.stderr)
         raise SystemExit(1) from error

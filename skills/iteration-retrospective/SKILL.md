@@ -1,21 +1,21 @@
 ---
 name: iteration-retrospective
-description: "Use when: retrospecting concrete implementation, debugging, investigation, or review/fix attempts to choose prevention or reusable guidance. Do not use for status updates, ordinary reviews, or generic lessons."
+description: "Use when: retrospecting multiple attempts or an abandoned approach, including explicit requests with unavailable evidence. Excludes status updates, ordinary reviews, and generic lessons."
 argument-hint: "Goal, attempts, outcomes, evidence, constraints."
 user-invocable: true
 ---
 
 # Iteration Retrospective
 
-**UTILITY SKILL.** INVOKES: read-only evidence inspection. FOR SINGLE OPERATIONS: report decisions.
+**UTILITY SKILL.** INVOKES: read-only inspection. FOR SINGLE OPERATIONS: report decisions.
 
 ## Use When
 
-Use after multiple attempts or an abandoned approach with evidence that future work should not repeat.
+Use for multiple attempts, abandoned approaches, or explicit retrospective requests with unavailable evidence.
 
 ## DO NOT USE FOR:
 
-Exclude status updates, ordinary reviews, post-hoc justification, and reflection without attempt evidence.
+Exclude status updates, ordinary reviews, post-hoc justification, and generic reflection without attempt evidence.
 
 ## Boundaries
 
@@ -25,17 +25,25 @@ Exclude status updates, ordinary reviews, post-hoc justification, and reflection
 
 ## Workflow
 
-1. Read [Decision and Report Rules](references/report-format.md). Apply its workflow, status selection, verdict selection, candidate selection, and report grammar.
-2. Report evidence and decisions using Output.
-3. Finish when the Completion Checklist passes.
+1. Read [Decision and Report Rules](references/report-format.md). Follow its workflow, ordered decisions, and formats.
+2. Emit Output.
 
 ## Error Handling
 
-If evidence is missing, apply the reference's Missing Evidence and Verdict Selection rules.
+For missing evidence, apply the reference's verdict rules.
 
 ## Output
 
-Emit these markers once in order. Caller labels may replace top-level labels under the reference's Markers and labels rules. `BLOCK` always uses default labels.
+Reports use these markers once in order. Valid caller labels may replace them; `BLOCK` uses defaults.
+
+Invalid nonblocked labels require this clarification:
+
+```text
+Retrospective Label Conflict: <label constraint violated>
+Retrospective Label Request: <request valid replacement labels>
+```
+
+Otherwise, emit the report:
 
 ```text
 Retrospective: <goal and scope>
@@ -54,11 +62,12 @@ Retrospective Verdict: <selected verdict>
 
 ## Examples
 
-An evaluated failure remains `failed` after replacement. A source-of-truth change uses `Mechanism: refactor`.
+No outcomes: `BLOCK`. Nonblocked duplicate labels: clarification.
 
 ## Completion Checklist
 
-- Timeline rows preserve supplied attempts unless the blocked-timeline exception applies.
-- Causes and prevention decisions follow the evidence.
-- Status, candidate, and verdict follow the reference's ordered rules.
-- Follow the reference's report grammar and termination rule.
+- Select report or clarification using the reference's label rules.
+- Report timeline rows preserve supplied attempts unless the blocked-timeline exception applies.
+- Report causes and prevention follow the evidence.
+- Report status, candidate, and verdict follow the reference's ordered rules.
+- Follow selected format and termination.

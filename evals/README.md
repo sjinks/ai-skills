@@ -480,12 +480,14 @@ python3 evals/_helpers/check-review-evidence.py /tmp/review-evidence.json --repo
 ### Iteration retrospective report validation
 
 `iteration-retrospective` uses a 0.45 trigger threshold and an 8,000-token budget.
-Every positive task invokes the suite-local `report_contract` program grader
-with task-specific verdict, candidate, and attempt-count expectations. The
+Positive report tasks invoke the suite-local `report_contract` program grader
+with task-specific verdict, candidate, and attempt-count expectations.
+The invalid-label task uses the same grader with `--profile label-clarification`,
+which validates a clarification response instead of requiring a report. The
 validator owns marker spelling/order/cardinality, row fields and numbering,
 value domains, default/caller-label profiles, the blocked branch, and termination.
 Text graders assert the contextual status and mechanism decisions separately.
-Negative exclusions cover every top-level report marker and the skill name. Default markers use a `Retrospective` prefix; generic row fields such as `Status:` and `Result:` are not independent forbidden tokens.
+Negative exclusions cover every top-level report and clarification marker and the skill name. Default markers use a `Retrospective` prefix; generic row fields such as `Status:` and `Result:` are not independent forbidden tokens.
 
 Existing tasks cover unknown causes, guidance precedence, blocked default labels,
 known failures, and independent new-skill eligibility. `positive-edge-4.yaml`
@@ -503,6 +505,13 @@ its extension assertion. The aggregation task needs multiple selected patterns;
 adding them to existing single-pattern fixtures would remove their isolation.
 The checker enforces candidate/mechanism compatibility; evidence that guidance
 is established and that a new skill is eligible remains a contextual assertion.
+`positive-edge-8.yaml` exercises duplicate nonblocked labels and requires only
+the fixed conflict/request clarification. Existing custom-label and blocked
+fixtures remain report tasks, so neither can cover this branch without losing
+its independent assertion. Deterministic mutations also cover malformed, empty
+and row-shaped labels, invalid profile crossovers, and BLOCK precedence.
+Explicit evidence-free retrospective requests activate the blocked fixture;
+the generic-reflection negative remains excluded.
 No paid model run is implied.
 
 ```bash

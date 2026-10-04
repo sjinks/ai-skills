@@ -67,15 +67,17 @@ If an evidence source is unavailable, record the missing values. Apply Verdict S
 
 ## Report Format
 
-Emit one plain-text report. Do not add a code fence, introduction, or trailing prose. Blank lines between report lines are permitted.
+Emit one plain-text report or label clarification as selected below. Do not add a code fence, introduction, or trailing prose. Blank lines between response lines are permitted.
 
 ### Markers and labels
 
 Use each top-level marker from the Output template exactly once, in the template order. Keep `Retrospective`, `Retrospective Assessment`, `Retrospective Skill Candidate`, and `Retrospective Verdict` values on their marker lines. Put section contents after their section markers.
 
-For a non-`BLOCK` report, the caller may replace any top-level label with a distinct, nonempty, single-line label with exactly one `:` at its end. Keep unreplaced labels unchanged. Preserve caller labels exactly. Replacement labels must not duplicate another active label or start with `- `, which denotes report rows. If the supplied labels violate these constraints, explain the conflict and request valid labels before producing the report. Labels do not change row fields, enum values, requiredness, or order.
+Select the verdict before validating caller labels. For `BLOCK`, use all default labels regardless of caller replacements; do not request label clarification.
 
-For `BLOCK`, use all default labels regardless of caller replacements.
+For a non-`BLOCK` report, the caller may replace any top-level label with a distinct, nonempty, single-line label with exactly one `:` at its end. Keep unreplaced labels unchanged. Preserve caller labels exactly. Replacement labels must not duplicate another active label or start with `- `, which denotes report rows. Labels do not change row fields, enum values, requiredness, or order.
+
+If nonblocked caller labels violate these constraints, emit only `Retrospective Label Conflict:` with a nonempty explanation of the violated constraint, followed by `Retrospective Label Request:` with a nonempty request for valid replacement labels. Each marker occurs once, with its value on the same line; the request line terminates the response. Do not emit report markers, rows, candidate, or verdict. Stop pending valid labels. This clarification uses fixed labels; caller replacements do not apply to it.
 
 ### Rows and empty sections
 
