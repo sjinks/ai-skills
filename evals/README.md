@@ -458,3 +458,20 @@ label-looking text inside the code fence is data. The existing wire authoring
 edge now requires a multiline fixture comment with every canonical marker.
 Default/custom-label fixtures cover solid, weak and cannot-fail author outcomes;
 envelope duplicates and labels outside the closing fence remain invalid.
+
+## Review evidence gate
+
+`evals/_helpers/check-review-evidence.py` runs trusted local conforming and
+rule-isolating counterexample probes against an immutable scoped tree. It keeps
+contract, workspace, execution and model claims separate and records independent
+review evidence or its unavailability. Both scope comparisons disable external
+diff and textconv. All gate Git calls disable replacement objects, including
+the raw blob read. Ordinary Python traceback output fails either probe;
+diagnostic matching alone cannot authenticate a custom exception handler.
+It does not invoke Waza or add model tasks.
+See [the manifest contract and workflow](../docs/review-evidence.md).
+
+```bash
+python3 -m unittest discover -s evals/_helpers -p test_check_review_evidence.py
+python3 evals/_helpers/check-review-evidence.py /tmp/review-evidence.json --repo "$PWD"
+```
