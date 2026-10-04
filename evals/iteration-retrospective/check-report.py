@@ -22,7 +22,7 @@ def valid_labels(labels: tuple[str, ...]) -> bool:
     Blocked reports ignore this set; clarification requires it to be invalid.
     """
     return (len(labels) == len(MARKERS) and len(set(labels)) == len(labels)
-            and all(re.fullmatch(r'[^\r\n:]+:', label) and label[:-1].strip()
+            and all(label.splitlines() == [label] and re.fullmatch(r'[^:]+:', label) and label[:-1].strip()
                     and not label.startswith('- ') for label in labels))
 
 
@@ -283,6 +283,21 @@ def self_test() -> None:
     validate(BLOCK.replace('Not assessed.\nRetrospective Learnings:', '- A1 | Status: inconclusive | Action: unknown | Result: unknown | Evidence: unavailable\nRetrospective Learnings:'))
     clarification = 'Retrospective Label Conflict: Duplicate labels are not distinct.\nRetrospective Label Request: Please provide distinct valid replacement labels.'
     invalid_labels = (CUSTOM[0], CUSTOM[0], *CUSTOM[2:])
+    # Documented str.splitlines boundaries, including the two-character CRLF.
+    boundaries = ('\n', '\r', '\r\n', '\v', '\f', '\x1c', '\x1d', '\x1e', '\x85', '\u2028', '\u2029')
+    for boundary in boundaries:
+        for slot in range(len(CUSTOM)):
+            labels = tuple('Go' + boundary + 'al:' if i == slot else label for i, label in enumerate(CUSTOM))
+            assert not valid_labels(labels), 'line boundary accepted in label'
+            validate_clarification(clarification, labels)
+            validate(BLOCK, labels)
+            try:
+                validate(replace_labels(VALID, labels), labels)
+            except ValueError as error:
+                assert str(error) == 'invalid caller labels', str(error)
+                checks += 1
+            else:
+                raise AssertionError('accepted split-line label')
     for labels in (invalid_labels, ('Missing colon', *CUSTOM[1:]), ('- N1:', *CUSTOM[1:]), (' ', *CUSTOM[1:])):
         validate_clarification(clarification, labels)
         validate(BLOCK, labels)

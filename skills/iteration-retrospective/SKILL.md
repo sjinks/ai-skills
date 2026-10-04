@@ -1,6 +1,6 @@
 ---
 name: iteration-retrospective
-description: "Use when: retrospecting multiple attempts or an abandoned approach, including explicit requests with unavailable evidence. Excludes status updates, ordinary reviews, and generic lessons."
+description: "Use when: retrospecting multiple attempts or an abandoned approach, even when evidence is unavailable. Excludes status updates, ordinary reviews, single nonabandoned attempts, and generic lessons."
 argument-hint: "Goal, attempts, outcomes, evidence, constraints."
 user-invocable: true
 ---
@@ -11,7 +11,7 @@ user-invocable: true
 
 ## Use When
 
-Use for multiple attempts, abandoned approaches, or explicit retrospective requests with unavailable evidence.
+Use for multiple attempts or an explicitly abandoned approach, even with unavailable evidence.
 
 ## DO NOT USE FOR:
 

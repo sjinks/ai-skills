@@ -4,7 +4,8 @@ name: One failed attempt is not a retrospective
 inputs:
   prompt: |
     My first attempt to fix a parsing bug failed. Retrospect that attempt and
-    tell me what I should try next.
+    tell me what I should try next. This is one attempt and I have not abandoned
+    the approach. I cannot provide the concrete change, logs, or test evidence.
 expected:
   should_trigger: false
 graders:

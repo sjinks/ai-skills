@@ -75,7 +75,7 @@ Use each top-level marker from the Output template exactly once, in the template
 
 Select the verdict before validating caller labels. For `BLOCK`, use all default labels regardless of caller replacements; do not request label clarification.
 
-For a non-`BLOCK` report, the caller may replace any top-level label with a distinct, nonempty, single-line label with exactly one `:` at its end. Keep unreplaced labels unchanged. Preserve caller labels exactly. Replacement labels must not duplicate another active label or start with `- `, which denotes report rows. Labels do not change row fields, enum values, requiredness, or order.
+For a non-`BLOCK` report, the caller may replace any top-level label with a distinct, nonempty, single-line label (no control or Unicode line separators) with exactly one `:` at its end. Keep unreplaced labels unchanged. Preserve caller labels exactly. Replacement labels must not duplicate another active label or start with `- `, which denotes report rows. Labels do not change row fields, enum values, requiredness, or order.
 
 If nonblocked caller labels violate these constraints, emit only `Retrospective Label Conflict:` with a nonempty explanation of the violated constraint, followed by `Retrospective Label Request:` with a nonempty request for valid replacement labels. Each marker occurs once, with its value on the same line; the request line terminates the response. Do not emit report markers, rows, candidate, or verdict. Stop pending valid labels. This clarification uses fixed labels; caller replacements do not apply to it.
 

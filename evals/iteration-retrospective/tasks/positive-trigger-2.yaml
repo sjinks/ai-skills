@@ -49,4 +49,6 @@ graders:
         - no new skill
         - --attempt-count
         - '3'
+        - --mechanisms
+        - deterministic check
       timeout: 30

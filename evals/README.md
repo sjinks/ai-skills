@@ -510,8 +510,12 @@ the fixed conflict/request clarification. Existing custom-label and blocked
 fixtures remain report tasks, so neither can cover this branch without losing
 its independent assertion. Deterministic mutations also cover malformed, empty
 and row-shaped labels, invalid profile crossovers, and BLOCK precedence.
-Explicit evidence-free retrospective requests activate the blocked fixture;
-the generic-reflection negative remains excluded.
+Missing-evidence requests about multiple attempts activate the blocked fixture;
+a single nonabandoned attempt and generic reflection remain excluded.
+Label mutations cover every line boundary documented for Python `str.splitlines()`;
+nonblocked labels must remain a single unchanged line under that same operation.
+The boundary-test debugging task also requires the selected `deterministic check`
+mechanism, rejecting an empty prevention section or an unrelated mechanism.
 No paid model run is implied.
 
 ```bash
