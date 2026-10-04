@@ -78,3 +78,10 @@ graders:
         Also reject omitted required cases or an invented hardware verification claim.
         Return one reasoning sentence, then only 1.0 (all records complete and correct),
         0.5 (partially correct), or 0.0 (incorrect or mappings absent) on the last line.
+  - type: program
+    name: workspace_unchanged
+    config:
+      command: python3
+      args:
+        - evals/_helpers/check-empty-workspace.py
+      timeout: 30

@@ -45,3 +45,10 @@ graders:
         - --verdict
         - insufficient-context
       timeout: 30
+  - type: program
+    name: workspace_unchanged
+    config:
+      command: python3
+      args:
+        - evals/_helpers/check-empty-workspace.py
+      timeout: 30

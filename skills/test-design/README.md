@@ -34,3 +34,10 @@ rejected. The runnable clamp task requires Node availability and a passed target
 the diagnosed-failure task requires that command to fail, while hardware is unverified.
 Implementation fixtures preserve `package.json` as well as production code,
 and a workspace grader rejects known dependency-installation artifacts.
+
+All initially empty positive read-only workspaces remain empty under the shared
+final-state guard `evals/_helpers/check-empty-workspace.py`. This includes
+blocked/missing context and returned-snippet authoring where applicable. It
+rejects all entries, including hidden files, empty directories and symlinks.
+It does not observe transient changes, changes outside the workspace, or
+changes restored before grading.

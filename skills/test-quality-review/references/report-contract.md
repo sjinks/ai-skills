@@ -17,6 +17,8 @@ order. Caller-required labels replace the applicable labels exactly.
      behavior, coverage, and readability findings.
 3. For writing only, `Authored test:` follows findings. Put the complete
    requested test declaration in one fenced code block immediately below it.
+   Marker cardinality applies to the report envelope through the authored-code
+   label; label-looking literals inside its code fence are code data.
    The closing fence ends the report. For review, findings end the report;
    do not add an authored-code slot or trailing prose.
 

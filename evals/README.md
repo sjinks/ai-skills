@@ -434,3 +434,27 @@ reviewed test. Validate batches with:
 ```bash
 python3 evals/test-quality-review/check-report.py review --test-count 2 --verdicts cannot-fail,solid < report.txt
 ```
+
+Both testing suites register `workspace_unchanged` at threshold 1.0 for every
+initially empty positive workspace that must remain read-only, including blocked
+and missing context and snippet-only authoring. The shared semantic contract
+is an existing real task directory with no entries at grading time; both suites
+use `evals/_helpers/check-empty-workspace.py`. It rejects files, hidden entries,
+empty directories and symlinks, and fails closed when the directory is absent.
+The projection checker verifies the guarded tasks supply no resource files.
+This is final-state evidence, not a trace of transient or outside-workspace
+changes. The pinned [Waza program-grader contract](https://github.com/microsoft/waza/blob/v0.33.0/docs/graders/program.md)
+provides `WAZA_WORKSPACE_DIR`; pinned workspace setup creates a temporary directory
+and writes supplied resources. The Copilot session may restore files before
+grading, so changes restored before grading are outside this guard's evidence.
+
+```bash
+python3 evals/_helpers/check-empty-workspace.py --self-test
+WAZA_WORKSPACE_DIR=/path/to/task-workspace python3 evals/_helpers/check-empty-workspace.py
+```
+
+Authored report labels are counted only in the envelope, through `Authored test:`;
+label-looking text inside the code fence is data. The existing wire authoring
+edge now requires a multiline fixture comment with every canonical marker.
+Default/custom-label fixtures cover solid, weak and cannot-fail author outcomes;
+envelope duplicates and labels outside the closing fence remain invalid.

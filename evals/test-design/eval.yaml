@@ -17,7 +17,7 @@ metrics:
     threshold: 0.8
     description: Prompt and skill trigger alignment.
   - name: skill_invocation
-    weight: 0.20
+    weight: 0.15
     threshold: 0.9
     description: Positive tasks invoke the skill.
   - name: task_completion
@@ -48,6 +48,10 @@ metrics:
     weight: 0.10
     threshold: 1.0
     description: Exact snapshot equality requires the production fixture to remain unchanged.
+  - name: workspace_unchanged
+    weight: 0.05
+    threshold: 1.0
+    description: Initially empty read-only or snippet-only task workspace remains empty.
 graders:
   - type: behavior
     name: efficiency

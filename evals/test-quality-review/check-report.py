@@ -28,11 +28,17 @@ def validate_one(text: str, profile: str, labels: tuple[str, ...] = (), expected
         raise ValueError("invalid caller labels")
     text = text.replace("\r\n", "\n").replace("\r", "\n").rstrip()
     lines = text.split("\n")
-    if any(line.startswith(marker) for line in lines for marker in MARKERS if marker not in labels):
+    envelope = lines
+    if profile == "author":
+        authored = next((i for i, line in enumerate(lines) if line.startswith(labels[2])), None)
+        if authored is None:
+            raise ValueError("missing authored-code label")
+        envelope = lines[:authored + 1]
+    if any(line.startswith(marker) for line in envelope for marker in MARKERS if marker not in labels):
         raise ValueError("inactive or replaced marker")
     positions = []
     for label in labels:
-        matches = [i for i, line in enumerate(lines) if line.startswith(label)]
+        matches = [i for i, line in enumerate(envelope) if line.startswith(label)]
         if len(matches) != 1:
             raise ValueError("marker must occur exactly once")
         positions.append(matches[0])
@@ -152,6 +158,23 @@ def self_test() -> None:
                 continue
             raise AssertionError((profile, other, "accepted crossover"))
     validate("Verdict: solid\nFindings: None. Exact bytes are the specified wire contract; keep strict assertions.", "review")
+    # Report-looking literals inside a code fence are data, including replaced labels.
+    literal_code = 'TEST(ParserTest, KeepsReportText) {\nconst char* text = R"(\nVerdict: solid\nFindings: None.\nAuthored test:\nDecision: solid\nQuality notes: None.\nGenerated code:\n)";\nEXPECT_EQ(parse(text), expected);\n}'
+    for verdict in ("solid", "weak", "cannot-fail"):
+        findings = "Findings: None. Parser result matches its contract." if verdict == "solid" else "Findings:\n- 6 | generated snippet:1 | vague name | describe the promised parsing result"
+        literal_report = "Verdict: " + verdict + "\n" + findings + "\nAuthored test:\n```cpp\n" + literal_code + "\n```"
+        for labels in (MARKERS, ("Decision:", "Quality notes:", "Generated code:")):
+            envelope, code = literal_report.split("```cpp", 1)
+            for old, new in zip(MARKERS, labels):
+                envelope = envelope.replace(old, new)
+            candidate = envelope + "```cpp" + code
+            validate(candidate, "author", labels)
+            for mutation in (candidate.replace(labels[2] + "\n```", labels[2] + "\n" + labels[2] + "\n```", 1), candidate + "\n" + labels[0], candidate.replace("\n```cpp", "\nVerdict: solid\n```cpp", 1)):
+                try:
+                    validate(mutation, "author", labels)
+                except ValueError:
+                    continue
+                raise AssertionError("accepted report-envelope mutation")
     weak = VALID["review"].replace("cannot-fail", "weak")
     validate(weak, "review")
     author_weak = "Verdict: weak\nFindings:\n- 6 | generated snippet:1 | vague name | name the expected result\nAuthored test:\n```cpp\nTEST(F, T) { EXPECT_EQ(f(), 8); }\n```"

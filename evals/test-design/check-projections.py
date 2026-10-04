@@ -36,12 +36,18 @@ def main() -> None:
     assert metrics["production_unchanged"]["threshold"] == 1.0
     assert metrics["workspace_integrity"]["threshold"] == 1.0
     assert metrics["case_substance"]["threshold"] == 1.0
+    assert metrics["workspace_unchanged"]["threshold"] == 1.0
     for path in sorted((root / "tasks").glob("*.yaml")):
         task = yaml.safe_load(path.read_text())
         graders = {grader["name"]: grader for grader in task["graders"]}
         assert graders.keys() <= metrics.keys(), (path.name, "unregistered metric")
         text = graders["task_completion"]["config"]
         if task["expected"]["should_trigger"]:
+            unchanged = expected[path.name] != "implement"
+            assert ("workspace_unchanged" in graders) == unchanged, path
+            if unchanged:
+                assert not task["inputs"].get("files"), path
+                assert graders["workspace_unchanged"]["config"]["args"] == ["evals/_helpers/check-empty-workspace.py"], path
             args = graders["report_contract"]["config"]["args"]
             assert args[1] == expected[path.name], (path.name, "wrong profile")
             options = report.parse_args(args[1:])
@@ -147,6 +153,7 @@ def main() -> None:
     quality_manifest = yaml.safe_load((quality_root / "eval.yaml").read_text())
     quality_metrics = {m["name"]: m for m in quality_manifest["metrics"]}
     assert "report_contract" in quality_metrics
+    assert quality_metrics["workspace_unchanged"]["threshold"] == 1.0
     assert abs(sum(m["weight"] for m in quality_metrics.values()) - 1.0) < 1e-9
     quality_profiles = {"positive-trigger-1.yaml": "review", "positive-trigger-2.yaml": "review", "positive-edge-1.yaml": "author", "positive-edge-2.yaml": "missing", "positive-edge-3.yaml": "review"}
     assert set(quality_profiles.values()) == quality_report.PROFILES
@@ -156,6 +163,8 @@ def main() -> None:
         quality_graders = {g["name"]: g for g in quality_task["graders"]}
         assertions = quality_graders["task_completion"]["config"]
         if quality_task["expected"]["should_trigger"]:
+            assert not quality_task["inputs"].get("files"), path
+            assert quality_graders["workspace_unchanged"]["config"]["args"] == ["evals/_helpers/check-empty-workspace.py"], path
             patterns = assertions["regex_match"]
             assert any("^Verdict:" in pattern for pattern in patterns), path
             assert any("^Findings:" in pattern for pattern in patterns), path
@@ -178,9 +187,11 @@ def main() -> None:
             if profile == "review":
                 fixture = fixture.replace("cannot-fail", expected_verdict)
             elif profile == "author":
-                fixture = fixture.split("```cpp", 1)[0] + "```cpp\n" + quality_report.WIRE_CODE + "\n```"
+                fixture = fixture.replace("Exact bytes match the wire contract.", "Byte-exact assertion is correct: wire format is the exact contract; keep strict assertions.")
+                fixture = fixture.split("```cpp", 1)[0] + "```cpp\n/*\nVerdict: parser fixture\nFindings: parser fixture\nAuthored test: parser fixture\n*/\n" + quality_report.WIRE_CODE + "\n```"
             quality_report.validate(fixture, profile, expected=expected_verdict, wire_fixture=profile == "author")
             if profile == "author":
+                assert all(re.search(pattern, fixture) for pattern in patterns), path
                 assert any("^Authored test:" in pattern for pattern in patterns), path
             elif profile == "missing":
                 assert "Authored test:" in assertions["not_contains"]

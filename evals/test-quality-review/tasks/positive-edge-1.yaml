@@ -28,6 +28,15 @@ inputs:
     using parentheses around the initializer list. Return one TEST declaration
     containing only the frame construction, serialization, and assertion statements.
 
+    Before the TEST declaration inside the authored code fence, preserve this
+    multiline fixture comment verbatim; its marker-looking lines are code data:
+
+    /*
+    Verdict: parser fixture
+    Findings: parser fixture
+    Authored test: parser fixture
+    */
+
     A teammate says "byte-exact assertions are brittle, loosen it". Is this a
     good final test? Return the constructed test with the exact expected bytes and
     judge the final authored version, not the discarded draft.
@@ -61,6 +70,7 @@ graders:
         - '(?i)verdict|solid|weak|cannot-?fail'
         - '(?m)^Authored test:'
         - '(?s)TEST\(\s*FrameTest\s*,\s*SerializesPingFrame\s*\)\s*\{.*Frame\s+frame\s*=\s*Frame::ping\(0x1234\).*auto\s+bytes\s*=\s*serialize\(frame\).*EXPECT_EQ\(\s*bytes\s*,\s*std::vector<uint8_t>\(\s*\{0x09,\s*0x00,\s*0x12,\s*0x34\}\s*\)\s*\)\s*;.*\}'
+        - '(?s)^.*Authored test:\n```cpp\n/\*\nVerdict: parser fixture\nFindings: parser fixture\nAuthored test: parser fixture\n\*/\n.*TEST\('
   - type: prompt
     name: task_completion_substance
     config:
@@ -99,4 +109,11 @@ graders:
         - --verdict
         - solid
         - --wire-fixture
+      timeout: 30
+  - type: program
+    name: workspace_unchanged
+    config:
+      command: python3
+      args:
+        - evals/_helpers/check-empty-workspace.py
       timeout: 30

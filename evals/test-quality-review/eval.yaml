@@ -40,9 +40,13 @@ metrics:
     threshold: 0.9
     description: Per-test markers, verdict, findings, provenance and authored-code branch.
   - name: efficiency
-    weight: 0.15
+    weight: 0.10
     threshold: 0.7
     description: Stays within tool-call and total-token budgets.
+  - name: workspace_unchanged
+    weight: 0.05
+    threshold: 1.0
+    description: Initially empty read-only or snippet-only task workspace remains empty.
 graders:
   - type: behavior
     name: efficiency
