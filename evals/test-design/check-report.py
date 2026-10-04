@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Validate the test-design report grammar without a model call."""
 
+from __future__ import annotations
+
 import argparse
 import json
 import re
@@ -46,7 +48,7 @@ def validate(
         raise ValueError("case count must be positive and requires a nonblocked profile")
     if len(labels) != 3 or len(set(labels)) != 3 or any("\n" in label or not label.endswith(":") for label in labels):
         raise ValueError("invalid labels")
-    lines = report.replace("\r\n", "\n").replace("\r", "\n").strip().split("\n")
+    lines = report.replace("\r\n", "\n").replace("\r", "\n").rstrip().split("\n")
     if labels != MARKERS and any(line.startswith(marker) for line in lines for marker in MARKERS if marker not in labels):
         raise ValueError("default labels cannot appear when caller labels replace them")
     positions = []
@@ -102,6 +104,19 @@ def self_test() -> None:
     for profile, report in VALID.items():
         validate(report, profile)
     validate(CUSTOM_BLOCKED, "blocked", CUSTOM_LABELS)
+    for profile, base_report in VALID.items():
+        for labels in (MARKERS, CUSTOM_LABELS):
+            candidate = base_report
+            for marker, label in zip(MARKERS, labels):
+                candidate = candidate.replace(marker, label)
+            validate(candidate + "\n", profile, labels)
+            validate(candidate.replace("\n", "\r\n") + "\r\n", profile, labels)
+            for prefix in ("\n", "\n\n", " ", "\t", " \n"):
+                try:
+                    validate(prefix + candidate, profile, labels)
+                except ValueError:
+                    continue
+                raise AssertionError(f"accepted leading whitespace: {profile}, {labels}, {prefix!r}")
     assert set(VALID) == PROFILES, "every supported profile needs a valid fixture"
     # Independent contract matrix: modes are checked against both status families.
     for profile in ("plan", "assessment", "blocked", "implement"):

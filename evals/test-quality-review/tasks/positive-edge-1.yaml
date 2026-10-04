@@ -10,7 +10,9 @@ tags:
   - positive-edge
 inputs:
   prompt: |
-    Review this C++ test for quality. `serialize()` produces the on-the-wire
+    Write the one preselected C++ test below for assertion quality. Its behavior
+    and expected byte sequence are already selected; do not select other cases.
+    No dedicated framework testing workflow is available. `serialize()` produces the on-the-wire
     bytes of a protocol frame, and the wire format is a fixed, externally-specified
     contract that other implementations must interoperate with.
 
@@ -23,7 +25,8 @@ inputs:
     ```
 
     A teammate says "byte-exact assertions are brittle, loosen it". Is this a
-    good test? Answer from this scenario only; do not inspect files. Keep the
+    good test? Return the test code with the exact expected bytes, and judge its quality.
+    Answer from this scenario only; do not inspect files. Keep the
     response concise. Give a per-test verdict and findings keyed to the quality
     checklist.
 expected:
@@ -45,10 +48,13 @@ graders:
     name: task_completion
     config:
       regex_match:
+        - '(?m)^Verdict: (?:solid|weak|cannot-fail)$'
+        - '(?m)^Findings:'
         - '(?i)(byte-?exact|exact.{0,15}assert|byte-?for-?byte).{0,40}(good|correct|justified|appropriate|right)|contract.{0,15}(is )?exact'
         - '(?i)(wire|serializ|protocol).{0,30}(format|contract).{0,30}(is|are).{0,20}(the )?(promise|contract|exact|specified)|interop'
         - '(?i)(not|do not|don.t).{0,20}(loosen|relax|brittle|over-?spec)|keep.{0,20}(it )?(exact|strict)'
         - '(?i)verdict|solid|weak|cannot-?fail'
+        - 'EXPECT_EQ\(bytes, std::vector<uint8_t>\(\{0x09, 0x00, 0x12, 0x34\}\)\)'
   - type: prompt
     name: task_completion_substance
     config:
@@ -62,6 +68,7 @@ graders:
           and it pushes back on the "loosen it" suggestion.
         - It correctly distinguishes this from the bad case (pinning an
           UNpromised incidental detail), which is what the skill warns against.
+        - It writes the one preselected test with EXPECT_EQ on the supplied byte sequence.
         - It returns a per-test verdict of solid (or equivalent).
         A correct response is keyed to the quality checklist.
 

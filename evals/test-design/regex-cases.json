@@ -59,12 +59,14 @@
       "list": "regex_match",
       "index": 4,
       "matches": [
-        "catches the wrong lower bound",
-        "detects a regression in upper clamping"
+        "Designed cases: catches the wrong lower bound\nDesign evidence: contract\nTest execution: Not run; no tests changed.",
+        "Designed cases: detects a regression in upper clamping\nDesign evidence: contract\nTest execution: Not run; no tests changed."
       ],
       "does_not_match": [
         "both bounds considered",
-        "checks below and above range"
+        "checks below and above range",
+        "Designed cases: generic\nDesign evidence: catches the wrong lower bound\nTest execution: Not run; no tests changed.",
+        "Designed cases: generic\nDesign evidence: detects a regression in upper clamping\nTest execution: Not run; no tests changed."
       ]
     },
     {
@@ -74,14 +76,18 @@
       "list": "regex_match",
       "index": 4,
       "matches": [
-        "none persisted",
-        "zero rows written",
-        "zero\nrows persisted",
-        "persisted rows:\nnone"
+        "Designed cases: none persisted\nDesign evidence: contract\nTest execution: Not run; no tests changed.",
+        "Designed cases: zero rows written\nDesign evidence: contract\nTest execution: Not run; no tests changed.",
+        "Designed cases: zero\nrows persisted\nDesign evidence: contract\nTest execution: Not run; no tests changed.",
+        "Designed cases: persisted rows:\nnone\nDesign evidence: contract\nTest execution: Not run; no tests changed."
       ],
       "does_not_match": [
         "one row persisted",
-        "all rows accepted"
+        "all rows accepted",
+        "Designed cases: generic\nDesign evidence: none persisted\nTest execution: Not run; no tests changed.",
+        "Designed cases: generic\nDesign evidence: zero rows written\nTest execution: Not run; no tests changed.",
+        "Designed cases: generic\nDesign evidence: zero\nrows persisted\nTest execution: Not run; no tests changed.",
+        "Designed cases: generic\nDesign evidence: persisted rows:\nnone\nTest execution: Not run; no tests changed."
       ]
     },
     {
@@ -91,11 +97,13 @@
       "list": "regex_match",
       "index": 3,
       "matches": [
-        "InsufficientFunds\n- both balances unchanged",
-        "balances unchanged\n- InsufficientFunds"
+        "Designed cases: InsufficientFunds\n- both balances unchanged\nDesign evidence: contract\nTest execution: Not run; no tests changed.",
+        "Designed cases: balances unchanged\n- InsufficientFunds\nDesign evidence: contract\nTest execution: Not run; no tests changed."
       ],
       "does_not_match": [
-        "InsufficientFunds\n- debit succeeded"
+        "InsufficientFunds\n- debit succeeded",
+        "Designed cases: generic\nDesign evidence: InsufficientFunds\n- both balances unchanged\nTest execution: Not run; no tests changed.",
+        "Designed cases: generic\nDesign evidence: balances unchanged\n- InsufficientFunds\nTest execution: Not run; no tests changed."
       ]
     },
     {
@@ -105,11 +113,13 @@
       "list": "regex_match",
       "index": 4,
       "matches": [
-        "InvalidAmount\n- rejected without mutation",
-        "zero amount\n- rejected"
+        "Designed cases: InvalidAmount\n- rejected without mutation\nDesign evidence: contract\nTest execution: Not run; no tests changed.",
+        "Designed cases: zero amount\n- rejected\nDesign evidence: contract\nTest execution: Not run; no tests changed."
       ],
       "does_not_match": [
-        "positive amount\n- successful transfer"
+        "positive amount\n- successful transfer",
+        "Designed cases: generic\nDesign evidence: InvalidAmount\n- rejected without mutation\nTest execution: Not run; no tests changed.",
+        "Designed cases: generic\nDesign evidence: zero amount\n- rejected\nTest execution: Not run; no tests changed."
       ]
     },
     {
@@ -119,11 +129,13 @@
       "list": "regex_match",
       "index": 3,
       "matches": [
-        "invalid\n- row in the middle",
-        "malformed\n- batch input"
+        "Designed cases: invalid\n- row in the middle\nDesign evidence: contract\nTest execution: Not run; no tests changed.",
+        "Designed cases: malformed\n- batch input\nDesign evidence: contract\nTest execution: Not run; no tests changed."
       ],
       "does_not_match": [
-        "valid row\n- complete batch"
+        "valid row\n- complete batch",
+        "Designed cases: generic\nDesign evidence: invalid\n- row in the middle\nTest execution: Not run; no tests changed.",
+        "Designed cases: generic\nDesign evidence: malformed\n- batch input\nTest execution: Not run; no tests changed."
       ]
     },
     {
@@ -133,11 +145,13 @@
       "list": "regex_match",
       "index": 3,
       "matches": [
-        "below range\n- above range",
-        "upper threshold\n- lower threshold"
+        "Designed cases: below range\n- above range\nDesign evidence: contract\nTest execution: Not run; no tests changed.",
+        "Designed cases: upper threshold\n- lower threshold\nDesign evidence: contract\nTest execution: Not run; no tests changed."
       ],
       "does_not_match": [
-        "only in-range value"
+        "only in-range value",
+        "Designed cases: generic\nDesign evidence: below range\n- above range\nTest execution: Not run; no tests changed.",
+        "Designed cases: generic\nDesign evidence: upper threshold\n- lower threshold\nTest execution: Not run; no tests changed."
       ]
     },
     {
@@ -147,11 +161,13 @@
       "list": "regex_match",
       "index": 6,
       "matches": [
-        "positive transfer debits source and credits destination",
-        "successful transfer\n- moves funds"
+        "Designed cases: positive transfer debits source and credits destination\nDesign evidence: contract\nTest execution: Not run; no tests changed.",
+        "Designed cases: successful transfer\n- moves funds\nDesign evidence: contract\nTest execution: Not run; no tests changed."
       ],
       "does_not_match": [
-        "InsufficientFunds returns error; InvalidAmount rejects"
+        "InsufficientFunds returns error; InvalidAmount rejects",
+        "Designed cases: generic\nDesign evidence: positive transfer debits source and credits destination\nTest execution: Not run; no tests changed.",
+        "Designed cases: generic\nDesign evidence: successful transfer\n- moves funds\nTest execution: Not run; no tests changed."
       ]
     },
     {
@@ -161,11 +177,13 @@
       "list": "regex_match",
       "index": 7,
       "matches": [
-        "combined balance remains unchanged",
-        "preserves\n- total funds"
+        "Designed cases: combined balance remains unchanged\nDesign evidence: contract\nTest execution: Not run; no tests changed.",
+        "Designed cases: preserves\n- total funds\nDesign evidence: contract\nTest execution: Not run; no tests changed."
       ],
       "does_not_match": [
-        "source balance decreases and destination increases"
+        "source balance decreases and destination increases",
+        "Designed cases: generic\nDesign evidence: combined balance remains unchanged\nTest execution: Not run; no tests changed.",
+        "Designed cases: generic\nDesign evidence: preserves\n- total funds\nTest execution: Not run; no tests changed."
       ]
     },
     {
@@ -175,11 +193,13 @@
       "list": "regex_match",
       "index": 6,
       "matches": [
-        "reports\n- the offending row",
-        "invalid row\n- error identifies its index"
+        "Designed cases: reports\n- the offending row\nDesign evidence: contract\nTest execution: Not run; no tests changed.",
+        "Designed cases: invalid row\n- error identifies its index\nDesign evidence: contract\nTest execution: Not run; no tests changed."
       ],
       "does_not_match": [
-        "invalid middle row; persists none; catches partial commit"
+        "invalid middle row; persists none; catches partial commit",
+        "Designed cases: generic\nDesign evidence: reports\n- the offending row\nTest execution: Not run; no tests changed.",
+        "Designed cases: generic\nDesign evidence: invalid row\n- error identifies its index\nTest execution: Not run; no tests changed."
       ]
     },
     {
@@ -189,11 +209,15 @@
       "list": "regex_match",
       "index": 7,
       "matches": [
-        "retain the 90% coverage gate",
-        "90% coverage is required"
+        "Design evidence: retain the 90% coverage gate\nTest execution: Not run; no tests changed.",
+        "Design evidence: 90% coverage is required\nTest execution: Not run; no tests changed.",
+        "Design evidence:\n- retain the 90% coverage gate\nTest execution: Not run; no tests changed."
       ],
       "does_not_match": [
-        "ignore coverage targets"
+        "ignore coverage targets",
+        "Designed cases: [{\"defect\": \"retain the 90% coverage gate\"}]\nDesign evidence: supplied contract\nTest execution: Not run; no tests changed.",
+        "Designed cases: [{\"defect\": \"90% coverage is required\"}]\nDesign evidence: supplied contract\nTest execution: Not run; no tests changed.",
+        "Design evidence: supplied contract\nTest execution: Unverified: retain the 90% coverage gate"
       ]
     },
     {
@@ -203,11 +227,15 @@
       "list": "regex_match",
       "index": 8,
       "matches": [
-        "retry behavior is undecided",
-        "missing decision: retry policy"
+        "Design evidence: retry behavior is undecided\nTest execution: Not run; no tests changed.",
+        "Design evidence: missing decision: retry policy\nTest execution: Not run; no tests changed.",
+        "Design evidence:\n- retry behavior is undecided\nTest execution: Not run; no tests changed."
       ],
       "does_not_match": [
-        "retry succeeds twice"
+        "retry succeeds twice",
+        "Designed cases: [{\"defect\": \"retry behavior is undecided\"}]\nDesign evidence: supplied contract\nTest execution: Not run; no tests changed.",
+        "Designed cases: [{\"defect\": \"missing decision: retry policy\"}]\nDesign evidence: supplied contract\nTest execution: Not run; no tests changed.",
+        "Design evidence: supplied contract\nTest execution: Unverified: retry behavior is undecided"
       ]
     },
     {
@@ -217,12 +245,15 @@
       "list": "regex_match",
       "index": 2,
       "matches": [
-        "Test execution: Ran: node --test => failed",
-        "Test execution: Ran: node --test => exit 1"
+        "Test execution: Ran: node --test test/clamp.test.js => failed",
+        "Test execution: Ran: node --test test/clamp.test.js => exit 1"
       ],
       "does_not_match": [
         "Test execution: Ran: node --test => passed",
-        "Test execution: Unverified: unavailable"
+        "Test execution: Unverified: unavailable",
+        "Test execution: Ran: false => failed",
+        "Test execution: Ran: node --test => exit 1",
+        "Test execution: Ran: node --test test/other.test.js => failed"
       ]
     },
     {
@@ -246,11 +277,39 @@
       "list": "regex_match",
       "index": 5,
       "matches": [
-        "production implementation contains a defect",
-        "clamp.js returns the input value"
+        "Design evidence: production implementation contains a defect\nTest execution: Ran: node --test test/clamp.test.js => failed",
+        "Design evidence: clamp.js returns the input value\nTest execution: Ran: node --test test/clamp.test.js => failed"
       ],
       "does_not_match": [
-        "test run failed"
+        "test run failed",
+        "Designed cases: production implementation contains a defect\nDesign evidence: supplied contract\nTest execution: Ran: node --test test/clamp.test.js => failed",
+        "Designed cases: clamp.js returns the input value\nDesign evidence: supplied contract\nTest execution: Ran: node --test test/clamp.test.js => failed"
+      ]
+    },
+    {
+      "name": "environment limitation belongs in evidence",
+      "task": "tasks/positive-edge-5.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 3,
+      "matches": [
+        "Design evidence: physical sensor hardware unavailable\nTest execution: Unverified: sensor unavailable"
+      ],
+      "does_not_match": [
+        "Designed cases: hardware unavailable\nDesign evidence: supplied contract\nTest execution: Unverified: hardware unavailable"
+      ]
+    },
+    {
+      "name": "hardware defect belongs in cases",
+      "task": "tasks/positive-edge-5.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 4,
+      "matches": [
+        "Designed cases: calibration test catches incorrect scale\nDesign evidence: supplied contract"
+      ],
+      "does_not_match": [
+        "Designed cases: generic test\nDesign evidence: incorrect calibration"
       ]
     }
   ]

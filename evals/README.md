@@ -316,7 +316,7 @@ edge uses supplied repository files and an exact test-file diff snapshot to requ
 executable interior and boundary tests (with an explicit formatting contract),
 plus text assertions for the defect caught and execution outcome.
 
-The isolated-test audit and available-framework precedence are independent
+The isolated-test audit, writing one preselected test, and available-framework precedence are independent
 negative-close tasks. The implementation edge supplies the positive framework
 fallback when no dedicated workflow exists; flaky-test diagnosis has its own
 negative-close task.
@@ -331,10 +331,11 @@ The assessment edge checks singleton selection with a JSON case array and
 `check-report.py assessment --case-count 1`; each object requires nonempty
 `behavior`, `expected`, and `defect` strings. The count constraint applies only
 when requested, not to ordinary assessments. It also checks partial contracts
-and an explicit coverage gate. Reports start with their first label.
+and an explicit coverage gate; those two evidence assertions cannot match case or execution content. Reports start with their first label, without a blank or whitespace preamble. The diagnosed-failure task requires the exact supplied test command in the execution report.
 Additional implementation edges require an unavailable-run status when hardware
 has no faithful substitute and a diagnosed failure against unchanged buggy
 production code. The user approved this expanded coverage matrix.
+The isolated test-quality workflow owns writing one caller-preselected test; its existing byte-exact positive edge exercises that branch. Feature case selection and implementation remain in the feature workflow even if selection yields one case.
 The `production_unchanged` diff grader compares `clamp.js` with the exact
 snapshot under `evals/test-design/snapshots/`, with `update_snapshots: false`.
 Snapshot comparison follows the [Waza v0.33.0 diff grader](https://github.com/microsoft/waza/blob/v0.33.0/docs/graders/diff.md).
@@ -380,3 +381,11 @@ waza run evals/<skill>/eval.yaml \
   --reporter junit:junit.xml \
   -v
 ```
+
+The existing `test-quality-review` suite retains its per-test `Verdict:` and
+`Findings:` labels and substance judge. This routing repair does not introduce a
+new conditional report grammar; no report-validator metric is added to this
+legacy suite. Positive tasks now require both canonical labels. Its trigger
+threshold is 0.45 and token budget is 8,000. The existing byte-exact edge requests
+writing one caller-preselected test; the test-design negative mirror excludes
+feature-design output on that request.

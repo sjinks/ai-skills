@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check test-design task projections without model calls."""
 
+import ast
 import importlib.util
 from pathlib import Path
 
@@ -13,9 +14,11 @@ def main() -> None:
     Also check caller labels, negative exclusions, and implementation assertions.
     """
     root = Path(__file__).resolve().parent
+    ast.parse((root / "check-report.py").read_text(), feature_version=(3, 9))
     spec = importlib.util.spec_from_file_location("report_contract", root / "check-report.py")
     report = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(report)
+    assert isinstance(report.validate.__annotations__["case_count"], str)
     expected = {
         "positive-trigger-1.yaml": "plan",
         "positive-edge-1.yaml": "blocked",
@@ -93,7 +96,7 @@ def main() -> None:
     for name in expected:
         task = yaml.safe_load((root / "tasks" / name).read_text())
         patterns = next(g for g in task["graders"] if g["name"] == "task_completion")["config"]["regex_match"]
-        assert all("(?is)" in pattern for pattern in patterns if ".{" in pattern), (name, "missing DOTALL")
+        assert all(any(flag in pattern for flag in ("(?is)", "(?ims)")) for pattern in patterns if ".{" in pattern), (name, "missing DOTALL")
     # Exact file contracts reject omitted, commented, and altered assertions.
     for name in ("positive-edge-2.yaml", "positive-edge-4.yaml", "positive-edge-5.yaml"):
         task = yaml.safe_load((root / "tasks" / name).read_text())
@@ -113,12 +116,29 @@ def main() -> None:
                 assert snapshot != snapshot.replace("assert.equal", "// assert.equal")
                 assert snapshot != snapshot.replace(", 20);", ", 21);").replace(", 0);", ", 1);"), name
         if name == "positive-edge-4.yaml":
-            assert "=> (?:failed|exit 1)$" in graders["task_completion"]["config"]["regex_match"][2]
+            assert graders["task_completion"]["config"]["regex_match"][2] == r"(?m)^Test execution: Ran: node --test test/clamp\.test\.js => (?:failed|exit 1)$"
         elif name == "positive-edge-5.yaml":
             assert "Unverified:" in graders["task_completion"]["config"]["regex_match"][2]
+    assessment = yaml.safe_load((root / "tasks/positive-edge-3.yaml").read_text())
+    semantic = next(g for g in assessment["graders"] if g["name"] == "task_completion")["config"]["regex_match"]
+    assert all(pattern.startswith("(?ims)^Design evidence:") and pattern.endswith(r"\nTest execution: [^\n]*$") for pattern in semantic[7:9])
+    quality = (repo / "skills/test-quality-review/SKILL.md").read_text()
+    assert "writing one preselected test" in quality
+    assert "caller has already selected one behavior and its expected result" in quality
+    quality_root = repo / "evals/test-quality-review"
+    for path in (quality_root / "tasks").glob("positive*.yaml"):
+        quality_task = yaml.safe_load(path.read_text())
+        assertions = next(g for g in quality_task["graders"] if g["name"] == "task_completion")["config"]["regex_match"]
+        assert any("^Verdict:" in pattern for pattern in assertions), path
+        assert any("^Findings:" in pattern for pattern in assertions), path
+    writing = yaml.safe_load((quality_root / "tasks/positive-edge-1.yaml").read_text())
+    assert "Write the one preselected" in writing["inputs"]["prompt"]
+    assert "No dedicated framework" in writing["inputs"]["prompt"]
     source = (repo / "skills/test-design/SKILL.md").read_text()
     assert "Start with the first label." in source
     assert "regardless of case count" in source
+    assert "writing one preselected test" in source
+    assert (root / "tasks/negative-close-5.yaml").exists()
     assert "Run final changed tests." in source
     assert "If tests change, rerun." in source
     for name in ("positive-edge-2.yaml", "positive-edge-4.yaml"):

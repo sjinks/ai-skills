@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/eval.schema.json
 name: test-quality-review-eval
 description: |
-  Evaluates the test-quality-review skill: it activates for auditing or writing
-  an individual test (not a test plan) for whether it can fail for one
+  Evaluates the test-quality-review skill: it activates for auditing test code or writing
+  one preselected test (not selecting feature cases or a test plan) for whether it can fail for one
   behavioral reason, targets observable behavior over incidental detail, is
   deterministic and isolated, and covers the negative/boundary paths it claims;
   stays silent on choosing what to test, framework mechanics, and diagnosing an

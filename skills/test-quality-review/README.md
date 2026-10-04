@@ -1,8 +1,10 @@
 # test-quality-review
 
-> Use when: writing, reviewing, or auditing a test (not a test plan) for quality - tests with no assertion or that cannot fail, assertions on incidental implementation detail instead of behavior, sleep-based or clock/network-dependent non-determinism, shared-state leakage between tests, over-mocking, tautologies, and missing negative/error-path coverage.
+> Audit test code or write one caller-preselected test for assertion quality, determinism, isolation, and behavioral focus.
 
 This skill judges whether a test is a *good* test — one that fails when the behavior breaks and passes only when it works. The governing rule: a test must be able to fail for exactly one behavioral reason, and that reason must be the thing it claims to verify. It is the test-code counterpart to auditing acceptance criteria (that judges the plan; this judges the test code), and is standalone: it routes what-to-test, framework mechanics, and CI-flake diagnosis elsewhere.
+
+It owns writing one test whose behavior and expected result the caller already selected. Feature case selection and implementation of that selected set belong to the feature testing workflow, including sets of one. Available dedicated framework workflows take precedence for writing.
 
 It helps an assistant:
 
@@ -13,4 +15,9 @@ It helps an assistant:
 
 ## Files
 
-- [`SKILL.md`](SKILL.md) — the full skill definition.
+- [`SKILL.md`](SKILL.md) — the operational skill definition.
+- [`references/quality-checklist.md`](references/quality-checklist.md) — six gating quality dimensions and failure patterns.
+
+The existing eval suite retains its per-test labels and substance judge without a
+report-validator metric; this update changes routing and reference placement.
+Static checks verify label projections; live model behavior remains unmeasured.

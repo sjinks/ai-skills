@@ -69,11 +69,10 @@ graders:
     regex_match:
     - '(?m)^Designed cases:'
     - '(?m)^Design evidence:'
-    - '(?m)^Test execution: Ran: \S(?:[^\n]*\S)? => (?:failed|exit 1)$'
-    - (?is)(below|min|lower).{0,120}(above|max|upper)|(above|max|upper).{0,120}(below|min|lower)
-    - (?i)(defect|bug|regress|incorrect|wrong|mistake)
-    - '(?is)(production|clamp\.js|implementation).{0,150}(defect|bug|unresolved|returns? (?:the
-      )?(?:input|value))|(defect|bug|unresolved).{0,150}(production|clamp\.js|implementation)'
+    - '(?m)^Test execution: Ran: node --test test/clamp\.test\.js => (?:failed|exit 1)$'
+    - '(?ims)^Designed cases:.*(?:(below|min|lower).{0,120}(above|max|upper)|(above|max|upper).{0,120}(below|min|lower)).*\nDesign evidence:'
+    - '(?ims)^Designed cases:.*(?:(defect|bug|regress|incorrect|wrong|mistake)).*\nDesign evidence:'
+    - '(?ims)^Design evidence:.*(?:(production|clamp\.js|implementation).{0,150}(defect|bug|unresolved|returns? (?:the )?(?:input|value))|(defect|bug|unresolved).{0,150}(production|clamp\.js|implementation)).*\nTest execution:'
     not_contains:
     - 'Test execution: Not run; no tests changed.'
 - type: program

@@ -44,12 +44,12 @@ graders:
         - '(?m)^Designed cases:'
         - '(?m)^Design evidence:'
         - '(?m)^Test execution: Not run; no tests changed\.'
-        - '(?is)(invalid|malformed).{0,180}(row|batch)'
-        - '(?is)(none|nothing|zero).{0,90}(persist|saved|written)|(persist|saved|written).{0,90}(none|nothing|zero)'
-        - '(?i)(partial|atomic|rollback|all-or-nothing)'
-        - '(?is)(report|identify|return|error|offending).{0,100}(invalid|offending|malformed|index|row)|(invalid|offending|malformed).{0,100}(row|index).{0,100}(report|identify|return|error)'
-        - '(?is)90%.{0,100}(requir|gate|retain|honor)|(requir|gate|retain|honor).{0,100}90%'
-        - '(?is)retry.{0,100}(undecided|unspecified|unknown|missing|decision)|(undecided|unspecified|unknown|missing|decision).{0,100}retry'
+        - '(?ims)^Designed cases:.*(?:(invalid|malformed).{0,180}(row|batch)).*\nDesign evidence:'
+        - '(?ims)^Designed cases:.*(?:(none|nothing|zero).{0,90}(persist|saved|written)|(persist|saved|written).{0,90}(none|nothing|zero)).*\nDesign evidence:'
+        - '(?ims)^Designed cases:.*(?:(partial|atomic|rollback|all-or-nothing)).*\nDesign evidence:'
+        - '(?ims)^Designed cases:.*(?:(report|identify|return|error|offending).{0,100}(invalid|offending|malformed|index|row)|(invalid|offending|malformed).{0,100}(row|index).{0,100}(report|identify|return|error)).*\nDesign evidence:'
+        - '(?ims)^Design evidence:.*(?:90%.{0,100}(requir|gate|retain|honor)|(requir|gate|retain|honor).{0,100}90%).*\nTest execution: [^\n]*$'
+        - '(?ims)^Design evidence:.*(?:retry.{0,100}(undecided|unspecified|unknown|missing|decision)|(undecided|unspecified|unknown|missing|decision).{0,100}retry).*\nTest execution: [^\n]*$'
       not_contains:
         - 'Designed cases: Blocked.'
   - type: program
