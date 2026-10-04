@@ -110,6 +110,7 @@ metric → grader weighting takes effect.
   - `web-app-security-review`: 0.45
   - `test-gap-to-test-plan`: 0.55
   - `archive-extraction-safety`: 0.50
+  - `controlled-agent-instruction-english`: 0.45 (initial heuristic threshold; live calibration pending)
   - `cross-model-instruction-authoring`: 0.45
   - `auth-claim-contract-review`: 0.45
   - `dependency-audit`: 0.50
@@ -542,3 +543,56 @@ python3 evals/iteration-retrospective/check-projections.py --negative-task negat
 python3 evals/iteration-retrospective/check-report.py --verdict CLEAN < report.txt
 python3 evals/_helpers/check-eval-regexes.py --root evals/iteration-retrospective
 ```
+
+
+## Controlled agent instruction English
+
+`controlled-agent-instruction-english` uses a 0.45 trigger threshold, 8,000-token
+budget, and eight tool calls. The positive trigger covers authoring with mandatory
+validation, literal preservation, and a failure branch. The audit edge covers
+mandatory modality, prerequisite order, and a warning requiring an unresolved
+antecedent to be clarified. Two close negatives cover ordinary
+prose editing and model selection without an artifact; the unique off-topic
+negative covers a bead-count arithmetic puzzle.
+
+The positive edges cover findings audits, clean audits with advisory thresholds,
+missing audit input, unresolved intended behavior during a rewrite, and combined
+audit-and-rewrite requests. The user explicitly approved the final nine-task
+coverage matrix. The two blocked tasks distinguish unavailable audit text from
+readable source whose intended failure policy cannot be chosen, even in a combined
+audit-and-rewrite request. The author trigger also exercises sufficient purpose and
+constraints despite an unavailable source. Coverage of further author-input and
+combined-clean branches is being prepared; the nine-task matrix is the currently
+approved scope.
+There are no reusable existing tasks in this new suite; neighboring suites have
+different report and routing contracts and cannot independently assert this one.
+
+The `report_contract` program metric (threshold 1.0) selects `author`, `author-findings`,
+`audit-clean`, `audit-findings`, or `blocked`. All five grammar profiles are covered
+by deterministic fixtures, including the combined `author-findings` profile.
+Selected author, audit, combined, and unresolved-intent positives include a `task_completion_substance` judge
+metric (threshold 0.9) to reject reversed prerequisites and ineffective corrections.
+This is an intentional selected-task metric; negatives retain exclusion graders,
+and clean/missing-audit-input edges use deterministic branch assertions.
+The unresolved-author-intent rubric rejects a chosen failure policy or invented
+fallback, while allowing both policies to be named as unresolved alternatives. The judge rubrics are
+configured, but their behavior has not been measured by a live run.
+Run the free preflight with:
+
+```sh
+python3 evals/controlled-agent-instruction-english/check-report.py --self-test --projections
+python3 evals/_helpers/check-eval-regexes.py --root evals/controlled-agent-instruction-english
+waza check skills/controlled-agent-instruction-english
+```
+
+The validator checks marker order/cardinality, enums, findings fields, artifact
+payload boundaries, profile crossover, clarification questions ending in `?`,
+nonempty path/section locations, and terminal status. It mechanically
+checks decoded positive marker assertions, program/profile bindings, and complete
+negative exclusions. Static checks do not establish model behavior; no live eval
+has been approved or run for this onboarding.
+
+Positive prompts explicitly permit reading the invoked skill and its bundled
+references while forbidding inspection or modification of scenario workspace
+files. This preserves mandatory resource loading without assuming a runtime
+installation path.

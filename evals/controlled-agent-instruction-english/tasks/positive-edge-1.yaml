@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-1
+name: Audit mandatory modality and conflicting order
+description: Audit mandatory modality and conflicting order
+tags:
+- positive-edge
+inputs:
+  prompt: |-
+    Audit these agent instructions for meaningful controlled-English defects. The caller confirms testing is mandatory, and publication must happen after successful testing. Supplied snippet line 1: "You should run the tests." Supplied snippet line 2: "Publish before testing." Supplied snippet line 3: "Read the log and the report. Archive it." Neither artifact is preferred for archiving; the caller has not chosen the intended antecedent and no explicit archiving constraint exists. Identify all three defects with rule IDs, affected text, operational risks, and concrete corrections. Do not rewrite the whole artifact.
+    Answer using the supplied scenario only. Do not inspect or modify scenario workspace files. You may read the invoked skill and its bundled references.
+expected:
+  should_trigger: true
+graders:
+- type: trigger
+  name: trigger_accuracy
+  config:
+    skill_path: skills/controlled-agent-instruction-english/SKILL.md
+    mode: positive
+    threshold: 0.45
+- type: skill_invocation
+  name: skill_invocation
+  config:
+    required_skills:
+    - controlled-agent-instruction-english
+    mode: any_order
+- type: text
+  name: task_completion
+  config:
+    regex_match:
+    - '(?m)^CAIE mode:'
+    - '(?m)^CAIE artifact:'
+    - '(?m)^CAIE findings:'
+    - '(?m)^CAIE status:'
+    - '(?m)^CAIE mode: audit$'
+    - '(?m)^CAIE status: Findings$'
+    - '(?m)^- error \| N4 \| supplied snippet:1 \|'
+    - '(?m)^- error \| (C6|C8) \| supplied snippet:2 \|'
+    - '(?m)^- warning \| (R1|R5) \| supplied snippet:3 \|[^\n]*\| Clarify: [^\n]*\?$'
+    - (?i)should
+    - (?i)publish
+- type: program
+  name: report_contract
+  config:
+    command: python3
+    args:
+    - evals/controlled-agent-instruction-english/check-report.py
+    - audit-findings
+    timeout: 30
+- type: prompt
+  name: task_completion_substance
+  config:
+    prompt: |-
+      Inspect the finding bullets, not merely the presence of keywords. Score 1.0 only if N4 has severity error and is grounded at supplied snippet:1 with the affected optional "should" wording, explains that mandatory testing becomes optional, and corrects it to mandatory testing; C6 or C8 is grounded at supplied snippet:2 with severity error for the direct conflict, identifies the publish-before-testing defect, and corrects it so publication is allowed only after successful testing. Reject switched evidence locations, testing that remains optional, publication before testing, or contradictory corrections. A third finding must use warning, R1 or R5, and supplied snippet:3, explain the ambiguous log-versus-report antecedent, and end with a Clarify: question asking which artifact to archive. Reject error severity for this ambiguity, a chosen antecedent, or an invented archiving policy. Score 0.0 if any defect is absent, misgrounded, or ineffectively corrected.
+      Output one sentence of reasoning, then only 1.0 or 0.0 on the last line.
+    mode: independent
