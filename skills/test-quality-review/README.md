@@ -24,3 +24,9 @@ and findings. Findings cite real reviewed files or supplied/generated snippet
 lines; authoring does not require an existing file. The suite-local deterministic
 validator checks both review and authoring branches plus a missing-context eval that requests the absent expected behavior and emits no invented code.
 Live model behavior remains unmeasured.
+
+Writing accepts an existing draft or no test body. The authoring eval rewrites
+a supplied no-op draft while constructing the required setup and assertion.
+Bulk reviews emit one report per test in input order; the validator checks
+report count and individual verdicts. A separate negative case covers an
+available framework-authoring workflow.

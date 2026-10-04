@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate one per-test quality report without calling a model."""
+"""Validate single or repeated per-test quality reports without calling a model."""
 from __future__ import annotations
 
 import argparse
@@ -13,7 +13,7 @@ WIRE_CODE = "TEST(FrameTest, SerializesPingFrame) {\n  Frame frame = Frame::ping
 VERDICTS = {"solid", "weak", "cannot-fail", "insufficient-context"}
 
 
-def validate(text: str, profile: str, labels: tuple[str, ...] = (), expected: str | None = None, wire_fixture: bool = False) -> None:
+def validate_one(text: str, profile: str, labels: tuple[str, ...] = (), expected: str | None = None, wire_fixture: bool = False) -> None:
     """Validate marker cardinality, order, domains, branch and termination.
 
     Findings use file/snippet location syntax; authored code is fenced last.
@@ -81,6 +81,38 @@ def validate(text: str, profile: str, labels: tuple[str, ...] = (), expected: st
                 raise ValueError("generated snippet line out of bounds")
 
 
+def validate(text: str, profile: str, labels: tuple[str, ...] = (), expected: str | None = None, wire_fixture: bool = False, test_count: int = 1, verdicts: tuple[str, ...] = ()) -> None:
+    """Frame repeated review reports and validate each one independently.
+
+    Authoring invocations remain singular. Batch expectations
+    are optional outside task fixtures; report count is always explicit here.
+    """
+    if wire_fixture and profile != "author":
+        raise ValueError("wire fixture requires author profile")
+    if type(test_count) is not int or test_count < 1 or (test_count != 1 and profile != "review"):
+        raise ValueError("multiple reports require review profile and positive test count")
+    if verdicts and (expected is not None or len(verdicts) != test_count or any(value not in VERDICTS for value in verdicts)):
+        raise ValueError("per-test verdicts must match the report count")
+    if test_count == 1:
+        validate_one(text, profile, labels, verdicts[0] if verdicts else expected, wire_fixture)
+        return
+    active = labels or MARKERS[:2]
+    if len(active) != 2:
+        raise ValueError("review requires two labels")
+    lines = text.replace("\r\n", "\n").replace("\r", "\n").rstrip().split("\n")
+    starts = [index for index, line in enumerate(lines) if line.startswith(active[0])]
+    if len(starts) != test_count or starts[0] != 0:
+        raise ValueError("report count or first marker mismatch")
+    if any(lines[start - 1].strip() for start in starts[1:]):
+        raise ValueError("separate review reports with a blank line")
+    for index, start in enumerate(starts):
+        end = starts[index + 1] if index + 1 < len(starts) else len(lines)
+        report = "\n".join(lines[start:end])
+        report_verdict = lines[start][len(active[0]):].strip()
+        report_profile = "missing" if report_verdict == "insufficient-context" else "review"
+        validate_one(report, report_profile, active, verdicts[index] if verdicts else expected)
+
+
 VALID = {
     "review": "Verdict: cannot-fail\nFindings:\n- 1 | supplied snippet:4 | self-comparison | assert expected 900",
     "author": "Verdict: solid\nFindings: None. Exact bytes match the wire contract.\nAuthored test:\n```cpp\nTEST(FrameTest, SerializesPingFrame) { EXPECT_EQ(serialize(Frame::ping(0x1234)), expected); }\n```",
@@ -139,11 +171,51 @@ def self_test() -> None:
         except ValueError:
             continue
         raise AssertionError("accepted unconstructed wire fixture")
+    batch = VALID["review"] + "\n\nVerdict: solid\nFindings: None. The supplied contract value is asserted directly."
+    for labels in (MARKERS[:2], ("Decision:", "Quality notes:")):
+        candidate = batch.replace(MARKERS[0], labels[0]).replace(MARKERS[1], labels[1])
+        validate(candidate, "review", labels, test_count=2, verdicts=("cannot-fail", "solid"))
+        for mutation in (candidate.replace("\n\n", "\n"), candidate.split("\n\n", 1)[0], candidate + "\n" + candidate, candidate.replace(labels[1] + " None.", "Omitted: None."), candidate.replace("solid", "invalid"), candidate + "\nTrailing prose."):
+            try:
+                validate(mutation, "review", labels, test_count=2, verdicts=("cannot-fail", "solid"))
+            except ValueError:
+                continue
+            raise AssertionError("accepted batch report mutation")
+    partial = batch.split("\n\n", 1)[0] + "\n\n" + VALID["missing"]
+    validate(partial, "review", test_count=2, verdicts=("cannot-fail", "insufficient-context"))
+    for index in range(2):
+        reports = batch.split("\n\n")
+        original = reports[index]
+        mutations = [original.replace("Verdict:", "Omitted:", 1), original + "\nFindings:", original.replace("Verdict:", "Authored test:", 1)]
+        lines = original.splitlines()
+        mutations.append("\n".join([lines[1], lines[0]] + lines[2:]))
+        for mutation in mutations:
+            changed = reports[:]
+            changed[index] = mutation
+            try:
+                validate("\n\n".join(changed), "review", test_count=2)
+            except ValueError:
+                continue
+            raise AssertionError("accepted per-report batch mutation")
+    for options in ({"wire_fixture": True}, {"verdicts": ("solid",)}, {"verdicts": ("invalid", "solid")}, {"expected": "solid", "verdicts": ("cannot-fail", "solid")}, {"labels": ("Verdict:", "Verdict:")}, {"labels": ("Verdict", "Findings:")}, {"profile": "author"}, {"profile": "missing"}):
+        kwargs = {"profile": "review", "test_count": 2}
+        kwargs.update(options)
+        try:
+            validate(batch, **kwargs)
+        except ValueError:
+            continue
+        raise AssertionError("accepted invalid batch options")
+    for count in (0, -1, True):
+        try:
+            validate(batch, "review", test_count=count)
+        except ValueError:
+            continue
+        raise AssertionError("accepted invalid report count")
     print("quality report profiles and deterministic mutations: passed")
 
 
 def main() -> None:
-    """Read one report from stdin, or run free local mutation checks."""
+    """Read reports from stdin, or run free local mutation checks."""
     if sys.argv[1:] == ["--self-test"]:
         self_test()
         return
@@ -152,9 +224,11 @@ def main() -> None:
     parser.add_argument("labels", nargs="*")
     parser.add_argument("--verdict", choices=sorted(VERDICTS))
     parser.add_argument("--wire-fixture", action="store_true")
+    parser.add_argument("--test-count", type=int, default=1)
+    parser.add_argument("--verdicts", help="comma-separated per-test verdicts")
     args = parser.parse_intermixed_args()
     try:
-        validate(sys.stdin.read(), args.profile, tuple(args.labels), args.verdict, args.wire_fixture)
+        validate(sys.stdin.read(), args.profile, tuple(args.labels), args.verdict, args.wire_fixture, args.test_count, tuple(args.verdicts.split(",")) if args.verdicts else ())
     except ValueError as error:
         raise SystemExit(str(error)) from error
 

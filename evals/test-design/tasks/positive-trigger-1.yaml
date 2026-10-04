@@ -6,14 +6,16 @@ tags:
   - positive-trigger
 inputs:
   prompt: |
-    Design automated test cases for a transfer function. The contract says a
+    Help me test a transfer function. The contract says a
     positive amount moves funds from one account to another, preserving the
     combined balance. If the source lacks funds, it returns InsufficientFunds
     and leaves both accounts unchanged. Zero and negative amounts are rejected
     with InvalidAmount and leave both accounts unchanged. Assume an in-memory
-    deterministic implementation; propose cases only and do not inspect files.
+    deterministic implementation; use only this supplied contract. I have not
+    requested file changes.
     Keep the set small. For each case, give the expected observation and a
-    plausible defect it would catch.    Under Designed cases:, use a raw JSON array containing exactly 4 objects,
+    plausible defect it would catch.
+    Under Designed cases:, use a raw JSON array containing exactly 4 objects,
     with exactly these keys: "behavior", "expected", "defect".
     Each value must be a nonempty string.
     Each object must map its own behavior to its observation and concrete defect;

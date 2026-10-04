@@ -12,10 +12,11 @@ inputs:
     value within the inclusive range. Keep its existing interior case. Add
     `node:test` cases using `assert.equal` to check that `clamp(-1, 0, 10)` is
     `0` and `clamp(11, 0, 10)` is `10`. Edit the test file; do not merely show
-    code in your reply or change `clamp.js`. Run `node --test test/clamp.test.js`
-    when available, then report the cases, contract evidence, and actual
+    code in your reply or change `clamp.js`. Run `node --test test/clamp.test.js`,
+    then report the cases, contract evidence, and actual
     verification result and the defect each case catches. No dedicated testing
-    workflow is available for this framework. If execution is unavailable, say why.
+    workflow is available for this framework. Node is available; execute the final
+    tests with the supplied command and report the successful result.
     Keep package.json unchanged; do not install dependencies or create package/install artifacts.
     Execute the final edited tests. If diagnosis changes tests, rerun them and
     report the latest outcome; a run before those changes is not final evidence.
@@ -74,7 +75,7 @@ graders:
       regex_match:
         - '(?m)^Designed cases:'
         - '(?m)^Design evidence:'
-        - '(?m)^Test execution: (?:Unverified: \S[^\n]*|Ran: node --test test/clamp\.test\.js => (?:passed|failed|exit -?\d+))$'
+        - '(?m)^Test execution: Ran: node --test test/clamp\.test\.js => passed$'
         - '(?ims)^Designed cases:.*(?:(below|min|lower).{0,120}(above|max|upper)|(above|max|upper).{0,120}(below|min|lower)).*\nDesign evidence:'
         - '(?ims)^Designed cases:.*(?:(defect|bug|regress|incorrect|wrong|mistake)).*\nDesign evidence:'
       not_contains:

@@ -421,3 +421,16 @@ python3 evals/test-design/check-report.py implement --case-count 3 < report.txt
 The approved isolated-authoring missing-context edge uses `check-report.py missing`
 and requires the absent behavior/expected-result contract without invented code.
 The projection map now covers review, authoring, and missing-context tasks.
+
+The feature plan task now discriminates the read-only default when no test
+modification was requested. The runnable clamp edge explicitly provides Node
+and requires the supplied command to pass; failed and unavailable execution
+remain separate edges. Quality authoring accepts an existing draft body.
+Its framework-precedence negative and two-test review edge were user-approved.
+Multiple review reports use the same grammar in input order, separated by a
+blank line. Authoring remains singular; missing-context reports may occur per
+reviewed test. Validate batches with:
+
+```bash
+python3 evals/test-quality-review/check-report.py review --test-count 2 --verdicts cannot-fail,solid < report.txt
+```

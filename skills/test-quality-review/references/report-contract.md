@@ -36,7 +36,10 @@ Findings: Missing: <test body for review, code under test if needed, or contract
 
 Do not emit code for insufficient context. Writing needs a selected behavior
 and expected result, not an existing test body. Caller labels still apply.
-Multiple reports repeat this grammar independently, one per test.
+For reviewing multiple tests, repeat this grammar independently in input order,
+one report per test, with a blank line between reports. Do not add a shared
+preamble or summary. Writing remains limited to one preselected test.
+An existing draft body is optional for writing; rewrite it when requested.
 
 ## Complete Report Examples
 

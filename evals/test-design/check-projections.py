@@ -3,6 +3,7 @@
 
 import ast
 import importlib.util
+import re
 from pathlib import Path
 
 import yaml
@@ -81,7 +82,7 @@ def main() -> None:
     assert expected_test != "// " + expected_test.replace("\n", "\n// "), "comments cannot replace tests"
     patterns = graders["task_completion"]["config"]["regex_match"]
     assert "defect" in patterns[4]
-    assert patterns[2] == r"(?m)^Test execution: (?:Unverified: \S[^\n]*|Ran: node --test test/clamp\.test\.js => (?:passed|failed|exit -?\d+))$"
+    assert patterns[2] == r"(?m)^Test execution: Ran: node --test test/clamp\.test\.js => passed$"
     diff = graders["production_unchanged"]
     assert diff["type"] == "diff" and diff["config"]["update_snapshots"] is False
     expectation = diff["config"]["expected_files"]
@@ -147,7 +148,7 @@ def main() -> None:
     quality_metrics = {m["name"]: m for m in quality_manifest["metrics"]}
     assert "report_contract" in quality_metrics
     assert abs(sum(m["weight"] for m in quality_metrics.values()) - 1.0) < 1e-9
-    quality_profiles = {"positive-trigger-1.yaml": "review", "positive-trigger-2.yaml": "review", "positive-edge-1.yaml": "author", "positive-edge-2.yaml": "missing"}
+    quality_profiles = {"positive-trigger-1.yaml": "review", "positive-trigger-2.yaml": "review", "positive-edge-1.yaml": "author", "positive-edge-2.yaml": "missing", "positive-edge-3.yaml": "review"}
     assert set(quality_profiles.values()) == quality_report.PROFILES
     assert set(quality_profiles) == {path.name for path in (quality_root / "tasks").glob("positive*.yaml")}
     for path in (quality_root / "tasks").glob("*.yaml"):
@@ -162,6 +163,15 @@ def main() -> None:
             args = quality_graders["report_contract"]["config"]["args"]
             assert args[1] == profile
             assert ("--wire-fixture" in args) == (profile == "author")
+            batch = path.name == "positive-edge-3.yaml"
+            if batch:
+                assert args[args.index("--test-count") + 1] == "2"
+                assert args[args.index("--verdicts") + 1] == "cannot-fail,solid"
+                fixture = quality_report.VALID["review"].replace("snippet:4", "snippet:3").replace("expected 900", "expected 8") + "\n\nVerdict: solid\nFindings: None. Assert the expected result directly."
+                quality_report.validate(fixture, "review", test_count=2, verdicts=("cannot-fail", "solid"))
+                assert all(re.search(pattern, fixture) for pattern in patterns), path
+                assert "Authored test:" in assertions["not_contains"], path
+                continue
             expected_verdict = {"positive-trigger-1.yaml": "cannot-fail", "positive-trigger-2.yaml": "weak", "positive-edge-1.yaml": "solid", "positive-edge-2.yaml": "insufficient-context"}[path.name]
             assert args[args.index("--verdict") + 1] == expected_verdict
             fixture = quality_report.VALID[profile]
@@ -185,15 +195,21 @@ def main() -> None:
             if path.resolve().is_relative_to((repo / "skills/test-quality-review").resolve()):
                 continue
             assert quality_report.MARKERS[2] not in path.read_text(), (path, "authored marker collision")
+    precedence = yaml.safe_load((quality_root / "tasks/negative-close-3.yaml").read_text())
+    assert "dedicated Jest testing workflow is available" in precedence["inputs"]["prompt"]
+    assert "An existing test body is optional for writing." in quality
     writing = yaml.safe_load((quality_root / "tasks/positive-edge-1.yaml").read_text())
-    assert "Write one preselected" in writing["inputs"]["prompt"]
+    assert "Rewrite one preselected" in writing["inputs"]["prompt"]
     assert "No dedicated framework" in writing["inputs"]["prompt"]
-    assert "TEST(" not in writing["inputs"]["prompt"]
+    assert "EXPECT_TRUE(true)" in writing["inputs"]["prompt"]
+    assert quality_report.WIRE_CODE not in writing["inputs"]["prompt"]
     assert "EXPECT_EQ(" not in writing["inputs"]["prompt"]
     source = (repo / "skills/test-design/SKILL.md").read_text()
     assert "Start with the first label." in source
     assert "regardless of case count" in source
-    assert "writing one preselected test" in source
+    assert "preselected single-test writing" in source
+    assert "Implement only when explicitly asked to modify tests." in source
+    assert "Otherwise plan or assess requested suite gaps without editing." in source
     assert (root / "tasks/negative-close-5.yaml").exists()
     assert "Run final changed tests." in source
     assert "If tests change, rerun." in source

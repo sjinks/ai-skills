@@ -42,6 +42,22 @@
         "Findings: Missing: existing test body",
         "Findings: None. normalize trims spaces."
       ]
+    },
+    {
+      "name": "first report identifies tautology and fixes contract value",
+      "task": "tasks/positive-edge-3.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 3,
+      "matches": [
+        "- 1 | supplied snippet:3 | self-comparison ignores behavior | compare result with 8"
+      ],
+      "does_not_match": [
+        "- 1 | supplied snippet:6 | self-comparison ignores behavior | compare result with 8",
+        "- 1 | supplied snippet:3 | checks expected result | compare result with 8",
+        "- 1 | supplied snippet:3 | tautology | improve assertion",
+        "- 1 | supplied snippet:3 | tautology\n | compare result with 8"
+      ]
     }
   ]
 }

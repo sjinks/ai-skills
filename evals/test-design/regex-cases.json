@@ -35,10 +35,7 @@
       "list": "regex_match",
       "index": 2,
       "matches": [
-        "Test execution: Ran: node --test test/clamp.test.js => passed",
-        "Test execution: Ran: node --test test/clamp.test.js => failed",
-        "Test execution: Ran: node --test test/clamp.test.js => exit 1",
-        "Test execution: Unverified: node unavailable"
+        "Test execution: Ran: node --test test/clamp.test.js => passed"
       ],
       "does_not_match": [
         "Test execution: Not run; no tests changed.",
@@ -52,7 +49,10 @@
         "Test execution: Final line: Unverified: node unavailable",
         "Test execution: Ran: false => passed",
         "Test execution: Ran: node --test test/other.test.js => passed",
-        "Test execution: Ran: node --test => passed"
+        "Test execution: Ran: node --test => passed",
+        "Test execution: Ran: node --test test/clamp.test.js => failed",
+        "Test execution: Ran: node --test test/clamp.test.js => exit 1",
+        "Test execution: Unverified: node unavailable"
       ]
     },
     {

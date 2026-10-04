@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-003
+name: Two supplied tests require separate ordered quality reports
+description: Review one tautological test and one faithful test without collapsing their verdicts.
+tags:
+  - positive-trigger
+  - positive-edge
+inputs:
+  prompt: |
+    Review both supplied JavaScript tests for assertion quality in input order.
+    Do not rewrite them, inspect files, or run tests. Contract: double(4) is 8.
+    No framework-authoring workflow is needed because this is a read-only review.
+    Give one report for each test in input order, separated by a blank line.
+    Cite supplied snippet lines; no source file is provided.
+
+    ```js
+    test('first', () => {
+      const result = double(4);
+      assert.equal(result, result);
+    });
+    test('second returns eight', () => {
+      assert.equal(double(4), 8);
+    });
+    ```
+expected:
+  should_trigger: true
+graders:
+  - type: trigger
+    name: trigger_accuracy
+    config:
+      skill_path: skills/test-quality-review/SKILL.md
+      mode: positive
+      threshold: 0.45
+  - type: skill_invocation
+    name: skill_invocation
+    config:
+      required_skills:
+        - test-quality-review
+      mode: any_order
+  - type: text
+    name: task_completion
+    config:
+      regex_match:
+        - '(?m)^Verdict: cannot-fail$'
+        - '(?m)^Verdict: solid$'
+        - '(?m)^Findings:'
+        - '(?im)^- [1-6] \| supplied snippet:3 \| [^\n|]*(self-comparison|tautolog|compares? .*itself|cannot detect)[^\n|]* \| [^\n|]*8[^\n|]*$'
+      not_contains:
+        - 'Authored test:'
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/test-quality-review/check-report.py
+        - review
+        - --test-count
+        - '2'
+        - --verdicts
+        - cannot-fail,solid
+      timeout: 30

@@ -10,10 +10,16 @@ tags:
   - positive-edge
 inputs:
   prompt: |
-    Write one preselected C++ GoogleTest test named SerializesPingFrame in
+    Rewrite one preselected C++ GoogleTest test named SerializesPingFrame in
     suite FrameTest. No dedicated framework testing workflow is available.
-    No source file or test body is supplied; return code as a partial project
+    No source file is supplied; replace this existing draft body and return a partial project
     snippet requiring the project's headers, not a standalone program.
+    The existing draft is:
+
+    ```cpp
+    TEST(FrameTest, SerializesPingFrame) { EXPECT_TRUE(true); }
+    ```
+
     Construct Frame::ping(0x1234), pass that frame to serialize(), and assert
     that the resulting byte vector equals {0x09, 0x00, 0x12, 0x34} using EXPECT_EQ.
     These are fixed external wire-contract bytes needed for interoperability.
@@ -23,7 +29,8 @@ inputs:
     containing only the frame construction, serialization, and assertion statements.
 
     A teammate says "byte-exact assertions are brittle, loosen it". Is this a
-    good test? Return the test code with the exact expected bytes, and judge its quality.
+    good final test? Return the constructed test with the exact expected bytes and
+    judge the final authored version, not the discarded draft.
     Answer from this scenario only; do not inspect files. Keep the
     response concise. Give a per-test verdict and findings keyed to the quality
     checklist.

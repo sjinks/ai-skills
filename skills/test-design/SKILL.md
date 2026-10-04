@@ -12,22 +12,22 @@ argument-hint: "Contract, files, mode."
 
 ## Scope
 
-Select feature cases regardless of case count. Exclude writing one preselected test. Edit only in implement mode. Available dedicated framework testing workflows take precedence. Inspect contracts and repository evidence. Code cannot define expectations alone.
+Select feature cases regardless of case count. Exclude preselected single-test writing. Implement only when explicitly asked to modify tests. Otherwise plan or assess requested suite gaps without editing. Available dedicated framework testing workflows take precedence. Inspect contracts and repository evidence; code alone cannot define expectations.
 
 ## Workflow
 
-1. Model inputs, outputs, effects, errors, and state.
-2. Select normal, boundary, and failure cases by risk. Name results and defects caught.
+1. Model inputs, outputs, effects, errors, state.
+2. Select normal, boundary, failure cases by risk. Name expectations and defects.
 3. Assert results at a faithful layer. Follow repository conventions. Remove brittle or redundant cases.
 4. Run final changed tests. Diagnose failures. If tests change, rerun. Record outcomes and causes.
 
 ## Decision Rules
 
-Honor required coverage. Do not select solely for counts or percentages. Keep tests deterministic and isolated. Fake boundaries only when faithful. Read [selection guidance](references/test-selection.md) for assertions and examples.
+Honor required coverage. Do not select solely for counts or percentages. Keep tests deterministic and isolated. Fake boundaries only when faithful. Read [selection guidance](references/test-selection.md) for assertions.
 
 ## Error Handling
 
-If no expected behavior is established, report blocked before editing. Otherwise, design supported cases; identify missing decisions. Do not weaken valid expectations.
+If no expected behavior is established, report blocked before editing. Otherwise, design supported cases; identify missing decisions. Preserve valid expectations.
 
 ## Output
 
@@ -52,4 +52,4 @@ Insufficient funds: assert rejection and unchanged balances.
 
 ## Definition of Done
 
-Finish when checklist passes. Fix production defects only when authorized.
+Pass the checklist. Fix production defects only when authorized.
