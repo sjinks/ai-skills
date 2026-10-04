@@ -41,12 +41,22 @@ model evaluation task.
 
 The gate runs both inputs for each rule using the same command. Conforming input
 must exit 0. Counterexample input must exit 1 and its stderr must match the
-`rejection` Python regex. A crash, timeout, wrong diagnostic or failed conforming
-case fails the gate. Validators with a different rejection exit code need an
+`rejection` Python regex. A timeout, wrong diagnostic or failed conforming case fails the gate. Standard
+Python traceback headers (including exception groups) in either stream fail both
+probe paths, even when the exit code and diagnostic otherwise match. This
+rejects ordinary uncaught exceptions; a custom exception hook that suppresses
+the traceback cannot be distinguished from intentional rejection by this
+output protocol alone. Validators with a different rejection exit code need an
 explicit adapter; do not weaken the expected failure into any nonzero code.
 
 `scope` lists existing regular files relative to the repository root. Each must
-exist in the tree and match the current working content/mode. Include the
+exist in the tree and match the current working bytes and owner-executable bit.
+Both pre- and post-probe comparisons disable external diff drivers and textconv
+with `--no-ext-diff --no-textconv`; the meaning of those flags is defined in the
+[Git diff documentation](https://git-scm.com/docs/git-diff). Raw blob bytes and the executable bit are checked separately so clean filters,
+line-ending normalization and `core.fileMode` cannot conceal scoped changes.
+A working file normalized by filters must actually match its tree bytes before
+this gate can pass. Scope paths are literal, not Git wildcard pathspecs. Include the
 validator script itself. Commands start with `python3`, followed by a scoped
 `.py` script and optional literal arguments. The gate uses its own Python
 interpreter. Directory-wide scope and symlink files are not supported.
@@ -109,6 +119,8 @@ The runner checks only listed files against the tree and rechecks that scope aft
 probes. It cannot observe transient/restored changes, unlisted files or external
 state. It executes trusted validators only after structural manifest validation;
 it does not prove their purity or the semantic isolation of a counterexample.
+Expected diagnostics and traceback checks are observable signals, not
+authentication of how a validator terminated.
 Review those properties separately. Successful probes produce
 `contrastive-checks: passed` and preserve the supplied claims/review limitation;
 they do not certify skill behavior on any model.

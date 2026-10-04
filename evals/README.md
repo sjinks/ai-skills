@@ -464,7 +464,10 @@ envelope duplicates and labels outside the closing fence remain invalid.
 `evals/_helpers/check-review-evidence.py` runs trusted local conforming and
 rule-isolating counterexample probes against an immutable scoped tree. It keeps
 contract, workspace, execution and model claims separate and records independent
-review evidence or its unavailability. It does not invoke Waza or add model tasks.
+review evidence or its unavailability. Both scope comparisons disable external
+diff and textconv. Ordinary Python traceback output fails either probe;
+diagnostic matching alone cannot authenticate a custom exception handler.
+It does not invoke Waza or add model tasks.
 See [the manifest contract and workflow](../docs/review-evidence.md).
 
 ```bash

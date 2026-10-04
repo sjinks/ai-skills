@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import stat
 import sys
 
 DIMENSIONS = {"defaults", "optional-inputs", "multiplicity", "side-effects", "payload-boundary", "outcomes"}
@@ -26,7 +27,42 @@ def populated(value: object) -> bool:
 
 def git(root: Path, *args: str) -> str:
     """Read repository identity and tracked scope without executing a shell."""
-    return subprocess.check_output(["git", "-C", str(root), *args], text=True).strip()
+    return subprocess.check_output(["git", "-C", str(root), "--literal-pathspecs", *args], text=True).strip()
+
+
+
+def scope_diff(root: Path, tree: str, scope: list[str]) -> str:
+    """Compare scoped files without human-facing diff drivers or conversions.
+
+    Both pre-probe identity and post-probe integrity checks use this policy.
+    """
+    difference = git(root, "diff", "--no-ext-diff", "--no-textconv", tree, "--", *scope)
+    if difference:
+        return difference
+    # Clean filters, EOL normalization and core.fileMode can also conceal changes.
+    for path in scope:
+        entry = git(root, "ls-tree", "-z", tree, "--", path)
+        metadata, name = entry.split("\t", 1)
+        mode, kind, object_id = metadata.split()
+        require(name == path + "\0" and kind == "blob" and mode in {"100644", "100755"}, "scope tree entry must be one regular file")
+        file = root / path
+        if file.is_symlink() or not file.is_file():
+            return "scoped file is no longer regular: " + path
+        content = subprocess.check_output(["git", "-C", str(root), "cat-file", "blob", object_id])
+        executable = bool(file.stat().st_mode & stat.S_IXUSR)
+        if file.read_bytes() != content or executable != (mode == "100755"):
+            return "scoped bytes or executable mode differ: " + path
+    return ""
+
+
+def has_traceback(result: subprocess.CompletedProcess) -> bool:
+    """Recognize standard Python and exception-group traceback headers.
+
+    Inspect both streams. This is not authentication of arbitrary validator
+    termination: custom exception hooks can suppress traceback evidence.
+    """
+    pattern = r"(?m)^[ \t+|]*(?:Exception Group )?Traceback \(most recent call last\):"
+    return re.search(pattern, result.stdout) is not None or re.search(pattern, result.stderr) is not None
 
 
 def check(manifest: dict, root: Path) -> dict:
@@ -45,7 +81,7 @@ def check(manifest: dict, root: Path) -> dict:
         require(populated(path) and not Path(path).is_absolute() and ".." not in Path(path).parts and not path.startswith("-"), "scope paths must be relative")
         require((root / path).is_file() and not (root / path).is_symlink(), "scope must list existing regular files")
         require(git(root, "ls-tree", tree, "--", path) != "", "scope file absent from tree")
-    require(git(root, "diff", tree, "--", *scope) == "", "working scope differs from tree")
+    require(scope_diff(root, tree, scope) == "", "working scope differs from tree")
     require(git(root, "ls-files", "--others", "--exclude-standard", "--", *scope) == "", "untracked scope is not bound to tree")
     rules = manifest.get("rules")
     require(isinstance(rules, list) and bool(rules), "rules are required")
@@ -79,10 +115,12 @@ def check(manifest: dict, root: Path) -> dict:
     for rule in rules:
         command = rule["command"]
         positive = subprocess.run([sys.executable, *command[1:]], cwd=root, input=rule["accept"], text=True, capture_output=True, timeout=30)
+        require(not has_traceback(positive), "conforming example emitted a Python traceback: " + rule["id"])
         require(positive.returncode == 0, "conforming example rejected: " + rule["id"])
         negative = subprocess.run([sys.executable, *command[1:]], cwd=root, input=rule["reject"], text=True, capture_output=True, timeout=30)
+        require(not has_traceback(negative), "counterexample emitted a Python traceback: " + rule["id"])
         require(negative.returncode == 1 and re.search(rule["rejection"], negative.stderr) is not None, "counterexample did not produce its expected rejection: " + rule["id"])
-    require(git(root, "diff", tree, "--", *scope) == "", "probe changed scoped files")
+    require(scope_diff(root, tree, scope) == "", "probe changed scoped files")
     return {"tree": tree, "contrastive-checks": "passed", "claims": claims, "independent-review": review}
 
 
