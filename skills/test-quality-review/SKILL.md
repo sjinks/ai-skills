@@ -20,7 +20,7 @@ Feature case selection, coverage strategy, framework mechanics, or diagnosing in
 ## Workflow
 
 1. Identify the behavior and expected result.
-2. Read the [quality checklist](references/quality-checklist.md) for six gating dimensions. Mark each `ok` / `weak` / `missing`, with line evidence.
+2. Read the [quality checklist](references/quality-checklist.md) for six gating dimensions. Mark each `ok` / `weak` / `missing`; cite source or generated snippet lines.
 3. Ask whether the test fails when that behavior regresses. If no, prioritize `cannot-fail`.
 4. Give concrete fixes for weak or missing dimensions. Write the preselected test when requested; otherwise review without editing.
 
@@ -34,12 +34,9 @@ For missing review source or expected behavior, use insufficient-context output;
 
 ## Output
 
-Caller labels replace defaults exactly.
+Use ordered labels once: `Verdict:`, `Findings:`, then `Authored test:` for writing with sufficient context. Caller labels replace defaults exactly. Read the [report contract](references/report-contract.md) for branches, findings syntax, locations, and code placement.
 
-- `Verdict:` one of `solid` / `weak` / `cannot-fail`. Preserve spelling in prose.
-- `Findings:` checklist-numbered findings with file/line and concrete fixes. Prioritize cannot-fail and non-determinism before behavior and coverage. If none, write `None.`
-
-For missing input, use `Verdict: insufficient-context` and `Findings:` naming exactly what is missing: test body, code under test, or contract/AC. Writing requires no existing test body.
+Review verdicts: `solid` / `weak` / `cannot-fail`; missing input: `insufficient-context`. Preserve spelling in prose. Writing requires no existing test body. Cite real files for reviewed files or honest supplied/generated snippet lines; never invent paths.
 
 ## Example
 

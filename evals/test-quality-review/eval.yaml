@@ -28,13 +28,17 @@ metrics:
     threshold: 0.9
     description: Skill is invoked on positive tasks that should activate it.
   - name: task_completion
-    weight: 0.25
+    weight: 0.15
     threshold: 0.8
     description: Output applies the quality checklist, the would-it-fail question, and a per-test verdict with concrete fixes.
   - name: task_completion_substance
     weight: 0.15
     threshold: 0.7
     description: LLM judge verifies representative positive tasks make the required can-it-fail / behavioral-focus judgement.
+  - name: report_contract
+    weight: 0.10
+    threshold: 0.9
+    description: Per-test markers, verdict, findings, provenance and authored-code branch.
   - name: efficiency
     weight: 0.15
     threshold: 0.7

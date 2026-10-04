@@ -1,0 +1,32 @@
+{
+  "cases": [
+    {
+      "name": "authored code marker",
+      "task": "tasks/positive-edge-1.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 6,
+      "matches": [
+        "Authored test:\n```cpp"
+      ],
+      "does_not_match": [
+        "Here is Authored test:",
+        "Findings: None."
+      ]
+    },
+    {
+      "name": "constructed declaration setup serialization and assertion",
+      "task": "tasks/positive-edge-1.yaml",
+      "grader": "task_completion",
+      "list": "regex_match",
+      "index": 7,
+      "matches": [
+        "TEST(FrameTest, SerializesPingFrame) {\nFrame frame = Frame::ping(0x1234);\nauto bytes = serialize(frame);\nEXPECT_EQ(bytes, std::vector<uint8_t>({0x09, 0x00, 0x12, 0x34}));\n}"
+      ],
+      "does_not_match": [
+        "EXPECT_EQ(bytes, std::vector<uint8_t>({0x09, 0x00, 0x12, 0x34}));",
+        "TEST(FrameTest, SerializesPingFrame) { Frame frame = Frame::ping(0x1234); EXPECT_EQ(bytes, std::vector<uint8_t>({0x09, 0x00, 0x12, 0x34})); }"
+      ]
+    }
+  ]
+}

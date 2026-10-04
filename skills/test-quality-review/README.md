@@ -16,8 +16,11 @@ It helps an assistant:
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the operational skill definition.
+- [`references/report-contract.md`](references/report-contract.md) — conditional report grammar and honest locations.
 - [`references/quality-checklist.md`](references/quality-checklist.md) — six gating quality dimensions and failure patterns.
 
-The existing eval suite retains its per-test labels and substance judge without a
-report-validator metric; this update changes routing and reference placement.
-Static checks verify label projections; live model behavior remains unmeasured.
+Authoring reports put generated code under `Authored test:` after the verdict
+and findings. Findings cite real reviewed files or supplied/generated snippet
+lines; authoring does not require an existing file. The suite-local deterministic
+validator checks both review and authoring branches plus missing-context fixtures.
+Live model behavior remains unmeasured.

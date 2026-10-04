@@ -382,10 +382,20 @@ waza run evals/<skill>/eval.yaml \
   -v
 ```
 
-The existing `test-quality-review` suite retains its per-test `Verdict:` and
-`Findings:` labels and substance judge. This routing repair does not introduce a
-new conditional report grammar; no report-validator metric is added to this
-legacy suite. Positive tasks now require both canonical labels. Its trigger
-threshold is 0.45 and token budget is 8,000. The existing byte-exact edge requests
-writing one caller-preselected test; the test-design negative mirror excludes
-feature-design output on that request.
+`test-quality-review` retains its per-test verdict vocabulary and adds
+`Authored test:` after `Verdict:` and `Findings:` for writing only. Its
+`report_contract` program metric validates conditional labels, findings syntax,
+verdict domains, file/snippet location syntax, generated snippet bounds, fenced code and termination. Negative
+tasks exclude all three labels and the skill name. The byte-contract edge supplies
+API/behavior constraints instead of a completed test; graders require generated
+setup, serialization and assertion. Its declared formatting constraints allow
+exact structural validation with `--wire-fixture`, rejecting comment-only bodies,
+omitted setup/calls and altered expected bytes. Existing review cases use the review profile.
+The suite uses a 0.45 trigger threshold and an 8,000-token budget.
+
+```bash
+python3 evals/test-quality-review/check-report.py --self-test
+python3 evals/test-quality-review/check-report.py author --verdict solid < report.txt
+python3 evals/test-design/check-projections.py
+python3 evals/_helpers/check-eval-regexes.py --root evals/test-quality-review --cases evals/test-quality-review/regex-cases.json
+```

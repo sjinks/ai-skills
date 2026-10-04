@@ -10,19 +10,17 @@ tags:
   - positive-edge
 inputs:
   prompt: |
-    Write the one preselected C++ test below for assertion quality. Its behavior
-    and expected byte sequence are already selected; do not select other cases.
-    No dedicated framework testing workflow is available. `serialize()` produces the on-the-wire
-    bytes of a protocol frame, and the wire format is a fixed, externally-specified
-    contract that other implementations must interoperate with.
-
-    ```cpp
-    TEST(FrameTest, SerializesPingFrame) {
-      Frame f = Frame::ping(0x1234);
-      auto bytes = serialize(f);
-      EXPECT_EQ(bytes, std::vector<uint8_t>({0x09, 0x00, 0x12, 0x34}));
-    }
-    ```
+    Write one preselected C++ GoogleTest test named SerializesPingFrame in
+    suite FrameTest. No dedicated framework testing workflow is available.
+    No source file or test body is supplied; return code as a partial project
+    snippet requiring the project's headers, not a standalone program.
+    Construct Frame::ping(0x1234), pass that frame to serialize(), and assert
+    that the resulting byte vector equals {0x09, 0x00, 0x12, 0x34} using EXPECT_EQ.
+    These are fixed external wire-contract bytes needed for interoperability.
+    Select no other cases. Use Frame frame and auto bytes as the local variables.
+    In EXPECT_EQ, compare bytes with an inline std::vector<uint8_t> constructed
+    using parentheses around the initializer list. Return one TEST declaration
+    containing only the frame construction, serialization, and assertion statements.
 
     A teammate says "byte-exact assertions are brittle, loosen it". Is this a
     good test? Return the test code with the exact expected bytes, and judge its quality.
@@ -54,7 +52,8 @@ graders:
         - '(?i)(wire|serializ|protocol).{0,30}(format|contract).{0,30}(is|are).{0,20}(the )?(promise|contract|exact|specified)|interop'
         - '(?i)(not|do not|don.t).{0,20}(loosen|relax|brittle|over-?spec)|keep.{0,20}(it )?(exact|strict)'
         - '(?i)verdict|solid|weak|cannot-?fail'
-        - 'EXPECT_EQ\(bytes, std::vector<uint8_t>\(\{0x09, 0x00, 0x12, 0x34\}\)\)'
+        - '(?m)^Authored test:'
+        - '(?s)TEST\(\s*FrameTest\s*,\s*SerializesPingFrame\s*\)\s*\{.*Frame\s+frame\s*=\s*Frame::ping\(0x1234\).*auto\s+bytes\s*=\s*serialize\(frame\).*EXPECT_EQ\(\s*bytes\s*,\s*std::vector<uint8_t>\(\s*\{0x09,\s*0x00,\s*0x12,\s*0x34\}\s*\)\s*\)\s*;.*\}'
   - type: prompt
     name: task_completion_substance
     config:
@@ -83,3 +82,14 @@ graders:
         0.0 = response is wrong, missing the required judgement, or did not
               perform the skill at all.
       mode: independent
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/test-quality-review/check-report.py
+        - author
+        - --verdict
+        - solid
+        - --wire-fixture
+      timeout: 30

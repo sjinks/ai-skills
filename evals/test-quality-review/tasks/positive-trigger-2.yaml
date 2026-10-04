@@ -79,3 +79,13 @@ graders:
         0.0 = response is wrong, missing the required judgement, or did not
               perform the skill at all.
       mode: independent
+  - type: program
+    name: report_contract
+    config:
+      command: python3
+      args:
+        - evals/test-quality-review/check-report.py
+        - review
+        - --verdict
+        - weak
+      timeout: 30
