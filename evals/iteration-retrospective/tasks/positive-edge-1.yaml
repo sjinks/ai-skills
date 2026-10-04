@@ -2,9 +2,11 @@
 id: positive-edge-001
 name: Insufficient evidence blocks retrospective
 inputs:
-  prompt: 'Write a retrospective for a project that had several attempts, but I cannot provide the goal,
-    actions, results, logs, or validation evidence. Use these replacement labels if possible: Missing:, Outcome:,
-    Attempts:, Lessons:, Controls:, Checks:, Candidate:, Result:.'
+  prompt: |
+    Retrospect one explicitly abandoned approach. Goal: correct a parser boundary.
+    A1 proposed changing the boundary, then I explicitly abandoned it before evaluation.
+    No replacement approach or established outcome exists. I cannot provide logs or validation evidence.
+    Use these replacement labels if possible: Missing:, Outcome:, Attempts:, Lessons:, Controls:, Checks:, Candidate:, Result:.
 expected:
   should_trigger: true
 graders:
@@ -31,7 +33,7 @@ graders:
         - 'Retrospective Prevention:'
         - 'Retrospective Next Checks:'
         - 'Not assessed\.'
-        - (?i)missing (goal|action|result|evidence)
+        - '(?im)^Missing: .*(outcome|result|evaluation|validation|evidence)'
         - 'Retrospective Skill Candidate: not assessed'
         - 'Retrospective Verdict: BLOCK'
       not_contains:
@@ -48,7 +50,9 @@ graders:
         - --candidate
         - not assessed
         - --attempt-count
-        - '0'
+        - '1'
+        - --statuses
+        - inconclusive
         - --labels
         - 'Missing:'
         - 'Outcome:'

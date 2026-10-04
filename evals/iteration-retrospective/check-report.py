@@ -128,6 +128,9 @@ def validate(text: str, labels: tuple[str, ...] = MARKERS, expected: str | None 
         if sections[5] == ['None.']:
             raise ValueError('BLOCK requires next checks')
     else:
+        statuses = [line.split(' | ')[1].removeprefix('Status: ') for line in timeline]
+        if any(status in ('failed', 'partly-worked') for status in statuses) and sections[3] == ['None.']:
+            raise ValueError('failed or partly-worked attempts require learnings')
         if sections[3] != ['None.']:
             rows(sections[3], 'L', ('Cause', 'Lesson', 'Evidence'), {'Cause': CAUSES})
         if sections[4] != ['None.']:
@@ -137,6 +140,8 @@ def validate(text: str, labels: tuple[str, ...] = MARKERS, expected: str | None 
             raise ValueError('skill candidate must match selected reusable skill')
         if scalar[6] == 'extend existing guidance' and 'repository guidance' not in mechanisms:
             raise ValueError('guidance candidate requires selected repository guidance')
+        if verdict == 'CONCERNS' and sections[5] == ['None.']:
+            raise ValueError('CONCERNS requires next checks')
     if sections[5] != ['None.']:
         if not sections[5]:
             raise ValueError('next checks must not be empty')
@@ -265,8 +270,30 @@ def self_test() -> None:
             checks += 1
         else:
             raise AssertionError('accepted custom-labeled BLOCK')
-    validate(VALID.replace('Retrospective Verdict: CLEAN', 'Retrospective Verdict: CONCERNS'))
-    validate(VALID.replace('Retrospective Learnings:\n- L1 | Cause: confirmed | Lesson: Centralize checks | Evidence: Review', 'Retrospective Learnings:\nNone.').replace('Retrospective Prevention:\n- P1 | Mechanism: deterministic check | Decision: Reuse validator', 'Retrospective Prevention:\nNone.'))
+    concerns = VALID.replace('Retrospective Verdict: CLEAN', 'Retrospective Verdict: CONCERNS').replace('Retrospective Next Checks:\nNone.', 'Retrospective Next Checks:\n- N1: Establish costs for the unresolved pattern')
+    validate(concerns)
+    no_learning = VALID.replace('Retrospective Learnings:\n- L1 | Cause: confirmed | Lesson: Centralize checks | Evidence: Review', 'Retrospective Learnings:\nNone.')
+    success_only = no_learning.replace('- A1 | Status: failed | Action: Check fields | Result: Missing field | Evidence: Review', '- A1 | Status: worked | Action: Check fields | Result: All fields checked | Evidence: Test')
+    validate(success_only.replace('Retrospective Prevention:\n- P1 | Mechanism: deterministic check | Decision: Reuse validator', 'Retrospective Prevention:\nNone.'))
+    for labels in (MARKERS, CUSTOM):
+        for status in ('failed', 'partly-worked'):
+            mutation = replace_labels(no_learning.replace('Status: failed', 'Status: ' + status), labels)
+            try:
+                validate(mutation, labels)
+            except ValueError as error:
+                assert str(error) == 'failed or partly-worked attempts require learnings', str(error)
+                checks += 1
+            else:
+                raise AssertionError('accepted missing required learnings')
+        mutation = replace_labels(VALID.replace('Retrospective Verdict: CLEAN', 'Retrospective Verdict: CONCERNS'), labels)
+        try:
+            validate(mutation, labels)
+        except ValueError as error:
+            assert str(error) == 'CONCERNS requires next checks', str(error)
+            checks += 1
+        else:
+            raise AssertionError('accepted missing CONCERNS next checks')
+    validate(BLOCK.replace('Not assessed.\nRetrospective Learnings:', '- A1 | Status: failed | Action: Check fields | Result: Missing field | Evidence: Review\nRetrospective Learnings:'))
     partial_labels = ('Goal:', *MARKERS[1:])
     validate(replace_labels(VALID, partial_labels), partial_labels)
     validate(BLOCK, ('Duplicate:',) * 8)

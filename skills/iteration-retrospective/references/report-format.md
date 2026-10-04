@@ -7,7 +7,7 @@ Read this reference before classifying attempts, selecting a skill candidate, or
 1. State the goal, success condition, scope, and evidence available.
 2. Build the attempt timeline in chronological order. For every supplied attempt, record action, result, and evidence. Use `unknown` for an unavailable action or result and `unavailable` for missing evidence.
 3. Classify each attempt using Attempt Status. Preserve a known outcome even when a later attempt replaces the approach.
-4. For failed or partly-worked attempts, record cause confidence as `confirmed`, `likely`, or `unknown`. Use `confirmed` for a cause established by evidence, `likely` for an evidence-supported hypothesis, and `unknown` when evidence cannot support a cause. Do not turn correlation into cause.
+4. In non-`BLOCK` reports, failed or partly-worked attempts require learning rows recording cause confidence as `confirmed`, `likely`, or `unknown`. Use `confirmed` for a cause established by evidence, `likely` for an evidence-supported hypothesis, and `unknown` when evidence cannot support a cause. If no causal lesson is supported, record the observed failure pattern with `Cause: unknown`. Do not turn correlation into cause.
 5. Group failures that evidence attributes to the same cause. If the cause is unknown, record the repeated failure pattern without assigning a shared cause. Prefer correcting an established cause over treating its symptoms.
 6. If the `BLOCK` condition in Verdict Selection holds, use the blocked report without selecting prevention. Otherwise, for each distinct failure pattern, consider only mechanisms that address the evidenced failure. Choose the mechanism with the fewest new dependencies. If dependency counts tie, choose the mechanism with the fewest new workflow steps. If both counts tie, choose the first applicable mechanism in this list:
    - deterministic check for mechanically detectable recurrence;
@@ -15,7 +15,7 @@ Read this reference before classifying attempts, selecting a skill candidate, or
    - repository guidance for local workflow recurrence;
    - refactor for duplication or drift, including a source-of-truth change;
    - reusable skill only when every New Skill Eligibility condition holds.
-   If no mechanism is supported for any failure pattern, use `None.` under `Retrospective Prevention`. Otherwise, report the supported selections. Record any pattern without supported prevention under `Retrospective Next Checks`.
+   Use only evidenced costs in these comparisons. A sole applicable mechanism requires no comparison. With several applicable mechanisms, if missing dependency or step counts prevent establishing a unique choice, leave that pattern unselected, record the needed cost evidence under `Retrospective Next Checks`, and use `CONCERNS`. Do not invent counts or apply the list order before establishing both ties. Preserve selections for other patterns. If no mechanism is selected for any pattern, use `None.` under `Retrospective Prevention`. Otherwise, report only selected mechanisms. Record any pattern without supported prevention under `Retrospective Next Checks`.
 7. List concrete next checks and any unresolved uncertainty. Finish after the Completion Checklist passes; do not perform the proposed follow-up work without an explicit caller request.
 
 ## Verdict Selection
@@ -87,7 +87,7 @@ Number rows consecutively from 1 within each section, using `A`, `L`, `P`, or `N
 
 Choose one status per attempt from Attempt Status. Choose one cause confidence per learning from Workflow. The template values `worked` and `confirmed` are illustrations.
 
-For non-`BLOCK` reports, use one or more learning rows or `None.` when no learning is supported. Use one or more prevention rows or `None.` when no prevention is supported. Use one or more next-check rows or `None.` when no further check or uncertainty remains. Do not use `Not assessed.` in these sections of a non-`BLOCK` report.
+For non-`BLOCK` reports with any `failed` or `partly-worked` attempt, learning rows are required. Otherwise, use learning rows when supported or `None.`. Use prevention rows for selected mechanisms or `None.` when none is selected, including unresolved cost comparisons. `CONCERNS` requires next-check rows describing unresolved gaps. `CLEAN` permits next-check rows or `None.` when no further check remains. Do not use `Not assessed.` in these sections of a non-`BLOCK` report.
 
 For `BLOCK`, retain supported timeline rows with the normal missing-value representation. If no supplied attempt can be reconstructed, use `Not assessed.` instead of timeline rows. Under `Retrospective Learnings`, write exactly one line beginning `Missing:` that identifies the smallest missing evidence needed. Use `Not assessed.` under `Retrospective Prevention`. Under `Retrospective Next Checks`, write one or more normal `N` rows naming how to obtain the missing evidence. If the goal is unavailable, use `Retrospective: Not assessed.`. Begin the assessment with `Not assessed.` and explain the blocker on that line.
 

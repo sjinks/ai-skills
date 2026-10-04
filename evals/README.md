@@ -494,10 +494,11 @@ known failures, and independent new-skill eligibility. `positive-edge-4.yaml`
 adds evaluated partial success versus unevaluated replacement and pending outcomes,
 and source-of-truth mapping; existing histories do not contain those combinations.
 `positive-edge-5.yaml` adds valid caller labels, mechanism tie-breaking, preserved known failed outcomes, and an unselected established-guidance update;
-existing tasks previously used only default labels. `positive-edge-1.yaml` passes
+existing tasks previously used only default labels. `positive-edge-1.yaml` now covers one explicitly abandoned unevaluated approach and passes
 ignored caller labels that collide with blocked-report content to the validator.
 `positive-edge-6.yaml` discriminates new repository guidance from extension of an
-established workflow; no existing task selects new guidance.
+established workflow and retains that selected mechanism while a second pattern
+has unrankable comparison costs. It requires `CONCERNS` and a cost-evidence next check.
 `positive-edge-7.yaml` discriminates aggregation across selected reusable-skill
 and established-guidance rows; existing tasks select only one mechanism.
 The new-guidance task cannot reuse the existing-guidance fixture without losing
@@ -510,12 +511,18 @@ the fixed conflict/request clarification. Existing custom-label and blocked
 fixtures remain report tasks, so neither can cover this branch without losing
 its independent assertion. Deterministic mutations also cover malformed, empty
 and row-shaped labels, invalid profile crossovers, and BLOCK precedence.
-Missing-evidence requests about multiple attempts activate the blocked fixture;
+Missing-evidence requests about a single explicitly abandoned approach activate the blocked fixture;
 a single nonabandoned attempt and generic reflection remain excluded.
 Label mutations cover every line boundary documented for Python `str.splitlines()`;
 nonblocked labels must remain a single unchanged line under that same operation.
 The boundary-test debugging task also requires the selected `deterministic check`
 mechanism, rejecting an empty prevention section or an unrelated mechanism.
+Nonblocked failed/partly-worked timelines require learning rows; `CONCERNS`
+requires next-check rows. Success-only no-learning and blocked missing-evidence
+profiles remain valid. Unknown costs do not authorize guessing or early list-order
+tie-breaking. Repurposed edge fixtures retain their previous label/guidance
+assertions; no additional task is introduced. Empty-history BLOCK remains covered
+by deterministic profile tests.
 No paid model run is implied.
 
 ```bash
