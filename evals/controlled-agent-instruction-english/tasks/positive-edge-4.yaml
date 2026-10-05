@@ -5,7 +5,7 @@ description: Combined audit and rewrite preserves mandatory-modality diagnosis a
 tags:
 - positive-edge
 inputs:
-  prompt: 'Audit and rewrite these agent instructions. Testing is mandatory, and publication is permitted only after successful testing. Supplied snippet line 1: "You should run the tests before publishing." Report the meaningful source defect with its evidence and correction, then return the complete corrected instructions. Do not make testing optional. Answer from this scenario only; do not inspect or modify scenario workspace files. You may read the invoked skill and its bundled references.'
+  prompt: 'Audit and rewrite these agent instructions. Testing is mandatory, and publication is permitted only after successful testing. Supplied snippet line 1: "You should run the tests before publishing." Supplied snippet line 2: If testing fails, report the exact literal quotation "READY|WAIT" and stop. The quotation marks around snippet line 1 only identify the prose to rewrite; READY|WAIT is an embedded literal that must remain exact. Report the meaningful source defect with its evidence and correction, then return the complete corrected instructions. Do not make testing optional. Answer from this scenario only; do not inspect or modify scenario workspace files. You may read the invoked skill and its bundled references.'
 expected:
   should_trigger: true
 graders:
@@ -30,6 +30,7 @@ graders:
     - '(?m)^CAIE findings:'
     - '(?m)^CAIE status: Authored$'
     - '(?m)^- error \| N4 \| supplied snippet:1 \|'
+    - '"READY\|WAIT"'
 - type: program
   name: report_contract
   config:
@@ -41,5 +42,5 @@ graders:
 - type: prompt
   name: task_completion_substance
   config:
-    prompt: Call set_waza_grade_pass only if the artifact makes testing mandatory and permits publication only after successful testing, and the source finding has severity error, cites supplied snippet:1 and N4, quotes or identifies "should", explains optionality, and supplies a mandatory correction. Reject findings None, optional testing, lost diagnosis, or contradictory instructions. Otherwise call set_waza_grade_fail. Make exactly one grading tool call, set_waza_grade_pass when every criterion holds, otherwise set_waza_grade_fail. Put the reasoning in the tool call's reason argument; do not return a numeric grade as response text.
+    prompt: Call set_waza_grade_pass only if the artifact makes testing mandatory and permits publication only after successful testing, and the source finding has severity error, cites supplied snippet:1 and N4, quotes or identifies "should", explains optionality, and supplies a mandatory correction. The artifact must also preserve the exact embedded literal quotation "READY|WAIT", including its quotation marks, in the failed-testing report-and-stop branch. Reject findings None, optional testing, preservation of the defective quoted should wording as a requirement, changed or missing READY|WAIT, lost diagnosis, or contradictory instructions. Otherwise call set_waza_grade_fail. Make exactly one grading tool call, set_waza_grade_pass when every criterion holds, otherwise set_waza_grade_fail. Put the reasoning in the tool call's reason argument; do not return a numeric grade as response text.
     mode: independent

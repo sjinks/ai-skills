@@ -24,6 +24,53 @@ VALID = {
 }
 
 
+def finding_fields(line: str) -> list[str]:
+    """Split finding fields outside balanced inline backtick literals.
+
+    Literal payloads may contain the spaced separator or shorter backtick runs.
+    Unclosed spans are rejected rather than hiding later fields.
+    """
+    fields = []
+    start = index = 0
+    fence = None
+    while index < len(line):
+        if line[index] == '`':
+            run = re.match(r'`+', line[index:]).group()
+            if fence is None:
+                fence = run
+            elif run == fence:
+                fence = None
+            elif len(run) > len(fence):
+                raise ValueError('literal delimiter must exceed payload backtick runs')
+            index += len(run)
+        elif fence is None and line.startswith(' | ', index):
+            fields.append(line[start:index])
+            index += 3
+            start = index
+        else:
+            index += 1
+    if fence is not None:
+        raise ValueError('unclosed finding literal')
+    fields.append(line[start:])
+    return fields
+
+
+def location_content(value: str) -> str:
+    """Read a plain location or one completely wrapped inline literal.
+
+    Wrapper backticks are report formatting, not part of the location payload.
+    """
+    if not value.startswith('`'):
+        return value
+    fence = re.match(r'`+', value).group()
+    if not value.endswith(fence) or len(value) <= 2 * len(fence):
+        raise ValueError('invalid finding location')
+    payload = value[len(fence):-len(fence)]
+    if any(len(run) >= len(fence) for run in re.findall(r'`+', payload)):
+        raise ValueError('invalid finding location')
+    return payload
+
+
 def validate_findings(lines: list[str]) -> None:
     """Validate shared finding fields for audit and combined author reports.
 
@@ -32,17 +79,18 @@ def validate_findings(lines: list[str]) -> None:
     if not lines:
         raise ValueError('finding branch requires at least one bullet')
     for line in lines:
-        fields = line.split(' | ')
+        fields = finding_fields(line)
         if len(fields) != 5 or fields[0] not in ('- error', '- warning') or fields[1] not in RULES:
             raise ValueError('invalid finding severity, rule or cardinality')
-        if not re.fullmatch(r'(?:supplied snippet:[1-9][0-9]*|[^#|]+#[^#|]+)', fields[2]):
+        location = location_content(fields[2])
+        if not re.fullmatch(r'(?:supplied snippet:[1-9][0-9]*|[^#]+#[^#]+)', location):
             raise ValueError('invalid finding location')
-        if '#' in fields[2] and any(not part.strip() for part in fields[2].split('#')):
+        if '#' in location and any(not part.strip() for part in location.split('#')):
             raise ValueError('invalid finding location')
         if fields[4].startswith('Clarify:') and not re.fullmatch(r'Clarify: \S.*\?', fields[4]):
             raise ValueError('invalid clarification correction')
-        if any(not field.strip() or '|' in field for field in fields[2:]):
-            raise ValueError('finding fields must be nonempty and contain no pipe')
+        if any(not field.strip() for field in fields[2:]):
+            raise ValueError('finding fields must be nonempty')
 
 
 def validate(text: str, profile: str) -> None:
@@ -143,6 +191,20 @@ def self_test() -> None:
     report = VALID['audit-findings']
     bullet = report.splitlines()[3]
     validate(report.replace('supplied snippet:1', 'instructions.md#Testing'), 'audit-findings')
+    validate(report.replace('supplied snippet:1', 'instructions|agent.md#Testing'), 'audit-findings')
+    validate(report.replace('Run the tests.', 'Run producer|consumer.'), 'audit-findings')
+    validate(report.replace('Run the tests.', 'Run `producer | consumer`.'), 'audit-findings')
+    validate(report.replace('supplied snippet:1', '`instructions | agent.md#Testing`'), 'audit-findings')
+    validate(report.replace('Run the tests.', 'Run ``producer `arg` | consumer``.'), 'audit-findings')
+    for replacement, diagnostic in [('Run `producer | consumer.', 'unclosed finding literal'),
+                                    ('Run `producer ``arg`` | consumer`.', 'literal delimiter must exceed payload backtick runs')]:
+        try:
+            validate(report.replace('Run the tests.', replacement), 'audit-findings')
+        except ValueError as error:
+            assert str(error) == diagnostic
+            count += 1
+        else:
+            raise AssertionError('accepted malformed finding literal')
     warning = 'CAIE mode: audit\nCAIE artifact: None.\nCAIE findings:\n- warning | R1 | supplied snippet:3 | it may refer to the log or report | Clarify: Which artifact must be archived?\nCAIE status: Findings'
     validate(warning, 'audit-findings')
     for correction in ('Clarify:', 'Clarify: ?', 'Clarify: Which artifact must be archived'):
@@ -154,7 +216,7 @@ def self_test() -> None:
             count += 1
         else:
             raise AssertionError('accepted invalid clarification correction')
-    for location in (' #Testing', 'instructions.md# ', ' # '):
+    for location in (' #Testing', 'instructions.md# ', ' # ', '`foo`bar`baz#Testing`'):
         try:
             validate(report.replace('supplied snippet:1', location), 'audit-findings')
         except ValueError as error:
@@ -165,7 +227,7 @@ def self_test() -> None:
     validate(report.replace(bullet, bullet + '\n' + bullet.replace('N4', 'C8')), 'audit-findings')
     for mutation in (report.replace('- error', '- info'), report.replace('N4', 'N8'),
                      report.replace('supplied snippet:1', ''), report.replace('Run the tests.', ''),
-                     report.replace('Run the tests.', 'bad | extra'), VALID['blocked'].replace('instruction text', ''),
+                     report.replace('Run the tests.', 'bad | extra'), report.replace('Run the tests.', '   '), VALID['blocked'].replace('instruction text', ''),
                      VALID['author'].replace('Read config.json.', ''), VALID['audit-clean'].replace('Clean', 'Findings')):
         profile = next(p for p in PROFILES if mutation.startswith('CAIE mode: ' + ('audit' if p.startswith('audit-') else 'author' if p.startswith('author') else p))
                        and (p != 'audit-clean' or 'CAIE findings: None.' in mutation))

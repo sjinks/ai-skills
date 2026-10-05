@@ -588,7 +588,8 @@ waza check skills/controlled-agent-instruction-english
 
 The validator checks marker order/cardinality, enums, findings fields, artifact
 payload boundaries, profile crossover, clarification questions ending in `?`,
-nonempty path/section locations, and terminal status. It mechanically
+nonempty path/section locations, bare-pipe literals, inline backtick literals
+containing spaced separators, and terminal status. It mechanically
 checks decoded positive marker assertions, program/profile bindings, and complete
 negative exclusions. Static checks do not establish model behavior; no live eval
 has been approved or run for this onboarding.
@@ -612,4 +613,6 @@ Run the free decoded-YAML protocol check and its isolated mutations with:
 python3 evals/_helpers/check-prompt-grader-contracts.py --self-test
 ```
 
+The scan root must be an existing directory; missing roots and regular files fail.
+An existing directory without prompt graders reports zero applicable graders.
 This checks configured judge instructions, not live judge behavior.

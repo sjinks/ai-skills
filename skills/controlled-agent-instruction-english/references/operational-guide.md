@@ -50,8 +50,10 @@ Do not rewrite or normalize:
 - enum values;
 - tool names;
 - exact API or framework terminology;
-- quoted user text;
+- literal quotations embedded in the instruction artifact;
 - externally defined literals.
+
+Quotation marks used by the caller to identify the instruction prose to rewrite do not make that prose a protected literal. Rewrite that target prose as requested, while preserving embedded quotations explicitly designated as literal text.
 
 ## Rules
 
@@ -181,7 +183,7 @@ Each finding uses `- severity | rule | location | risk | correction`.
 Use `error` or `warning` for severity. Use one rule ID from the language rules as the primary rule.
 Use `<path>#<section>` or `supplied snippet:<positive line number>` for location. Include the affected text and its operational consequence in risk.
 When the intended correction is unknown, write `Clarify:` followed by the exact question in correction. The question must contain nonempty text and end with `?`.
-Use ` / ` instead of ` | ` inside a field.
+Separate fields with ` | ` only outside inline backtick literals. Bare `|` characters are permitted. Wrap a literal containing ` | ` in matching inline backticks; choose a delimiter longer than every backtick run in the payload. For a location, wrap the entire `<path>#<section>` value. Preserve the literal payload exactly; wrapper backticks are report formatting.
 
 Allowed terminal lines are:
 

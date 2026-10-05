@@ -2,7 +2,7 @@
 
 > Write, rewrite, and audit model-facing operational prose with explicit modality, scope, conditions, precedence, and failure behavior.
 
-This skill applies a controlled-English approach to agent instructions. It preserves technical literals and treats sentence-length thresholds as advisory. It does not claim ASD-STE100 compliance or measured cross-model reliability.
+This skill applies a controlled-English approach to agent instructions. It rewrites prose quoted as the editing target while preserving embedded literal quotations and technical literals and treats sentence-length thresholds as advisory. It does not claim ASD-STE100 compliance or measured cross-model reliability.
 
 Author mode returns a complete instruction artifact. For a combined audit-and-rewrite request, it also preserves meaningful findings from the original text. Audit mode reports only meaningful errors and warnings. Blocked mode names missing input in either workflow, or unresolved intended behavior required for authoring. Audit mode retains ambiguity findings with clarification questions. The report uses `CAIE mode:`, `CAIE artifact:`, `CAIE findings:`, and `CAIE status:`.
 
