@@ -256,4 +256,6 @@ Run the free decoded-YAML protocol check and its isolated mutations with:
 python3 evals/_helpers/check-prompt-grader-contracts.py --self-test
 ```
 
+The scan root must be an existing directory; missing roots and regular files fail.
+An existing directory without prompt graders reports zero applicable graders.
 This checks configured judge instructions, not live judge behavior.

@@ -60,6 +60,8 @@ def check_tree(root: Path) -> tuple[int, list[str]]:
     Return the grader count and path-qualified violations. YAML parse failures
     are reported too, so an unparseable task cannot silently evade the scan.
     """
+    if not root.is_dir():
+        return 0, [f"root must be an existing directory: {root}"]
     count = 0
     failures = []
     for path in sorted(root.rglob("*.yaml")):
@@ -97,6 +99,18 @@ def run_self_test() -> None:
         "completion. Put the reasoning in the tool call's reason argument."
     )
     assert check_prompt(valid) == []
+    import tempfile
+    with tempfile.TemporaryDirectory(prefix="prompt-grader-root-") as directory:
+        root = Path(directory)
+        missing = root / "missing"
+        assert check_tree(missing) == (0, [f"root must be an existing directory: {missing}"])
+        ordinary_file = root / "ordinary-file"
+        ordinary_file.write_text("not a directory")
+        assert check_tree(ordinary_file) == (0, [f"root must be an existing directory: {ordinary_file}"])
+        # An existing directory without prompt graders has no applicable checks.
+        assert check_tree(root) == (0, [])
+        (root / "task.yaml").write_text(yaml.safe_dump({"graders": [{"type": "prompt", "config": {"prompt": valid}}]}))
+        assert check_tree(root) == (1, [])
     mutations = {
         "missing pass tool": valid.replace(GRADE_PASS, "grade_success"),
         "missing fail tool": valid.replace(GRADE_FAIL, "grade_failure"),
