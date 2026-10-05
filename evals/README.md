@@ -85,7 +85,6 @@ Each task has a baseline set of task-level graders plus an eval-level
 `efficiency` grader; suites with an eval-level output contract also define a
 matching `output_contract` metric and grader. Positive tasks add `skill_invocation`; selected
 representative positives add `task_completion_substance`;
-`spock-voice` positives add `tone_quality`; and
 `nestjs-development/positive-trigger-1.yaml` adds the `ts_parse`
 `program` grader. The `adversarial-review`, `equivalence-class-audit`, and `factcheck` suites
 add deterministic `report_contract` program graders. Grader names match metric names so `waza`'s
@@ -105,7 +104,6 @@ metric → grader weighting takes effect.
   - `nestjs-testing`: 0.50
   - `nestjs-version-upgrade`: 0.50
   - `review-cycle-gatekeeper`: 0.40
-  - `spock-voice`: 0.15 (short SKILL.md body → very few keywords)
   - `ssrf-outbound-fetch-review`: 0.45
   - `web-app-security-review`: 0.45
   - `test-gap-to-test-plan`: 0.55
@@ -222,11 +220,6 @@ positive task using the standard wrapper.
   access, claim class, evidence locator/support, and one finding/correction per
   claim; `evals/factcheck/test_check_report.py` covers valid and deterministic
   malformed-report mutations. Exit code 0 passes and any non-zero exit fails.
-- `tone_quality` (`spock-voice` positives only, `prompt`) — LLM judge.
-  The judge calls `set_waza_grade_pass` exactly once when every full-success
-  criterion holds; otherwise it calls `set_waza_grade_fail` exactly once.
-  Reasoning belongs in the tool call's `reason` argument. Partial completion
-  fails this strict binary rubric.
 - `efficiency` (eval-level, `behavior`) — `max_tool_calls` and
   `max_tokens` budgets per task. Substance-heavy suites
   (`multi-lens-review`, `ssrf-outbound-fetch-review`,
@@ -240,8 +233,7 @@ positive task using the standard wrapper.
   `adversarial-review` uses 90 000 because paired-review tasks measure
   roughly 68 000 total tokens after fixed harness injection and cached
   multi-turn re-sends;
-  `handoff-note` is explicitly budgeted at 8 000; `spock-voice` uses
-  4 000.
+  `handoff-note` is explicitly budgeted at 8 000.
   `shell-command-construction` uses 8 000 tokens and 10 tool calls.
 
 ## Skill-body injection
@@ -272,8 +264,8 @@ checks:
   does not silently pass.
 - LLM-judge `task_completion_substance` graders on representative
   positive tasks across suites. They use the same strict binary pass/fail
-  tool-call protocol as `tone_quality`, with skill-specific full-success
-  criteria. Numeric response text alone is not a grade.
+  tool-call protocol, with skill-specific full-success criteria. Numeric
+  response text alone is not a grade.
 - Edge-case positives (`positive-edge-*.yaml`) per skill covering the
   documented "hard" behaviors — BLOCK on insufficient input, CLEAN
   verdicts, lens conflict resolution, regression-during-fix-cycle,
