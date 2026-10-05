@@ -2,9 +2,9 @@
 
 id: negative-close-001
 
-name: Exact instruction-quality diagnostic request
+name: Compare two single-instruction phrasings
 
-description: An exhaustive defect diagnostic belongs to instruction-quality-audit.
+description: A narrow wording comparison should not trigger a readiness audit.
 
 tags:
   - negative-trigger
@@ -13,16 +13,13 @@ tags:
 
 inputs:
   prompt: |
-    Diagnose this prompt for exact contradictions, precedence gaps, ambiguous
-    terms, authority conflicts, closure gaps, harmful duplication, and output
-    contract defects. Cite exact excerpts and give corrective wording.
+    Which single instruction is clearer for an assistant to follow? Choose A or
+    B and give one brief reason. Do not audit a larger artifact or rewrite
+    either option.
 
-    ```markdown
-    Always use tools.
-    Never use tools.
-    If the input is JSON, parse it.
-    If the input is YAML, parse it.
-    ```
+    A. If the incident is still active after the first response, gather the
+    unresolved evidence and escalate it to the incident lead.
+    B. Gather evidence and escalate active incidents when needed.
 
 expected:
   should_trigger: false
@@ -39,6 +36,7 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "agent-skill-audit"
         - "# Agent/Skill Readiness Audit"
         - "Audit:"
         - "## Audit Scope"

@@ -40,7 +40,7 @@ metrics:
   - name: output_contract
     weight: 0.05
     threshold: 1.0
-    description: Deterministic validator checks the default-roster report headings, table rows, verdict domains, and termination.
+    description: Deterministic validator checks the default-roster report, row-bound GPT profile cues, verdict mappings, enums, and termination.
   - name: efficiency
     weight: 0.15
     threshold: 0.7

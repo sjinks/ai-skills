@@ -630,10 +630,17 @@ An existing directory without prompt graders reports zero applicable graders.
 This checks configured judge instructions, not live judge behavior.
 
 The `agent-skill-audit` expanded-roster task validates exact report heading
-order, rating rows, all nine default model rows, verdict domains, and terminal
-output. Its mutation tests cover omission, reordering, duplication, invalid
-enums, profile crossover, and trailing prose:
+order, rating rows, all nine default model rows, model-specific GPT profile
+cues, numeric verdict eligibility, the five-item priority limit, table grammar,
+and terminal output. The task's substance judge evaluates whether the prose
+supports the causal architecture condition for `Major redesign`. Its mutation tests cover omission, reordering, duplication,
+invalid enums, swapped profile analysis, inconsistent verdicts, partial-status
+rejection, malformed tables, and escaped cell pipes. Run the checker with a
+report on stdin; the program grader requires a finding for this known-defect
+fixture. Use `--allow-empty-findings` only when probing a clean verdict branch:
 
 ```sh
+python3 evals/agent-skill-audit/check-report.py < report.md
+python3 evals/agent-skill-audit/check-report.py --allow-empty-findings < report.md
 python3 -m unittest evals/agent-skill-audit/test_check_report.py
 ```

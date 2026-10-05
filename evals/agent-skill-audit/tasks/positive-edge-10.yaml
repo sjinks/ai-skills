@@ -14,9 +14,20 @@ tags:
 inputs:
   prompt: |
     Audit this custom agent for production readiness using the default target
-    model set. In Target-Model Compatibility, report one separate table row
+    model set. Set Artifact type to Custom agent, Mode to core, Target models
+    to default set, and Status to completed because this is one pasted
+    artifact. In Target-Model
+    Compatibility, report one separate table row
     for every default model using its exact canonical name and default-set
     order. Include each default model exactly once and no other model rows.
+    Keep each GPT model's analysis attached to its own row. Across that row's
+    Main risk and Required adaptation cells, mention at least two of these
+    cues for GPT-6 Luna: short normal path, explicit defaults, simple output
+    grammar. For GPT-6 Sol, mention at least two of: clear outcomes, evidence,
+    adaptable tool use, side-effect boundaries. For GPT-6.1 Sol, mention at
+    least two of: literal broad scope, invariants, or optional delegation for
+    independent workstreams (the delegation cue requires both parts). For GPT-6 Astra, mention at least two of: concise
+    mission, hard boundaries, strategic freedom, pause conditions.
 
     ```markdown
     ---
@@ -52,34 +63,13 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - "(?m)^# Agent/Skill Readiness Audit$"
-        - "(?m)^Audit:"
-        - "(?m)^## Audit Scope$"
-        - "(?m)^## Readiness Ratings$"
-        - "(?m)^## Material Findings$"
-        - "(?m)^## Target-Model Compatibility$"
-        - "(?m)^## Priority Changes$"
-        - "(?m)^Verdict:"
-        - '(?ms)^# Agent/Skill Readiness Audit$.*?^Audit:.*?^## Audit Scope$.*?^## Readiness Ratings$.*?^## Material Findings$.*?^## Target-Model Compatibility$.*?^## Priority Changes$.*?^Verdict: (Ready|Ready with limitations|Needs revision|Major redesign|Blocked)\s*$'
-        - '(?m)^\|[ \t]*Discovery and delegation[ \t]*\|[ \t]*[1-5][ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?m)^\|[ \t]*Instruction architecture[ \t]*\|[ \t]*[1-5][ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?m)^\|[ \t]*Operational completeness[ \t]*\|[ \t]*[1-5][ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?m)^\|[ \t]*Model and runtime portability[ \t]*\|[ \t]*[1-5][ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?m)^\|[ \t]*Maintainability and evaluability[ \t]*\|[ \t]*[1-5][ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?ms)^## Readiness Ratings$\s*\n\|[^\r\n]+\|\s*\n\|[^\r\n]+\|\s*\n\|[ \t]*Discovery and delegation[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Instruction architecture[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Operational completeness[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Model and runtime portability[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Maintainability and evaluability[ \t]*\|[^\r\n]+\|\s*\n\s*^## Material Findings$'
-        - '(?m)^\|[ \t]*GPT-6 Luna[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?m)^\|[ \t]*GPT-6 Sol[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?m)^\|[ \t]*GPT-6\.1 Sol[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?m)^\|[ \t]*GPT-6 Astra[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?m)^\|[ \t]*Claude Haiku 4\.5[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?m)^\|[ \t]*Claude Sonnet 5[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?m)^\|[ \t]*Claude Opus 4\.8[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?m)^\|[ \t]*Claude Opus 5[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?m)^\|[ \t]*Claude Fable 5[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?ms)^## Target-Model Compatibility$\s*\n\|[^\r\n]+\|\s*\n\|[^\r\n]+\|\s*\n\|[ \t]*GPT-6 Luna[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*GPT-6 Sol[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*GPT-6\.1 Sol[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*GPT-6 Astra[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Haiku 4\.5[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Sonnet 5[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Opus 4\.8[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Opus 5[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Fable 5[ \t]*\|[^\r\n]+\|\s*\n\s*^## Priority Changes$'
-        - '(?ms)^## Priority Changes$\s*\n(?:None\.|1\. .+?)\s*\nVerdict:'
-        - 'Severity:\s*(CRITICAL|HIGH|MEDIUM|LOW)'
-        - '(?i)(exact.*tool sequence|five subagents|conflicting evidence|adjacent systems|runtime verification)'
+        - '(?m)^ {0,3}# Agent/Skill Readiness Audit$'
+        - '(?m)^ {0,3}Audit: .+'
+        - '(?m)^ {0,3}## Readiness Ratings$'
+        - '(?m)^ {0,3}## Material Findings$'
+        - '(?m)^ {0,3}Verdict: (Ready|Ready with limitations|Needs revision|Major redesign)$'
+        - '(?i)conflicting evidence|side-effect boundaries|independent workstreams|pause conditions'
+
 
   - type: program
     name: output_contract
@@ -95,12 +85,18 @@ graders:
       prompt: |
         Grade whether the readiness report follows its output contract and
         performs model-specific analysis rather than repeating generic profile
-        descriptions. It must use each top-level marker exactly once and in
+        descriptions. Use Artifact type: Custom agent and Mode: core for this
+        one pasted target. Use Target models: default set. It must use each
+        top-level marker exactly once and in
         order, end with the Verdict line, include exactly the five canonical
         readiness-rating rows with no additional rows, provide Priority Changes
-        content or exact None., and include exactly one
+        content or exact None. with no more than five numbered corrective
+        tasks, and include exactly one
         complete compatibility row for every canonical default model with no
-        additional model rows.
+        additional model rows. This supplied agent has material defects, so
+        Material Findings must contain at least one complete finding with fields
+        ordered Severity, Area, Locations,
+        Evidence, Risk, Correction; do not combine None. with findings.
 
         The report must substantively distinguish these changed profiles and
         apply them to the supplied agent: GPT-6 Luna checks a short normal path,
@@ -116,12 +112,29 @@ graders:
         Generic boilerplate, swapped profile reasoning, or prompt echo without
         applying the checks to the audited agent cannot receive full credit.
 
+        Assess every default model; do not mark a model Not assessed. The
+        supplied single artifact is fully readable, so use Status: completed.
+
+        The final readiness verdict must agree with the ratings and corrective
+        work: any rating 1 requires Major redesign; any rating 2 or 3, material
+        finding, or priority change requires Needs revision unless Major
+        redesign applies. Ready and Ready with limitations require all ratings
+        to be 4 or 5 and both corrective sections to be None.; select Ready
+        with limitations only for a model, runtime, or unavailable-evidence
+        limitation, and Ready when it is None. This supplied agent is readable,
+        so do not use the blocked-report branch or Verdict: Blocked. Major
+        redesign requires at least one rating 1, or multiple rating-2 areas
+        whose risks or findings substantively establish that the architecture
+        is fundamentally wrong. Accept equivalent wording and supporting
+        evidence; do not require an exact phrase or a particular cell.
+
         Call set_waza_grade_pass exactly once only when all full-success criteria
         in this prompt hold. Otherwise, including partial completion, call
         set_waza_grade_fail exactly once. Put the reasoning in the tool call's
         reason argument; do not return a numeric grade as response text.
 
-        Full success: the report satisfies the contract and all six profile checks.
+        Full success: the report satisfies the scope, structure, roster, verdict,
+        and table contracts, and all six substantive profile checks.
         Partial completion (fail): structure and roster are correct but one profile is generic or blurred.
         Failure: structure or roster is incomplete, or multiple profiles are wrong.
       mode: independent
