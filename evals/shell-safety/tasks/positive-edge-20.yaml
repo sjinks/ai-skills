@@ -56,13 +56,13 @@ graders:
         mix status text into stdout, or emit a second `Command:` field. Merely
         discussing the defective form in explanatory prose is acceptable.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = exactly one correct value-preserving Command field is emitted.
-        0.5 = the response identifies SM4 but the command contract is unclear.
-        0.0 = stdout semantics change, Command is duplicated, or the skill is
+        Full success: exactly one correct value-preserving Command field is emitted.
+        Partial completion (fail): the response identifies SM4 but the command contract is unclear.
+        Failure: stdout semantics change, Command is duplicated, or the skill is
               not performed.
       mode: independent

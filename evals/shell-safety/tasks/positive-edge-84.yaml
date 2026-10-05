@@ -37,5 +37,10 @@ graders:
         Grade whether GD5 owns the protective branch-creation replacement,
         preserves the caller-selected `review-fix` name and exact commit, and
         returns NEEDS-CONFIRMATION rather than looping back to BLOCKED or
-        switching detached. Last line: 1.0, 0.5, or 0.0 only.
+        switching detached.
+
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
       mode: independent

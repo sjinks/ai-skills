@@ -46,5 +46,10 @@ graders:
       prompt: |
         Grade whether only the backtick syntax changes to `$(date)` while the
         original `echo`, fixed text, double-quoted single argument, and output
-        semantics remain unchanged. Last line: 1.0, 0.5, or 0.0 only.
+        semantics remain unchanged.
+
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
       mode: independent

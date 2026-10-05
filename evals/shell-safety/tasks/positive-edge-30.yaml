@@ -58,12 +58,12 @@ graders:
         contain literal newlines or that tilde expansion occurs only at a word's
         beginning.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = both quoting and assignment-tilde semantics are correct.
-        0.5 = one semantic is correct but the other is unclear.
-        0.0 = valid syntax is rewritten or either old factual claim remains.
+        Full success: both quoting and assignment-tilde semantics are correct.
+        Partial completion (fail): one semantic is correct but the other is unclear.
+        Failure: valid syntax is rewritten or either old factual claim remains.
       mode: independent

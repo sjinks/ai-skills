@@ -43,5 +43,8 @@ graders:
         Q8 is not reported, and the Assessment says disabled or POSIX-mode Bash
         preserves the literal exclamation mark while terminal `!` immediately
         before the closing double quote is quoted and does not match Q11.
-        Last line: 1.0, 0.5, or 0.0 only.
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
       mode: independent

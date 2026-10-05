@@ -47,11 +47,12 @@ graders:
         command text in shell history from the expanded secret in terminal
         output/transcript capture, and keeps the result blocked by SE1.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the last line, write only: 1.0, 0.5, or 0.0
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = Q1/SE1 ordering and both disclosure locations are accurate.
-        0.5 = disclosure is blocked but history semantics are omitted.
-        0.0 = it claims shell history stores the expanded secret value.
+        Full success: Q1/SE1 ordering and both disclosure locations are accurate.
+        Partial completion (fail): disclosure is blocked but history semantics are omitted.
+        Failure: it claims shell history stores the expanded secret value.
       mode: independent

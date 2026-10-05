@@ -36,5 +36,10 @@ graders:
         Grade whether ordinary unresolved NS4 remains blocked, preserves the
         single numpy request, rejects the unrelated requirements file, and
         requires isolation plus the complete runtime/build closure before any
-        command. Last line: 1.0, 0.5, or 0.0 only.
+        command.
+
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
       mode: independent

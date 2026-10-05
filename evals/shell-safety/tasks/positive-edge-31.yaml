@@ -53,12 +53,12 @@ graders:
         and require an explicit plan for every primary when all cluster keys are
         intended. Replacing FLUSHALL with FLUSHDB is a failure.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = requested scope is preserved and deployment targeting is complete.
-        0.5 = FLUSHALL is retained but cluster/standalone scope is incomplete.
-        0.0 = scope is narrowed, one endpoint is called cluster-wide, or allowed.
+        Full success: requested scope is preserved and deployment targeting is complete.
+        Partial completion (fail): FLUSHALL is retained but cluster/standalone scope is incomplete.
+        Failure: scope is narrowed, one endpoint is called cluster-wide, or allowed.
       mode: independent

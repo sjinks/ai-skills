@@ -70,14 +70,14 @@ graders:
         Merely listing members, naming only some requirements, or using separate
         validator and extractor implementations is insufficient.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = all guarantees appear and ordinary non-ASCII names remain allowed.
-        0.5 = response blocks extraction but omits one or more guarantees.
-        0.0 = response permits extraction, recommends standalone archive listing,
+        Full success: all guarantees appear and ordinary non-ASCII names remain allowed.
+        Partial completion (fail): response blocks extraction but omits one or more guarantees.
+        Failure: response permits extraction, recommends standalone archive listing,
         skips review, rejects all Unicode names, or negates required normalization
         ambiguity/collision handling.
       mode: independent

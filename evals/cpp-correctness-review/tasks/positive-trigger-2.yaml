@@ -80,15 +80,15 @@ graders:
         4. Prescribe the fix: update both by_id_ and by_name_ on success, or test
            remove-then-lookup to catch the inconsistency.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = response correctly identifies stale derived state, failing scenario,
+        Full success: response correctly identifies stale derived state, failing scenario,
               contract violation, and required guard (both projections or test).
-        0.5 = response identifies the bug but omits scenario, contract detail, or
+        Partial completion (fail): response identifies the bug but omits scenario, contract detail, or
               required guard; or hedges on whether by_name_ is actually left stale.
-        0.0 = response is wrong, misses the stale derived state, or does not
+        Failure: response is wrong, misses the stale derived state, or does not
               perform the skill.
       mode: independent

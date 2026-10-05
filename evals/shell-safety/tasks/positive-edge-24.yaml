@@ -62,13 +62,13 @@ graders:
         sequencing, not because target binding remains unresolved.
         It must not claim that `cd ... && cmd` has the same failure.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = guard, FS1 lifecycle, and target preservation are correct.
-        0.5 = the guard is correct but target reasoning is incomplete.
-            0.0 = FS1 is omitted, FS4 is added, the target changes, && is called unguarded,
+        Full success: guard, FS1 lifecycle, and target preservation are correct.
+        Partial completion (fail): the guard is correct but target reasoning is incomplete.
+            Failure: FS1 is omitted, FS4 is added, the target changes, && is called unguarded,
               deletion is marked SAFE, or review is omitted.
       mode: independent

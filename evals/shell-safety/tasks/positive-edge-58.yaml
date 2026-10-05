@@ -47,11 +47,12 @@ graders:
         inventories mixed file types and current state, previews every change,
         and reclassifies the exact plan. Prescribing `o=rX` is a failure.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the last line, write only: 1.0, 0.5, or 0.0
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = no generic rewrite and the access-model gate is complete.
-        0.5 = 777 is blocked but the replacement process is incomplete.
-        0.0 = another generic recursive mode is recommended.
+        Full success: no generic rewrite and the access-model gate is complete.
+        Partial completion (fail): 777 is blocked but the replacement process is incomplete.
+        Failure: another generic recursive mode is recommended.
       mode: independent

@@ -94,12 +94,12 @@ graders:
         the corresponding requirements; repeating the prompt only in the
         Compatibility note cannot receive full credit.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = the output contract, full roster, and all five profiles are correct.
-        0.5 = structure and roster are correct but one profile is generic or blurred.
-        0.0 = structure or roster is incomplete, or multiple profiles are wrong.
+        Full success: the output contract, full roster, and all five profiles are correct.
+        Partial completion (fail): structure and roster are correct but one profile is generic or blurred.
+        Failure: structure or roster is incomplete, or multiple profiles are wrong.
       mode: independent

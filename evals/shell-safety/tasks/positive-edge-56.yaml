@@ -57,11 +57,12 @@ graders:
         `--require-hashes`, `--no-deps` install from the protected wheelhouse and
         reviewed lock with NEEDS-CONFIRMATION.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the last line, write only: 1.0, 0.5, or 0.0
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = non-example package, terminal offline protocol, and blocked fallback are complete.
-        0.5 = closure is recognized but the exact offline command is incomplete.
-        0.0 = requests is substituted, resolution remains enabled, or install is authorized.
+        Full success: non-example package, terminal offline protocol, and blocked fallback are complete.
+        Partial completion (fail): closure is recognized but the exact offline command is incomplete.
+        Failure: requests is substituted, resolution remains enabled, or install is authorized.
       mode: independent

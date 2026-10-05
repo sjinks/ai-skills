@@ -47,11 +47,12 @@ graders:
         descriptor-bound truncation without pathname reopening. A separate -f check is not
         sufficient.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the last line, write only: 1.0, 0.5, or 0.0
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = identity binding and platform capability are complete.
-        0.5 = race is recognized but checks are incomplete.
-        0.0 = the check-then-truncate sequence is authorized.
+        Full success: identity binding and platform capability are complete.
+        Partial completion (fail): race is recognized but checks are incomplete.
+        Failure: the check-then-truncate sequence is authorized.
       mode: independent

@@ -56,12 +56,12 @@ graders:
         material needed to continue; for this prompt, that is the specification
         body or equivalent target content.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = exactly one blocker finding, an exact request in Suggested fix, and no fabricated claims.
-        0.5 = the request is vague or in the wrong field, but the blocker is otherwise correct.
-        0.0 = no context request, additional findings, or fabricated target claims are present.
+        Full success: exactly one blocker finding, an exact request in Suggested fix, and no fabricated claims.
+        Partial completion (fail): the request is vague or in the wrong field, but the blocker is otherwise correct.
+        Failure: no context request, additional findings, or fabricated target claims are present.
       mode: independent

@@ -59,12 +59,12 @@ graders:
         `path`/`fpath` are assignable arrays tied to `PATH`/`FPATH`, and does not
         generalize the read-only `status` rule to these names.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = assignments and special semantics are all correct.
-        0.5 = assignments are kept but special effects are incomplete.
-        0.0 = any assignment is rejected or rewritten as read-only.
+        Full success: assignments and special semantics are all correct.
+        Partial completion (fail): assignments are kept but special effects are incomplete.
+        Failure: any assignment is rejected or rewritten as read-only.
       mode: independent

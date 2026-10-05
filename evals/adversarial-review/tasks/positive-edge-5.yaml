@@ -71,12 +71,12 @@ graders:
         current finding. Accept BLOCK only if a complete independent current HIGH
         or CRITICAL finding justifies it; BLOCK inherited from the prior pass fails.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = response applies the revised-target default and reports the current finding.
-        0.5 = response reviews the current target but leaves revision handling unclear.
-        0.0 = response inherits BLOCK or suppresses the current finding based on the prior pass.
+        Full success: response applies the revised-target default and reports the current finding.
+        Partial completion (fail): response reviews the current target but leaves revision handling unclear.
+        Failure: response inherits BLOCK or suppresses the current finding based on the prior pass.
       mode: independent

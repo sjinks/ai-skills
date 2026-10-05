@@ -135,9 +135,10 @@ grader weighting takes effect.
   metric names, both negative metrics require 1.0, and a separate 1.0
   `output_contract` metric enforces the ordered top-level field serialization.
 - `tone_quality` (`spock-voice` positives only, `prompt`) — LLM judge.
-  The rubric asks for one sentence of reasoning followed by a final
-  line containing only `1.0`, `0.5`, or `0.0`, so waza's prompt-grader
-  parser can extract the score reliably.
+  The judge calls `set_waza_grade_pass` exactly once when every full-success
+  criterion holds; otherwise it calls `set_waza_grade_fail` exactly once.
+  Reasoning belongs in the tool call's `reason` argument. Partial completion
+  fails this strict binary rubric.
 - `efficiency` (eval-level, `behavior`) — `max_tool_calls` and
   `max_tokens` budgets per task. Substance-heavy suites
   (`multi-lens-review`, `ssrf-outbound-fetch-review`,
@@ -184,9 +185,8 @@ checks:
 - At least two close-domain negative tasks per skill so a single close-domain bias
   does not silently pass.
 - LLM-judge `task_completion_substance` graders on representative
-  positive tasks across suites. They score 1.0 / 0.5 / 0.0
-  against a skill-specific rubric, using the same final-line numeric
-  format as `tone_quality`.
+  positive tasks across suites. They use the same binary grading tool calls
+  as `tone_quality`, passing only when every full-success criterion holds.
 - Edge-case positives (`positive-edge-*.yaml`) per skill covering the
   documented "hard" behaviors — BLOCK on insufficient input, CLEAN
   verdicts, lens conflict resolution, regression-during-fix-cycle,
@@ -241,3 +241,19 @@ waza run evals/<skill>/eval.yaml \
   --reporter junit:junit.xml \
   -v
 ```
+
+## Prompt-grader protocol preflight
+
+Waza v0.33.0 records `set_waza_grade_pass` and `set_waza_grade_fail` calls; a judge
+that returns only numeric text fails with no recorded grade. Repository prompt
+graders use exactly one pass call when every full-success criterion holds and
+one fail call otherwise, including partial completion, with reasoning in the
+tool's `reason` argument. This follows the [upstream prompt-grader contract](https://github.com/microsoft/waza/blob/v0.33.0/docs/graders/prompt.md).
+
+Run the free decoded-YAML protocol check and its isolated mutations with:
+
+```sh
+python3 evals/_helpers/check-prompt-grader-contracts.py --self-test
+```
+
+This checks configured judge instructions, not live judge behavior.

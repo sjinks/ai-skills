@@ -47,11 +47,12 @@ graders:
         Grade whether the response replaces echo with fixed-format printf while
         preserving the literal backslash-n data as one output line.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the last line, write only: 1.0, 0.5, or 0.0
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = literal a\nb plus one trailing newline is preserved.
-        0.5 = echo is removed but exact output semantics are unclear.
-        0.0 = the replacement emits two lines or retains non-portable echo.
+        Full success: literal a\nb plus one trailing newline is preserved.
+        Partial completion (fail): echo is removed but exact output semantics are unclear.
+        Failure: the replacement emits two lines or retains non-portable echo.
       mode: independent

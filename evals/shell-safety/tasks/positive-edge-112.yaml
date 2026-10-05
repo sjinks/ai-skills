@@ -40,5 +40,10 @@ graders:
         removed only after handle-observed completion, h5678 remains continuously
         retained without rematching/reacquisition, and future escalation stays
         blocked until an exact handle operation and survivor-only confirmation
-        exist. Last line: 1.0, 0.5, or 0.0 only.
+        exist.
+
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
       mode: independent

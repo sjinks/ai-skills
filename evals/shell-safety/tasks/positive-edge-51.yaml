@@ -51,12 +51,12 @@ graders:
         descriptor through truncation and write. Confirmation alone is
         insufficient while the pathname can be swapped.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = overwrite semantics and descriptor-bound blocking are both preserved.
-        0.5 = blocked but path identity or retained-descriptor checks are weak.
-        0.0 = append replaces overwrite or pathname overwrite is emitted/authorized.
+        Full success: overwrite semantics and descriptor-bound blocking are both preserved.
+        Partial completion (fail): blocked but path identity or retained-descriptor checks are weak.
+        Failure: append replaces overwrite or pathname overwrite is emitted/authorized.
       mode: independent

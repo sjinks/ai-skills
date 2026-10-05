@@ -53,11 +53,12 @@ graders:
         positional parameters separately before further splitting/globbing and
         rewrites to quoted `"$@"` to preserve both boundaries.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the last line, write only: 1.0, 0.5, or 0.0
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = expansion semantics and quoted-dollar-at rewrite are exact.
-        0.5 = rewrite is safe but the unquoted-dollar-star explanation is weak.
-        0.0 = unquoted dollar-star is described as one IFS-joined string.
+        Full success: expansion semantics and quoted-dollar-at rewrite are exact.
+        Partial completion (fail): rewrite is safe but the unquoted-dollar-star explanation is weak.
+        Failure: unquoted dollar-star is described as one IFS-joined string.
       mode: independent

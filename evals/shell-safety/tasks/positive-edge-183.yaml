@@ -28,4 +28,4 @@ graders:
       not_contains: ['Result: SAFE', 'Result: REWRITE', 'Command: curl ', 'Command: wget ', 'Verdict:', 'Checklist status:']
   - type: prompt
     name: task_completion_substance
-    config: {prompt: 'Grade whether AR4 blocks a network tar stream without an authenticated digest and requires the remote-delivery workflow plus one AR1 parser for the same secured immutable archive, rejecting separate validator/extractor implementations. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}
+    config: {prompt: 'Grade whether AR4 blocks a network tar stream without an authenticated digest and requires the remote-delivery workflow plus one AR1 parser for the same secured immutable archive, rejecting separate validator/extractor implementations. Call set_waza_grade_pass exactly once only when all full-success criteria in this prompt hold. Otherwise, including partial completion, call set_waza_grade_fail exactly once. Put the reasoning in the tool call''s reason argument; do not return a numeric grade as response text.', mode: independent}

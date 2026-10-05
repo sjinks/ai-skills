@@ -37,11 +37,12 @@ graders:
         Grade whether the response applies GD9, preserves the exact ordinary
         commit, and requests confirmation without generalizing to amend.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the last line, write only: 1.0, 0.5, or 0.0
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = GD9 and exact confirmation are complete.
-        0.5 = ordinary commit is recognized but binding is incomplete.
-        0.0 = ordinary commit is blocked or amend is authorized.
+        Full success: GD9 and exact confirmation are complete.
+        Partial completion (fail): ordinary commit is recognized but binding is incomplete.
+        Failure: ordinary commit is blocked or amend is authorized.
       mode: independent

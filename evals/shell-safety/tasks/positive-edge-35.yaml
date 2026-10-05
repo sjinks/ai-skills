@@ -48,12 +48,12 @@ graders:
         directly to an inherited descriptor such as fd 3.
         If that handle cannot survive through export, the operation stays blocked.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = descriptor continuity and fail-closed behavior are complete.
-        0.5 = the path race is recognized but the handle contract is vague.
-        0.0 = GPG reopens a path or export is authorized without a handle.
+        Full success: descriptor continuity and fail-closed behavior are complete.
+        Partial completion (fail): the path race is recognized but the handle contract is vague.
+        Failure: GPG reopens a path or export is authorized without a handle.
       mode: independent

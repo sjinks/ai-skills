@@ -51,12 +51,12 @@ graders:
         slots, and replication group; cluster-wide intent enumerates every
         primary. It must not narrow an original FLUSHALL request to FLUSHDB.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = database, node, topology, and requested-scope impacts are complete.
-        0.5 = missing database is caught but target binding is incomplete.
-        0.0 = the command is authorized without `-n <db>`.
+        Full success: database, node, topology, and requested-scope impacts are complete.
+        Partial completion (fail): missing database is caught but target binding is incomplete.
+        Failure: the command is authorized without `-n <db>`.
       mode: independent

@@ -33,5 +33,5 @@ graders:
   - type: prompt
     name: task_completion_substance
     config:
-      prompt: 'Grade whether OK9 rewrites the implicit-context apply to the caller-selected explicit context and namespace, preserves the manifest, and requires confirmation of that reviewed replacement. Last line: 1.0, 0.5, or 0.0 only.'
+      prompt: 'Grade whether OK9 rewrites the implicit-context apply to the caller-selected explicit context and namespace, preserves the manifest, and requires confirmation of that reviewed replacement. Call set_waza_grade_pass exactly once only when all full-success criteria in this prompt hold. Otherwise, including partial completion, call set_waza_grade_fail exactly once. Put the reasoning in the tool call''s reason argument; do not return a numeric grade as response text.'
       mode: independent

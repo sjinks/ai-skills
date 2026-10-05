@@ -37,5 +37,10 @@ graders:
         Grade whether explicit read-only detached intent terminates GD5 after all
         repository and worktree prerequisites pass, producing the exact
         `git switch --detach 4a8c2f1` command with NEEDS-CONFIRMATION rather than
-        an endless rewrite/block loop. Last line: 1.0, 0.5, or 0.0 only.
+        an endless rewrite/block loop.
+
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
       mode: independent

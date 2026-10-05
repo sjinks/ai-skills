@@ -54,11 +54,12 @@ graders:
         the intended locale and encoding, or a verified PCRE-capable
         implementation. Unknown targets and default rg are not sufficient.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the last line, write only: 1.0, 0.5, or 0.0
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = engine swap is blocked and every required verification is listed.
-        0.5 = semantic risk is recognized but checks are incomplete.
-        0.0 = grep -E or default rg is substituted without proof.
+        Full success: engine swap is blocked and every required verification is listed.
+        Partial completion (fail): semantic risk is recognized but checks are incomplete.
+        Failure: grep -E or default rg is substituted without proof.
       mode: independent

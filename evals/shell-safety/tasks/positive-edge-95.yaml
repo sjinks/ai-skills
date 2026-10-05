@@ -37,6 +37,10 @@ graders:
       prompt: |
         Grade whether the original absolute operand matches FS1 and FS4 and
         requires confirmation after all binding checks, including complete mount
-        topology and operation-time no-cross-mount enforcement, pass. Last line: 1.0,
-        0.5, or 0.0 only.
+        topology and operation-time no-cross-mount enforcement, pass.
+
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
       mode: independent

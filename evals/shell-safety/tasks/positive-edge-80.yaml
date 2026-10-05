@@ -52,11 +52,12 @@ graders:
         privilege grant and blocks until the exact least-privilege capability,
         trusted target identity, lifecycle, current state, and rollback pass.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the last line, write only: 1.0, 0.5, or 0.0
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = setcap remains blocked behind platform and PE4 trust/lifecycle gates.
-        0.5 = privilege risk is recognized but required checks are incomplete.
-        0.0 = removing setuid makes the setcap replacement safe by itself.
+        Full success: setcap remains blocked behind platform and PE4 trust/lifecycle gates.
+        Partial completion (fail): privilege risk is recognized but required checks are incomplete.
+        Failure: removing setuid makes the setcap replacement safe by itself.
       mode: independent

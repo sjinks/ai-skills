@@ -22,4 +22,4 @@ graders:
       not_contains: ['Result: SAFE', 'Result: REWRITE', 'Command: build 2>&1 > build.log', 'Command: build > build.log 2>&1', 'Verdict:', 'Checklist status:']
   - type: prompt
     name: task_completion_substance
-    config: {prompt: 'Grade whether OR2 identifies the confirmed routing rewrite but the complete command remains BLOCKED under OR1 until build.log is opened through an identity-bound overwrite mechanism. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}
+    config: {prompt: 'Grade whether OR2 identifies the confirmed routing rewrite but the complete command remains BLOCKED under OR1 until build.log is opened through an identity-bound overwrite mechanism. Call set_waza_grade_pass exactly once only when all full-success criteria in this prompt hold. Otherwise, including partial completion, call set_waza_grade_fail exactly once. Put the reasoning in the tool call''s reason argument; do not return a numeric grade as response text.', mode: independent}

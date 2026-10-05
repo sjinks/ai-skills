@@ -59,11 +59,12 @@ graders:
         `Required checks:` field afterward, uses `--cleanup=verbatim`, verifies
         non-rewriting hooks/config, and requests confirmation for GD9.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the last line, write only: 1.0, 0.5, or 0.0
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = payload and top-level field are unambiguous and complete.
-        0.5 = heredoc is used but serialization or indentation is incomplete.
-        0.0 = payload marker is parsed as a field or message bytes change.
+        Full success: payload and top-level field are unambiguous and complete.
+        Partial completion (fail): heredoc is used but serialization or indentation is incomplete.
+        Failure: payload marker is parsed as a field or message bytes change.
       mode: independent

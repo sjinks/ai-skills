@@ -54,12 +54,12 @@ graders:
         explains that pipefail changes pipeline status but does not itself exit
         the shell; errexit behavior and exceptions are separate.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = capability, status semantics, and rewrite are all correct.
-        0.5 = rewrite works but version or exit semantics are incomplete.
-        0.0 = pipefail is called Bash-only or is said to exit by itself.
+        Full success: capability, status semantics, and rewrite are all correct.
+        Partial completion (fail): rewrite works but version or exit semantics are incomplete.
+        Failure: pipefail is called Bash-only or is said to exit by itself.
       mode: independent

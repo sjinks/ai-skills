@@ -54,12 +54,12 @@ graders:
         the exact regular destination identity remains stable through both open
         and write. A reviewed pathname alone is insufficient.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = path-swap-resistant privileged open and fail-closed behavior are complete.
-        0.5 = blocked but descriptor/path requirements are incomplete.
-        0.0 = pathname-based tee is authorized without non-replaceable path trust.
+        Full success: path-swap-resistant privileged open and fail-closed behavior are complete.
+        Partial completion (fail): blocked but descriptor/path requirements are incomplete.
+        Failure: pathname-based tee is authorized without non-replaceable path trust.
       mode: independent

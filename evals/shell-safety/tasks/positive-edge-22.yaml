@@ -57,13 +57,13 @@ graders:
         confirmation for `rsync --delete`. A Bash array is not a valid
         replacement for this `/bin/sh` target.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = exact CS4/RX5 classification, POSIX replacement, and checks are complete.
-          0.5 = eval is blocked but scoping or follow-up checks are incomplete.
-          0.0 = a pattern is omitted/reordered, eval is allowed, caller parameters
+        Full success: exact CS4/RX5 classification, POSIX replacement, and checks are complete.
+          Partial completion (fail): eval is blocked but scoping or follow-up checks are incomplete.
+          Failure: a pattern is omitted/reordered, eval is allowed, caller parameters
             are clobbered, a shell array is recommended, or no review occurs.
       mode: independent

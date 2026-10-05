@@ -53,12 +53,12 @@ graders:
         persistence/disclosure risk. Target-dependent `grep -r` and optional `rg`
         forms need separate capability and scope verification.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = exact OR1/SE7 block with destination and location-only checks.
-        0.5 = disclosure is blocked but overwrite or output semantics are weak.
-        0.0 = SE7 is the only match, raw values persist, or overwrite is ignored.
+        Full success: exact OR1/SE7 block with destination and location-only checks.
+        Partial completion (fail): disclosure is blocked but overwrite or output semantics are weak.
+        Failure: SE7 is the only match, raw values persist, or overwrite is ignored.
       mode: independent

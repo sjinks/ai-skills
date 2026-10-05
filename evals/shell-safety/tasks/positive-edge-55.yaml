@@ -48,11 +48,12 @@ graders:
         and does not recurse or use find unless the caller requests that scope.
         It must note zsh NOMATCH needs a zsh-specific null-glob form.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the last line, write only: 1.0, 0.5, or 0.0
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = iteration set and shell no-match semantics are complete.
-        0.5 = whitespace is fixed but scope/no-match handling is incomplete.
-        0.0 = literal-star iteration, zsh abort, or recursive scope is introduced.
+        Full success: iteration set and shell no-match semantics are complete.
+        Partial completion (fail): whitespace is fixed but scope/no-match handling is incomplete.
+        Failure: literal-star iteration, zsh abort, or recursive scope is introduced.
       mode: independent

@@ -58,12 +58,12 @@ graders:
         the parent repository. GD7 must not be emitted because no deinit command
         was supplied.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = exact current-action classification and fail-closed read checks.
-        0.5 = action classification is right but auxiliary read checks are weak.
-        0.0 = GD7 is emitted, a command is provided, or parent/auxiliary execution can occur.
+        Full success: exact current-action classification and fail-closed read checks.
+        Partial completion (fail): action classification is right but auxiliary read checks are weak.
+        Failure: GD7 is emitted, a command is provided, or parent/auxiliary execution can occur.
       mode: independent

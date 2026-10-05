@@ -52,11 +52,12 @@ graders:
         tokenization and identifies one `foobar` argument rather than a newline
         or two arguments.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the last line, write only: 1.0, 0.5, or 0.0
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = continuation removal and the foobar argument are exact.
-        0.5 = continuation is recognized but normalized command is incomplete.
-        0.0 = a newline or argument boundary is preserved.
+        Full success: continuation removal and the foobar argument are exact.
+        Partial completion (fail): continuation is recognized but normalized command is incomplete.
+        Failure: a newline or argument boundary is preserved.
       mode: independent

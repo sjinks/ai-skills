@@ -22,4 +22,4 @@ graders:
       not_contains: ['Result: REWRITE', 'printf ''%s\\n'' "it''s $name"', 'Verdict:', 'Checklist status:']
   - type: prompt
     name: task_completion_substance
-    config: {prompt: 'Grade whether Q8 stays blocked until the intended text and closing quote boundary are known, without inventing a rewrite. Last line: 1.0, 0.5, or 0.0 only.', mode: independent}
+    config: {prompt: 'Grade whether Q8 stays blocked until the intended text and closing quote boundary are known, without inventing a rewrite. Call set_waza_grade_pass exactly once only when all full-success criteria in this prompt hold. Otherwise, including partial completion, call set_waza_grade_fail exactly once. Put the reasoning in the tool call''s reason argument; do not return a numeric grade as response text.', mode: independent}
