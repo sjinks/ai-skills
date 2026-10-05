@@ -39,7 +39,7 @@ graders:
     config:
       regex_match:
         - '(?ms)^Profile recommendation:$.*?^Justified behavioral patches:$.*?^Evidence still needed:$'
-        - '(?i)coding-agent'
+        - '(?m)^- coding-agent$'
         - '(?i)(none|no patch|remove.*completion-persistence|completion-persistence.*remove)'
         - '(?i)(retest|evaluation|regression|reproduce)'
       not_contains:

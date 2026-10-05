@@ -83,9 +83,10 @@ def validate_findings(lines: list[str]) -> None:
         if len(fields) != 5 or fields[0] not in ('- error', '- warning') or fields[1] not in RULES:
             raise ValueError('invalid finding severity, rule or cardinality')
         location = location_content(fields[2])
-        if not re.fullmatch(r'(?:supplied snippet:[1-9][0-9]*|[^#]+#[^#]+)', location):
-            raise ValueError('invalid finding location')
-        if '#' in location and any(not part.strip() for part in location.split('#')):
+        snippet = re.fullmatch(r'supplied snippet:[1-9][0-9]*', location)
+        path_section = any(location[:index].strip() and location[index + 1:].strip()
+                           for index, character in enumerate(location) if character == '#')
+        if not snippet and not path_section:
             raise ValueError('invalid finding location')
         if fields[4].startswith('Clarify:') and not re.fullmatch(r'Clarify: \S.*\?', fields[4]):
             raise ValueError('invalid clarification correction')
@@ -205,6 +206,20 @@ def self_test() -> None:
             count += 1
         else:
             raise AssertionError('accepted malformed finding literal')
+    for profile in ('audit-findings', 'author-findings'):
+        for location in ('instructions#v2.md#Testing', 'agents/csharp.md#C# setup',
+                         'instructions#v2.md#C# setup', '#instructions.md#Testing', 'agents.md#C#'):
+            for wrapped in (location, '`' + location + '`'):
+                validate(VALID[profile].replace('supplied snippet:1', wrapped), profile)
+        for location in ('instructions.md', ' #Testing', 'instructions.md# ', '#'):
+            for wrapped in (location, '`' + location + '`'):
+                try:
+                    validate(VALID[profile].replace('supplied snippet:1', wrapped), profile)
+                except ValueError as error:
+                    assert str(error) == 'invalid finding location'
+                    count += 1
+                else:
+                    raise AssertionError('accepted missing or blank location component')
     warning = 'CAIE mode: audit\nCAIE artifact: None.\nCAIE findings:\n- warning | R1 | supplied snippet:3 | it may refer to the log or report | Clarify: Which artifact must be archived?\nCAIE status: Findings'
     validate(warning, 'audit-findings')
     for correction in ('Clarify:', 'Clarify: ?', 'Clarify: Which artifact must be archived'):
@@ -240,6 +255,44 @@ def self_test() -> None:
     print(f'report profiles and {count} deterministic rejection mutations: passed')
 
 
+def profile_assertions(patterns: list[str], profile: str, filename: str) -> None:
+    """Bind canonical envelope text assertions to the selected program profile.
+
+    Mode and status require discriminating assertions, not just marker presence.
+    Other envelope assertions must accept their own branch's standalone line;
+    artifact payload cannot supply a contradictory envelope assertion.
+    """
+    mode = 'audit' if profile.startswith('audit-') else 'author' if profile.startswith('author') else 'blocked'
+    status = 'Authored' if profile.startswith('author') else 'Clean' if profile == 'audit-clean' else 'Findings' if profile == 'audit-findings' else 'Blocked; Missing: '
+    mode_pattern = '(?m)^CAIE mode: ' + mode + '$'
+    status_pattern = '(?m)^CAIE status: ' + status + '$'
+    status_prefixes = ('(?m)^CAIE status: Blocked; Missing: ', '(?im)^CAIE status: Blocked; Missing: ')
+    discriminating_status = (any(pattern.startswith(status_prefixes) for pattern in patterns)
+                             if profile == 'blocked' else status_pattern in patterns)
+    if mode_pattern not in patterns or not discriminating_status:
+        raise ValueError(f'{filename}: profile-mismatch: missing mode/status assertion for {profile}')
+    artifact = 'CAIE artifact:' + ('' if profile.startswith('author') else ' None.')
+    findings = 'CAIE findings:' + ('' if profile in ('author-findings', 'audit-findings') else ' None.')
+    for pattern in patterns:
+        match = re.match(r'^\(\?[im]+\)\^(CAIE (?:mode|artifact|findings|status):)', pattern)
+        if not match:
+            continue
+        marker = match.group(1)
+        generic = '(?m)^' + marker
+        if marker == 'CAIE mode:':
+            compatible = pattern in (generic, mode_pattern)
+        elif marker == 'CAIE status:':
+            compatible = pattern == generic or (pattern.startswith(status_prefixes) if profile == 'blocked' else pattern == status_pattern)
+            # Even a blocked reason expression must not admit another status.
+            compatible = compatible and (pattern == generic or not any(re.search(pattern, 'CAIE status: ' + other)
+                                                for other in ('Authored', 'Clean', 'Findings', 'Blocked; Missing: input')
+                                                if not other.startswith(status)))
+        else:
+            compatible = re.search(pattern, artifact if marker == 'CAIE artifact:' else findings) is not None
+        if not compatible:
+            raise ValueError(f'{filename}: profile-mismatch: {marker} assertion contradicts {profile}')
+
+
 def projections(root: Path | None = None) -> None:
     """Compare decoded task markers and negatives against the owned grammar.
 
@@ -271,8 +324,9 @@ def projections(root: Path | None = None) -> None:
             for marker in MARKERS:
                 if not any(pattern.startswith('(?m)^' + marker) for pattern in patterns):
                     raise ValueError(f'{path.name}: positive marker missing: {marker}')
+            profile_assertions(patterns, TASK_PROFILES[path.stem], path.name)
             program = graders['report_contract']['config']
-            if program['command'] != 'python3' or program['args'] != [f'evals/{NAME}/check-report.py', TASK_PROFILES.get(path.stem)]:
+            if graders['report_contract']['type'] != 'program' or program['command'] != 'python3' or program['args'] != [f'evals/{NAME}/check-report.py', TASK_PROFILES.get(path.stem)]:
                 raise ValueError(f'{path.name}: incorrect program binding')
             if graders['skill_invocation']['config']['required_skills'] != [NAME]:
                 raise ValueError(f'{path.name}: incorrect invocation binding')
@@ -307,11 +361,18 @@ def projection_mutations() -> None:
         shutil.copytree(repo / 'skills' / NAME, Path(directory) / 'skills' / NAME)
         path = root / 'tasks' / 'positive-trigger-1.yaml'
         data = yaml.safe_load(path.read_text())
-        for mutation in ('profile', 'marker', 'substance'):
+        for mutation in ('profile', 'marker', 'substance', 'grader-type', 'command', 'checker-path'):
             changed = yaml.safe_load(yaml.safe_dump(data))
             for grader in changed['graders']:
                 if mutation == 'profile' and grader['name'] == 'report_contract':
                     grader['config']['args'][1] = 'blocked'
+                if grader['name'] == 'report_contract':
+                    if mutation == 'grader-type':
+                        grader['type'] = 'text'
+                    elif mutation == 'command':
+                        grader['config']['command'] = 'echo'
+                    elif mutation == 'checker-path':
+                        grader['config']['args'][0] = 'other-checker.py'
                 if mutation == 'marker' and grader['name'] == 'task_completion':
                     grader['config']['regex_match'] = [pattern for pattern in grader['config']['regex_match'] if not pattern.startswith('(?m)^CAIE status:')]
             if mutation == 'substance':
@@ -323,6 +384,46 @@ def projection_mutations() -> None:
                 continue
             raise AssertionError('accepted task projection mutation: ' + mutation)
         path.write_text(yaml.safe_dump(data))
+        assertion_mutations = 0
+        for filename, profile in TASK_PROFILES.items():
+            task_path = root / 'tasks' / (filename + '.yaml')
+            original_text = task_path.read_text()
+            for mutation in ('mode', 'status', 'mode-omission', 'status-omission', 'extra-mode', 'extra-status', 'artifact', 'findings'):
+                changed = yaml.safe_load(original_text)
+                patterns = next(grader['config']['regex_match'] for grader in changed['graders'] if grader['name'] == 'task_completion')
+                mode_index = next(index for index, pattern in enumerate(patterns) if pattern.startswith('(?m)^CAIE mode: '))
+                status_index = next(index for index, pattern in enumerate(patterns) if re.match(r'^\(\?[im]+\)\^CAIE status: ', pattern))
+                wrong_mode = '(?m)^CAIE mode: ' + ('author' if profile.startswith('audit') or profile == 'blocked' else 'audit') + '$'
+                wrong_status = '(?m)^CAIE status: ' + ('Findings' if profile != 'audit-findings' else 'Clean') + '$'
+                if mutation == 'mode':
+                    patterns[mode_index] = wrong_mode
+                elif mutation == 'status':
+                    patterns[status_index] = wrong_status
+                elif mutation == 'mode-omission':
+                    patterns[mode_index] = '(?m)^CAIE mode:'
+                elif mutation == 'status-omission':
+                    patterns[status_index] = '(?m)^CAIE status:'
+                elif mutation == 'extra-mode':
+                    patterns.append(wrong_mode)
+                elif mutation == 'extra-status':
+                    patterns.append(wrong_status)
+                else:
+                    marker = 'CAIE ' + mutation + ':'
+                    # Remove existing branch assertions before adding one opposite assertion.
+                    patterns[:] = [pattern for pattern in patterns if not pattern.startswith('(?m)^' + marker + ' ')]
+                    branch_none = not profile.startswith('author') if mutation == 'artifact' else profile not in ('author-findings', 'audit-findings')
+                    patterns.append('(?m)^' + marker + ('$' if branch_none else r' None\.$'))
+                task_path.write_text(yaml.safe_dump(changed))
+                try:
+                    projections(root)
+                except ValueError as error:
+                    assert 'profile-mismatch:' in str(error), str(error)
+                    assertion_mutations += 1
+                else:
+                    raise AssertionError((filename, 'accepted profile assertion mutation', mutation))
+                finally:
+                    task_path.write_text(original_text)
+        print(f'isolated profile mode/status/branch assertion mutations: {assertion_mutations} passed')
         (root / 'tasks' / 'positive-edge-3.yaml').unlink()
         try:
             projections(root)
@@ -331,7 +432,7 @@ def projection_mutations() -> None:
                 raise
         else:
             raise AssertionError('accepted missing profile task')
-    print('isolated task profile/marker/substance/coverage mutations: passed')
+    print('isolated task profile/marker/substance/binding/coverage mutations: passed')
 
 
 def main() -> None:

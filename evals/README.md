@@ -193,6 +193,11 @@ metric → grader weighting takes effect.
 The `cross-model-instruction-authoring` suite validates its conditional
 profile-recommendation output with
 `python3 evals/cross-model-instruction-authoring/check-profile-recommendation.py --self-test`.
+Its task projection tests bind the profile bullet assertion to the selected
+`--expected-profile` value; swapped, omitted, and added contradictory assertions
+reject. The same tests reject a changed grader type, command, or validator path
+with profile arguments retained. Run them with
+`python3 -m pytest -q evals/cross-model-instruction-authoring/test_check_profile_recommendation.py`.
 The checker owns heading order, profile and patch value domains, required
 section bodies, profile crossover, and terminal output for the
 Profile Recommendation tasks.
@@ -325,7 +330,8 @@ negative-close task.
 
 Default report labels are `Designed cases:`, `Design evidence:`, and
 `Test execution:`. The projection check scans sibling skill packages for
-marker collisions and permits the review-plan workflow's `Test cases:` marker
+marker collisions, checks every execution-status assertion against the selected
+profile, and rejects swapped or added contradictory statuses. It permits the review-plan workflow's `Test cases:` marker
 in negative responses. A separate review-findings negative case covers that
 route. Bounded semantic regexes use DOTALL and have multiline contrastive cases,
 including positive-transfer balance preservation and reporting the offending row.
@@ -359,7 +365,9 @@ python3 evals/handoff-note/test_check_report.py
 ```
 
 The projection test verifies that exact-schema profiles use the matching checker
-and that negative and stop-path tasks exclude the distinctive custom top-level
+and that the grader type, command, and validator path retain that binding,
+and that their text assertions accept every canonical profile heading; isolated
+heading swaps reject. It also checks that negative and stop-path tasks exclude the distinctive custom top-level
 markers without banning broad headings such as `## Risks`.
 
 Static checks validate only artifact structure and deterministic assertions; they do not prove any model's behavior. GPT-5.4 mini and Claude Haiku 4.5 are compatibility-floor evaluation goals, not proven outcomes. Live evidence is specific to the model, runtime, and settings, and each live evaluation remains explicitly approval-gated.
@@ -422,7 +430,11 @@ python3 evals/test-design/check-report.py implement --case-count 3 < report.txt
 
 The approved isolated-authoring missing-context edge uses `check-report.py missing`
 and requires the absent behavior/expected-result contract without invented code.
-The projection map now covers review, authoring, and missing-context tasks.
+The projection map covers review, authoring, and missing-context tasks. It binds
+their verdict assertions to the selected program verdict; swapped or added
+contradictory assertions reject. Validator type, command, and script path are
+bound independently of the profile arguments. Task verdict regexes use the already required
+program-selected verdict rather than the broader enum domain.
 
 The feature plan task now discriminates the read-only default when no test
 modification was requested. The runnable clamp edge explicitly provides Node
@@ -522,7 +534,10 @@ including controls that are not line boundaries, in every label slot.
 Every positive `task_completion` text grader asserts its active profile's literal
 first marker with `(?m)^`; the projection checker rejects omitted, row-only,
 inactive and unanchored replacements. Default, custom, BLOCK and clarification
-profiles use their respective active marker. The envelope-only response probe
+profiles use their respective active marker. Every report task also asserts its
+selected verdict and candidate with canonical anchored regexes. The projection
+check rejects swapped, omitted, or added contradictory enum assertions, including
+caller-selected labels; clarification has no report enums. The envelope-only response probe
 checks that assertion independently of the program report grader. The `--label-set`
 probe validates a JSON array of caller labels independently of response formatting.
 The boundary-test debugging task also requires the selected `deterministic check`
@@ -589,8 +604,13 @@ waza check skills/controlled-agent-instruction-english
 The validator checks marker order/cardinality, enums, findings fields, artifact
 payload boundaries, profile crossover, clarification questions ending in `?`,
 nonempty path/section locations, bare-pipe literals, inline backtick literals
-containing spaced separators, and terminal status. It mechanically
-checks decoded positive marker assertions, program/profile bindings, and complete
+containing spaced separators, hash-containing path/section locations, and terminal
+status. Location syntax requires at least one hash separating nonblank components;
+it preserves extra hashes and does not resolve a path or section. It mechanically
+checks decoded positive marker assertions, discriminating canonical mode/status
+assertions and compatible artifact/findings branches against the program profile,
+including the grader type, Python command, and canonical validator path,
+and complete
 negative exclusions. Static checks do not establish model behavior; no live eval
 has been approved or run for this onboarding.
 

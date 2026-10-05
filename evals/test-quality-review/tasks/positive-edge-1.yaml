@@ -62,7 +62,7 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?m)^Verdict: (?:solid|weak|cannot-fail)$'
+        - '(?m)^Verdict: solid$'
         - '(?m)^Findings:'
         - '(?i)(byte-?exact|exact.{0,15}assert|byte-?for-?byte).{0,40}(good|correct|justified|appropriate|right)|contract.{0,15}(is )?exact'
         - '(?i)(wire|serializ|protocol).{0,30}(format|contract).{0,30}(is|are).{0,20}(the )?(promise|contract|exact|specified)|interop'

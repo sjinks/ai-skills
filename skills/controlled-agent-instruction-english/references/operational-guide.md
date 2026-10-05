@@ -181,7 +181,7 @@ Return one report. Use these labels exactly once, at column zero, in this order:
 
 Each finding uses `- severity | rule | location | risk | correction`.
 Use `error` or `warning` for severity. Use one rule ID from the language rules as the primary rule.
-Use `<path>#<section>` or `supplied snippet:<positive line number>` for location. Include the affected text and its operational consequence in risk.
+Use `<path>#<section>` or `supplied snippet:<positive line number>` for location. Path and section must be nonblank; hashes inside either component remain exact literals. Include the affected text and its operational consequence in risk.
 When the intended correction is unknown, write `Clarify:` followed by the exact question in correction. The question must contain nonempty text and end with `?`.
 Separate fields with ` | ` only outside inline backtick literals. Bare `|` characters are permitted. Wrap a literal containing ` | ` in matching inline backticks; choose a delimiter longer than every backtick run in the payload. For a location, wrap the entire `<path>#<section>` value. Preserve the literal payload exactly; wrapper backticks are report formatting.
 

@@ -26,6 +26,8 @@ graders:
     name: task_completion
     config:
       regex_match:
+        - '(?m)^Retrospective\ Verdict: CLEAN$'
+        - '(?m)^Retrospective\ Skill\ Candidate: no new skill$'
         - 'Retrospective:'
         - 'Retrospective Attempts:'
         - 'Action:'

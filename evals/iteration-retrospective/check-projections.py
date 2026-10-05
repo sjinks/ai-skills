@@ -40,6 +40,48 @@ def envelope_assertion(assertions: list[str], marker: str) -> str:
     return pattern
 
 
+def enum_assertions(assertions: list[str], marker: str, value: str, domain: tuple[str, ...]) -> None:
+    """Bind a scalar enum's text assertions to its selected program value.
+
+    Canonical anchored assertions are required; every existing same-field
+    assertion must also accept that value outside attempt-row payloads.
+    """
+    expected = marker + ' ' + value
+    canonical = '(?m)^' + re.escape(expected) + '$'
+    # Spaces need no escaping in YAML regexes; both canonical spellings qualify.
+    plain = '(?m)^' + re.escape(marker) + ' ' + value + '$'
+    selected = [pattern for pattern in assertions if marker in pattern or re.escape(marker) in pattern]
+    if not any(pattern in (canonical, plain) for pattern in selected):
+        raise ValueError('profile-mismatch: missing discriminating ' + marker + ' assertion')
+    if not all(re.search(pattern, expected) for pattern in selected):
+        raise ValueError('profile-mismatch: incompatible ' + marker + ' assertion')
+    if any(all(re.search(pattern, marker + ' ' + other) for pattern in selected) for other in domain if other != value):
+        raise ValueError('profile-mismatch: nondiscriminating ' + marker + ' assertions')
+
+
+def enum_mutations(assertions: list[str], marker: str, value: str, domain: tuple[str, ...]) -> None:
+    """Reject a swapped, omitted or extra incompatible enum assertion.
+
+    These mutations change only the selected scalar field's text assertion.
+    """
+    enum_assertions(assertions, marker, value, domain)
+    expected = marker + ' ' + value
+    candidates = ('(?m)^' + re.escape(expected) + '$', '(?m)^' + re.escape(marker) + ' ' + value + '$')
+    index = next(index for index, pattern in enumerate(assertions) if pattern in candidates)
+    wrong = '(?m)^' + re.escape(marker + ' ' + next(other for other in domain if other != value)) + '$'
+    swapped = list(assertions)
+    swapped[index] = wrong
+    omitted = list(assertions)
+    del omitted[index]
+    for changed in (swapped, omitted, [*assertions, wrong]):
+        try:
+            enum_assertions(changed, marker, value, domain)
+        except ValueError as error:
+            assert str(error).startswith('profile-mismatch:')
+        else:
+            raise AssertionError('accepted incompatible ' + marker + ' projection')
+
+
 def check() -> None:
     """Inspect every task projection and the source's explicit enum vocabulary.
 
@@ -87,6 +129,10 @@ def check() -> None:
             active = (REPORT.CLARIFICATION_MARKERS if clarification else
                       REPORT.MARKERS if args[args.index('--verdict') + 1] == 'BLOCK' else labels)
             assertions = completions[0]['config'].get('regex_match', [])
+            if not clarification:
+                for position, flag, domain in ((7, '--verdict', REPORT.VERDICTS),
+                                               (6, '--candidate', (*REPORT.CANDIDATES, 'not assessed'))):
+                    enum_mutations(assertions, active[position], args[args.index(flag) + 1], domain)
             pattern = envelope_assertion(assertions, active[0])
             # Isolated projection mutations preserve every other task assertion.
             for replacement in (None, '(?m)^- A1', '(?m)^Inactive:', re.escape(active[0])):

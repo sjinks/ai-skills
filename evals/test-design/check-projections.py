@@ -2,11 +2,79 @@
 """Check test-design task projections without model calls."""
 
 import ast
+import copy
 import importlib.util
 import re
 from pathlib import Path
 
 import yaml
+
+
+def metadata_assertions(patterns: list[str], label: str, expected: str, alternatives: tuple[str, ...]) -> None:
+    """Bind envelope metadata assertions to their profile's standalone field.
+
+    Marker-only checks do not discriminate incompatible verdict or run states.
+    Payload lines cannot supply the expected envelope field for this check.
+    """
+    assertions = [pattern for pattern in patterns
+                  if re.sub(r'^\(\?[a-z]+\)', '', pattern).startswith(('^' + label, '^' + re.escape(label)))]
+    if not assertions or not all(re.search(pattern, expected) for pattern in assertions):
+        raise ValueError('profile-mismatch: incompatible ' + label + ' assertion')
+    if any(all(re.search(pattern, alternative) for pattern in assertions) for alternative in alternatives):
+        raise ValueError('profile-mismatch: nondiscriminating ' + label + ' assertions')
+
+
+def metadata_mutations(patterns: list[str], label: str, expected: str, alternatives: tuple[str, ...]) -> None:
+    """Reject one swapped or added contradictory metadata assertion.
+
+    Both mutations preserve all other text assertions and the program binding.
+    """
+    metadata_assertions(patterns, label, expected, alternatives)
+    selected = next(index for index, pattern in enumerate(patterns)
+                    if re.sub(r'^\(\?[a-z]+\)', '', pattern).startswith(('^' + label, '^' + re.escape(label)))
+                    and pattern != '(?m)^' + re.escape(label))
+    wrong = '(?m)^' + re.escape(alternatives[0]) + '$'
+    changed = list(patterns)
+    changed[selected] = wrong
+    for mutation in (changed, [*patterns, wrong]):
+        try:
+            metadata_assertions(mutation, label, expected, alternatives)
+        except ValueError as error:
+            assert str(error).startswith('profile-mismatch:')
+        else:
+            raise AssertionError('accepted incompatible ' + label + ' projection')
+
+
+def program_binding(grader: dict, checker: str) -> None:
+    """Require the named report contract to invoke its canonical validator.
+
+    Expected profile arguments are meaningful only for that program binding.
+    """
+    config = grader['config']
+    if grader['type'] != 'program' or config.get('command') != 'python3' or not config.get('args') or config['args'][0] != checker:
+        raise ValueError('profile-mismatch: report program binding')
+
+
+def binding_mutations(grader: dict, checker: str) -> None:
+    """Reject isolated changes to validator type, command or script path.
+
+    All expected profile arguments remain unchanged in these counterexamples.
+    """
+    program_binding(grader, checker)
+    for condition in ('type', 'command', 'path'):
+        changed = copy.deepcopy(grader)
+        if condition == 'type':
+            changed['type'] = 'text'
+        elif condition == 'command':
+            changed['config']['command'] = 'echo'
+        else:
+            changed['config']['args'][0] = 'other-checker.py'
+        try:
+            program_binding(changed, checker)
+        except ValueError as error:
+            assert str(error) == 'profile-mismatch: report program binding'
+        else:
+            raise AssertionError('accepted changed report program binding')
 
 
 def main() -> None:
@@ -48,6 +116,7 @@ def main() -> None:
             if unchanged:
                 assert not task["inputs"].get("files"), path
                 assert graders["workspace_unchanged"]["config"]["args"] == ["evals/_helpers/check-empty-workspace.py"], path
+            binding_mutations(graders["report_contract"], 'evals/test-design/check-report.py')
             args = graders["report_contract"]["config"]["args"]
             assert args[1] == expected[path.name], (path.name, "wrong profile")
             options = report.parse_args(args[1:])
@@ -69,6 +138,11 @@ def main() -> None:
                     outcome = "failed" if path.name == "positive-edge-4.yaml" else "passed"
                     fixture = report.counted_fixture("clamp", "Ran: node --test test/clamp.test.js => " + outcome)
             report.validate(fixture, args[1], labels, options.case_count)
+            execution = next(line for line in fixture.splitlines() if line.startswith(labels[2]))
+            status_alternatives = tuple(labels[2] + ' ' + value for value in
+                                        ('Not run; no tests changed.', 'Ran: probe => passed', 'Unverified: unavailable')
+                                        if not execution.startswith(labels[2] + ' ' + value.split(':', 1)[0].split(';', 1)[0]))
+            metadata_mutations(text['regex_match'], labels[2], execution, status_alternatives)
             for label in labels:
                 assert any(label in pattern for pattern in text["regex_match"]), (path.name, label)
         else:
@@ -169,6 +243,7 @@ def main() -> None:
             assert any("^Verdict:" in pattern for pattern in patterns), path
             assert any("^Findings:" in pattern for pattern in patterns), path
             profile = quality_profiles[path.name]
+            binding_mutations(quality_graders["report_contract"], 'evals/test-quality-review/check-report.py')
             args = quality_graders["report_contract"]["config"]["args"]
             assert args[1] == profile
             assert ("--wire-fixture" in args) == (profile == "author")
@@ -190,6 +265,8 @@ def main() -> None:
                 fixture = fixture.replace("Exact bytes match the wire contract.", "Byte-exact assertion is correct: wire format is the exact contract; keep strict assertions.")
                 fixture = fixture.split("```cpp", 1)[0] + "```cpp\n/*\nVerdict: parser fixture\nFindings: parser fixture\nAuthored test: parser fixture\n*/\n" + quality_report.WIRE_CODE + "\n```"
             quality_report.validate(fixture, profile, expected=expected_verdict, wire_fixture=profile == "author")
+            metadata_mutations(patterns, 'Verdict:', 'Verdict: ' + expected_verdict,
+                               tuple('Verdict: ' + value for value in quality_report.VERDICTS if value != expected_verdict))
             if profile == "author":
                 assert all(re.search(pattern, fixture) for pattern in patterns), path
                 assert any("^Authored test:" in pattern for pattern in patterns), path

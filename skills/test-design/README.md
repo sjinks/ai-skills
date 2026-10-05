@@ -41,3 +41,5 @@ blocked/missing context and returned-snippet authoring where applicable. It
 rejects all entries, including hidden files, empty directories and symlinks.
 It does not observe transient changes, changes outside the workspace, or
 changes restored before grading.
+
+The suite projection check binds execution-status assertions to each selected profile and tests swapped or added contradictory statuses. Static checks do not establish model behavior.

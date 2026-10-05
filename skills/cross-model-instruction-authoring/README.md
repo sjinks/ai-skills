@@ -24,3 +24,5 @@ It helps an assistant:
 - [`references/evidence.md`](references/evidence.md) — adaptation evidence classes and anti-folklore policy.
 - [`references/authoring-checklist.md`](references/authoring-checklist.md) — finalization and evaluation checks.
 - [Canonical Waza suite](https://github.com/sjinks/ai-skills/tree/master/evals/cross-model-instruction-authoring) — trigger and behavior suite.
+
+The profile recommendation projection tests bind each existing task's profile-bullet assertion to its program-selected profile. Static checks do not establish model behavior.

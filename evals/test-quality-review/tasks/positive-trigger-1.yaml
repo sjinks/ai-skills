@@ -43,7 +43,7 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - '(?m)^Verdict: (?:solid|weak|cannot-fail)$'
+        - '(?m)^Verdict: cannot-fail$'
         - '(?m)^Findings:'
         - '(?i)(cannot-?fail|can.?t fail|never fails?|tautolog|no-?op|would (still )?pass)'
         - '(?i)EXPECT_EQ\(total, total\)|EXPECT_TRUE\(true\)|asserts? (a )?(tautolog|constant|itself)'
