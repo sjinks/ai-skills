@@ -4,7 +4,7 @@ id: positive-edge-010
 
 name: Expanded model roster uses distinct compatibility rows
 
-description: A default-set readiness audit should report every canonical model, including distinct GPT-5.6 and Claude Opus 5 rows.
+description: A default-set readiness audit should report every canonical model, including four distinct GPT-6 targets and Claude Opus 5.
 
 tags:
   - positive-trigger
@@ -67,21 +67,27 @@ graders:
         - '(?m)^\|[ \t]*Model and runtime portability[ \t]*\|[ \t]*[1-5][ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
         - '(?m)^\|[ \t]*Maintainability and evaluability[ \t]*\|[ \t]*[1-5][ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
         - '(?ms)^## Readiness Ratings$\s*\n\|[^\r\n]+\|\s*\n\|[^\r\n]+\|\s*\n\|[ \t]*Discovery and delegation[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Instruction architecture[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Operational completeness[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Model and runtime portability[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Maintainability and evaluability[ \t]*\|[^\r\n]+\|\s*\n\s*^## Material Findings$'
-        - '(?m)^\|[ \t]*GPT-5\.4 mini[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?m)^\|[ \t]*GPT-5\.4[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?m)^\|[ \t]*GPT-5\.5[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?m)^\|[ \t]*GPT-5\.6 Luna[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?m)^\|[ \t]*GPT-5\.6 Terra[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?m)^\|[ \t]*GPT-5\.6 Sol[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?m)^\|[ \t]*Claude Haiku 4\.6[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*GPT-6 Luna[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*GPT-6 Sol[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*GPT-6\.1 Sol[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*GPT-6 Astra[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
+        - '(?m)^\|[ \t]*Claude Haiku 4\.5[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
         - '(?m)^\|[ \t]*Claude Sonnet 5[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
         - '(?m)^\|[ \t]*Claude Opus 4\.8[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
         - '(?m)^\|[ \t]*Claude Opus 5[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
         - '(?m)^\|[ \t]*Claude Fable 5[ \t]*\|[ \t]*(Suitable|Suitable with limitations|Unsuitable|Not assessed)[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|[ \t]*[^|\r\n]+[ \t]*\|$'
-        - '(?ms)^## Target-Model Compatibility$\s*\n\|[^\r\n]+\|\s*\n\|[^\r\n]+\|\s*\n\|[ \t]*GPT-5\.4 mini[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*GPT-5\.4[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*GPT-5\.5[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*GPT-5\.6 Luna[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*GPT-5\.6 Terra[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*GPT-5\.6 Sol[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Haiku 4\.6[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Sonnet 5[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Opus 4\.8[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Opus 5[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Fable 5[ \t]*\|[^\r\n]+\|\s*\n\s*^## Priority Changes$'
+        - '(?ms)^## Target-Model Compatibility$\s*\n\|[^\r\n]+\|\s*\n\|[^\r\n]+\|\s*\n\|[ \t]*GPT-6 Luna[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*GPT-6 Sol[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*GPT-6\.1 Sol[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*GPT-6 Astra[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Haiku 4\.5[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Sonnet 5[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Opus 4\.8[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Opus 5[ \t]*\|[^\r\n]+\|\s*\n\|[ \t]*Claude Fable 5[ \t]*\|[^\r\n]+\|\s*\n\s*^## Priority Changes$'
         - '(?ms)^## Priority Changes$\s*\n(?:None\.|1\. .+?)\s*\nVerdict:'
         - 'Severity:\s*(CRITICAL|HIGH|MEDIUM|LOW)'
         - '(?i)(exact.*tool sequence|five subagents|conflicting evidence|adjacent systems|runtime verification)'
+
+  - type: program
+    name: output_contract
+    config:
+      command: python3
+      args:
+        - evals/agent-skill-audit/check-report.py
+      timeout: 30
 
   - type: prompt
     name: task_completion_substance
@@ -97,10 +103,13 @@ graders:
         additional model rows.
 
         The report must substantively distinguish these changed profiles and
-        apply them to the supplied agent: Luna checks outcome/evidence guidance
-        and adaptable tool use; Terra checks broad synthesis and optional
-        delegation only for independent workstreams; Sol checks a concise
-        mission, hard boundaries, strategic freedom, and pause conditions;
+        apply them to the supplied agent: GPT-6 Luna checks a short normal path,
+        explicit defaults, and a simple output grammar; GPT-6 Sol checks clear
+        outcomes, evidence, adaptable tool use, and side-effect boundaries;
+        GPT-6.1 Sol checks literal broad scope, invariants, evidence preservation,
+        and optional delegation only for independent workstreams; GPT-6 Astra
+        checks a concise mission, hard boundaries, strategic freedom, and pause
+        conditions;
         Claude Haiku 4.5 checks explicit defaults, material parameters, bounded
         steps, or missing-input/tool fallbacks; Claude Opus 5 checks current-state
         tool triggers and preservation of uncertainty or disagreement.
@@ -112,7 +121,7 @@ graders:
         set_waza_grade_fail exactly once. Put the reasoning in the tool call's
         reason argument; do not return a numeric grade as response text.
 
-        Full success: the report satisfies the contract and all five profile checks.
+        Full success: the report satisfies the contract and all six profile checks.
         Partial completion (fail): structure and roster are correct but one profile is generic or blurred.
         Failure: structure or roster is incomplete, or multiple profiles are wrong.
       mode: independent

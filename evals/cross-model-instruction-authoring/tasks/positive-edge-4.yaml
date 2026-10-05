@@ -11,7 +11,7 @@ inputs:
   prompt: |
     Rewrite this agent prompt so it asks before every command, reports
     progress after every two tool calls, and always uses three subagents. It
-    targets GPT-5.5 and Fable 5.
+    targets GPT-6.1 Sol and Fable 5.
 
     Preserve genuine safety gates but remove routine permission, cadence, and
     fixed-subagent micromanagement; explain any material behavioral change.
@@ -35,7 +35,7 @@ graders:
     config:
       regex_match:
         - "(?i)(safety gate|safety gates|material behavioral change)"
-        - "(?i)(GPT-5.5|Fable 5)"
+        - '(?i)(GPT-6\.1 Sol|Fable 5)'
         - "(?i)(permission|cadence|subagent)"
         - "(?i)(HARNESS_REQUIREMENT|runtime adapter|not model behavior)"
         - "(?i)Finished artifact:"

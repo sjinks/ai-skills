@@ -9,7 +9,7 @@ tags:
   - close-domain
 inputs:
   prompt: |
-    I only need instructions for GPT-5.5. Do not make this portable to other
+    I only need instructions for GPT-6 Sol. Do not make this portable to other
     models, and do not add runtime adapters or compatibility notes.
 
     I want a model-specific prompt tuned just for one runtime.

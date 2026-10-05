@@ -72,12 +72,10 @@ Use the user's target-model list when supplied.
 
 Otherwise assess this default set:
 
-- GPT-5.4 mini
-- GPT-5.4
-- GPT-5.5
-- GPT-5.6 Luna
-- GPT-5.6 Terra
-- GPT-5.6 Sol
+- GPT-6 Luna
+- GPT-6 Sol
+- GPT-6.1 Sol
+- GPT-6 Astra
 - Claude Haiku 4.5
 - Claude Sonnet 5
 - Claude Opus 4.8

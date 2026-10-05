@@ -14,9 +14,9 @@ tags:
 inputs:
   prompt: |
     Assess this skill for production readiness. Rate discovery, architecture,
-    operational completeness, model portability across GPT-5.4 mini through
-    Fable 5, and maintainability. Give a final readiness verdict and top five
-    changes.
+    operational completeness, model portability across GPT-6 Luna, GPT-6 Sol,
+    GPT-6.1 Sol, GPT-6 Astra, and Fable 5, and maintainability. Give a final
+    readiness verdict and top five changes.
 
 expected:
   should_trigger: false

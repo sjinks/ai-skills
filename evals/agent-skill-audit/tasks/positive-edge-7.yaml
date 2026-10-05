@@ -13,7 +13,7 @@ tags:
 
 inputs:
   prompt: |
-    Audit this skill for GPT-5.4 mini, GPT-5.5, Haiku 4.5, and Fable 5.
+    Audit this skill for GPT-6 Luna, GPT-6.1 Sol, Haiku 4.5, and Fable 5.
     
     ```markdown
     ---
@@ -55,7 +55,7 @@ graders:
         - "(?m)^## Target-Model Compatibility$"
         - "(?m)^## Priority Changes$"
         - "(?m)^Verdict:"
-        - 'GPT-5\.4 mini[\s\S]*(Unsuitable|Suitable with limitations)'
-        - 'Haiku 4\.6[\s\S]*(Unsuitable|Suitable with limitations)'
-        - 'GPT-5\.5[\s\S]*(Suitable with limitations|Unsuitable)'
-        - 'Fable 5[\s\S]*(Suitable with limitations|Unsuitable)'
+        - '(?im)^\|[ \t]*GPT-6 Luna[ \t]*\|[ \t]*(?:Unsuitable|Suitable with limitations)[ \t]*\|'
+        - '(?im)^\|[ \t]*Claude Haiku 4\.5[ \t]*\|[ \t]*(?:Unsuitable|Suitable with limitations)[ \t]*\|'
+        - '(?im)^\|[ \t]*GPT-6\.1 Sol[ \t]*\|[ \t]*(?:Suitable with limitations|Unsuitable)[ \t]*\|'
+        - '(?im)^\|[ \t]*Claude Fable 5[ \t]*\|[ \t]*(?:Suitable with limitations|Unsuitable)[ \t]*\|'
