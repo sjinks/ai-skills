@@ -104,6 +104,7 @@ The repository currently contains the following skills, grouped by area. Each li
 
 ### Authoring & Verification
 
+- [`controlled-agent-instruction-english`](skills/controlled-agent-instruction-english/README.md) — Writing, rewriting, and auditing model-facing operational prose for consistent terminology, explicit modality, scope, conditions, precedence, and failure behavior.
 - [`agent-skill-audit`](skills/agent-skill-audit/README.md) — Holistic readiness audit of agent instructions, Agent Skills, custom-agent prompts, and instruction packages across discovery/delegation, instruction architecture, operational completeness, model/runtime portability, and maintainability/evaluability, with readiness ratings and a final verdict.
 - [`instruction-quality-audit`](skills/instruction-quality-audit/README.md) — High-confidence diagnostic audit of AI instruction artifacts and packages for contradictions, precedence gaps, ambiguity, authority and side-effect conflicts, closure and failure-handling gaps, harmful duplication or cognitive burden, output-contract defects, and trusted custom diagnostics.
 - [`cross-model-instruction-authoring`](skills/cross-model-instruction-authoring/README.md) — Creating, revising, and adapting Agent Skills, custom agent prompts, subagent instructions, and related instruction packages so they keep a model-neutral core, use runtime-specific adapters only where needed, and stay usable across smaller and frontier models without overconstraining implementation strategy.

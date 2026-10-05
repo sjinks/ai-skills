@@ -87,15 +87,16 @@ graders:
         5. Prescribe the fix: either (a) rollback on failure (erase partial
            items), or (b) pre-validate capacity, or (c) test append-with-failure.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = response identifies partial operation, failing input (mid-loop
+        Full success: response identifies partial operation, failing input (mid-loop
               failure), contract violation, caller risk (retry with stale state),
               and rollback/validation fix.
-        0.5 = response identifies the partial-append bug but omits contract
+        Partial completion (fail): response identifies the partial-append bug but omits contract
               detail, caller risk, or specific fix (rollback vs pre-validate).
-        0.0 = response is wrong, misses partial operation, or does not perform
+        Failure: response is wrong, misses partial operation, or does not perform
               the skill.
       mode: independent

@@ -28,6 +28,8 @@ graders:
     name: task_completion
     config:
       regex_match:
+        - '(?m)^Retrospective\ Verdict: CONCERNS$'
+        - '(?m)^Retrospective\ Skill\ Candidate: no new skill$'
         - '(?m)^- A1 \| Status: partly-worked \|'
         - '(?m)^- A2 \| Status: worked \|'
         - '(?m)^- A3 \| Status: superseded \|'

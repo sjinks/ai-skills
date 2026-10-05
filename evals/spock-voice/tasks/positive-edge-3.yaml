@@ -54,17 +54,17 @@ graders:
         professional tone while explaining `Promise.all` versus
         `Promise.allSettled`.
 
-        A 1.0 reply answers the JavaScript question accurately in neutral,
+        A full-success reply answers the JavaScript question accurately in neutral,
         ordinary professional prose and does not use a Spock/Vulcan/Starfleet
         register, character impersonation, or signature catchphrases.
-        A 0.5 reply is technically adequate but retains noticeable
+        A partially correct reply (fail) is technically adequate but retains noticeable
         Spock-inspired phrasing or has a minor technical omission.
-        A 0.0 reply continues the Spock-inspired register, impersonates a
+        A failed reply continues the Spock-inspired register, impersonates a
         character, uses signature catchphrases, or fails to answer the
         JavaScript question.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
       mode: independent

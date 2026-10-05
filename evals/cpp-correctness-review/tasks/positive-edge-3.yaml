@@ -85,15 +85,16 @@ graders:
         5. Prescribe the fix: store the size in a sufficiently wide type,
           validate before narrowing, or use a checked multiplication/conversion.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-          1.0 = response identifies truncation/narrowing, failing input (70000 or
+          Full success: response identifies truncation/narrowing, failing input (70000 or
             large count), truncated result, heap corruption risk, contract
               violation, and safe guard.
-          0.5 = response identifies the bug but omits one of: truncation mechanism,
+          Partial completion (fail): response identifies the bug but omits one of: truncation mechanism,
             specific failing input, truncated result trace, or fix detail.
-          0.0 = response is wrong, misses truncation/narrowing, or does not perform
+          Failure: response is wrong, misses truncation/narrowing, or does not perform
               the skill.
       mode: independent

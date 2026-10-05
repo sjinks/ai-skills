@@ -14,3 +14,5 @@ Default report markers use the `Retrospective` prefix so negative evals permit o
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.
 - [`references/report-format.md`](references/report-format.md) — workflow, ordered status and candidate rules, row grammar, label replacement, and blocked reports.
+
+The suite projection check binds canonical verdict and candidate assertions to the selected program values, including caller labels and BLOCK precedence. Static checks do not establish model behavior.

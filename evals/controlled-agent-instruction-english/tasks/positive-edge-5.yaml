@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-5
+name: Unresolved authoring intent must block
+description: Readable source with an unresolved failure policy must not be rewritten by selecting a policy.
+tags:
+- positive-edge
+inputs:
+  prompt: 'Audit and rewrite these agent instructions without changing their intended behavior. Supplied snippet line 1: "If deployment validation fails, handle the failure appropriately and continue as needed." The caller has not decided whether failure must abort the deployment or allow a retry. No default policy is authorized and no other context resolves this decision. Return the blocker instead of selecting either policy or adding a new fallback. Answer from this scenario only. Do not inspect or modify scenario workspace files. You may read the invoked skill and its bundled references.'
+expected:
+  should_trigger: true
+graders:
+- type: trigger
+  name: trigger_accuracy
+  config:
+    skill_path: skills/controlled-agent-instruction-english/SKILL.md
+    mode: positive
+    threshold: 0.45
+- type: skill_invocation
+  name: skill_invocation
+  config:
+    required_skills:
+    - controlled-agent-instruction-english
+    mode: any_order
+- type: text
+  name: task_completion
+  config:
+    regex_match:
+    - '(?m)^CAIE mode:'
+    - '(?m)^CAIE artifact:'
+    - '(?m)^CAIE findings:'
+    - '(?m)^CAIE status:'
+    - '(?m)^CAIE mode: blocked$'
+    - '(?m)^CAIE artifact: None\.$'
+    - '(?m)^CAIE findings: None\.$'
+    - '(?im)^CAIE status: Blocked; Missing: .*(failure|validation|deployment|abort|retry|policy|decision|intended behavior)'
+- type: program
+  name: report_contract
+  config:
+    command: python3
+    args:
+    - evals/controlled-agent-instruction-english/check-report.py
+    - blocked
+    timeout: 30
+- type: prompt
+  name: task_completion_substance
+  config:
+    prompt: Call set_waza_grade_pass only if the response uses the blocked report, keeps artifact and findings None, and names the unresolved intended failure policy or abort-versus-retry decision as missing. Reject any selected abort/retry outcome, guessed default, rewritten artifact, or newly invented fallback, even if the missing-policy keywords appear. Merely naming abort and retry as unresolved alternatives is correct. Otherwise call set_waza_grade_fail. Make exactly one grading tool call, set_waza_grade_pass when every criterion holds, otherwise set_waza_grade_fail. Put the reasoning in the tool call's reason argument; do not return a numeric grade as response text.
+    mode: independent

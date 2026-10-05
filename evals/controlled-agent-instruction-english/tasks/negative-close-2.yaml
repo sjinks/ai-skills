@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: negative-close-2
+name: Model choice without an instruction artifact
+description: Model choice without an instruction artifact
+tags:
+- negative-close
+inputs:
+  prompt: |-
+    Explain the conceptual tradeoff between a small language model and a larger one for classifying short support messages. I am asking about model selection, not writing or auditing an operational prompt. Avoid current product recommendations; use hypothetical models.
+    Answer using the supplied scenario only. Do not inspect or modify workspace files.
+expected:
+  should_trigger: false
+graders:
+- type: trigger
+  name: trigger_accuracy
+  config:
+    skill_path: skills/controlled-agent-instruction-english/SKILL.md
+    mode: negative
+    threshold: 0.45
+- type: text
+  name: task_completion
+  config:
+    not_contains:
+    - 'CAIE mode:'
+    - 'CAIE artifact:'
+    - 'CAIE findings:'
+    - 'CAIE status:'
+    - controlled-agent-instruction-english

@@ -40,7 +40,7 @@ graders:
     config:
       regex_match:
         - '(?ms)^Profile recommendation:$.*?^Justified behavioral patches:$.*?^Evidence still needed:$'
-        - '(?i)coding-agent'
+        - '(?m)^- coding-agent$'
         - '(?i)completion-persistence'
         - '(?i)EVAL_EVIDENCE'
         - '(?i)(scope|bounded repository changes|failed required test)'

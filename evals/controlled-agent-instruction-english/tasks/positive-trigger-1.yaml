@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-trigger-1
+name: Author deterministic agent instructions
+description: Author deterministic agent instructions
+tags:
+- positive-trigger
+inputs:
+  prompt: |-
+    The old source file old-agent.md is unavailable and unreadable; do not attempt to acquire it. The following purpose and constraints fully specify the requested behavior. Write operational instructions for an agent that validates config.json before building. Validation is mandatory. If config.json is absent, report the missing file and stop; do not build. Run build_project only after successful validation. Treat the names config.json and build_project as exact literals. Return the complete instructions.
+    Answer using the supplied scenario only. Do not inspect or modify scenario workspace files. You may read the invoked skill and its bundled references.
+expected:
+  should_trigger: true
+graders:
+- type: trigger
+  name: trigger_accuracy
+  config:
+    skill_path: skills/controlled-agent-instruction-english/SKILL.md
+    mode: positive
+    threshold: 0.45
+- type: skill_invocation
+  name: skill_invocation
+  config:
+    required_skills:
+    - controlled-agent-instruction-english
+    mode: any_order
+- type: text
+  name: task_completion
+  config:
+    regex_match:
+    - '(?m)^CAIE mode:'
+    - '(?m)^CAIE artifact:'
+    - '(?m)^CAIE findings:'
+    - '(?m)^CAIE status:'
+    - '(?m)^CAIE mode: author$'
+    - '(?m)^CAIE status: Authored$'
+    - 'config\.json'
+    - build_project
+    - (?i)validat
+    - (?i)(missing|absent|does not exist|not (present|exist))
+    - (?i)stop
+- type: program
+  name: report_contract
+  config:
+    command: python3
+    args:
+    - evals/controlled-agent-instruction-english/check-report.py
+    - author
+    timeout: 30
+- type: prompt
+  name: task_completion_substance
+  config:
+    prompt: |-
+      Inspect only the text inside CAIE artifact. Call set_waza_grade_pass only if all of these hold: validation of config.json is mandatory before build_project; build_project is permitted only after successful validation; absent config.json requires reporting the missing file and stopping without building; both literals are preserved exactly. Reject a build-before-validation order, building after failed validation, or any contradictory instruction even when all keywords appear. Call set_waza_grade_fail for any missing or contradicted requirement. Do not infer correct behavior from the report status or words outside the artifact.
+      Make exactly one grading tool call, set_waza_grade_pass when every criterion holds, otherwise set_waza_grade_fail. Put the reasoning in the tool call's reason argument; do not return a numeric grade as response text.
+    mode: independent

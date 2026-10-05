@@ -31,5 +31,10 @@ graders:
       prompt: |
         Grade whether the response detects the missing Construction assessment,
         returns reduced BLOCK, requests a complete corrected construction result, and makes
-        no portability conclusion. End with only 1.0, 0.5, or 0.0 on the last line.
+        no portability conclusion.
+
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
       mode: independent

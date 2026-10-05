@@ -60,6 +60,10 @@ graders:
         Grade whether the response explains that FreeBSD `readlink -f` support
         does not establish the required `readlink -m` missing-component
         semantics, does not use `-f` as the repair, and requires a matching
-        target branch or explicitly accepted reduced semantics. End with only
-        1.0, 0.5, or 0.0 on the last line.
+        target branch or explicitly accepted reduced semantics.
+
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
       mode: independent

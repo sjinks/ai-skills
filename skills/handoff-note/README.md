@@ -39,3 +39,5 @@ The floor probes are `positive-edge-001`, `positive-edge-002`, `positive-edge-00
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.
 - [`evals/handoff-note/`](https://github.com/sjinks/ai-skills/tree/master/evals/handoff-note) — approval-gated model-evaluation suite and deterministic task assertions.
+
+The suite projection test binds exact-schema text heading assertions to the matching validator profile and rejects isolated heading swaps. Static checks do not establish model behavior.

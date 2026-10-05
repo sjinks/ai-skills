@@ -26,6 +26,8 @@ graders:
     name: task_completion
     config:
       regex_match:
+        - '(?m)^Result: CLEAN$'
+        - '(?m)^Candidate: no new skill$'
         - '(?m)^- A1 \| Status: failed \|'
         - '(?m)^- A2 \| Status: worked \|'
         - 'Mechanism: deterministic check'

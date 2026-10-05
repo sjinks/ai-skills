@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/waza/v0.33.0/schemas/task.schema.json
+id: positive-edge-2
+name: Clean audit preserves long sentences and literals
+description: Clean audit preserves long sentences and literals
+tags:
+- positive-edge
+inputs:
+  prompt: |-
+    Audit these agent instructions. The required configuration file is config.json. The supplied conditional sentence exceeds the advisory instructional length threshold because splitting it would separate the condition from the action. Do not flag length alone. Supplied text: If the required configuration file is absent from the explicitly selected working directory after the permitted read attempt completes, report the missing configuration file to the caller and stop without publishing. Preserve the exact identifiers config.json and build_project when discussing them. The procedure is a single attempt with no loop; do not invent a retry requirement.
+    Answer using the supplied scenario only. Do not inspect or modify scenario workspace files. You may read the invoked skill and its bundled references.
+expected:
+  should_trigger: true
+graders:
+- type: trigger
+  name: trigger_accuracy
+  config:
+    skill_path: skills/controlled-agent-instruction-english/SKILL.md
+    mode: positive
+    threshold: 0.45
+- type: skill_invocation
+  name: skill_invocation
+  config:
+    required_skills:
+    - controlled-agent-instruction-english
+    mode: any_order
+- type: text
+  name: task_completion
+  config:
+    regex_match:
+    - '(?m)^CAIE mode:'
+    - '(?m)^CAIE artifact:'
+    - '(?m)^CAIE findings:'
+    - '(?m)^CAIE status:'
+    - '(?m)^CAIE mode: audit$'
+    - '(?m)^CAIE artifact: None\.$'
+    - '(?m)^CAIE findings: None\.$'
+    - '(?m)^CAIE status: Clean$'
+- type: program
+  name: report_contract
+  config:
+    command: python3
+    args:
+    - evals/controlled-agent-instruction-english/check-report.py
+    - audit-clean
+    timeout: 30

@@ -37,3 +37,5 @@ blocked/missing context and returned-snippet authoring where applicable. It
 rejects all entries, including hidden files, empty directories and symlinks.
 It does not observe transient changes, changes outside the workspace, or
 changes restored before grading.
+
+The suite projection check binds text verdict assertions to the program-selected verdict for review, authoring, and missing-context reports. Static checks do not establish model behavior.

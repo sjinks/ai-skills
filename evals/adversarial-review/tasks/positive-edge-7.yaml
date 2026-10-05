@@ -73,14 +73,14 @@ graders:
         Expect CONCERNS. Accept BLOCK only for a complete independent current
         HIGH or CRITICAL finding, not because the prior pass was BLOCK.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = response applies precedence, avoids inherited BLOCK, and reports the current finding.
-        0.5 = response reviews current context but leaves precedence unclear.
-        0.0 = response lets the matching identifier retain the prior BLOCK verdict.
+        Full success: response applies precedence, avoids inherited BLOCK, and reports the current finding.
+        Partial completion (fail): response reviews current context but leaves precedence unclear.
+        Failure: response lets the matching identifier retain the prior BLOCK verdict.
       mode: independent
   - type: program
     name: report_contract
