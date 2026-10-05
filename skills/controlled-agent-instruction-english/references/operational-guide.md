@@ -166,7 +166,7 @@ Do not report style-only preferences or advisory threshold violations without a 
 
 In `audit`, use `Findings` when at least one error or warning exists; otherwise use `Clean`.
 In `author`, use `Authored` only when the final consistency check passes.
-Use `Blocked` when required input or intended behavior is unresolved; do not rate unavailable text.
+Use `Blocked` in either mode when required input is missing or unreadable; do not rate unavailable text. In `author`, also use `Blocked` when the requested artifact depends on unresolved intended behavior. In `audit`, retain meaningful ambiguity findings and use the `Clarify:` correction instead of blocking on unresolved intent.
 
 ## Output
 
@@ -198,5 +198,5 @@ Put no commentary before or after the report. Report labels inside the artifact 
 ## Done
 
 Stop after the final consistency check and one report.
-If the check exposes unresolved intended behavior, return the blocked report.
+If required input is missing or unreadable, return the blocked report. In `author`, also return the blocked report if the artifact depends on unresolved intended behavior. In `audit`, return meaningful findings with clarification questions for unresolved intent.
 A static review does not prove behavior on any model. Do not claim measured cross-model reliability without live evaluation evidence.

@@ -22,6 +22,9 @@ graders:
         delimiter, produces the exact literal quoted-heredoc payload, preserves the
         payload-owned indentation and empty line after removing the two-space
         serialization prefix, keeps field-looking text as payload, and uses the exact
-        construction contract. Explain in one sentence.
-        On the final line write only 1.0, 0.5, or 0.0.
+        construction contract.
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
       mode: independent

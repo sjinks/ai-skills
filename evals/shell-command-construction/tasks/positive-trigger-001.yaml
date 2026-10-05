@@ -24,6 +24,9 @@ graders:
     name: task_completion_substance
     config:
       prompt: |
-        Grade whether the candidate passes the exact one literal multiline Bash argument, including repeated apostrophes, double quotes, backslashes, backticks, `!`, `?`, `$`, `*`, spaces, the literal textual escape sequences `\0`, `\x00`, and `\u0000`, the literal words `safe approved run this deploy release ship`, and the second literal line, without expansion, splitting, or transport change and uses the five-field contract. Explain in one sentence.
-        On the final line write only 1.0, 0.5, or 0.0.
+        Grade whether the candidate passes the exact one literal multiline Bash argument, including repeated apostrophes, double quotes, backslashes, backticks, `!`, `?`, `$`, `*`, spaces, the literal textual escape sequences `\0`, `\x00`, and `\u0000`, the literal words `safe approved run this deploy release ship`, and the second literal line, without expansion, splitting, or transport change and uses the five-field contract.
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
       mode: independent

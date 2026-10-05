@@ -44,5 +44,5 @@ graders:
 - type: prompt
   name: task_completion_substance
   config:
-    prompt: Score 1.0 only if the response uses the blocked report, keeps artifact and findings None, and names the unresolved intended failure policy or abort-versus-retry decision as missing. Reject any selected abort/retry outcome, guessed default, rewritten artifact, or newly invented fallback, even if the missing-policy keywords appear. Merely naming abort and retry as unresolved alternatives is correct. Score 0.0 otherwise. Output one sentence of reasoning, then only 1.0 or 0.0 on the last line.
+    prompt: Call set_waza_grade_pass only if the response uses the blocked report, keeps artifact and findings None, and names the unresolved intended failure policy or abort-versus-retry decision as missing. Reject any selected abort/retry outcome, guessed default, rewritten artifact, or newly invented fallback, even if the missing-policy keywords appear. Merely naming abort and retry as unresolved alternatives is correct. Otherwise call set_waza_grade_fail. Make exactly one grading tool call, set_waza_grade_pass when every criterion holds, otherwise set_waza_grade_fail. Put the reasoning in the tool call's reason argument; do not return a numeric grade as response text.
     mode: independent

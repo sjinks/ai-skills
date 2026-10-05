@@ -218,9 +218,10 @@ positive task using the standard wrapper.
   claim; `evals/factcheck/test_check_report.py` covers valid and deterministic
   malformed-report mutations. Exit code 0 passes and any non-zero exit fails.
 - `tone_quality` (`spock-voice` positives only, `prompt`) — LLM judge.
-  The rubric asks for one sentence of reasoning followed by a final
-  line containing only `1.0`, `0.5`, or `0.0`, so waza's prompt-grader
-  parser can extract the score reliably.
+  The judge calls `set_waza_grade_pass` exactly once when every full-success
+  criterion holds; otherwise it calls `set_waza_grade_fail` exactly once.
+  Reasoning belongs in the tool call's `reason` argument. Partial completion
+  fails this strict binary rubric.
 - `efficiency` (eval-level, `behavior`) — `max_tool_calls` and
   `max_tokens` budgets per task. Substance-heavy suites
   (`multi-lens-review`, `ssrf-outbound-fetch-review`,
@@ -265,9 +266,9 @@ checks:
 - At least two close-domain negative tasks per skill so a single close-domain bias
   does not silently pass.
 - LLM-judge `task_completion_substance` graders on representative
-  positive tasks across suites. They score 1.0 / 0.5 / 0.0
-  against a skill-specific rubric, using the same final-line numeric
-  format as `tone_quality`.
+  positive tasks across suites. They use the same strict binary pass/fail
+  tool-call protocol as `tone_quality`, with skill-specific full-success
+  criteria. Numeric response text alone is not a grade.
 - Edge-case positives (`positive-edge-*.yaml`) per skill covering the
   documented "hard" behaviors — BLOCK on insufficient input, CLEAN
   verdicts, lens conflict resolution, regression-during-fix-cycle,
@@ -596,3 +597,19 @@ Positive prompts explicitly permit reading the invoked skill and its bundled
 references while forbidding inspection or modification of scenario workspace
 files. This preserves mandatory resource loading without assuming a runtime
 installation path.
+
+## Prompt-grader protocol preflight
+
+Waza v0.33.0 records `set_waza_grade_pass` and `set_waza_grade_fail` calls; a judge
+that returns only numeric text fails with no recorded grade. Repository prompt
+graders use exactly one pass call when every full-success criterion holds and
+one fail call otherwise, including partial completion, with reasoning in the
+tool's `reason` argument. This follows the [upstream prompt-grader contract](https://github.com/microsoft/waza/blob/v0.33.0/docs/graders/prompt.md).
+
+Run the free decoded-YAML protocol check and its isolated mutations with:
+
+```sh
+python3 evals/_helpers/check-prompt-grader-contracts.py --self-test
+```
+
+This checks configured judge instructions, not live judge behavior.

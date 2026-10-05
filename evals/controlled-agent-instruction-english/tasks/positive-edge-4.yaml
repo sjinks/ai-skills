@@ -41,5 +41,5 @@ graders:
 - type: prompt
   name: task_completion_substance
   config:
-    prompt: Score 1.0 only if the artifact makes testing mandatory and permits publication only after successful testing, and the source finding has severity error, cites supplied snippet:1 and N4, quotes or identifies "should", explains optionality, and supplies a mandatory correction. Reject findings None, optional testing, lost diagnosis, or contradictory instructions. Score 0.0 otherwise. Output one sentence of reasoning, then only 1.0 or 0.0 on the last line.
+    prompt: Call set_waza_grade_pass only if the artifact makes testing mandatory and permits publication only after successful testing, and the source finding has severity error, cites supplied snippet:1 and N4, quotes or identifies "should", explains optionality, and supplies a mandatory correction. Reject findings None, optional testing, lost diagnosis, or contradictory instructions. Otherwise call set_waza_grade_fail. Make exactly one grading tool call, set_waza_grade_pass when every criterion holds, otherwise set_waza_grade_fail. Put the reasoning in the tool call's reason argument; do not return a numeric grade as response text.
     mode: independent

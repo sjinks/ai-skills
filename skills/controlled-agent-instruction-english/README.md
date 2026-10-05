@@ -4,7 +4,7 @@
 
 This skill applies a controlled-English approach to agent instructions. It preserves technical literals and treats sentence-length thresholds as advisory. It does not claim ASD-STE100 compliance or measured cross-model reliability.
 
-Author mode returns a complete instruction artifact. For a combined audit-and-rewrite request, it also preserves meaningful findings from the original text. Audit mode reports only meaningful errors and warnings. Blocked mode names missing input or unresolved intended behavior. The report uses `CAIE mode:`, `CAIE artifact:`, `CAIE findings:`, and `CAIE status:`.
+Author mode returns a complete instruction artifact. For a combined audit-and-rewrite request, it also preserves meaningful findings from the original text. Audit mode reports only meaningful errors and warnings. Blocked mode names missing input in either workflow, or unresolved intended behavior required for authoring. Audit mode retains ambiguity findings with clarification questions. The report uses `CAIE mode:`, `CAIE artifact:`, `CAIE findings:`, and `CAIE status:`.
 
 The offline eval checker owns report grammar, deterministic mutations, and task projections. Live model behavior remains unverified until an approved evaluation runs. The intended compatibility floor is the `fast-general` profile; no model-specific patches or runtime adapters are required.
 

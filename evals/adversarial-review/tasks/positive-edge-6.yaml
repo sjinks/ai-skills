@@ -70,14 +70,14 @@ graders:
         reference that prior finding without duplicating it as fresh, and report
         the no-jitter review observation as net-new.
 
-        Output format (strict):
-        - Write one sentence of reasoning on its own line.
-        - On the very last line, write only one of: 1.0, 0.5, 0.0
-          (no other text on that line).
+        Call set_waza_grade_pass exactly once only when all full-success criteria
+        in this prompt hold. Otherwise, including partial completion, call
+        set_waza_grade_fail exactly once. Put the reasoning in the tool call's
+        reason argument; do not return a numeric grade as response text.
 
-        1.0 = response retains BLOCK, deduplicates, and reports the new finding.
-        0.5 = response gets two of those three behaviors right.
-        0.0 = response treats the matching revision as revised or misses the core behavior.
+        Full success: response retains BLOCK, deduplicates, and reports the new finding.
+        Partial completion (fail): response gets two of those three behaviors right.
+        Failure: response treats the matching revision as revised or misses the core behavior.
       mode: independent
   - type: program
     name: report_contract
