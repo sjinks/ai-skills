@@ -318,6 +318,7 @@ class ReportContractTests(unittest.TestCase):
             "Runtime compatibility has not been tested; model limitations are none.",
             "Runtime verification has not been tested; model limitations are resolved.",
             "Model limitations are resolved, but runtime lacks browser support.",
+            "Runtime lacks browser support; model limitations are resolved.",
         ):
             with self.subTest(limitation=limitation):
                 text = valid_report().replace("- Limitations: Static validation only.", f"- Limitations: {limitation}")
@@ -364,6 +365,7 @@ class ReportContractTests(unittest.TestCase):
             "No unsupported features remain for the model.",
             "No unsupported features were found in runtime.",
             "The model supports every required feature; no unsupported features remain.",
+            "Model limitations are resolved, but runtime needs no adaptation.",
         ):
             with self.subTest(limitation=limitation):
                 text = valid_report().replace("- Limitations: Static validation only.", f"- Limitations: {limitation}")
@@ -459,6 +461,23 @@ class ReportContractTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
             REPORT.validate(text)
+
+    def test_rejects_optional_delegation_extended_to_shared_context_work(self) -> None:
+        """Reject an additional delegation scope beside independent workstreams."""
+        text = valid_report().replace(
+            "Keep delegation optional for independent workstreams.",
+            "Keep delegation optional for independent workstreams and shared-context investigations.",
+        )
+        with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
+            REPORT.validate(text)
+
+    def test_accepts_excluding_dependent_work_from_optional_delegation(self) -> None:
+        """Allow dependent-work wording when the instruction excludes its delegation."""
+        text = valid_report().replace(
+            "Keep delegation optional for independent workstreams.",
+            "Keep delegation optional for independent workstreams; do not delegate dependent work.",
+        )
+        REPORT.validate(text)
 
     def test_accepts_grammatical_optional_delegation_variant(self) -> None:
         """Accept equivalent ordinary wording for optional delegation."""

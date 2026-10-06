@@ -184,13 +184,16 @@ def validate_final_verdict(
         return
     expected = "Ready" if limitations == "None." else "Ready with limitations"
     if expected == "Ready with limitations":
-        has_model_runtime_limit = re.search(
+        model_runtime_limit_pattern = (
             r"\b(?:model|runtime)\b.{0,45}\b(?:limitations?|limited|constraints?|unsupported|unavailable|not supplied|not available|not measured|not (?:been )?tested|not (?:been )?verified|not performed|(?:does not|doesn't|do not|don't|cannot|can't) support|missing|incomplete|lacks?|cannot|can't|unable|needs?)\b|"
-            r"\b(?:limitations?|limited|constraints?|unsupported|unavailable|not supplied|not available|not measured|not (?:been )?tested|not (?:been )?verified|not performed|(?:does not|doesn't|do not|don't|cannot|can't) support|missing|incomplete|lacks?|cannot|can't|unable|needs?)\b.{0,45}\b(?:model|runtime)\b",
+            r"\b(?:limitations?|limited|constraints?|unsupported|unavailable|not supplied|not available|not measured|not (?:been )?tested|not (?:been )?verified|not performed|(?:does not|doesn't|do not|don't|cannot|can't) support|missing|incomplete|lacks?|cannot|can't|unable|needs?)\b.{0,45}\b(?:model|runtime)\b"
+        )
+        has_model_runtime_limit = re.search(
+            model_runtime_limit_pattern,
             limitations,
             re.IGNORECASE,
         ) is not None
-        explicit_denial = re.search(
+        explicit_denial_pattern = (
             r"\bno\b.{0,45}\b(?:remaining\s+)?limitations?\b|"
             r"\bno\b.{0,35}\bunsupported features?\b.{0,35}\b(?:remain|were identified|were found|exist|apply|are present|for the model|in runtime)\b|"
             r"\bno\b.{0,35}\bunsupported\b.{0,35}\b(?:model|runtime)\b|"
@@ -200,7 +203,11 @@ def validate_final_verdict(
             r"\b(?:model|runtime)\b.{0,25}\b(?:no|not|never|isn't|doesn't|do not|don't)\b.{0,20}\b(?:unsupported|unavailable|missing|incomplete)\b|"
             r"\b(?:model|runtime)\b.{0,25}\b(?:has|have)\s+no\s+(?:limitations?|constraints?|restrictions?)\b|"
             r"\b(?:model|runtime)\b.{0,25}\b(?:does not|doesn't|do not|don't)\s+have\s+(?:any\s+)?(?:limitations?|constraints?|restrictions?)\b|"
-            r"\b(?:limitations?|constraints?)\b.{0,25}\b(?:are|is|do|does)\s+not\b.{0,20}\b(?:present|applicable|apply|remain|exist|identified|needed|material|relevant|significant|a concern)\b",
+            r"\b(?:model|runtime)\b.{0,25}\bneeds?\s+no\s+(?:further\s+)?(?:adaptation|changes?|limitations?|constraints?)\b|"
+            r"\b(?:limitations?|constraints?)\b.{0,25}\b(?:are|is|do|does)\s+not\b.{0,20}\b(?:present|applicable|apply|remain|exist|identified|needed|material|relevant|significant|a concern)\b"
+        )
+        explicit_denial = re.search(
+            explicit_denial_pattern,
             limitations,
             re.IGNORECASE,
         ) is not None
@@ -223,12 +230,13 @@ def validate_final_verdict(
         runtime_unverified = runtime_unverified and not negated_unavailable
         unavailable_evidence = unavailable_evidence and not negated_unavailable
         static_only = re.search(r"\bstatic(?: review| validation)? only\b", limitations, re.IGNORECASE) is not None
-        independent_active_limit = re.search(
-            r"(?:;|,\s*but\b|\bbut\b|\bhowever\b)\s*(?:the\s+)?(?:model|runtime)\b.{0,45}\b(?:unsupported|unavailable|missing|incomplete|lacks?|cannot|can't|unable|needs?|does not support|doesn't support)\b|"
-            r"(?:;|,\s*but\b|\bbut\b|\bhowever\b)\s*(?:the\s+)?(?:model|runtime)\b.{0,45}\b(?:not (?:been )?tested|not (?:been )?verified|not measured|not performed)\b",
-            limitations,
-            re.IGNORECASE,
-        ) is not None
+        limitation_clauses = re.split(r";|,\s*but\b|\bbut\b|\bhowever\b", limitations, flags=re.IGNORECASE)
+        independent_active_limit = any(
+            re.search(model_runtime_limit_pattern, clause, re.IGNORECASE)
+            and not re.search(explicit_denial_pattern, clause, re.IGNORECASE)
+            and not re.search(r"\b(?:not|is not|isn't|no longer|no)\s+(?:unavailable|missing|incomplete|not supplied|not available|not measured|not verified|not performed)\b", clause, re.IGNORECASE)
+            for clause in limitation_clauses
+        )
         require(
             runtime_unverified
             or independent_active_limit
@@ -247,7 +255,12 @@ def validate_profile_rows(rows: list[list[str]]) -> None:
         prose = " ".join(row[2:])
         if model == "GPT-6.1 Sol":
             require(
-                not re.search(r"\b(?:all|any) tasks\b|\bdependent work(?:streams?)?\b", prose, re.IGNORECASE),
+                not re.search(
+                    r"\b(?:optional|optionally)\b.{0,60}\b(?:all|any) tasks\b|"
+                    r"\bindependent workstreams?\b.{0,80}\b(?:and|or)\s+(?:shared[- ]context|dependent|other|non-independent)\b.{0,40}\b(?:investigations?|workstreams?|tasks?)\b",
+                    prose,
+                    re.IGNORECASE,
+                ),
                 "GPT-6.1 Sol delegation must remain limited to independent workstreams",
             )
         matches = sum(

@@ -61,10 +61,10 @@ graders:
         - "(?m)^## Target-Model Compatibility$"
         - "(?m)^## Priority Changes$"
         - "(?m)^Verdict:"
-        - '(?im)^\|[ \t]*GPT-6 Luna[ \t]*\|[ \t]*(Unsuitable|Suitable with limitations)[ \t]*\|[^|\r\n]*(burden|complex|output|sequence|unsuitable|limitation)[^|\r\n]*\|'
-        - '(?im)^\|[ \t]*Claude Haiku 4\.5[ \t]*\|[ \t]*(Unsuitable|Suitable with limitations)[ \t]*\|[^|\r\n]*(burden|parameter|output|sequence|unsuitable|limitation)[^|\r\n]*\|'
-        - '(?im)^\|[ \t]*GPT-6\.1 Sol[ \t]*\|[ \t]*(Suitable with limitations|Unsuitable)[ \t]*\|[^|\r\n]*(overconstrain|micromanage|process|sequence|limitation)[^|\r\n]*\|'
-        - '(?im)^\|[ \t]*Claude Fable 5[ \t]*\|[ \t]*(Suitable with limitations|Unsuitable)[ \t]*\|[^|\r\n]*(overconstrain|micromanage|pause|subagent|limitation)[^|\r\n]*\|'
+        - '(?im)^\|[ \t]*GPT-6 Luna[ \t]*\|[ \t]*(Unsuitable|Suitable with limitations)[ \t]*\|([^|\r\n]*(burden|complex|output|sequence|unsuitable|limitation)[^|\r\n]*\|[^|\r\n]*|[^|\r\n]*\|[^|\r\n]*(burden|complex|output|sequence|unsuitable|limitation)[^|\r\n]*)\|'
+        - '(?im)^\|[ \t]*Claude Haiku 4\.5[ \t]*\|[ \t]*(Unsuitable|Suitable with limitations)[ \t]*\|([^|\r\n]*(burden|parameter|output|sequence|unsuitable|limitation)[^|\r\n]*\|[^|\r\n]*|[^|\r\n]*\|[^|\r\n]*(burden|parameter|output|sequence|unsuitable|limitation)[^|\r\n]*)\|'
+        - '(?im)^\|[ \t]*GPT-6\.1 Sol[ \t]*\|[ \t]*(Suitable with limitations|Unsuitable)[ \t]*\|([^|\r\n]*(overconstrain|micromanage|process|sequence|limitation)[^|\r\n]*\|[^|\r\n]*|[^|\r\n]*\|[^|\r\n]*(overconstrain|micromanage|process|sequence|limitation)[^|\r\n]*)\|'
+        - '(?im)^\|[ \t]*Claude Fable 5[ \t]*\|[ \t]*(Suitable with limitations|Unsuitable)[ \t]*\|([^|\r\n]*(overconstrain|micromanage|pause|subagent|limitation)[^|\r\n]*\|[^|\r\n]*|[^|\r\n]*\|[^|\r\n]*(overconstrain|micromanage|pause|subagent|limitation)[^|\r\n]*)\|'
         - 'Severity:\s*(CRITICAL|HIGH|MEDIUM|LOW)'
         - "(?i)(fixed tool|exact order|progress update|three subagents|approval)"
         - '(?m)^Verdict:\s*(Needs revision|Major redesign)$'
