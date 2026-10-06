@@ -243,7 +243,8 @@ def validate_final_verdict(
         require(
             runtime_unverified
             or independent_active_limit
-            or (not explicit_denial and ((has_model_runtime_limit and not negated_unavailable) or unavailable_evidence or static_only)),
+            or static_only
+            or (not explicit_denial and ((has_model_runtime_limit and not negated_unavailable) or unavailable_evidence)),
             "Ready with limitations requires a model, runtime, or unavailable-evidence limitation",
         )
     require(verdict == expected, f"clean ratings require {expected} based on the limitations field")
@@ -262,27 +263,53 @@ def validate_profile_rows(rows: list[list[str]]) -> None:
         )
         require(matches >= 2, f"{model} row is missing model-specific profile evidence")
         if model == "GPT-6.1 Sol":
+            delegation_cue_present = any(
+                re.search(pattern, prose, re.IGNORECASE)
+                for pattern in PROFILE_MARKERS[model][2]
+            )
             explicitly_independent = re.search(
                 r"\bonly\b.{0,80}\bindependent workstreams?\b|\bindependent workstreams?\b.{0,80}\bonly\b",
                 prose,
                 re.IGNORECASE,
             ) is not None
-            excluded_scope = re.search(
+            excluded_scope_pattern = (
                 r"\b(?:any|all|other|dependent|shared[- ]context|tightly coupled|non-independent)\s+(?:tasks?|workstreams?|investigations?)\b.{0,60}\b(?:stay|remain)\s+local\b|"
                 r"\bother tasks?\s+local\b|\bdependent tasks?\b.{0,30}\btogether\b|"
-                r"\b(?:do not|don't|never)\s+delegate\s+(?:any\s+)?(?:dependent|shared[- ]context|tightly coupled|other|non-independent)\b",
-                prose,
-                re.IGNORECASE,
-            ) is not None
-            expanded_scope = re.search(
-                r"\bindependent workstreams?\b.{0,100}\b(?:and|or)\s+(?:for\s+)?(?:all|any|every|dependent|shared[- ]context|tightly coupled|other|non-independent)\s+(?:tasks?|workstreams?|investigations?)\b",
-                prose,
-                re.IGNORECASE,
-            ) is not None
-            require(
-                (explicitly_independent or excluded_scope) and (not expanded_scope or excluded_scope),
-                "GPT-6.1 Sol delegation must remain limited to independent workstreams",
+                r"\b(?:do not|don't|never)\s+delegate\s+(?:any\s+)?(?:dependent|shared[- ]context|tightly coupled|other|non-independent)\b"
             )
+            excluded_scope = re.search(
+                excluded_scope_pattern,
+                prose,
+                re.IGNORECASE,
+            ) is not None
+            delegation_clauses = re.split(r"[.;]|\bbut\b|\bhowever\b", prose, flags=re.IGNORECASE)
+            expanded_scope = any(
+                re.search(
+                    r"\bindependent workstreams?\b.{0,100}\b(?:and|or)\s+(?:for\s+)?(?:all|any|every|dependent|shared[- ]context|tightly coupled|other|non-independent)\s+(?:tasks?|workstreams?|investigations?)\b",
+                    clause,
+                    re.IGNORECASE,
+                )
+                and not re.search(excluded_scope_pattern, clause, re.IGNORECASE)
+                for clause in delegation_clauses
+            )
+            affirmative_extra_scope = any(
+                re.search(
+                    r"\b(?:also\s+)?delegat\w*\b.{0,40}\b(?:all|any|every|other|dependent|shared[- ]context|tightly coupled|non-independent)\s+(?:tasks?|workstreams?|investigations?|work)\b|"
+                    r"\b(?:all|any|every|other|dependent|shared[- ]context|tightly coupled|non-independent)\s+(?:tasks?|workstreams?|investigations?|work)\b.{0,40}\bdelegat\w*\b",
+                    clause,
+                    re.IGNORECASE,
+                )
+                and not re.search(r"\b(?:do not|don't|never)\s+delegat\w*\b", clause, re.IGNORECASE)
+                and not re.search(excluded_scope_pattern, clause, re.IGNORECASE)
+                for clause in delegation_clauses
+            )
+            if delegation_cue_present:
+                require(
+                    (explicitly_independent or excluded_scope)
+                    and not expanded_scope
+                    and not affirmative_extra_scope,
+                    "GPT-6.1 Sol delegation must remain limited to independent workstreams",
+                )
 
 
 def validate(text: str, *, require_findings: bool = False) -> None:
@@ -297,9 +324,12 @@ def validate(text: str, *, require_findings: bool = False) -> None:
     headings = [line.strip() for line in lines if re.match(r"^ {0,3}#{1,2}\s+", line)]
     require(headings == list(HEADINGS), "expected exactly one report with canonical headings in order")
     require(bool(lines) and lines[0].strip() == HEADINGS[0], "report must start with its title")
-    audit_markers = [line for line in lines if re.fullmatch(r" {0,3}Audit:.*", line)]
-    require(len(audit_markers) == 1 and bool(audit_markers[0].strip().removeprefix("Audit: ").strip()), "report requires exactly one nonempty Audit marker")
-    audit_index = next(index for index, line in enumerate(lines) if re.fullmatch(r" {0,3}Audit: .+", line))
+    audit_markers = [line for line in lines if re.match(r" {0,3}Audit:", line)]
+    require(
+        len(audit_markers) == 1 and re.fullmatch(r" {0,3}Audit: .+", audit_markers[0]) is not None,
+        "report requires exactly one nonempty Audit marker",
+    )
+    audit_index = lines.index(audit_markers[0])
     scope_heading_index = next(index for index, line in enumerate(lines) if line.strip() == HEADINGS[1])
     require(audit_index < scope_heading_index, "Audit marker must follow the title and precede Audit Scope")
     scope_raw = raw_section_lines(lines, HEADINGS[1], HEADINGS[2])

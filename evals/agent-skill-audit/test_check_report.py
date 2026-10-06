@@ -189,6 +189,12 @@ class ReportContractTests(unittest.TestCase):
         with self.assertRaisesRegex(REPORT.ValidationError, "exactly one nonempty Audit marker"):
             REPORT.validate(text)
 
+    def test_rejects_audit_marker_without_separator_space(self) -> None:
+        """Reject malformed nonempty Audit lines without an uncaught lookup error."""
+        text = valid_report().replace("Audit: example", "Audit:example", 1)
+        with self.assertRaisesRegex(REPORT.ValidationError, "exactly one nonempty Audit marker"):
+            REPORT.validate(text)
+
     def test_rejects_invalid_scope_enum(self) -> None:
         """Reject an artifact type outside the canonical domain."""
         text = valid_report().replace("- Artifact type: Custom agent", "- Artifact type: Skill")
@@ -325,6 +331,8 @@ class ReportContractTests(unittest.TestCase):
             "Runtime verification has not been tested; model limitations are resolved.",
             "Model limitations are resolved, but runtime lacks browser support.",
             "Runtime lacks browser support; model limitations are resolved.",
+            "No model limitations remain; static validation only.",
+            "Static validation only; no model limitations remain.",
         ):
             with self.subTest(limitation=limitation):
                 text = valid_report().replace("- Limitations: Static validation only.", f"- Limitations: {limitation}")
@@ -358,7 +366,6 @@ class ReportContractTests(unittest.TestCase):
             "Runtime limitations are hypothetical.",
             "Model limitations are theoretical.",
             "Model not limited; no constraints apply.",
-            "Static validation only; model/runtime limitations: none.",
             "Runtime has no constraints.",
             "Model has no constraints.",
             "Model does not have limitations.",
@@ -463,6 +470,14 @@ class ReportContractTests(unittest.TestCase):
         with self.assertRaisesRegex(REPORT.ValidationError, "model-specific profile evidence"):
             REPORT.validate(text)
 
+    def test_gpt61_accepts_two_profile_cues_without_delegation(self) -> None:
+        """Delegation is one of three cues, not mandatory when two others appear."""
+        text = valid_report().replace(
+            "Keep delegation optional only for independent workstreams.",
+            "Preserve the literal broad scope and explicit invariants.",
+        )
+        REPORT.validate(text)
+
     def test_rejects_optional_delegation_extended_to_dependent_work(self) -> None:
         """Reject optional delegation when its stated scope includes dependent work."""
         text = valid_report().replace(
@@ -495,6 +510,15 @@ class ReportContractTests(unittest.TestCase):
         text = valid_report().replace(
             "Keep delegation optional only for independent workstreams.",
             "Delegation is optional for every task; independent workstreams are listed separately.",
+        )
+        with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
+            REPORT.validate(text)
+
+    def test_rejects_additional_delegation_in_a_later_sentence(self) -> None:
+        """Reject contradictory broader delegation outside the cue sentence."""
+        text = valid_report().replace(
+            "Keep delegation optional only for independent workstreams.",
+            "Keep delegation optional only for independent workstreams. Also delegate dependent tasks.",
         )
         with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
             REPORT.validate(text)

@@ -631,13 +631,15 @@ This checks configured judge instructions, not live judge behavior.
 
 The `agent-skill-audit` expanded-roster task validates exact report heading
 order, rating rows, all nine default model rows, model-specific GPT profile
-cues, numeric verdict eligibility, the five-item priority limit, table grammar,
-and terminal output. The task's substance judge evaluates whether the prose
-supports the causal architecture condition for `Major redesign`. Its mutation tests cover omission, reordering, duplication,
-invalid enums, swapped profile analysis, inconsistent verdicts, partial-status
-rejection, malformed tables, and escaped cell pipes. Run the checker with a
-report on stdin; the program grader requires a finding for this known-defect
-fixture. Use `--allow-empty-findings` only when probing a clean verdict branch:
+cues, independent-only scope whenever delegation is used as a GPT-6.1 Sol cue,
+numeric verdict eligibility, the five-item priority limit, table grammar, and
+terminal output. The task's substance judge evaluates whether the prose
+supports the causal architecture condition for `Major redesign`. Its mutation
+tests cover omission, reordering, duplication, invalid enums, swapped profile
+analysis, inconsistent verdicts, limitation clause order, malformed tables,
+exact Audit marker count, and escaped cell pipes. Run the checker with a report
+on stdin; the program grader requires a finding for this known-defect fixture.
+Use `--allow-empty-findings` only when probing a clean verdict branch:
 
 ```sh
 python3 evals/agent-skill-audit/check-report.py < report.md
