@@ -76,17 +76,41 @@ def require(condition: bool, message: str) -> None:
 
 
 def has_later_resolution(clauses: list[str], index: int) -> bool:
-    """Check whether a later clause completes or verifies earlier missing evidence."""
+    """Check for later verification that resolves the same subject's limitation."""
     resolution_pattern = (
-        r"\b(?:verification|testing|compatibility|assessment|results?)\b.{0,35}\b"
-        r"(?:is|was|are|were)?\s*(?:now\s+)?(?:complete|completed|verified|passed|successful|available|obtained)\b|"
-        r"\b(?:complete|completed|verified|passed|successful|available|obtained)\b.{0,35}\b"
-        r"(?:verification|testing|compatibility|assessment|results?)\b"
+        r"\b(?:verification|compatibility)\b.{0,35}\b(?:is|was|are|were)?\s*(?:now\s+)?(?:complete|completed|verified|passed|successful)\b|"
+        r"\b(?:complete|completed|verified|passed|successful)\b.{0,35}\b(?:verification|compatibility)\b|"
+        r"\b(?:evidence|results?)\b.{0,35}\b(?:is|was|are|were)?\s*(?:now\s+)?(?:available|obtained|verified|complete|completed)\b"
     )
-    return any(
-        re.search(resolution_pattern, clause, re.IGNORECASE)
-        for clause in clauses[index + 1 :]
-    )
+    source = clauses[index]
+    source_subjects = set()
+    for subject, pattern in (
+        ("model", r"\bmodel\b"),
+        ("runtime", r"\bruntime\b"),
+        ("static", r"\bstatic(?: review| validation)?\b"),
+        ("evidence", r"\b(?:evidence|source|assessment|results?)\b"),
+    ):
+        if re.search(pattern, source, re.IGNORECASE):
+            source_subjects.add(subject)
+    for clause in clauses[index + 1 :]:
+        if not re.search(resolution_pattern, clause, re.IGNORECASE):
+            continue
+        later_subjects = set()
+        for subject, pattern in (
+            ("model", r"\bmodel\b"),
+            ("runtime", r"\bruntime\b"),
+            ("static", r"\bstatic(?: review| validation)?\b"),
+            ("evidence", r"\b(?:evidence|source|assessment|results?)\b"),
+        ):
+            if re.search(pattern, clause, re.IGNORECASE):
+                later_subjects.add(subject)
+        if (
+            not later_subjects
+            or (source_subjects and source_subjects <= later_subjects)
+            or (source_subjects == {"static"} and "runtime" in later_subjects)
+        ):
+            return True
+    return False
 
 
 def has_affirmative_broad_delegation(clause: str) -> bool:
@@ -100,7 +124,7 @@ def has_affirmative_broad_delegation(clause: str) -> bool:
         rf"\b{broad_scope}\b.{{0,40}}\bdelegat(?:e|es|ed|ing)\b",
     )
     negation_before_verb = re.compile(
-        r"\b(?:do not|don't|never|(?:should|must|will|can)\s+not)\b(?:(?!\band\b).){0,45}$",
+        r"\b(?:do not|don't|never|(?:should|must|will|can)\s+not)\b(?:(?!\b(?:and|then|but|however)\b|[,;.]).){0,45}$",
         re.IGNORECASE,
     )
     for pattern in patterns:
@@ -348,6 +372,11 @@ def validate_profile_rows(rows: list[list[str]]) -> None:
                 re.IGNORECASE,
             ) is not None
             delegation_clauses = re.split(r"[.;]|\bbut\b|\bhowever\b", prose, flags=re.IGNORECASE)
+            affirmative_delegation_clauses = re.split(
+                r"[.;,]|\b(?:and|then|but|however)\b",
+                prose,
+                flags=re.IGNORECASE,
+            )
             expanded_scope = any(
                 re.search(
                     r"\bindependent workstreams?\b.{0,100}\b(?:and|or)\s+(?:for\s+)?(?:all|any|every|dependent|shared[- ]context|tightly coupled|other|non-independent)\s+(?:tasks?|workstreams?|investigations?)\b",
@@ -363,7 +392,7 @@ def validate_profile_rows(rows: list[list[str]]) -> None:
             )
             affirmative_extra_scope = any(
                 has_affirmative_broad_delegation(clause)
-                for clause in delegation_clauses
+                for clause in affirmative_delegation_clauses
             )
             if delegation_cue_present:
                 require(

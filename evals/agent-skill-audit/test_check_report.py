@@ -339,6 +339,12 @@ class ReportContractTests(unittest.TestCase):
             "Runtime verification has not been tested; model limitations are resolved.",
             "Evidence is not unavailable, but results are missing.",
             "No model test evidence was obtained.",
+            "Runtime lacks browser support; model testing is complete.",
+            "Source evidence was not obtained; runtime verification is complete.",
+            "No model test evidence was obtained; runtime compatibility was verified.",
+            "Runtime compatibility has not been tested; model testing is complete.",
+            "Source evidence was not obtained; runtime verification is complete.",
+            "No model test evidence was obtained; runtime compatibility was verified.",
             "Model limitations are resolved, but runtime lacks browser support.",
             "Runtime lacks browser support; model limitations are resolved.",
             "No model limitations remain; static validation only.",
@@ -527,6 +533,15 @@ class ReportContractTests(unittest.TestCase):
         text = valid_report().replace(
             "Keep delegation optional only for independent workstreams.",
             "Keep delegation optional only for independent workstreams and do not delegate dependent tasks and delegate all tasks.",
+        )
+        with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
+            REPORT.validate(text)
+
+    def test_rejects_positive_delegation_after_negated_predicate_and_then(self) -> None:
+        """Do not carry a negative predicate across a later sequence marker."""
+        text = valid_report().replace(
+            "Keep delegation optional only for independent workstreams.",
+            "Keep delegation optional only for independent workstreams; dependent tasks must not be delegated, then delegate all tasks.",
         )
         with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
             REPORT.validate(text)
