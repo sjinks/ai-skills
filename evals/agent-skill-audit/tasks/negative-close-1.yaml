@@ -2,9 +2,9 @@
 
 id: negative-close-001
 
-name: Compare two single-instruction phrasings
+name: Exact instruction-quality diagnostic request
 
-description: A narrow wording comparison should not trigger a readiness audit.
+description: An exhaustive defect diagnostic belongs to instruction-quality-audit.
 
 tags:
   - negative-trigger
@@ -13,13 +13,16 @@ tags:
 
 inputs:
   prompt: |
-    Which single instruction is clearer for an assistant to follow? Choose A or
-    B and give one brief reason. Do not audit a larger artifact or rewrite
-    either option.
+    Diagnose this prompt for exact contradictions, precedence gaps, ambiguous
+    terms, authority conflicts, closure gaps, harmful duplication, and output
+    contract defects. Cite exact excerpts and give corrective wording.
 
-    A. If the incident is still active after the first response, gather the
-    unresolved evidence and escalate it to the incident lead.
-    B. Gather evidence and escalate active incidents when needed.
+    ```markdown
+    Always use tools.
+    Never use tools.
+    If the input is JSON, parse it.
+    If the input is YAML, parse it.
+    ```
 
 expected:
   should_trigger: false

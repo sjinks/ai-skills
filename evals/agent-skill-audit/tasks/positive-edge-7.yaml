@@ -55,7 +55,7 @@ graders:
         - "(?m)^## Target-Model Compatibility$"
         - "(?m)^## Priority Changes$"
         - "(?m)^Verdict:"
-        - '(?im)^\|[ \t]*GPT-6 Luna[ \t]*\|[ \t]*(?:Unsuitable|Suitable with limitations)[ \t]*\|'
-        - '(?im)^\|[ \t]*Claude Haiku 4\.5[ \t]*\|[ \t]*(?:Unsuitable|Suitable with limitations)[ \t]*\|'
-        - '(?im)^\|[ \t]*GPT-6\.1 Sol[ \t]*\|[ \t]*(?:Suitable with limitations|Unsuitable)[ \t]*\|'
-        - '(?im)^\|[ \t]*Claude Fable 5[ \t]*\|[ \t]*(?:Suitable with limitations|Unsuitable)[ \t]*\|'
+        - '(?im)^\|[ \t]*GPT-6 Luna[ \t]*\|[ \t]*(Unsuitable|Suitable with limitations)[ \t]*\|'
+        - '(?im)^\|[ \t]*Claude Haiku 4\.5[ \t]*\|[ \t]*(Unsuitable|Suitable with limitations)[ \t]*\|'
+        - '(?im)^\|[ \t]*GPT-6\.1 Sol[ \t]*\|[ \t]*(Suitable with limitations|Unsuitable)[ \t]*\|'
+        - '(?im)^\|[ \t]*Claude Fable 5[ \t]*\|[ \t]*(Suitable with limitations|Unsuitable)[ \t]*\|'

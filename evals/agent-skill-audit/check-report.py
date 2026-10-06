@@ -54,7 +54,7 @@ PROFILE_MARKERS = {
     "GPT-6.1 Sol": (
         (r"literal broad scope",),
         (r"invariants?",),
-        (r"(?=.*\b(?:optional|optionally)\b)(?=.*\bdelegat\w*\b)(?=.*\bindependent workstreams?\b)",),
+        (r"\bdelegat\w*\b.{0,200}\boptional\b.{0,200}\bindependent workstreams?\b|\boptional\b.{0,200}\bdelegat\w*\b.{0,200}\bindependent workstreams?\b|\boptionally\s+delegat\w*\b.{0,200}\bindependent workstreams?\b|\bindependent workstreams?\b.{0,60}\boptionally\b.{0,30}\bdelegat\w*\b|\bdelegation of independent workstreams is optional\b",),
     ),
     "GPT-6 Astra": (
         (r"concise mission",),
@@ -223,8 +223,15 @@ def validate_final_verdict(
         runtime_unverified = runtime_unverified and not negated_unavailable
         unavailable_evidence = unavailable_evidence and not negated_unavailable
         static_only = re.search(r"\bstatic(?: review| validation)? only\b", limitations, re.IGNORECASE) is not None
+        independent_active_limit = re.search(
+            r"(?:;|,\s*but\b|\bbut\b|\bhowever\b)\s*(?:the\s+)?(?:model|runtime)\b.{0,45}\b(?:unsupported|unavailable|missing|incomplete|lacks?|cannot|can't|unable|needs?|does not support|doesn't support)\b|"
+            r"(?:;|,\s*but\b|\bbut\b|\bhowever\b)\s*(?:the\s+)?(?:model|runtime)\b.{0,45}\b(?:not (?:been )?tested|not (?:been )?verified|not measured|not performed)\b",
+            limitations,
+            re.IGNORECASE,
+        ) is not None
         require(
             runtime_unverified
+            or independent_active_limit
             or (not explicit_denial and ((has_model_runtime_limit and not negated_unavailable) or unavailable_evidence or static_only)),
             "Ready with limitations requires a model, runtime, or unavailable-evidence limitation",
         )
@@ -238,6 +245,11 @@ def validate_profile_rows(rows: list[list[str]]) -> None:
         if model not in PROFILE_MARKERS:
             continue
         prose = " ".join(row[2:])
+        if model == "GPT-6.1 Sol":
+            require(
+                not re.search(r"\b(?:all|any) tasks\b|\bdependent work(?:streams?)?\b", prose, re.IGNORECASE),
+                "GPT-6.1 Sol delegation must remain limited to independent workstreams",
+            )
         matches = sum(
             any(re.search(pattern, prose, flags=re.IGNORECASE) for pattern in alternatives)
             for alternatives in PROFILE_MARKERS[model]
@@ -274,6 +286,7 @@ def validate(text: str, *, require_findings: bool = False) -> None:
     for field in ("Target models", "Target runtimes", "Limitations"):
         require(any(line.startswith(f"- {field}: ") and line.removeprefix(f"- {field}: ").strip() for line in scope), f"scope field {field} must be nonempty")
     require("- Target models: default set" in scope, "this task requires the default target model set")
+    require("- Target runtimes: Not supplied" in scope, "this task has no supplied target runtime")
     included_index = scope.index("- Files included:")
     excluded_index = scope.index("- Files excluded:")
     require(included_index + 1 < excluded_index and scope[included_index + 1].startswith("- ") and not scope[included_index + 1].startswith("- Files "), "scope must list included files")

@@ -215,6 +215,14 @@ class ReportContractTests(unittest.TestCase):
                 with self.assertRaisesRegex(REPORT.ValidationError, error):
                     REPORT.validate(text)
 
+    def test_rejects_unsupplied_runtime_value_other_than_exact_marker(self) -> None:
+        """Bind the target-runtime field to the fixture's known input state."""
+        for value in ("None.", "unknown"):
+            with self.subTest(value=value):
+                text = valid_report().replace("- Target runtimes: Not supplied", f"- Target runtimes: {value}")
+                with self.assertRaisesRegex(REPORT.ValidationError, "no supplied target runtime"):
+                    REPORT.validate(text)
+
     def test_rejects_empty_findings(self) -> None:
         """Reject an empty material-findings section."""
         text = valid_report().replace("## Material Findings\n\nNone.", "## Material Findings\n\n")
@@ -309,6 +317,7 @@ class ReportContractTests(unittest.TestCase):
             "Model limitations include no browser support.",
             "Runtime compatibility has not been tested; model limitations are none.",
             "Runtime verification has not been tested; model limitations are resolved.",
+            "Model limitations are resolved, but runtime lacks browser support.",
         ):
             with self.subTest(limitation=limitation):
                 text = valid_report().replace("- Limitations: Static validation only.", f"- Limitations: {limitation}")
@@ -440,6 +449,15 @@ class ReportContractTests(unittest.TestCase):
         """Require both parts of the GPT-6.1 Sol delegation cue."""
         text = valid_report().replace("Keep delegation optional for independent workstreams.", "Keep independent workstreams.")
         with self.assertRaisesRegex(REPORT.ValidationError, "model-specific profile evidence"):
+            REPORT.validate(text)
+
+    def test_rejects_optional_delegation_extended_to_dependent_work(self) -> None:
+        """Reject optional delegation when its stated scope includes dependent work."""
+        text = valid_report().replace(
+            "Keep delegation optional for independent workstreams.",
+            "Delegation is optional for all tasks, including dependent work; independent workstreams are merely listed separately.",
+        )
+        with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
             REPORT.validate(text)
 
     def test_accepts_grammatical_optional_delegation_variant(self) -> None:
