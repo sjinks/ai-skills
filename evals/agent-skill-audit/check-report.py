@@ -80,7 +80,8 @@ def has_later_resolution(clauses: list[str], index: int) -> bool:
     resolution_pattern = (
         r"\b(?:verification|compatibility)\b.{0,35}\b(?:is|was|are|were)?\s*(?:now\s+)?(?:complete|completed|verified|passed|successful)\b|"
         r"\b(?:complete|completed|verified|passed|successful)\b.{0,35}\b(?:verification|compatibility)\b|"
-        r"\b(?:evidence|results?)\b.{0,35}\b(?:is|was|are|were)?\s*(?:now\s+)?(?:available|obtained|verified|complete|completed)\b"
+        r"\b(?:evidence|source)\b(?:\s+(?:is|was|are|were|has been|have been))?\s*(?:now\s+)?(?:available|obtained|verified|provided|supplied|collected)\b|"
+        r"\bresults?\b(?:\s+(?:is|was|are|were|has been|have been))?\s*(?:now\s+)?(?:available|obtained|verified|complete|completed)\b"
     )
     source = clauses[index]
     source_subjects = set()
@@ -88,10 +89,16 @@ def has_later_resolution(clauses: list[str], index: int) -> bool:
         ("model", r"\bmodel\b"),
         ("runtime", r"\bruntime\b"),
         ("static", r"\bstatic(?: review| validation)?\b"),
-        ("evidence", r"\b(?:evidence|source|assessment|results?)\b"),
+        ("evidence", r"\b(?:evidence|source|results?)\b"),
+        ("assessment", r"\bassessment\b"),
     ):
         if re.search(pattern, source, re.IGNORECASE):
             source_subjects.add(subject)
+    source_subjects.update(
+        f"model:{model}"
+        for model in MODELS
+        if re.search(re.escape(model), source, re.IGNORECASE)
+    )
     for clause in clauses[index + 1 :]:
         if not re.search(resolution_pattern, clause, re.IGNORECASE):
             continue
@@ -100,10 +107,16 @@ def has_later_resolution(clauses: list[str], index: int) -> bool:
             ("model", r"\bmodel\b"),
             ("runtime", r"\bruntime\b"),
             ("static", r"\bstatic(?: review| validation)?\b"),
-            ("evidence", r"\b(?:evidence|source|assessment|results?)\b"),
+            ("evidence", r"\b(?:evidence|source|results?)\b"),
+            ("assessment", r"\bassessment\b"),
         ):
             if re.search(pattern, clause, re.IGNORECASE):
                 later_subjects.add(subject)
+        later_subjects.update(
+            f"model:{model}"
+            for model in MODELS
+            if re.search(re.escape(model), clause, re.IGNORECASE)
+        )
         if (
             not later_subjects
             or (source_subjects and source_subjects <= later_subjects)
@@ -124,7 +137,9 @@ def has_affirmative_broad_delegation(clause: str) -> bool:
         rf"\b{broad_scope}\b.{{0,40}}\bdelegat(?:e|es|ed|ing)\b",
     )
     negation_before_verb = re.compile(
-        r"\b(?:do not|don't|never|(?:should|must|will|can)\s+not)\b(?:(?!\b(?:and|then|but|however)\b|[,;.]).){0,45}$",
+        r"\b(?:do not|don't|never|should not|must not|will not|cannot|can't)\s+"
+        r"(?:(?:ever|under any circumstances|under any condition|at any time|in any case)\s+)?(?:be\s+)?$|"
+        r"\b(?:is|are|was|were)\s+not\s+(?:ever\s+)?$",
         re.IGNORECASE,
     )
     for pattern in patterns:

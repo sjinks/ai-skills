@@ -342,6 +342,9 @@ class ReportContractTests(unittest.TestCase):
             "Runtime lacks browser support; model testing is complete.",
             "Source evidence was not obtained; runtime verification is complete.",
             "No model test evidence was obtained; runtime compatibility was verified.",
+            "No model test evidence was obtained; model assessment is complete.",
+            "Model test evidence was not obtained; evidence assessment is complete.",
+            "GPT-6 Luna test evidence was not obtained; GPT-6 Sol test evidence is available.",
             "Runtime compatibility has not been tested; model testing is complete.",
             "Source evidence was not obtained; runtime verification is complete.",
             "No model test evidence was obtained; runtime compatibility was verified.",
@@ -542,6 +545,15 @@ class ReportContractTests(unittest.TestCase):
         text = valid_report().replace(
             "Keep delegation optional only for independent workstreams.",
             "Keep delegation optional only for independent workstreams; dependent tasks must not be delegated, then delegate all tasks.",
+        )
+        with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
+            REPORT.validate(text)
+
+    def test_rejects_delegation_hidden_by_negation_of_another_verb(self) -> None:
+        """Do not mistake negated avoidance for a prohibition on delegation."""
+        text = valid_report().replace(
+            "Keep delegation optional only for independent workstreams.",
+            "Keep delegation optional only for independent workstreams; do not avoid delegating all tasks.",
         )
         with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
             REPORT.validate(text)
