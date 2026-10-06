@@ -337,6 +337,7 @@ class ReportContractTests(unittest.TestCase):
             "Model limitations include no browser support.",
             "Runtime compatibility has not been tested; model limitations are none.",
             "Runtime verification has not been tested; model limitations are resolved.",
+            "Evidence is not unavailable, but results are missing.",
             "Model limitations are resolved, but runtime lacks browser support.",
             "Runtime lacks browser support; model limitations are resolved.",
             "No model limitations remain; static validation only.",
@@ -359,6 +360,8 @@ class ReportContractTests(unittest.TestCase):
         for limitation in (
             "Static validation only is no longer true; runtime and model compatibility were verified.",
             "Not static validation only; runtime and model compatibility were verified.",
+            "No longer static validation only; runtime and model compatibility were verified.",
+            "Static validation only was not true; runtime and model compatibility were verified.",
             "Model behavior was verified; no remaining limitations.",
             "No model or runtime constraints remain.",
             "Model limitations are resolved; no runtime constraints remain.",
@@ -513,6 +516,15 @@ class ReportContractTests(unittest.TestCase):
         text = valid_report().replace(
             "Keep delegation optional only for independent workstreams.",
             "Keep delegation optional for independent workstreams, dependent tasks stay local, and also delegate all tasks.",
+        )
+        with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
+            REPORT.validate(text)
+
+    def test_rejects_positive_delegation_after_a_negated_scope(self) -> None:
+        """A local negative clause cannot mask a separate broad affirmative verb."""
+        text = valid_report().replace(
+            "Keep delegation optional only for independent workstreams.",
+            "Keep delegation optional only for independent workstreams and do not delegate dependent tasks and delegate all tasks.",
         )
         with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
             REPORT.validate(text)

@@ -214,33 +214,43 @@ def validate_final_verdict(
             limitations,
             re.IGNORECASE,
         ) is not None
-        runtime_unverified = re.search(
-            r"\b(?:model|runtime)\b.{0,45}\b(?:not (?:been )?tested|not (?:been )?verified|not measured|not performed|unavailable)\b",
+        limitation_clauses = re.split(
+            r";|,\s*but\b|\bbut\b|\bhowever\b|\band\s+(?=(?:no\b|(?:the\s+)?(?:model|runtime)\b))",
             limitations,
-            re.IGNORECASE,
-        ) is not None
-        unavailable_evidence = re.search(
+            flags=re.IGNORECASE,
+        )
+        runtime_unverified = any(
+            re.search(
+                r"\b(?:model|runtime)\b.{0,45}\b(?:not (?:been )?tested|not (?:been )?verified|not measured|not performed|unavailable)\b",
+                clause,
+                re.IGNORECASE,
+            )
+            and not re.search(
+                r"\b(?:not|is not|isn't|no longer|no)\s+(?:unavailable|missing|incomplete|not supplied|not available|not measured|not verified|not performed)\b",
+                clause,
+                re.IGNORECASE,
+            )
+            for clause in limitation_clauses
+        )
+        unavailable_evidence = any(re.search(
             r"\b(?:unavailable|not supplied|not available|not measured|not verified|not performed|missing|incomplete)\b.{0,40}\b(?:evidence|source|assessment|verification|results?)\b|\b(?:evidence|source|assessment|verification|results?)\b.{0,40}\b(?:unavailable|not supplied|not available|not measured|not verified|not performed|missing|incomplete)\b",
-            limitations,
+            clause,
             re.IGNORECASE,
-        ) is not None
+        ) and not re.search(
+            r"\b(?:not|is not|isn't|no longer|no)\s+(?:unavailable|missing|incomplete|not supplied|not available|not measured|not verified|not performed)\b|\b(?:evidence|source|assessment|verification|results?)\b.{0,20}\b(?:is\s+)?(?:not|never)\s+unavailable\b",
+            clause,
+            re.IGNORECASE,
+        ) for clause in limitation_clauses)
         negated_unavailable = re.search(
             r"\b(?:not|is not|isn't|no longer|no)\s+(?:unavailable|missing|incomplete|not supplied|not available|not measured|not verified|not performed)\b|"
             r"\b(?:evidence|source|assessment|verification|results?)\b.{0,20}\b(?:is\s+)?(?:not|never)\s+unavailable\b",
             limitations,
             re.IGNORECASE,
         ) is not None
-        runtime_unverified = runtime_unverified and not negated_unavailable
-        unavailable_evidence = unavailable_evidence and not negated_unavailable
-        limitation_clauses = re.split(
-            r";|,\s*but\b|\bbut\b|\bhowever\b|\band\s+(?=(?:no\b|(?:the\s+)?(?:model|runtime)\b))",
-            limitations,
-            flags=re.IGNORECASE,
-        )
         static_only = any(
             re.search(r"\bstatic(?: review| validation)? only\b", clause, re.IGNORECASE)
             and not re.search(
-                r"\b(?:not\s+static(?: review| validation)? only|static(?: review| validation)? only\s+(?:is\s+)?(?:not|no longer|isn't|wasn't)\s+(?:true|valid|applicable|the case))\b",
+                r"\b(?:not\s+static(?: review| validation)? only|(?:no longer|not|is not|was not|were not|are not|isn't|wasn't|weren't|aren't)\s+static(?: review| validation)? only|static(?: review| validation)? only\s+(?:is|was|were|are)?\s*(?:not|no longer|isn't|wasn't|weren't|aren't)\s+(?:true|valid|applicable|the case))\b",
                 clause,
                 re.IGNORECASE,
             )
@@ -318,12 +328,11 @@ def validate_profile_rows(rows: list[list[str]]) -> None:
             )
             affirmative_extra_scope = any(
                 re.search(
-                    r"\b(?:also\s+)?delegat(?:e|es|ed|ing)\b.{0,40}\b(?:all|any|every|other|dependent|shared[- ]context|tightly coupled|non-independent)\s+(?:tasks?|workstreams?|investigations?|work)\b|"
-                    r"\b(?:all|any|every|other|dependent|shared[- ]context|tightly coupled|non-independent)\s+(?:tasks?|workstreams?|investigations?|work)\b.{0,40}\bdelegat(?:e|es|ed|ing)\b",
+                    r"(?<!do not )(?<!don't )(?<!never )(?<!not )(?<!doesn't )(?<!don't )\b(?:also\s+)?delegat(?:e|es|ed|ing)\b.{0,40}\b(?:all|any|every|other|dependent|shared[- ]context|tightly coupled|non-independent)\s+(?:tasks?|workstreams?|investigations?|work)\b|"
+                    r"\b(?:all|any|every|other|dependent|shared[- ]context|tightly coupled|non-independent)\s+(?:tasks?|workstreams?|investigations?|work)\b.{0,40}(?<!do not )(?<!don't )(?<!never )(?<!not )(?<!doesn't )\bdelegat(?:e|es|ed|ing)\b",
                     clause,
                     re.IGNORECASE,
                 )
-                and not re.search(r"\b(?:do not|don't|never)\s+delegat\w*\b", clause, re.IGNORECASE)
                 for clause in delegation_clauses
             )
             if delegation_cue_present:
