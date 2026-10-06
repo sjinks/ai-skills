@@ -55,7 +55,7 @@ Check for:
 - concise but complete final reporting.
 - literal scope across files, components, or workstreams;
 - explicit invariants and completion criteria for broad synthesis;
-- optional delegation guidance for independent workstreams;
+- optional delegation guidance only for independent workstreams;
 - preservation of evidence and unresolved disagreements;
 - no fixed planning, tool, or progress-update cadence.
 

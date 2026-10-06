@@ -185,8 +185,10 @@ def validate_final_verdict(
     expected = "Ready" if limitations == "None." else "Ready with limitations"
     if expected == "Ready with limitations":
         model_runtime_limit_pattern = (
-            r"\b(?:model|runtime)\b.{0,45}\b(?:limitations?|limited|constraints?|unsupported|unavailable|not supplied|not available|not measured|not (?:been )?tested|not (?:been )?verified|not performed|(?:does not|doesn't|do not|don't|cannot|can't) support|missing|incomplete|lacks?|cannot|can't|unable|needs?)\b|"
-            r"\b(?:limitations?|limited|constraints?|unsupported|unavailable|not supplied|not available|not measured|not (?:been )?tested|not (?:been )?verified|not performed|(?:does not|doesn't|do not|don't|cannot|can't) support|missing|incomplete|lacks?|cannot|can't|unable|needs?)\b.{0,45}\b(?:model|runtime)\b"
+            r"\b(?:model|runtime)\b.{0,45}\b(?:limitations?|limited|constraints?|unsupported|unavailable|not supplied|not available|not measured|not (?:been )?tested|not (?:been )?verified|not performed|(?:does not|doesn't|do not|don't|cannot|can't) support|missing|incomplete|lacks?|cannot|can't|unable)\b|"
+            r"\b(?:limitations?|limited|constraints?|unsupported|unavailable|not supplied|not available|not measured|not (?:been )?tested|not (?:been )?verified|not performed|(?:does not|doesn't|do not|don't|cannot|can't) support|missing|incomplete|lacks?|cannot|can't|unable)\b.{0,45}\b(?:model|runtime)\b|"
+            r"\b(?:model|runtime)\b.{0,35}\bneeds?\s+(?:a\s+|an\s+|some\s+|further\s+)?(?:adaptation|reconfiguration|configuration|workaround|support)\b|"
+            r"\bneeds?\s+(?:a\s+|an\s+|some\s+|further\s+)?(?:adaptation|reconfiguration|configuration|workaround|support)\b.{0,35}\b(?:model|runtime)\b"
         )
         has_model_runtime_limit = re.search(
             model_runtime_limit_pattern,
@@ -194,7 +196,8 @@ def validate_final_verdict(
             re.IGNORECASE,
         ) is not None
         explicit_denial_pattern = (
-            r"\bno\b.{0,45}\b(?:remaining\s+)?limitations?\b|"
+            r"\bno\b.{0,45}\b(?:remaining\s+)?(?:limitations?|constraints?)\b|"
+            r"\bno\b.{0,40}\b(?:model|runtime)\b.{0,25}\b(?:limitations?|constraints?)\b.{0,20}\b(?:remain|exist|apply|identified)\b|"
             r"\bno\b.{0,35}\bunsupported features?\b.{0,35}\b(?:remain|were identified|were found|exist|apply|are present|for the model|in runtime)\b|"
             r"\bno\b.{0,35}\bunsupported\b.{0,35}\b(?:model|runtime)\b|"
             r"\b(?:model|runtime)\b.{0,40}\b(?:limitations?|constraints?)\b(?:\s*[:=]\s*|\s+(?:are|is|remain|remains|have been|has been|was|were)\s+).{0,25}\b(?:none|n/?a|no longer|not present|not applicable|not required|not needed|not identified|not remaining|not material|not relevant|not significant|not a concern|immaterial|irrelevant|negligible|insignificant|theoretical|hypothetical|absent|inapplicable|resolved|fixed|removed|eliminated|cleared|addressed)\b|"
@@ -203,7 +206,7 @@ def validate_final_verdict(
             r"\b(?:model|runtime)\b.{0,25}\b(?:no|not|never|isn't|doesn't|do not|don't)\b.{0,20}\b(?:unsupported|unavailable|missing|incomplete)\b|"
             r"\b(?:model|runtime)\b.{0,25}\b(?:has|have)\s+no\s+(?:limitations?|constraints?|restrictions?)\b|"
             r"\b(?:model|runtime)\b.{0,25}\b(?:does not|doesn't|do not|don't)\s+have\s+(?:any\s+)?(?:limitations?|constraints?|restrictions?)\b|"
-            r"\b(?:model|runtime)\b.{0,25}\bneeds?\s+no\s+(?:further\s+)?(?:adaptation|changes?|limitations?|constraints?)\b|"
+            r"\b(?:model|runtime)\b.{0,25}\bneeds?\s+no\s+(?:(?:further|additional)\s+)?(?:adaptation|changes?|limitations?|constraints?|reconfiguration|configuration|workaround|support)\b|"
             r"\b(?:limitations?|constraints?)\b.{0,25}\b(?:are|is|do|does)\s+not\b.{0,20}\b(?:present|applicable|apply|remain|exist|identified|needed|material|relevant|significant|a concern)\b"
         )
         explicit_denial = re.search(
@@ -253,21 +256,33 @@ def validate_profile_rows(rows: list[list[str]]) -> None:
         if model not in PROFILE_MARKERS:
             continue
         prose = " ".join(row[2:])
-        if model == "GPT-6.1 Sol":
-            require(
-                not re.search(
-                    r"\b(?:optional|optionally)\b.{0,60}\b(?:all|any) tasks\b|"
-                    r"\bindependent workstreams?\b.{0,80}\b(?:and|or)\s+(?:shared[- ]context|dependent|other|non-independent)\b.{0,40}\b(?:investigations?|workstreams?|tasks?)\b",
-                    prose,
-                    re.IGNORECASE,
-                ),
-                "GPT-6.1 Sol delegation must remain limited to independent workstreams",
-            )
         matches = sum(
             any(re.search(pattern, prose, flags=re.IGNORECASE) for pattern in alternatives)
             for alternatives in PROFILE_MARKERS[model]
         )
         require(matches >= 2, f"{model} row is missing model-specific profile evidence")
+        if model == "GPT-6.1 Sol":
+            explicitly_independent = re.search(
+                r"\bonly\b.{0,80}\bindependent workstreams?\b|\bindependent workstreams?\b.{0,80}\bonly\b",
+                prose,
+                re.IGNORECASE,
+            ) is not None
+            excluded_scope = re.search(
+                r"\b(?:any|all|other|dependent|shared[- ]context|tightly coupled|non-independent)\s+(?:tasks?|workstreams?|investigations?)\b.{0,60}\b(?:stay|remain)\s+local\b|"
+                r"\bother tasks?\s+local\b|\bdependent tasks?\b.{0,30}\btogether\b|"
+                r"\b(?:do not|don't|never)\s+delegate\s+(?:any\s+)?(?:dependent|shared[- ]context|tightly coupled|other|non-independent)\b",
+                prose,
+                re.IGNORECASE,
+            ) is not None
+            expanded_scope = re.search(
+                r"\bindependent workstreams?\b.{0,100}\b(?:and|or)\s+(?:for\s+)?(?:all|any|every|dependent|shared[- ]context|tightly coupled|other|non-independent)\s+(?:tasks?|workstreams?|investigations?)\b",
+                prose,
+                re.IGNORECASE,
+            ) is not None
+            require(
+                (explicitly_independent or excluded_scope) and (not expanded_scope or excluded_scope),
+                "GPT-6.1 Sol delegation must remain limited to independent workstreams",
+            )
 
 
 def validate(text: str, *, require_findings: bool = False) -> None:
@@ -282,7 +297,8 @@ def validate(text: str, *, require_findings: bool = False) -> None:
     headings = [line.strip() for line in lines if re.match(r"^ {0,3}#{1,2}\s+", line)]
     require(headings == list(HEADINGS), "expected exactly one report with canonical headings in order")
     require(bool(lines) and lines[0].strip() == HEADINGS[0], "report must start with its title")
-    require(sum(bool(re.fullmatch(r" {0,3}Audit: .+", line)) for line in lines) == 1, "report requires exactly one nonempty Audit marker")
+    audit_markers = [line for line in lines if re.fullmatch(r" {0,3}Audit:.*", line)]
+    require(len(audit_markers) == 1 and bool(audit_markers[0].strip().removeprefix("Audit: ").strip()), "report requires exactly one nonempty Audit marker")
     audit_index = next(index for index, line in enumerate(lines) if re.fullmatch(r" {0,3}Audit: .+", line))
     scope_heading_index = next(index for index, line in enumerate(lines) if line.strip() == HEADINGS[1])
     require(audit_index < scope_heading_index, "Audit marker must follow the title and precede Audit Scope")

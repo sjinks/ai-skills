@@ -25,8 +25,8 @@ inputs:
     cues for GPT-6 Luna: short normal path, explicit defaults, simple output
     grammar. For GPT-6 Sol, mention at least two of: clear outcomes, evidence,
     adaptable tool use, side-effect boundaries. For GPT-6.1 Sol, mention at
-    least two of: literal broad scope, invariants, or optional delegation for
-    independent workstreams (the delegation cue requires both parts). For GPT-6 Astra, mention at least two of: concise
+    least two of: literal broad scope, invariants, or optional delegation only for
+    independent workstreams (the delegation cue requires both parts and its scope). For GPT-6 Astra, mention at least two of: concise
     mission, hard boundaries, strategic freedom, pause conditions.
 
     ```markdown

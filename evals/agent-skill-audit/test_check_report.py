@@ -28,7 +28,7 @@ def valid_report() -> str:
         ),
         "GPT-6.1 Sol": (
             "The literal broad scope needs a clear bound.",
-            "Keep delegation optional for independent workstreams.",
+            "Keep delegation optional only for independent workstreams.",
         ),
         "GPT-6 Astra": (
             "State a concise mission and hard boundaries.",
@@ -183,6 +183,12 @@ class ReportContractTests(unittest.TestCase):
         with self.assertRaisesRegex(REPORT.ValidationError, "Audit marker must follow"):
             REPORT.validate(text)
 
+    def test_rejects_duplicate_empty_audit_marker(self) -> None:
+        """Count empty Audit markers when enforcing exact marker cardinality."""
+        text = valid_report().replace("Audit: example\n", "Audit:\nAudit: example\n", 1)
+        with self.assertRaisesRegex(REPORT.ValidationError, "exactly one nonempty Audit marker"):
+            REPORT.validate(text)
+
     def test_rejects_invalid_scope_enum(self) -> None:
         """Reject an artifact type outside the canonical domain."""
         text = valid_report().replace("- Artifact type: Custom agent", "- Artifact type: Skill")
@@ -334,6 +340,9 @@ class ReportContractTests(unittest.TestCase):
         """A model mention must identify an actual limitation, not deny one."""
         for limitation in (
             "Model behavior was verified; no remaining limitations.",
+            "No model or runtime constraints remain.",
+            "Model limitations are resolved; no runtime constraints remain.",
+            "No runtime constraints remain; model limitations are resolved.",
             "No model or runtime limitations apply.",
             "Runtime has no remaining limitations.",
             "Model limitations are not present.",
@@ -366,6 +375,7 @@ class ReportContractTests(unittest.TestCase):
             "No unsupported features were found in runtime.",
             "The model supports every required feature; no unsupported features remain.",
             "Model limitations are resolved, but runtime needs no adaptation.",
+            "Model limitations are resolved; runtime needs no reconfiguration.",
         ):
             with self.subTest(limitation=limitation):
                 text = valid_report().replace("- Limitations: Static validation only.", f"- Limitations: {limitation}")
@@ -449,14 +459,14 @@ class ReportContractTests(unittest.TestCase):
 
     def test_rejects_independent_workstreams_without_optional_delegation(self) -> None:
         """Require both parts of the GPT-6.1 Sol delegation cue."""
-        text = valid_report().replace("Keep delegation optional for independent workstreams.", "Keep independent workstreams.")
+        text = valid_report().replace("Keep delegation optional only for independent workstreams.", "Keep independent workstreams.")
         with self.assertRaisesRegex(REPORT.ValidationError, "model-specific profile evidence"):
             REPORT.validate(text)
 
     def test_rejects_optional_delegation_extended_to_dependent_work(self) -> None:
         """Reject optional delegation when its stated scope includes dependent work."""
         text = valid_report().replace(
-            "Keep delegation optional for independent workstreams.",
+            "Keep delegation optional only for independent workstreams.",
             "Delegation is optional for all tasks, including dependent work; independent workstreams are merely listed separately.",
         )
         with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
@@ -465,8 +475,26 @@ class ReportContractTests(unittest.TestCase):
     def test_rejects_optional_delegation_extended_to_shared_context_work(self) -> None:
         """Reject an additional delegation scope beside independent workstreams."""
         text = valid_report().replace(
-            "Keep delegation optional for independent workstreams.",
+            "Keep delegation optional only for independent workstreams.",
             "Keep delegation optional for independent workstreams and shared-context investigations.",
+        )
+        with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
+            REPORT.validate(text)
+
+    def test_rejects_optional_delegation_extended_to_dependent_scope(self) -> None:
+        """Reject a second delegation target beyond independent workstreams."""
+        text = valid_report().replace(
+            "Keep delegation optional only for independent workstreams.",
+            "Keep delegation optional for independent workstreams or for dependent tasks.",
+        )
+        with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
+            REPORT.validate(text)
+
+    def test_rejects_optional_delegation_for_every_task(self) -> None:
+        """Do not accept an independent-work mention that is not the delegation scope."""
+        text = valid_report().replace(
+            "Keep delegation optional only for independent workstreams.",
+            "Delegation is optional for every task; independent workstreams are listed separately.",
         )
         with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
             REPORT.validate(text)
@@ -474,31 +502,44 @@ class ReportContractTests(unittest.TestCase):
     def test_accepts_excluding_dependent_work_from_optional_delegation(self) -> None:
         """Allow dependent-work wording when the instruction excludes its delegation."""
         text = valid_report().replace(
-            "Keep delegation optional for independent workstreams.",
+            "Keep delegation optional only for independent workstreams.",
             "Keep delegation optional for independent workstreams; do not delegate dependent work.",
         )
         REPORT.validate(text)
 
+    def test_accepts_dependent_work_that_stays_local(self) -> None:
+        """Accept a clear independent-only scope expressed by keeping other work local."""
+        for wording in (
+            "Delegation is optional for independent workstreams; any tasks that depend on shared context stay local.",
+            "Keep delegation optional for independent workstreams, and keep dependent tasks together.",
+            "Keep optional delegation for independent workstreams and other tasks local.",
+        ):
+            with self.subTest(wording=wording):
+                text = valid_report().replace(
+                    "Keep delegation optional only for independent workstreams.", wording
+                )
+                REPORT.validate(text)
+
     def test_accepts_grammatical_optional_delegation_variant(self) -> None:
         """Accept equivalent ordinary wording for optional delegation."""
         text = valid_report().replace(
-            "Keep delegation optional for independent workstreams.",
-            "Delegation is optional for independent workstreams.",
+            "Keep delegation optional only for independent workstreams.",
+            "Delegation is optional only for independent workstreams.",
         )
         REPORT.validate(text)
 
     def test_accepts_optional_delegation_verb_form(self) -> None:
         """Accept a concise verb-form cue with the same profile meaning."""
         text = valid_report().replace(
-            "Keep delegation optional for independent workstreams.",
-            "Optionally delegate independent workstreams.",
+            "Keep delegation optional only for independent workstreams.",
+            "Optionally delegate only independent workstreams.",
         )
         REPORT.validate(text)
 
     def test_accepts_optional_delegation_with_intervening_context(self) -> None:
         """Accept both delegation concepts when separated by relevant detail."""
         text = valid_report().replace(
-            "Keep delegation optional for independent workstreams.",
+            "Keep delegation optional only for independent workstreams.",
             "Allow optional delegation after confirming tool availability, choosing bounded ownership, and preserving parent context; use it only for independent workstreams.",
         )
         REPORT.validate(text)
@@ -506,12 +547,12 @@ class ReportContractTests(unittest.TestCase):
     def test_accepts_passive_optional_delegation_wording(self) -> None:
         """Accept passive grammar when optionality and independent scope remain."""
         for wording in (
-            "Delegation of independent workstreams is optional.",
-            "Independent workstreams can optionally be delegated.",
+            "Delegation of independent workstreams is optional only.",
+            "Independent workstreams can optionally be delegated only.",
         ):
             with self.subTest(wording=wording):
                 text = valid_report().replace(
-                    "Keep delegation optional for independent workstreams.", wording
+                    "Keep delegation optional only for independent workstreams.", wording
                 )
                 REPORT.validate(text)
 
@@ -668,8 +709,8 @@ class ReportContractTests(unittest.TestCase):
     def test_accepts_compound_profile_cue_across_long_cell_text(self) -> None:
         """Do not impose an undocumented distance limit on a complete profile cue."""
         text = valid_report().replace(
-            "Keep delegation optional for independent workstreams.",
-            "Keep delegation optional while preserving all stated invariants and broad scope across incident stages for independent workstreams.",
+            "Keep delegation optional only for independent workstreams.",
+            "Keep delegation optional only for independent workstreams while preserving all stated invariants and broad scope across incident stages.",
         )
         REPORT.validate(text)
 
