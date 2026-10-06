@@ -104,6 +104,17 @@ Correction: SPECIFIC_CORRECTIVE_TASK
 Verdict: READINESS_VERDICT
 ```
 
+## Limitation Resolution
+
+For `Ready with limitations`, list a limitation that remains at report time. A
+later statement resolves it only when it clearly addresses the same subject
+and supplies the relevant verification or evidence. Evidence for one named
+model does not resolve missing evidence for another. A completed assessment
+does not establish that missing test evidence was obtained. A generic
+verification-complete clause directly following a runtime-unavailable clause
+refers to that runtime; otherwise keep the earlier limitation unless the later
+statement identifies its subject.
+
 ## Empty Sections
 
 The following snippets replace only the named section and its content. They do not permit omission of the other required report markers.

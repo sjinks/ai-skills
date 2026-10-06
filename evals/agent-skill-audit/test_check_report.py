@@ -344,6 +344,7 @@ class ReportContractTests(unittest.TestCase):
             "No model test evidence was obtained; runtime compatibility was verified.",
             "No model test evidence was obtained; model assessment is complete.",
             "Model test evidence was not obtained; evidence assessment is complete.",
+            "No model test evidence was obtained; verification is now complete.",
             "GPT-6 Luna test evidence was not obtained; GPT-6 Sol test evidence is available.",
             "Runtime compatibility has not been tested; model testing is complete.",
             "Source evidence was not obtained; runtime verification is complete.",
@@ -364,6 +365,29 @@ class ReportContractTests(unittest.TestCase):
         text = valid_report().replace("- Limitations: Static validation only.", "- Limitations: Report submitted late.")
         with self.assertRaisesRegex(REPORT.ValidationError, "requires a model, runtime, or unavailable-evidence"):
             REPORT.validate(text)
+
+    def test_generic_runtime_resolution_must_be_the_next_clause(self) -> None:
+        """Do not let an intervening clause inherit a runtime subject."""
+        clauses = [
+            "Runtime compatibility has not been tested",
+            "model limitations are resolved",
+            "verification is complete.",
+        ]
+        self.assertFalse(REPORT.has_later_resolution(clauses, 0))
+        self.assertTrue(REPORT.has_later_resolution([clauses[0], clauses[2]], 0))
+
+        direct = valid_report().replace(
+            "- Limitations: Static validation only.",
+            "- Limitations: Runtime compatibility has not been tested; verification is complete.",
+        )
+        with self.assertRaisesRegex(REPORT.ValidationError, "requires a model, runtime, or unavailable-evidence"):
+            REPORT.validate(direct)
+
+        separated = valid_report().replace(
+            "- Limitations: Static validation only.",
+            "- Limitations: Runtime compatibility has not been tested; model limitations are resolved; verification is complete.",
+        )
+        REPORT.validate(separated)
 
     def test_rejects_negated_model_limitation_for_ready_with_limitations(self) -> None:
         """A model mention must identify an actual limitation, not deny one."""
@@ -558,6 +582,15 @@ class ReportContractTests(unittest.TestCase):
         with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
             REPORT.validate(text)
 
+    def test_rejects_new_broad_delegation_after_a_comma(self) -> None:
+        """A comma introducing another instruction resets the prior negation."""
+        text = valid_report().replace(
+            "Keep delegation optional only for independent workstreams.",
+            "Keep delegation optional only for independent workstreams; do not delegate dependent tasks, also delegate all tasks.",
+        )
+        with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
+            REPORT.validate(text)
+
     def test_rejects_optional_delegation_extended_to_shared_context_work(self) -> None:
         """Reject an additional delegation scope beside independent workstreams."""
         text = valid_report().replace(
@@ -604,11 +637,20 @@ class ReportContractTests(unittest.TestCase):
 
     def test_accepts_dependent_scope_with_intervening_negation_modifier(self) -> None:
         """Preserve clear dependent-work exclusions with ordinary modifiers."""
-        text = valid_report().replace(
-            "Keep delegation optional only for independent workstreams.",
+        for wording in (
             "Keep delegation optional only for independent workstreams; do not under any circumstances delegate dependent tasks.",
-        )
-        REPORT.validate(text)
+            "Keep delegation optional only for independent workstreams; dependent tasks must never be delegated.",
+            "Keep delegation optional only for independent workstreams; dependent tasks must not ever be delegated.",
+            "Keep delegation optional only for independent workstreams; dependent tasks should not ever be delegated.",
+            "Keep delegation optional only for independent workstreams; dependent tasks are not to be delegated.",
+            "Keep delegation optional only for independent workstreams; dependent tasks are not ever to be delegated.",
+            "Keep delegation optional only for independent workstreams; all tasks are not to be delegated.",
+        ):
+            with self.subTest(wording=wording):
+                text = valid_report().replace(
+                    "Keep delegation optional only for independent workstreams.", wording
+                )
+                REPORT.validate(text)
 
     def test_accepts_nominal_dependent_work_exclusion(self) -> None:
         """Accept a nominal statement that dependent tasks receive no delegation."""

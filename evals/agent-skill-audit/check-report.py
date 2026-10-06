@@ -99,7 +99,7 @@ def has_later_resolution(clauses: list[str], index: int) -> bool:
         for model in MODELS
         if re.search(re.escape(model), source, re.IGNORECASE)
     )
-    for clause in clauses[index + 1 :]:
+    for later_index, clause in enumerate(clauses[index + 1 :], start=index + 1):
         if not re.search(resolution_pattern, clause, re.IGNORECASE):
             continue
         later_subjects = set()
@@ -118,7 +118,11 @@ def has_later_resolution(clauses: list[str], index: int) -> bool:
             if re.search(re.escape(model), clause, re.IGNORECASE)
         )
         if (
-            not later_subjects
+            (
+                later_index == index + 1
+                and not later_subjects
+                and source_subjects == {"runtime"}
+            )
             or (source_subjects and source_subjects <= later_subjects)
             or (source_subjects == {"static"} and "runtime" in later_subjects)
         ):
@@ -137,9 +141,9 @@ def has_affirmative_broad_delegation(clause: str) -> bool:
         rf"\b{broad_scope}\b.{{0,40}}\bdelegat(?:e|es|ed|ing)\b",
     )
     negation_before_verb = re.compile(
-        r"\b(?:do not|don't|never|should not|must not|will not|cannot|can't)\s+"
+        r"\b(?:do not|don't|never|should (?:not|never)|must (?:not|never)|will (?:not|never)|can (?:not|never)|cannot|can't)\s+"
         r"(?:(?:ever|under any circumstances|under any condition|at any time|in any case)\s+)?(?:be\s+)?$|"
-        r"\b(?:is|are|was|were)\s+not\s+(?:ever\s+)?$",
+        r"\b(?:is|are|was|were)\s+(?:not|never)\s+(?:ever\s+)?(?:to\s+)?(?:be\s+)?$",
         re.IGNORECASE,
     )
     for pattern in patterns:
@@ -388,7 +392,7 @@ def validate_profile_rows(rows: list[list[str]]) -> None:
             ) is not None
             delegation_clauses = re.split(r"[.;]|\bbut\b|\bhowever\b", prose, flags=re.IGNORECASE)
             affirmative_delegation_clauses = re.split(
-                r"[.;,]|\b(?:and|then|but|however)\b",
+                r"[.;]|\b(?:and|then|but|however)\b|,\s*(?=(?:also|then|and|but|however)\b)",
                 prose,
                 flags=re.IGNORECASE,
             )

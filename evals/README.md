@@ -639,6 +639,11 @@ tests cover omission, reordering, duplication, invalid enums, swapped profile
 analysis, inconsistent verdicts, limitation clause order, malformed tables,
 exact Audit marker count, and escaped cell pipes. Run the checker with a report
 on stdin; the program grader requires a finding for this known-defect fixture.
+Limitation mutations bind resolution to the same subject and named model;
+completed assessment alone does not replace unavailable test evidence. The
+delegation mutations bind negation to its own verb and restart scope at a new
+affirmative instruction, so a prohibition on one action cannot mask a later
+broad delegation.
 Use `--allow-empty-findings` only when probing a clean verdict branch:
 
 ```sh
