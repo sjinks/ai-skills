@@ -338,6 +338,7 @@ class ReportContractTests(unittest.TestCase):
             "Runtime compatibility has not been tested; model limitations are none.",
             "Runtime verification has not been tested; model limitations are resolved.",
             "Evidence is not unavailable, but results are missing.",
+            "No model test evidence was obtained.",
             "Model limitations are resolved, but runtime lacks browser support.",
             "Runtime lacks browser support; model limitations are resolved.",
             "No model limitations remain; static validation only.",
@@ -362,6 +363,7 @@ class ReportContractTests(unittest.TestCase):
             "Not static validation only; runtime and model compatibility were verified.",
             "No longer static validation only; runtime and model compatibility were verified.",
             "Static validation only was not true; runtime and model compatibility were verified.",
+            "Runtime was unavailable, but verification is now complete.",
             "Model behavior was verified; no remaining limitations.",
             "No model or runtime constraints remain.",
             "Model limitations are resolved; no runtime constraints remain.",
@@ -570,6 +572,14 @@ class ReportContractTests(unittest.TestCase):
         text = valid_report().replace(
             "Keep delegation optional only for independent workstreams.",
             "Keep delegation optional for independent workstreams; do not delegate dependent work.",
+        )
+        REPORT.validate(text)
+
+    def test_accepts_dependent_scope_with_intervening_negation_modifier(self) -> None:
+        """Preserve clear dependent-work exclusions with ordinary modifiers."""
+        text = valid_report().replace(
+            "Keep delegation optional only for independent workstreams.",
+            "Keep delegation optional only for independent workstreams; do not under any circumstances delegate dependent tasks.",
         )
         REPORT.validate(text)
 

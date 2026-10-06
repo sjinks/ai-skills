@@ -75,6 +75,45 @@ def require(condition: bool, message: str) -> None:
         raise ValidationError(message)
 
 
+def has_later_resolution(clauses: list[str], index: int) -> bool:
+    """Check whether a later clause completes or verifies earlier missing evidence."""
+    resolution_pattern = (
+        r"\b(?:verification|testing|compatibility|assessment|results?)\b.{0,35}\b"
+        r"(?:is|was|are|were)?\s*(?:now\s+)?(?:complete|completed|verified|passed|successful|available|obtained)\b|"
+        r"\b(?:complete|completed|verified|passed|successful|available|obtained)\b.{0,35}\b"
+        r"(?:verification|testing|compatibility|assessment|results?)\b"
+    )
+    return any(
+        re.search(resolution_pattern, clause, re.IGNORECASE)
+        for clause in clauses[index + 1 :]
+    )
+
+
+def has_affirmative_broad_delegation(clause: str) -> bool:
+    """Find a broad delegation instruction whose own verb is not negated."""
+    broad_scope = (
+        r"(?:all|any|every|other|dependent|shared[- ]context|tightly coupled|non-independent)\s+"
+        r"(?:tasks?|workstreams?|investigations?|work)"
+    )
+    patterns = (
+        rf"\b(?:also\s+)?delegat(?:e|es|ed|ing)\b.{{0,40}}\b{broad_scope}\b",
+        rf"\b{broad_scope}\b.{{0,40}}\bdelegat(?:e|es|ed|ing)\b",
+    )
+    negation_before_verb = re.compile(
+        r"\b(?:do not|don't|never|(?:should|must|will|can)\s+not)\b(?:(?!\band\b).){0,45}$",
+        re.IGNORECASE,
+    )
+    for pattern in patterns:
+        for match in re.finditer(pattern, clause, re.IGNORECASE):
+            verb = re.search(r"\bdelegat(?:e|es|ed|ing)\b", match.group(), re.IGNORECASE)
+            if verb is None:
+                continue
+            verb_start = match.start() + verb.start()
+            if not negation_before_verb.search(clause[:verb_start]):
+                return True
+    return False
+
+
 def section_lines(lines: list[str], heading: str, next_heading: str) -> list[str]:
     """Return the nonblank lines between two already validated headings."""
     start = next(index for index, line in enumerate(lines) if line.strip() == heading) + 1
@@ -190,11 +229,6 @@ def validate_final_verdict(
             r"\b(?:model|runtime)\b.{0,35}\bneeds?\s+(?:a\s+|an\s+|some\s+|further\s+)?(?:adaptation|reconfiguration|configuration|workaround|support)\b|"
             r"\bneeds?\s+(?:a\s+|an\s+|some\s+|further\s+)?(?:adaptation|reconfiguration|configuration|workaround|support)\b.{0,35}\b(?:model|runtime)\b"
         )
-        has_model_runtime_limit = re.search(
-            model_runtime_limit_pattern,
-            limitations,
-            re.IGNORECASE,
-        ) is not None
         explicit_denial_pattern = (
             r"\bno\b.{0,45}\b(?:remaining\s+)?(?:limitations?|constraints?)\b|"
             r"\bno\b.{0,40}\b(?:model|runtime)\b.{0,25}\b(?:limitations?|constraints?)\b.{0,20}\b(?:remain|exist|apply|identified)\b|"
@@ -209,11 +243,6 @@ def validate_final_verdict(
             r"\b(?:model|runtime)\b.{0,25}\bneeds?\s+no\s+(?:(?:further|additional)\s+)?(?:adaptation|changes?|limitations?|constraints?|reconfiguration|configuration|workaround|support)\b|"
             r"\b(?:limitations?|constraints?)\b.{0,25}\b(?:are|is|do|does)\s+not\b.{0,20}\b(?:present|applicable|apply|remain|exist|identified|needed|material|relevant|significant|a concern)\b"
         )
-        explicit_denial = re.search(
-            explicit_denial_pattern,
-            limitations,
-            re.IGNORECASE,
-        ) is not None
         limitation_clauses = re.split(
             r";|,\s*but\b|\bbut\b|\bhowever\b|\band\s+(?=(?:no\b|(?:the\s+)?(?:model|runtime)\b))",
             limitations,
@@ -230,23 +259,27 @@ def validate_final_verdict(
                 clause,
                 re.IGNORECASE,
             )
-            for clause in limitation_clauses
+            and not has_later_resolution(limitation_clauses, index)
+            for index, clause in enumerate(limitation_clauses)
         )
-        unavailable_evidence = any(re.search(
-            r"\b(?:unavailable|not supplied|not available|not measured|not verified|not performed|missing|incomplete)\b.{0,40}\b(?:evidence|source|assessment|verification|results?)\b|\b(?:evidence|source|assessment|verification|results?)\b.{0,40}\b(?:unavailable|not supplied|not available|not measured|not verified|not performed|missing|incomplete)\b",
-            clause,
-            re.IGNORECASE,
-        ) and not re.search(
-            r"\b(?:not|is not|isn't|no longer|no)\s+(?:unavailable|missing|incomplete|not supplied|not available|not measured|not verified|not performed)\b|\b(?:evidence|source|assessment|verification|results?)\b.{0,20}\b(?:is\s+)?(?:not|never)\s+unavailable\b",
-            clause,
-            re.IGNORECASE,
-        ) for clause in limitation_clauses)
-        negated_unavailable = re.search(
-            r"\b(?:not|is not|isn't|no longer|no)\s+(?:unavailable|missing|incomplete|not supplied|not available|not measured|not verified|not performed)\b|"
-            r"\b(?:evidence|source|assessment|verification|results?)\b.{0,20}\b(?:is\s+)?(?:not|never)\s+unavailable\b",
-            limitations,
-            re.IGNORECASE,
-        ) is not None
+        unavailable_evidence = any(
+            re.search(
+                r"\b(?:unavailable|not supplied|not available|not measured|not verified|not performed|missing|incomplete|not obtained|never obtained|not collected|never collected)\b.{0,40}\b(?:evidence|source|assessment|verification|results?)\b|"
+                r"\b(?:evidence|source|assessment|verification|results?)\b.{0,40}\b(?:unavailable|not supplied|not available|not measured|not verified|not performed|missing|incomplete|not obtained|never obtained|not collected|never collected)\b|"
+                r"\b(?:evidence|source|assessment|verification|results?)\b.{0,40}\b(?:was|were)\s+(?:not|never)\s+(?:obtained|collected|gathered|recorded|available|supplied|provided)\b|"
+                r"\bno\s+(?:model\s+)?(?:test\s+)?evidence\b.{0,30}\b(?:was\s+)?obtained\b",
+                clause,
+                re.IGNORECASE,
+            )
+            and not re.search(
+                r"\b(?:not|is not|isn't|no longer|no)\s+(?:unavailable|missing|incomplete|not supplied|not available|not measured|not verified|not performed)\b|"
+                r"\b(?:evidence|source|assessment|verification|results?)\b.{0,20}\b(?:is\s+)?(?:not|never)\s+unavailable\b",
+                clause,
+                re.IGNORECASE,
+            )
+            and not has_later_resolution(limitation_clauses, index)
+            for index, clause in enumerate(limitation_clauses)
+        )
         static_only = any(
             re.search(r"\bstatic(?: review| validation)? only\b", clause, re.IGNORECASE)
             and not re.search(
@@ -254,19 +287,21 @@ def validate_final_verdict(
                 clause,
                 re.IGNORECASE,
             )
-            for clause in limitation_clauses
+            and not has_later_resolution(limitation_clauses, index)
+            for index, clause in enumerate(limitation_clauses)
         )
         independent_active_limit = any(
             re.search(model_runtime_limit_pattern, clause, re.IGNORECASE)
             and not re.search(explicit_denial_pattern, clause, re.IGNORECASE)
             and not re.search(r"\b(?:not|is not|isn't|no longer|no)\s+(?:unavailable|missing|incomplete|not supplied|not available|not measured|not verified|not performed)\b", clause, re.IGNORECASE)
-            for clause in limitation_clauses
+            and not has_later_resolution(limitation_clauses, index)
+            for index, clause in enumerate(limitation_clauses)
         )
         require(
             runtime_unverified
             or independent_active_limit
             or static_only
-            or (not explicit_denial and ((has_model_runtime_limit and not negated_unavailable) or unavailable_evidence)),
+            or unavailable_evidence,
             "Ready with limitations requires a model, runtime, or unavailable-evidence limitation",
         )
     require(verdict == expected, f"clean ratings require {expected} based on the limitations field")
@@ -305,7 +340,7 @@ def validate_profile_rows(rows: list[list[str]]) -> None:
             excluded_scope_pattern = (
                 r"\b(?:any|all|other|dependent|shared[- ]context|tightly coupled|non-independent)\s+(?:tasks?|workstreams?|investigations?)\b.{0,60}\b(?:stay|remain)\s+local\b|"
                 r"\bother tasks?\s+local\b|\bdependent tasks?\b.{0,30}\btogether\b|"
-                r"\b(?:do not|don't|never)\s+delegate\s+(?:any\s+)?(?:dependent|shared[- ]context|tightly coupled|other|non-independent)\b"
+                r"\b(?:do not|don't|never)(?:\s+\w+){0,4}\s+delegate\s+(?:any\s+)?(?:dependent|shared[- ]context|tightly coupled|other|non-independent)\b"
             )
             excluded_scope = re.search(
                 excluded_scope_pattern,
@@ -327,12 +362,7 @@ def validate_profile_rows(rows: list[list[str]]) -> None:
                 for clause in delegation_clauses
             )
             affirmative_extra_scope = any(
-                re.search(
-                    r"(?<!do not )(?<!don't )(?<!never )(?<!not )(?<!doesn't )(?<!don't )\b(?:also\s+)?delegat(?:e|es|ed|ing)\b.{0,40}\b(?:all|any|every|other|dependent|shared[- ]context|tightly coupled|non-independent)\s+(?:tasks?|workstreams?|investigations?|work)\b|"
-                    r"\b(?:all|any|every|other|dependent|shared[- ]context|tightly coupled|non-independent)\s+(?:tasks?|workstreams?|investigations?|work)\b.{0,40}(?<!do not )(?<!don't )(?<!never )(?<!not )(?<!doesn't )\bdelegat(?:e|es|ed|ing)\b",
-                    clause,
-                    re.IGNORECASE,
-                )
+                has_affirmative_broad_delegation(clause)
                 for clause in delegation_clauses
             )
             if delegation_cue_present:
