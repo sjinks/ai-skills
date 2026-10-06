@@ -232,8 +232,20 @@ def validate_final_verdict(
         ) is not None
         runtime_unverified = runtime_unverified and not negated_unavailable
         unavailable_evidence = unavailable_evidence and not negated_unavailable
-        static_only = re.search(r"\bstatic(?: review| validation)? only\b", limitations, re.IGNORECASE) is not None
-        limitation_clauses = re.split(r";|,\s*but\b|\bbut\b|\bhowever\b", limitations, flags=re.IGNORECASE)
+        limitation_clauses = re.split(
+            r";|,\s*but\b|\bbut\b|\bhowever\b|\band\s+(?=(?:no\b|(?:the\s+)?(?:model|runtime)\b))",
+            limitations,
+            flags=re.IGNORECASE,
+        )
+        static_only = any(
+            re.search(r"\bstatic(?: review| validation)? only\b", clause, re.IGNORECASE)
+            and not re.search(
+                r"\b(?:not\s+static(?: review| validation)? only|static(?: review| validation)? only\s+(?:is\s+)?(?:not|no longer|isn't|wasn't)\s+(?:true|valid|applicable|the case))\b",
+                clause,
+                re.IGNORECASE,
+            )
+            for clause in limitation_clauses
+        )
         independent_active_limit = any(
             re.search(model_runtime_limit_pattern, clause, re.IGNORECASE)
             and not re.search(explicit_denial_pattern, clause, re.IGNORECASE)
@@ -267,6 +279,14 @@ def validate_profile_rows(rows: list[list[str]]) -> None:
                 re.search(pattern, prose, re.IGNORECASE)
                 for pattern in PROFILE_MARKERS[model][2]
             )
+            negated_optionality = re.search(
+                r"\b(?:delegation|delegat\w*)\b.{0,30}\b(?:not|never|isn't|aren't|wasn't|weren't)\s+optional\b|"
+                r"\b(?:not|never|isn't|aren't|wasn't|weren't)\s+optional\b.{0,30}\b(?:delegation|delegat\w*)\b|"
+                r"\b(?:delegation|delegat\w*)\b.{0,30}\b(?:mandatory|required)\b|"
+                r"\b(?:mandatory|required)\b.{0,30}\b(?:delegation|delegat\w*)\b",
+                prose,
+                re.IGNORECASE,
+            ) is not None
             explicitly_independent = re.search(
                 r"\bonly\b.{0,80}\bindependent workstreams?\b|\bindependent workstreams?\b.{0,80}\bonly\b",
                 prose,
@@ -289,23 +309,27 @@ def validate_profile_rows(rows: list[list[str]]) -> None:
                     clause,
                     re.IGNORECASE,
                 )
-                and not re.search(excluded_scope_pattern, clause, re.IGNORECASE)
+                and not re.search(
+                    r"\b(?:other tasks?\s+local|(?:any|all|dependent|shared[- ]context|tightly coupled|non-independent)\s+(?:tasks?|workstreams?|investigations?)\s+(?:stay|remain)\s+local|dependent tasks?\s+together)\b",
+                    clause,
+                    re.IGNORECASE,
+                )
                 for clause in delegation_clauses
             )
             affirmative_extra_scope = any(
                 re.search(
-                    r"\b(?:also\s+)?delegat\w*\b.{0,40}\b(?:all|any|every|other|dependent|shared[- ]context|tightly coupled|non-independent)\s+(?:tasks?|workstreams?|investigations?|work)\b|"
-                    r"\b(?:all|any|every|other|dependent|shared[- ]context|tightly coupled|non-independent)\s+(?:tasks?|workstreams?|investigations?|work)\b.{0,40}\bdelegat\w*\b",
+                    r"\b(?:also\s+)?delegat(?:e|es|ed|ing)\b.{0,40}\b(?:all|any|every|other|dependent|shared[- ]context|tightly coupled|non-independent)\s+(?:tasks?|workstreams?|investigations?|work)\b|"
+                    r"\b(?:all|any|every|other|dependent|shared[- ]context|tightly coupled|non-independent)\s+(?:tasks?|workstreams?|investigations?|work)\b.{0,40}\bdelegat(?:e|es|ed|ing)\b",
                     clause,
                     re.IGNORECASE,
                 )
                 and not re.search(r"\b(?:do not|don't|never)\s+delegat\w*\b", clause, re.IGNORECASE)
-                and not re.search(excluded_scope_pattern, clause, re.IGNORECASE)
                 for clause in delegation_clauses
             )
             if delegation_cue_present:
                 require(
-                    (explicitly_independent or excluded_scope)
+                    not negated_optionality
+                    and (explicitly_independent or excluded_scope)
                     and not expanded_scope
                     and not affirmative_extra_scope,
                     "GPT-6.1 Sol delegation must remain limited to independent workstreams",
@@ -326,7 +350,7 @@ def validate(text: str, *, require_findings: bool = False) -> None:
     require(bool(lines) and lines[0].strip() == HEADINGS[0], "report must start with its title")
     audit_markers = [line for line in lines if re.match(r" {0,3}Audit:", line)]
     require(
-        len(audit_markers) == 1 and re.fullmatch(r" {0,3}Audit: .+", audit_markers[0]) is not None,
+        len(audit_markers) == 1 and re.fullmatch(r" {0,3}Audit:\s+\S.*", audit_markers[0]) is not None,
         "report requires exactly one nonempty Audit marker",
     )
     audit_index = lines.index(audit_markers[0])

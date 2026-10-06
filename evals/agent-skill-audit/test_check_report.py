@@ -195,6 +195,14 @@ class ReportContractTests(unittest.TestCase):
         with self.assertRaisesRegex(REPORT.ValidationError, "exactly one nonempty Audit marker"):
             REPORT.validate(text)
 
+    def test_rejects_whitespace_only_audit_value(self) -> None:
+        """Require non-whitespace content after the Audit marker."""
+        for value in ("Audit:  ", "Audit:\t"):
+            with self.subTest(value=value):
+                text = valid_report().replace("Audit: example", value, 1)
+                with self.assertRaisesRegex(REPORT.ValidationError, "exactly one nonempty Audit marker"):
+                    REPORT.validate(text)
+
     def test_rejects_invalid_scope_enum(self) -> None:
         """Reject an artifact type outside the canonical domain."""
         text = valid_report().replace("- Artifact type: Custom agent", "- Artifact type: Skill")
@@ -333,6 +341,8 @@ class ReportContractTests(unittest.TestCase):
             "Runtime lacks browser support; model limitations are resolved.",
             "No model limitations remain; static validation only.",
             "Static validation only; no model limitations remain.",
+            "No model limitations remain and runtime lacks browser support.",
+            "Runtime lacks browser support and no model limitations remain.",
         ):
             with self.subTest(limitation=limitation):
                 text = valid_report().replace("- Limitations: Static validation only.", f"- Limitations: {limitation}")
@@ -347,6 +357,8 @@ class ReportContractTests(unittest.TestCase):
     def test_rejects_negated_model_limitation_for_ready_with_limitations(self) -> None:
         """A model mention must identify an actual limitation, not deny one."""
         for limitation in (
+            "Static validation only is no longer true; runtime and model compatibility were verified.",
+            "Not static validation only; runtime and model compatibility were verified.",
             "Model behavior was verified; no remaining limitations.",
             "No model or runtime constraints remain.",
             "Model limitations are resolved; no runtime constraints remain.",
@@ -487,6 +499,24 @@ class ReportContractTests(unittest.TestCase):
         with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
             REPORT.validate(text)
 
+    def test_rejects_negated_optional_delegation(self) -> None:
+        """A negated optionality statement is not the GPT-6.1 profile cue."""
+        text = valid_report().replace(
+            "Keep delegation optional only for independent workstreams.",
+            "Delegation is not optional only for independent workstreams.",
+        )
+        with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
+            REPORT.validate(text)
+
+    def test_rejects_same_clause_contradictory_delegation_scope(self) -> None:
+        """A nearby local-work carve-out cannot excuse broader delegation."""
+        text = valid_report().replace(
+            "Keep delegation optional only for independent workstreams.",
+            "Keep delegation optional for independent workstreams, dependent tasks stay local, and also delegate all tasks.",
+        )
+        with self.assertRaisesRegex(REPORT.ValidationError, "delegation must remain limited"):
+            REPORT.validate(text)
+
     def test_rejects_optional_delegation_extended_to_shared_context_work(self) -> None:
         """Reject an additional delegation scope beside independent workstreams."""
         text = valid_report().replace(
@@ -528,6 +558,14 @@ class ReportContractTests(unittest.TestCase):
         text = valid_report().replace(
             "Keep delegation optional only for independent workstreams.",
             "Keep delegation optional for independent workstreams; do not delegate dependent work.",
+        )
+        REPORT.validate(text)
+
+    def test_accepts_nominal_dependent_work_exclusion(self) -> None:
+        """Accept a nominal statement that dependent tasks receive no delegation."""
+        text = valid_report().replace(
+            "Keep delegation optional only for independent workstreams.",
+            "Keep delegation optional only for independent workstreams; no delegation for dependent tasks.",
         )
         REPORT.validate(text)
 
