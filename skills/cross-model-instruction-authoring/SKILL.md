@@ -35,9 +35,9 @@ read-only audit and keep runtime-only configuration out of the portable core.
 
 ## Evidence Classes
 
-Every non-universal adaptation needs a basis: `TASK_REQUIREMENT`, `USER_REQUIREMENT`, `PROVIDER_GUIDANCE`, `HARNESS_REQUIREMENT`, `EVAL_EVIDENCE`, or `OBSERVED_BEHAVIOR`.
+Every non-universal adaptation needs a basis: `TASK_REQUIREMENT`, `USER_REQUIREMENT`, `PROVIDER_GUIDANCE`, `HARNESS_REQUIREMENT`, or `OBSERVED_BEHAVIOR`.
 
-Prefer `EVAL_EVIDENCE` for model-specific behavioral claims. Treat `OBSERVED_BEHAVIOR` as provisional. Hearsay such as "model X likes Y" is not evidence.
+Use `OBSERVED_BEHAVIOR` for model-specific behavioral claims and treat it as provisional. Hearsay such as "model X likes Y" is not evidence.
 
 ## Workflow
 
@@ -48,7 +48,7 @@ Prefer `EVAL_EVIDENCE` for model-specific behavioral claims. Treat `OBSERVED_BEH
 5. **Identify an actual failure risk.** Examples: premature local conclusion, redundant exploration, repeated equivalent retries, criterion omission, premature stopping, reasoning substituted for verification, needless serialization.
 6. **Apply the smallest patch.** Read `references/behavioral-patches.md`. Record patch, symptom, evidence class, scope, confidence, and optionally a retest/removal condition.
 7. **Separate runtime adapters.** Exact model IDs, tool schemas, output envelopes, progress protocol, context injection, permissions, and orchestration belong here. A harness requirement is not automatically model behavior.
-8. **Validate.** Use `references/authoring-checklist.md` and the separate eval suite under `evals/cross-model-instruction-authoring/`.
+8. **Validate.** Use `references/authoring-checklist.md` and inspect the completed artifact against its behavioral contract.
 
 ## Acceptance
 
@@ -78,7 +78,7 @@ classes, and remaining uncertainty; write `None.` when there are none.
 `Runtime adapter:` — runtime-only mechanics, or `None.`.
 
 `Compatibility note:` — floor/ceiling limitations, applied behavioral patches,
-and required evaluation; write `None known; evaluation is still required.`
+and remaining uncertainty; write `None known; no model-specific behavior has been measured.`
 when appropriate.
 
 Each label starts at column zero and has a nonempty body. Do not put content

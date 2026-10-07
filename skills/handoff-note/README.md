@@ -20,24 +20,6 @@ It helps an assistant:
 
 The skill begins with a short, fixed path: resolve BLOCK or one required clarification; choose create, update, audit, or audit + update; sort statements by evidence; redact and check transferability; render the mode-specific schema; then do a cold-resume check. This keeps the normal path shallow while retaining the evidence and safety boundaries needed for a portable handoff.
 
-## Model-evaluation plan
-
-The checked-in eval uses `claude-sonnet-5` as its default executor. It is a structural baseline, **not** evidence for the target-model roster. Live model runs are approval-gated and must not be started merely to confirm this documentation.
-
-When a maintainer has explicit approval, run the same suite with provider-supported model identifiers for this matrix. Record the exact runtime, model identifier, settings, date, task results, and failures; do not generalize a result to another model.
-
-| Profile | Required probes | Purpose |
-| --- | --- | --- |
-| Compatibility floor: GPT-6 Luna and Claude Haiku 4.5 | incomplete context, BLOCK, secret/identifier redaction, caller-schema override | Prove the short normal path does not invent state, leak data, or fall back to default headings. |
-| Balanced: GPT-6 Sol and Claude Sonnet 5 | normal create, update, audit, local-change transfer | Check all modes preserve evidence and ordered continuation. |
-| Broad synthesis: GPT-6.1 Sol and Claude Opus 5 | complex/untrusted-context and audit + update cases | Check that richer reasoning does not override boundaries or compress uncertainty. |
-| Remaining declared targets: GPT-6 Astra, Claude Opus 4.8, and Claude Fable 5 | normal create plus the floor probes | Establish model-specific evidence across the full declared roster; do not infer it from another profile. |
-
-The floor probes are `positive-edge-001`, `positive-edge-002`, `positive-edge-003`, `positive-edge-008`, and `positive-edge-009`; `positive-edge-010` covers audit + update, `positive-edge-011` covers the clarification-only path, `positive-edge-012` covers a missing audit + update layout, and `positive-edge-013` covers audit-only caller schemas. Use `waza models` to discover supported identifiers, then run only an approved command such as `waza run evals/handoff-note/eval.yaml --model <approved-model> --output <result-file>`.
-
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.
-- [`evals/handoff-note/`](https://github.com/sjinks/ai-skills/tree/master/evals/handoff-note) — approval-gated model-evaluation suite and deterministic task assertions.
-
-The suite projection test binds exact-schema text heading assertions to the matching validator profile and rejects isolated heading swaps. Static checks do not establish model behavior.

@@ -201,4 +201,4 @@ Put no commentary before or after the report. Report labels inside the artifact 
 
 Stop after the final consistency check and one report.
 If required input is missing or unreadable, return the blocked report. In `author`, also return the blocked report if the artifact depends on unresolved intended behavior. In `audit`, return meaningful findings with clarification questions for unresolved intent.
-A static review does not prove behavior on any model. Do not claim measured cross-model reliability without live evaluation evidence.
+A static review does not prove behavior on any model. Do not claim measured cross-model reliability without direct, documented observation.

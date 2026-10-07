@@ -40,7 +40,7 @@ Do not use this skill when the request is solely for:
 * an exhaustive diagnostic of exact contradictions, precedence gaps, ambiguity, terminology, authority conflicts, decision closure, harmful duplication, failure handling, output-contract defects, or custom diagnostic rules;
 * a direct rewrite, implementation, repair, or creation task without a readiness audit;
 * ordinary code review or product critique;
-* execution of an evaluation suite rather than a static readiness audit.
+* running an instruction artifact as though a static package review established model behavior.
 
 For a combined audit-and-fix request, use this skill and produce the readiness audit only. Put recommended corrections under `## Priority Changes`, but do not modify files, implement changes, or return a rewritten artifact.
 

@@ -37,4 +37,4 @@ Never override permission boundaries.
 > Parallelize independent read-only lookups when the runtime supports it and their results do not depend on one another.
 
 ## Lifecycle
-Promote a patch into the portable core if it proves task-universal. Move it into the runtime adapter if it is harness-only. Remove a model-specific patch when it stops reproducing in evals.
+Promote a patch into the portable core if its cause is task-universal. Move it into the runtime adapter if it is harness-only. Remove a model-specific patch when its supporting observation no longer applies.

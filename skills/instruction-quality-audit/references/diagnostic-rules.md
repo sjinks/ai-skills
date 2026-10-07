@@ -139,10 +139,8 @@ Report:
 - incompatible output requirements;
 - missing required stable labels under repository conventions;
 - generic labels that make negative activation checks unsafe;
-- optional fields that evals require unconditionally;
 - a prose contract too vague for intended machine consumption;
 - exact Markdown serialization that should be schema-validated externally;
-- mismatch among skill wording, eval regexes, and `not_contains` checks.
 
 Distinguish semantic correctness from structural compliance.
 
@@ -160,7 +158,7 @@ For every structured output or return contract, identify its canonical:
 - separators;
 - termination rule.
 
-Compare the canonical contract with every prose instruction, example, partial snippet, exceptional-case template, and evaluation assertion that represents the same output.
+Compare the canonical contract with every prose instruction, example, partial snippet, and exceptional-case template that represents the same output.
 
 Report an `output-contract` finding when any representation:
 
@@ -174,7 +172,7 @@ Report an `output-contract` finding when any representation:
 - presents a partial snippet in a way that can be mistaken for a complete output;
 - omits required surrounding markers without explicitly identifying the snippet as partial;
 - uses literal syntax that can be confused with a placeholder, such as `Verdict:` when the intended form is `Verdict: VERDICT_VALUE`;
-- disagrees with eval regexes, negative assertions, or parser expectations.
+- disagrees with another instruction, example, template, or parser expectation.
 
 Do not report abbreviated snippets when they are explicitly labeled as partial and their omitted context is stated.
 
