@@ -35,6 +35,7 @@
 ## Validation and documentation
 
 - Always run `git diff --check` after relevant changes.
+- For skill changes, also run `waza check skills/<name>`; for eval changes, validate the suite schema and every task file. Ignore only Waza's 500-token hard limit and its `argument-hint`/`user-invocable` frontmatter-field advisories, plus the `Create an evaluation suite` warning; everything else must be green.
 - With multiple worktrees, run repository commands as `git -C <absolute-worktree> ...`.
 - When a skill change is ready for a PR, or the user explicitly requests documentation work, keep its README synchronized with scope and supporting files; it has an overview, blurb, and `## Files` links. The top-level README lists every skill once, in the appropriate `## Skills` category, as a one-line link to that README; do not restore per-skill detail sections there.
 - In Markdown README files, put a blank line before every `###` heading.
