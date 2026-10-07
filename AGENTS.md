@@ -6,7 +6,7 @@
 
 ## Scope for skill and documentation work
 
-- The skill, review, and documentation conventions below apply when changing this `AGENTS.md`, canonical `skills/**`, or related README files. `.agents/skills/**` is a generated-skill destination governed by `source-to-skill`: do not mirror it into `skills/**` or add README entries unless the request explicitly promotes that artifact. `AGENTS.md` is the sole Codex instruction surface; clients that load only `.github/instructions/*.instructions.md` are intentionally out of scope.
+- The skill, review, and documentation conventions below apply when changing this `AGENTS.md`, canonical `skills/**`, or related README files. Treat `.agents/skills/**` as generated output: do not mirror it into `skills/**` or add README entries unless the request explicitly promotes that artifact.
 
 ## Skill layout and content
 
@@ -14,7 +14,8 @@
 - Keep each skill package self-contained. Do not name other repository skills in its instructions; state boundaries as self-contained guidance instead.
 - Keep `SKILL.md` operational: triggers, workflow, decision rules, checklist, output format, examples, and definition of done. Put long catalogs and matrices in `references/*.md`; every reference starts with when to read it, and `SKILL.md` gives each reference a concise summary and link.
 - Keep `SKILL.md` at or below about 1,000 tokens and each reference at or below about 2,000 tokens when practical.
-- Move conditional, explanatory, example-heavy, or independently consultable material out of `SKILL.md`. Keep activation, core workflow, invariants, and always-needed rules in `SKILL.md`.
+- Move conditional material out of `SKILL.md` only when it is optional or task-specific and the move preserves required decision logic and failure behavior. Move explanatory, example-heavy, or independently consultable material when the normal workflow remains clear without it.
+- Keep activation, core workflow, decision rules, invariants, required normal-path and failure branches, and always-needed rules in `SKILL.md`.
 - Split a reference only when it contains independently consultable topics or when readers typically need only part of it.
 - Do not split tightly coupled material just to meet a budget. Exceed these soft limits when separation would reduce clarity, correctness, or usability.
 - Review-style skills define a severity rubric, deterministic verdict mapping, no-findings path, and deterministic insufficient-context template. Preserve established verdict vocabularies; use `BLOCK`/`CONCERNS`/`CLEAN` only when canonical for that skill.
@@ -36,7 +37,7 @@
 - Use `controlled-agent-instruction-english` when authoring any skill or materially changing a skill. A material update changes triggers, workflow, decision rules, output contracts, or behavior-affecting references. For new skills, also use `cross-model-instruction-authoring`.
 - Before completion, directly sweep rules, outputs, references, and documentation. If the sweep finds a mismatch, run `equivalence-class-audit` for its explicit scope; then run `instruction-quality-audit`, `adversarial-review`, and `agent-skill-audit`.
 - Bind each sweep and review to the immutable final tree. Any in-scope change invalidates it. Completion requires the unchanged final tree to receive the required results: `instruction-quality-audit` returns `No material defects`; `adversarial-review` returns `CLEAN`, or only user/owner-accepted concerns; and `agent-skill-audit` returns `Ready` or `Ready with limitations`. Follow every native correction or mitigation requirement; only the user or named accountable owner may accept residual risk.
-- Delegate an independent review only when the runtime exposes a subagent tool and its documented model ceiling permits a suitable model. If delegation is unavailable, perform a local review and record that independent review was not performed. A local self-review does not count as independent.
+- Delegate an independent review only when the runtime exposes a subagent tool and its documented model ceiling permits a suitable model. If either condition is false, perform a local review and record that independent review was not performed. A local self-review does not count as independent.
 - Record the delegation or constraint and the immutable tree/diff hash in the PR description or task handoff. Delegated reviewers must be read-only and bound to that tree or diff hash. An independent reviewer must use a fresh context, must not author the change or its checks, and must challenge false acceptance, false rejection, and omitted dimensions.
 - Prefer concise shared rules to duplicated local text. Optimize for weaker models with explicit ordering, simple conditionals, stable terminology, and reproducible formats, without unnecessary process scaffolding for stronger models. Check consistency, cohesion, coherence, completeness, scope, ambiguity, contradictions, persona, cognitive load, and semantic coverage.
 - For skill contracts, reconcile source wording and related documentation: canonical labels and spelling, representative selection, provenance shape, and sibling skills.
