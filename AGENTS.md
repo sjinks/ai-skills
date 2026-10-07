@@ -1,5 +1,9 @@
 # Project Instructions
 
+## Live model/API calls
+
+- Never run a command that issues live model/API calls without explicit per-run user approval. State the expected scope and cost first.
+
 ## Scope for skill and documentation work
 
 - The skill, review, and documentation conventions below apply when changing this `AGENTS.md`, canonical `skills/**`, or related README files. `.agents/skills/**` is a generated-skill destination governed by `source-to-skill`: do not mirror it into `skills/**` or add README entries unless the request explicitly promotes that artifact. `AGENTS.md` is the sole Codex instruction surface; clients that load only `.github/instructions/*.instructions.md` are intentionally out of scope.
@@ -27,7 +31,7 @@
 
 - A material update changes triggers, workflow, decision rules, output contracts, or behavior-affecting references. New skills use `cross-model-instruction-authoring`.
 - Before completion, directly sweep rules, outputs, references, and documentation. If the sweep finds a mismatch, run `equivalence-class-audit` for its explicit scope; then run `instruction-quality-audit`, `adversarial-review`, and `agent-skill-audit`.
-- Bind each sweep and review to the immutable final tree. Any in-scope change invalidates it. Completion requires the unchanged final tree to pass projection; have `instruction-quality-audit` return `No material defects`; have `adversarial-review` return `CLEAN`, or only user/owner-accepted concerns; and have `agent-skill-audit` return `Ready` or `Ready with limitations`. Follow every native correction or mitigation requirement; only the user or named accountable owner may accept residual risk.
+- Bind each sweep and review to the immutable final tree. Any in-scope change invalidates it. Completion requires the unchanged final tree to receive the required results: `instruction-quality-audit` returns `No material defects`; `adversarial-review` returns `CLEAN`, or only user/owner-accepted concerns; and `agent-skill-audit` returns `Ready` or `Ready with limitations`. Follow every native correction or mitigation requirement; only the user or named accountable owner may accept residual risk.
 - Delegate independent reviews only when the runtime exposes a subagent tool and its documented model ceiling permits a suitable model; otherwise review locally. Record the delegation or constraint and the immutable tree/diff hash in the PR description or task handoff. Delegated reviewers are read-only and bound to that tree or diff hash. Independent review requires a fresh reviewer context that did not author the change or its checks and challenges false acceptance, false rejection, and omitted dimensions. A local self-review does not count as independent; record the constraint and preserve the independent-review limitation when delegation is unavailable.
 - Prefer concise shared rules to duplicated local text. Optimize for weaker models with explicit ordering, simple conditionals, stable terminology, and reproducible formats, without unnecessary process scaffolding for stronger models. Check consistency, cohesion, coherence, completeness, scope, ambiguity, contradictions, persona, cognitive load, and semantic coverage.
 - For skill contracts, reconcile source wording and related documentation: canonical labels and spelling, representative selection, provenance shape, and sibling skills.

@@ -84,6 +84,7 @@ Check:
 - rules and examples agree;
 - duplicated policy is unlikely to drift;
 - changes do not require updating many independent copies;
+- available verification artifacts align with stated behavior, and their evidence limits are reported;
 - expected behavior, limitations, and verification boundaries are stated clearly;
 
 ## Material Finding Severity
