@@ -13,8 +13,10 @@ behavioral patch.
 
 | Target | Default profile | Default model-specific patches |
 |---|---|---|
-| GPT-5.6 Luna | `fast-general` | none |
-| GPT-5.6 Sol | `strong-general` | none |
+| GPT-6 Luna | `fast-general` | none |
+| GPT-6 Sol | `strong-general` | none |
+| GPT-6.1 Sol | `strong-general` | none |
+| GPT-6 Astra | `deep-reasoning` | none |
 | GPT-5.3 Codex / Codex Spark | `coding-agent` | none |
 | Claude Haiku-class | `fast-general` | none |
 | Claude Sonnet-class | `strong-general` | none |

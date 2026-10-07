@@ -34,9 +34,13 @@ metrics:
     threshold: 0.8
     description: Output follows the readiness contract and identifies material risks.
   - name: task_completion_substance
-    weight: 0.10
+    weight: 0.05
     threshold: 0.7
     description: LLM judge verifies model-specific portability analysis on targeted edge cases.
+  - name: output_contract
+    weight: 0.05
+    threshold: 1.0
+    description: Deterministic validator checks the default-roster report, row-bound GPT profile cues, verdict mappings, enums, and termination.
   - name: efficiency
     weight: 0.15
     threshold: 0.7

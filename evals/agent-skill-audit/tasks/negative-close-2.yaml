@@ -38,6 +38,7 @@ graders:
     name: task_completion
     config:
       not_contains:
+        - "agent-skill-audit"
         - "# Agent/Skill Readiness Audit"
         - "Audit:"
         - "## Audit Scope"

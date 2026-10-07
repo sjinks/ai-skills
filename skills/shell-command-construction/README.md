@@ -10,7 +10,7 @@ Portability-only analysis does not activate this skill and belongs to a separate
 
 ## Evidence status
 
-Static checks validate artifact structure and deterministic graders; they do not prove behavior for any model. GPT-5.4 mini and Claude Haiku 4.5 are compatibility-floor evaluation goals, not proven outcomes. Model evidence is specific to the model, runtime, and settings used, and every live run remains explicitly approval-gated.
+Static checks validate artifact structure and deterministic graders; they do not prove behavior for any model. GPT-6 Luna and Claude Haiku 4.5 are compatibility-floor evaluation goals, not proven outcomes. Model evidence is specific to the model, runtime, and settings used, and every live run remains explicitly approval-gated.
 
 ## Files
 

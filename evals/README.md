@@ -362,7 +362,7 @@ and that their text assertions accept every canonical profile heading; isolated
 heading swaps reject. It also checks that negative and stop-path tasks exclude the distinctive custom top-level
 markers without banning broad headings such as `## Risks`.
 
-Static checks validate only artifact structure and deterministic assertions; they do not prove any model's behavior. GPT-5.4 mini and Claude Haiku 4.5 are compatibility-floor evaluation goals, not proven outcomes. Live evidence is specific to the model, runtime, and settings, and each live evaluation remains explicitly approval-gated.
+Static checks validate only artifact structure and deterministic assertions; they do not prove any model's behavior. GPT-6 Luna and Claude Haiku 4.5 are compatibility-floor evaluation goals, not proven outcomes. Live evidence is specific to the model, runtime, and settings, and each live evaluation remains explicitly approval-gated.
 
 Model evals are optional and require local Copilot authentication or a
 user-scoped GitHub Copilot PAT. The waza CLI's `copilot-sdk` executor rejects
@@ -628,3 +628,26 @@ python3 evals/_helpers/check-prompt-grader-contracts.py --self-test
 The scan root must be an existing directory; missing roots and regular files fail.
 An existing directory without prompt graders reports zero applicable graders.
 This checks configured judge instructions, not live judge behavior.
+
+The `agent-skill-audit` expanded-roster task validates exact report heading
+order, rating rows, all nine default model rows, model-specific GPT profile
+cues, independent-only scope whenever delegation is used as a GPT-6.1 Sol cue,
+numeric verdict eligibility, the five-item priority limit, table grammar, and
+terminal output. The task's substance judge evaluates whether the prose
+supports the causal architecture condition for `Major redesign`. Its mutation
+tests cover omission, reordering, duplication, invalid enums, swapped profile
+analysis, inconsistent verdicts, limitation clause order, malformed tables,
+exact Audit marker count, and escaped cell pipes. Run the checker with a report
+on stdin; the program grader requires a finding for this known-defect fixture.
+Limitation mutations bind resolution to the same subject and named model;
+completed assessment alone does not replace unavailable test evidence. The
+delegation mutations bind negation to its own verb and restart scope at a new
+affirmative instruction, so a prohibition on one action cannot mask a later
+broad delegation.
+Use `--allow-empty-findings` only when probing a clean verdict branch:
+
+```sh
+python3 evals/agent-skill-audit/check-report.py < report.md
+python3 evals/agent-skill-audit/check-report.py --allow-empty-findings < report.md
+python3 -m unittest evals/agent-skill-audit/test_check_report.py
+```

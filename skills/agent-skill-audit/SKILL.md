@@ -1,19 +1,21 @@
 ---
 name: agent-skill-audit
 description: >-
-  Use when assessing whether a supplied Agent Skill, custom-agent prompt, or
-  instruction package is ready for its intended task, target models, and
-  runtime. Audits discovery or delegation, instruction architecture,
-  operational completeness, model and runtime portability, maintainability,
-  and evaluability; returns ratings and a readiness verdict. Do not use for an
-  exhaustive line-by-line diagnostic or for rewrite-only requests that do not
-  include a readiness audit.
+  Use to assess whether an Agent Skill, custom-agent prompt, or instruction
+  package is ready for its task, target models, and runtime. Covers discovery,
+  architecture, completeness, portability, maintainability, and evaluability;
+  returns ratings, findings, priorities, and a verdict. Do not use for
+  exhaustive line-level diagnosis or rewrite-only requests.
 argument-hint: >-
   Agent or skill text, a file or package path, optional execution-path name,
   target models, target runtimes, and acceptance constraints.
 ---
 
 # Agent/Skill Readiness Audit
+
+**UTILITY SKILL.** INVOKES: read-only artifact inspection, static profile checks,
+and a structured readiness report. FOR SINGLE OPERATIONS: assess one supplied
+artifact or package across the five readiness areas.
 
 Perform a holistic, read-only readiness audit of the supplied Agent Skill, custom-agent prompt, or instruction package.
 
@@ -30,6 +32,8 @@ Use this skill when the user's primary goal is to assess whether an Agent Skill,
 * maintainable and evaluable;
 * likely to activate or delegate correctly;
 * in need of a holistic readiness verdict and prioritized corrective actions.
+
+## DO NOT USE FOR:
 
 Do not use this skill when the request is solely for:
 
@@ -72,12 +76,10 @@ Use the user's target-model list when supplied.
 
 Otherwise assess this default set:
 
-- GPT-5.4 mini
-- GPT-5.4
-- GPT-5.5
-- GPT-5.6 Luna
-- GPT-5.6 Terra
-- GPT-5.6 Sol
+- GPT-6 Luna
+- GPT-6 Sol
+- GPT-6.1 Sol
+- GPT-6 Astra
 - Claude Haiku 4.5
 - Claude Sonnet 5
 - Claude Opus 4.8
@@ -86,7 +88,7 @@ Otherwise assess this default set:
 
 Use `references/model-portability.md` for static model-profile checks. Treat those profiles as heuristics, not proof of compatibility.
 
-## Missing or Blocked Input
+## Error Handling: Missing or Blocked Input
 
 If no auditable artifact is supplied, ask exactly:
 
@@ -112,19 +114,23 @@ Rate these areas in this exact order:
 4. Model and runtime portability
 5. Maintainability and evaluability
 
-Read `references/readiness-rubric.md` before assigning ratings.
+Read the [readiness rubric](references/readiness-rubric.md) before assigning ratings; it defines the rating anchors and verdict criteria.
 
 ## Procedure
 
 1. Identify the target, artifact type, audit mode, target models, and target runtimes.
-2. In package or path mode, classify files and build the reachable load graph using `references/package-analysis.md`.
+2. In package or path mode, classify files and build the reachable load graph using the [package analysis guide](references/package-analysis.md), which defines load-graph inspection.
 3. Determine which files are co-loaded and which paths are mutually exclusive.
-4. Audit all five areas using `references/readiness-rubric.md`.
-5. Assess every target model using `references/model-portability.md`.
+4. Audit all five areas using the [readiness rubric](references/readiness-rubric.md).
+5. Assess every target model using [model portability profiles](references/model-portability.md), treated as heuristics rather than proof.
 6. Record only findings with a concrete behavioral, portability, maintainability, or evaluability consequence. Do not report optional polish.
 7. Rank no more than five corrective tasks by expected behavior impact.
 8. Select the verdict using the rules below.
-9. Validate the report against `references/report-contract.md`.
+9. Validate the report against the [report contract](references/report-contract.md), which defines required markers and ordering.
+
+## Example
+
+For a supplied skill directory, select `package` mode, inspect its reachable references, rate all five areas, and finish with one permitted verdict on the final report line.
 
 ## Evidence Standard
 

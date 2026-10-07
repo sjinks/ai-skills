@@ -16,11 +16,11 @@ Use these verdicts per model:
 - `Unsuitable`
 - `Not assessed`
 
-For this rubric, use the GPT capability order `GPT-5.4 mini < GPT-5.4 < GPT-5.5 < GPT-5.6 Luna < GPT-5.6 Terra < GPT-5.6 Sol`. This is a static-review heuristic, not a benchmark guarantee for every task or runtime.
+Assess each listed GPT target independently with the checks below. Keep the default roster order in reports, but do not treat it as a benchmark ranking or infer compatibility from another model's result.
 
 Do not infer one total capability order across Claude Opus and Fable profiles. Opus targets complex reasoning and synthesis; Fable targets long-horizon autonomy.
 
-## GPT-5.4 mini
+## GPT-6 Luna
 
 Check for:
 
@@ -34,7 +34,7 @@ Check for:
 
 Flag tasks whose intrinsic breadth should be routed to a stronger model rather than compensated for with a much longer prompt.
 
-## GPT-5.4
+## GPT-6 Sol
 
 Check for:
 
@@ -44,7 +44,7 @@ Check for:
 - freedom to choose efficient tools and ordering;
 - no assumptions about unavailable runtime capabilities.
 
-## GPT-5.5
+## GPT-6.1 Sol
 
 Check for:
 
@@ -53,28 +53,13 @@ Check for:
 - no fixed planning, reasoning, tool-call, or progress-update sequence;
 - explicit scope and evidence requirements;
 - concise but complete final reporting.
-
-## GPT-5.6 Luna
-
-Check for:
-
-- outcome-first instructions with explicit evidence and completion criteria;
-- adaptable tool use rather than a fixed execution sequence;
-- clear scope and side-effect boundaries;
-- no legacy scaffolding that duplicates runtime behavior;
-- verification triggers for claims about current state.
-
-## GPT-5.6 Terra
-
-Check for:
-
 - literal scope across files, components, or workstreams;
 - explicit invariants and completion criteria for broad synthesis;
-- optional delegation guidance for independent workstreams;
+- optional delegation guidance only for independent workstreams;
 - preservation of evidence and unresolved disagreements;
 - no fixed planning, tool, or progress-update cadence.
 
-## GPT-5.6 Sol
+## GPT-6 Astra
 
 Check for:
 
