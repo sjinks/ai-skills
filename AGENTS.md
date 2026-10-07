@@ -6,7 +6,7 @@
 
 ## Scope for skill and documentation work
 
-- The skill, review, and documentation conventions below apply when changing this `AGENTS.md`, canonical `skills/**`, or related README files. Treat `.agents/skills/**` as generated output: do not mirror it into `skills/**` or add README entries unless the request explicitly promotes that artifact.
+- The skill, review, and documentation conventions below apply when changing this `AGENTS.md`, canonical `skills/**`, or related README files. Treat `.agents/skills/**` as generated output: do not mirror it into `skills/**` or add README entries unless the request explicitly promotes that artifact. `AGENTS.md` is the sole Codex instruction surface; clients that load only `.github/instructions/*.instructions.md` are intentionally out of scope.
 
 ## Skill layout and content
 
