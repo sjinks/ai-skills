@@ -84,9 +84,7 @@ Check:
 - rules and examples agree;
 - duplicated policy is unlikely to drift;
 - changes do not require updating many independent copies;
-- evals cover positive, negative, close-domain, blocked, package, and model-sensitive cases;
-- eval regexes and `not_contains` assertions match canonical labels;
-- static audit limitations are stated and execution evals are planned.
+- expected behavior, limitations, and verification boundaries are stated clearly;
 
 ## Material Finding Severity
 
@@ -128,7 +126,7 @@ Use when the finding can cause:
 * missed failure handling;
 * excessive instruction burden for a target model;
 * unnecessary restriction of stronger models;
-* cross-file drift or an eval contract that is unreliable but still usable.
+* cross-file drift or a boundary that is documented inconsistently but remains usable.
 
 A `MEDIUM` finding requires correction but does not by itself imply that the artifact is fundamentally unusable.
 
@@ -138,7 +136,7 @@ Use when the finding is a confirmed, localized maintainability or clarity proble
 
 * avoidable duplication that has not yet diverged;
 * a minor reference-routing weakness;
-* a small eval-coverage gap;
+* a small example or documentation gap;
 * wording that is awkward but unlikely to change the normal result.
 
 Do not emit a `LOW` finding for optional polish or personal style preference.

@@ -1,4 +1,4 @@
-When to read: before finalizing a portable instruction artifact or its evals.
+When to read: before finalizing a portable instruction artifact.
 
 # Authoring Checklist
 
@@ -33,9 +33,8 @@ When to read: before finalizing a portable instruction artifact or its evals.
 - [ ] The selected default mode uses its exact labels once, in order, with nonempty bodies.
 - [ ] The terminal field ends the response: `Compatibility note:` for artifact modes and the final evidence bullet for Profile Recommendation.
 
-## Evals
-- [ ] Portable-core behavior is covered.
-- [ ] Weak-target omission and strong-target overconstraint are covered.
-- [ ] Folklore rejection and runtime-vs-model distinction are covered.
-- [ ] Patch addition and patch removal are both tested.
-- [ ] Deterministic wrapper tests cover omission, reorder, duplicate, invalid profile, profile crossover, and trailing prose.
+## Final Review
+- [ ] The portable core handles the normal path and material branches explicitly.
+- [ ] The compatibility floor is not based on unsupported capability assumptions.
+- [ ] Adaptations distinguish task requirements, provider guidance, runtime constraints, and observed behavior.
+- [ ] Examples and output contracts match the procedure.

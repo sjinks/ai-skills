@@ -29,7 +29,7 @@ Use this skill when the user's goal includes identifying exact instruction defec
 * unclear authority, permissions, or side effects;
 * missing default branches or failure behavior;
 * excessive cognitive burden or harmful duplication;
-* output-contract or eval-alignment defects;
+* output-contract inconsistencies;
 * a custom diagnostic explicitly supplied by the user or trusted caller.
 
 Do not use this skill when the request is solely for:
@@ -124,7 +124,7 @@ The built-in families are:
 4. Apply every built-in diagnostic family.
 5. Apply only trusted custom diagnostics.
 6. Verify every candidate against the false-positive rules in `references/diagnostic-rules.md`.
-7. When the artifact defines structured output, build a canonical contract table covering marker spelling, order, requiredness, value domains, cardinality, scope, numbering, separators, and termination. Compare every prose rule, example, partial snippet, exceptional-case template, and eval assertion against that table.
+7. When the artifact defines structured output, build a canonical contract table covering marker spelling, order, requiredness, value domains, cardinality, scope, numbering, separators, and termination. Compare every prose rule, example, partial snippet, and exceptional-case template against that table.
 8. Sort findings by severity, then by first location.
 9. Number findings sequentially within each report as `IQA-001`, `IQA-002`, and so on. When the response contains multiple reports, restart numbering at `IQA-001` in each report.
 10. Provide a concrete correction for every finding.
@@ -148,7 +148,7 @@ Do not use the finding label itself as the explanation.
 Use:
 
 - `error`: likely to produce wrong, unsafe, impossible, or mutually incompatible behavior;
-- `warning`: materially increases inconsistency, guessing, drift, or evaluation failure;
+- `warning`: materially increases inconsistency, guessing, or drift;
 - `information`: a confirmed non-blocking maintainability defect.
 
 Use confidence:
@@ -179,4 +179,3 @@ For one report, `Verdict: VERDICT_VALUE` must be the final content line of the r
 For multiple reports, `Verdict: VERDICT_VALUE` must be the final content line of each report. Blank lines may appear after that content line. The next nonblank line must be `---` or the end of the response.
 
 Do not add commentary before, between, or after the reports.
-

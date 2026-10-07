@@ -22,7 +22,4 @@ It helps an assistant:
 - [`references/behavioral-patches.md`](references/behavioral-patches.md) — narrow failure-mode corrections and their lifecycle.
 - [`references/model-profiles.md`](references/model-profiles.md) — conservative target-family defaults, never a source of automatic patches.
 - [`references/evidence.md`](references/evidence.md) — adaptation evidence classes and anti-folklore policy.
-- [`references/authoring-checklist.md`](references/authoring-checklist.md) — finalization and evaluation checks.
-- [Canonical Waza suite](https://github.com/sjinks/ai-skills/tree/master/evals/cross-model-instruction-authoring) — trigger and behavior suite.
-
-The profile recommendation projection tests bind each existing task's profile-bullet assertion to its program-selected profile. Static checks do not establish model behavior.
+- [`references/authoring-checklist.md`](references/authoring-checklist.md) — finalization and consistency checks.

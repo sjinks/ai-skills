@@ -21,21 +21,7 @@ It helps an assistant:
 
 Authoring reports put generated code under `Authored test:` after the verdict
 and findings. Findings cite real reviewed files or supplied/generated snippet
-lines; authoring does not require an existing file. The suite-local deterministic
-validator checks both review and authoring branches plus a missing-context eval that requests the absent expected behavior and emits no invented code.
-Live model behavior remains unmeasured.
+lines; authoring does not require an existing file.
 
-Writing accepts an existing draft or no test body. The authoring eval rewrites
-a supplied no-op draft while constructing the required setup and assertion.
-Bulk reviews emit one report per test in input order; the validator checks
-report count and individual verdicts. A separate negative case covers an
-available framework-authoring workflow.
-
-All initially empty positive read-only workspaces remain empty under the shared
-final-state guard `evals/_helpers/check-empty-workspace.py`. This includes
-blocked/missing context and returned-snippet authoring where applicable. It
-rejects all entries, including hidden files, empty directories and symlinks.
-It does not observe transient changes, changes outside the workspace, or
-changes restored before grading.
-
-The suite projection check binds text verdict assertions to the program-selected verdict for review, authoring, and missing-context reports. Static checks do not establish model behavior.
+Writing accepts an existing draft or no test body. Bulk reviews emit one report
+per test in input order.

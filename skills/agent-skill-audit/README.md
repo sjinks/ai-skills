@@ -16,6 +16,6 @@ closure gaps, harmful duplication, and output-contract defects.
 
 - [`SKILL.md`](SKILL.md) — the full readiness-audit skill definition.
 - [`references/model-portability.md`](references/model-portability.md) — static model-profile checks for the supported target models.
-- [`references/package-analysis.md`](references/package-analysis.md) — package/path load-graph rules, duplicate handling, and eval-alignment checks.
+- [`references/package-analysis.md`](references/package-analysis.md) — package/path load-graph rules and duplicate handling.
 - [`references/readiness-rubric.md`](references/readiness-rubric.md) — the five readiness rating areas and calibration guidance.
 - [`references/report-contract.md`](references/report-contract.md) — the required readiness report markers, placeholder replacement rules, target-model verdict values, multiple-report numbering, blocked behavior, and no-findings contract.

@@ -2,7 +2,7 @@ When to read: when comparing a target family with conservative, non-binding prof
 
 # Model Profiles
 
-Conservative authoring defaults, not capability guarantees. Prefer current provider guidance and direct eval evidence.
+Conservative authoring defaults, not capability guarantees. Prefer current provider guidance and concrete behavioral evidence.
 
 **Do not add a behavioral patch simply because a model appears below.**
 
@@ -22,15 +22,15 @@ behavioral patch.
 | Claude Sonnet-class | `strong-general` | none |
 | Claude Opus-class | `deep-reasoning` | none |
 | Gemini general-purpose | `strong-general` | none |
-| Grok general-purpose | choose by task/evals | none |
+| Grok general-purpose | choose by task requirements | none |
 | Grok code-specialized | `coding-agent` when appropriate | none |
 
 Candidate, not default, patches:
-- Haiku-class: `context-before-conclusion` when evals show local-only conclusions.
-- Sonnet-class: `bounded-exploration` when guidance/harness/evals demonstrate redundant exploration.
+- Haiku-class: `context-before-conclusion` only when concrete evidence shows a recurring local-only conclusion problem.
+- Sonnet-class: `bounded-exploration` only when guidance, harness constraints, or observed behavior demonstrate redundant exploration.
 - Opus-class: `bounded-exploration` or `verification-over-reasoning` only with evidence.
 - Gemini/Grok: remain provider-neutral until a reproducible failure justifies a patch.
 
-For unknown/new models: author the portable core, choose a profile from task/runtime constraints, apply no model-specific patch, run evals, then add only the smallest evidenced correction.
+For unknown/new models: author the portable core, choose a profile from task/runtime constraints, and apply no model-specific patch without concrete evidence.
 
 Exact availability and fallback order belong to runtime routing.

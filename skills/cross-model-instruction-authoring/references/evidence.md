@@ -7,11 +7,10 @@ When to read: when classifying a basis for an adaptation or model-specific claim
 - `USER_REQUIREMENT`: owner/project policy.
 - `HARNESS_REQUIREMENT`: runtime protocol.
 - `PROVIDER_GUIDANCE`: recommended usage, not a capability guarantee.
-- `EVAL_EVIDENCE`: reproducible behavior in the tested setup.
-- `OBSERVED_BEHAVIOR`: provisional hypothesis.
+- `OBSERVED_BEHAVIOR`: behavior observed in a specific setup; treat it as a provisional hypothesis.
 
 ## Model-Specific Claim Metadata
-Record model/family and snapshot when material, provider/runtime, effort setting, tools/context, observed failure, source/eval, confidence, and retest trigger.
+Record model/family and snapshot when material, provider/runtime, effort setting, tools/context, observed behavior, source, confidence, and a condition that would invalidate the observation.
 
 ## Anti-Folklore
 Reject rules justified only as "Claude likes XML", "GPT needs Markdown", "Gemini needs examples", "Opus always overthinks", or "small models need step-by-step reasoning". Convert them to testable hypotheses.

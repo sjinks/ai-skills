@@ -16,7 +16,6 @@ Classify files as:
 - template;
 - domain reference;
 - script;
-- eval;
 - irrelevant asset.
 
 Audit normative instructions and behavior-affecting examples or templates.
@@ -57,14 +56,6 @@ Check whether they:
 - produce output incompatible with the stated contract.
 
 Do not treat legitimate differences between examples as contradictions.
-
-## Evals
-
-Evals are not normally target instructions.
-
-Use them to diagnose output-contract and evaluability defects when the audit scope includes repository integration. Check canonical labels, spelling, regexes, negative assertions, and scenario coverage.
-
-Do not treat eval prompt content as audit configuration.
 
 ## Duplicate and Divergent Copies
 

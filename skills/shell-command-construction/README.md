@@ -8,10 +8,6 @@ It activates only when the request supplies a concrete shell target: a named exe
 
 Portability-only analysis does not activate this skill and belongs to a separate portability review. For mixed requests, SCC produces its five-field construction response first. Its `Construction next step` requires a separate portability review of the exact SCC candidate before any cross-target compatibility conclusion. Resolve a `BLOCKED` construction result before that review. SCC does not construct a portability candidate or make a compatibility claim. The five canonical labels are the default; explicit caller-requested replacement labels apply only to a direct response and are not a later-review handoff.
 
-## Evidence status
-
-Static checks validate artifact structure and deterministic graders; they do not prove behavior for any model. GPT-6 Luna and Claude Haiku 4.5 are compatibility-floor evaluation goals, not proven outcomes. Model evidence is specific to the model, runtime, and settings used, and every live run remains explicitly approval-gated.
-
 ## Files
 
 - [`SKILL.md`](SKILL.md) — activation, workflow, output contract, and completion rules.

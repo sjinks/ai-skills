@@ -6,7 +6,7 @@ This skill applies a controlled-English approach to agent instructions. It rewri
 
 Author mode returns a complete instruction artifact. For a combined audit-and-rewrite request, it also preserves meaningful findings from the original text. Audit mode reports only meaningful errors and warnings. Blocked mode names missing input in either workflow, or unresolved intended behavior required for authoring. Audit mode retains ambiguity findings with clarification questions. The report uses `CAIE mode:`, `CAIE artifact:`, `CAIE findings:`, and `CAIE status:`.
 
-The offline eval checker owns report grammar, deterministic mutations, and task projections. Live model behavior remains unverified until an approved evaluation runs. The intended compatibility floor is the `fast-general` profile; no model-specific patches or runtime adapters are required.
+The report contract is defined by the skill and its references. The intended compatibility floor is the `fast-general` profile; no model-specific patches or runtime adapters are required.
 
 ## Files
 
@@ -14,11 +14,3 @@ The offline eval checker owns report grammar, deterministic mutations, and task 
 - [`references/operational-guide.md`](references/operational-guide.md) — scope, workflows, final consistency check, severity, and complete report contract.
 - [`references/language-rules.md`](references/language-rules.md) — the full T/N/S/R/C/P/D/E rule catalog.
 - [`references/examples.md`](references/examples.md) — non-normative examples of operational corrections.
-
-The separate suite lives at `evals/controlled-agent-instruction-english/`. Its `eval.yaml` defines routing, invocation, completion, report, and efficiency metrics; `check-report.py` provides free grammar and projection checks.
-
-The suite covers all five output profiles with discriminating positive tasks,
-including separate missing-audit-input and unresolved-author-intent blocked cases,
-plus two close-domain negatives and one unique off-topic negative. Run
-`python3 evals/controlled-agent-instruction-english/check-report.py --self-test --projections`
-from the repository root for the free grammar, coverage, and projection preflight.

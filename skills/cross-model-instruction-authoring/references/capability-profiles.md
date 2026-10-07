@@ -20,4 +20,4 @@ State repository outcome, scope, behavior-preservation constraints, conventions,
 Define labels operationally, make boundaries explicit, distinguish positive evidence from absence of evidence, define abstain/unknown behavior, and prefer a few discriminating examples.
 
 ## Selection
-Choose from task and demonstrated behavior, not branding. Start with the least prescriptive plausible profile, run evals, add scaffolding only for reproduced failures, and route upward if prompt complexity begins compensating for capability.
+Choose from task requirements and reliable evidence, not branding. Start with the least prescriptive plausible profile, add scaffolding only for a concrete failure risk, and route upward if prompt complexity begins compensating for capability.
