@@ -24,8 +24,9 @@ Exclude status updates, ordinary reviews, post-hoc justification, and generic re
 
 ## Workflow
 
-1. Read [Decision and Report Rules](references/report-format.md). Follow its workflow, ordered decisions, and formats.
-2. Emit Output.
+1. Use supplied attempt evidence; when no source is specified, use already available current-task context. Do not invent logs or access unavailable evidence. Before selecting prevention for an evidenced environment failure, read [Environment Prevention](references/environment-prevention.md); it covers existing safeguards, navigation, instruction usefulness, tool economy, and information access.
+2. Read [Decision and Report Rules](references/report-format.md). Follow its workflow, ordered decisions, and formats.
+3. Emit Output.
 
 ## Error Handling
 
