@@ -4,6 +4,8 @@ Read this reference when assessing static compatibility across supported target 
 
 These profiles are static-review heuristics. Runtime instructions, effort settings, tools, consumed context, and model snapshots can change behavior.
 
+The default compatibility floor is GPT-6 Luna and Claude Haiku 5.5. Treat these as the weaker-model targets for instruction design, not as a measured cross-provider capability ranking. If the user supplies target models, assess that list instead.
+
 Evaluate both:
 
 1. **compatibility floor**: can the smaller supported models execute the normal path without guessing essential rules?
@@ -69,7 +71,7 @@ Check for:
 - progress and completion claims grounded in tool results;
 - protection against unrequested scope expansion without micromanaging normal work.
 
-## Claude Haiku 4.5
+## Claude Haiku 5.5
 
 Check for:
 

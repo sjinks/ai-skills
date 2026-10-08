@@ -80,11 +80,13 @@ Otherwise assess this default set:
 - GPT-6 Sol
 - GPT-6.1 Sol
 - GPT-6 Astra
-- Claude Haiku 4.5
+- Claude Haiku 5.5
 - Claude Sonnet 5
 - Claude Opus 4.8
 - Claude Opus 5
 - Claude Fable 5
+
+The default compatibility floor is GPT-6 Luna and Claude Haiku 5.5. If the user supplies target models, assess that list instead.
 
 Use `references/model-portability.md` for static model-profile checks. Treat those profiles as heuristics, not proof of compatibility.
 

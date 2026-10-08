@@ -12,6 +12,8 @@ It does not replace `instruction-quality-audit`, which is the line-level
 diagnostic skill for exact contradictions, ambiguity, authority conflicts,
 closure gaps, harmful duplication, and output-contract defects.
 
+The default compatibility floor is GPT-6 Luna and Claude Haiku 5.5. Caller-supplied target models replace the default assessment roster; static profiles do not establish measured model behavior.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full readiness-audit skill definition.
