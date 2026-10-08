@@ -59,3 +59,7 @@ Closes #123
 ```
 
 For a valid safe message accompanied by a diff with sensitive source content, retain otherwise passing part checks, add `Input: error — excluded sensitive source content; review the source separately` under Findings, and select `CONCERNS`. Do not quote that content or add an Input check. Reduced BLOCK reports instead name the actual missing input and smallest requested addition; report-template placeholders are never copied literally.
+
+## Cleanup-advice illustration
+
+When validating a safe, otherwise compliant message with a comment-like body heading and unknown cleanup mode, preserve the message, retain `Body: pass — compliant`, and include `Body: information — cleanup preservation unverified; use --cleanup=whitespace or --cleanup=verbatim to preserve headings` under Findings. Convention evidence still appears; no author question is required, and cleanup uncertainty alone permits `CLEAN`.
