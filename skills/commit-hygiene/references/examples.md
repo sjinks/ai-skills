@@ -46,11 +46,14 @@ None
 
 ## Other branches
 
+- **Audit proposing a rewrite:** Return the full report, including the backup and publication cautions. Frame commands as safety recommendations conditional on a future rewrite; do not tell the author to execute the rebase plan.
 - **Titles only:** A commit titled `wip` without a change summary becomes `needs-author-input`, with an unchanged `pick` line and a concrete evidence request. Do not guess the squash target. Verdict: `CONCERNS`.
 - **Split:** An established feature plus unrelated formatting change becomes `split` / `edit`. List the two concern descriptions in intended order, each marked `subject pending`. Do not invent final subjects. Verdict: `CONCERNS`.
 - **Squash merge:** No unwanted final content and no pending final-message work yields all `keep` / `pick`, no cautions, and `CLEAN`, even with intermediate fixup titles. A missing final message that needs assessment belongs under `### Needs author input` and yields `CONCERNS`.
 - **Credential exposure without rewriting:** Retain any unresolved unique change as `needs-author-input` / `pick`; flag exposure and rotation without revealing the credential. Do not emit a backup recommendation unless proposing a rewrite.
 - **Explicitly empty range:** Emit the full report with a `text` block containing `# No commits in supplied range`. Actions and resulting sequence are `None`. With no pending input or cautions, the verdict is `CLEAN`.
+- **Unique content approved for discard:** Use `drop` only after explicit author approval; cite that approval in the rationale. Omit the discarded commit from Resulting sequence, retain its todo/action entries, and include rewrite cautions. This is the exception to net-content preservation.
+- **Verification gap in a valid range:** Return the full report with verification pending under `### Needs author input`; do not emit BLOCK or claim passing tests.
 - **All commits safely dropped:** Keep every input commit as a `drop` line with its evidence-backed rationale. Resulting sequence is `None`; rewrite cautions apply and the verdict is `CONCERNS`.
 - **Missing hashes, ambiguous order, or merge topology:** Use the reduced BLOCK template from `SKILL.md`; do not fabricate a runnable linear todo.
 
