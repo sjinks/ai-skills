@@ -27,7 +27,7 @@ description: >-
 
 ## Contract
 
-Subject: in conventional mode use a lowercase type from `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`; optional scope consists of comma-separated tokens matching `[a-z0-9][a-z0-9-]*`, without spaces; optional `!`; then exactly `: ` and an imperative description. Plain mode omits this prefix. Both modes require an imperative subject without a trailing period; its description starts lowercase unless a proper noun/acronym. By default, count the whole subject: at most 72 characters. Apply the selected limit before checking length; passing subjects over 50 characters use the length note, including explicitly authorized limits above 72.
+Subject: in conventional mode use a lowercase type from `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`; optional scope is enclosed in parentheses and consists of comma-separated tokens matching `[a-z0-9][a-z0-9-]*`, without spaces; optional `!`; then exactly `: ` and an imperative description. Plain mode omits this prefix. Both modes require an imperative subject without a trailing period; its description starts lowercase unless a proper noun/acronym. By default, count the whole subject: at most 72 characters. Apply the selected limit before checking length; passing subjects over 50 characters use the length note, including explicitly authorized limits above 72.
 
 Body: separate from subject by a blank line; explain why and any non-obvious context, without repeating the diff. Require a body unless the change is genuinely trivial; a trivial body may be absent or say `No functional change.`. Default to wrapping commit-body prose near 72 characters unless the caller requests otherwise. Keep test-run evidence in the PR, not the commit. Include real rationale, migration or reproduction details only when useful. Read [Git cleanup](references/git-cleanup.md) before returning required or optional comment-like headings; it explains conditional cleanup defaults and preservation options.
 
@@ -52,7 +52,7 @@ Use these exact markers in order; do not substitute labels:
 - `Mode:` — `conventional` or `plain`.
 - `### Commit message` — full message in a `text` fence; use a fence longer than any backtick run in the message.
 - `### Checks` — exactly three bullets, each `<part>: <result> — <status>`; failure reasons name violated contract items or required missing facts or message rules:
-  - `Subject:` result is `pass`, `pass (length: N chars, over 50)`, or `fail (reason)`.
+  - `Subject:` result is `pass`, `pass (length: <N> chars, over 50)`, or `fail (reason)`. Replace `<N>` with the measured whole-subject character count as a decimal integer.
   - `Body:` result is `pass`, `fail (reason)`, or `n/a (trivial)`.
   - `Footers:` result is `pass`, `fail (reason)`, or `none`.
 - `### Findings` — bullets `<part>: <severity> — <violation and correction/input needed>`, plus `Convention: information — <evidence or assumption>`.
@@ -63,7 +63,7 @@ Use these exact markers in order; do not substitute labels:
 
 - The checklist gates completion. Preserve all normal-path headings, field order and exact enum values; use bullets outside the message fence, with `- None` for an empty list.
 - Check results describe the emitted message in draft/audit-rewrite mode and the supplied message in validate mode. Successful corrections can have `pass — rewritten`; preserved violations use `fail (reason) — noncompliant`. Unknown author facts or undetermined required message rules use `fail (missing fact or rule) — needs-author-input`. Required-rule uncertainty takes precedence over compliant omissions; when affected parts are unknown, all three checks use `fail (missing rule or affected parts) — needs-author-input`. For a permitted absent Body, use `n/a (trivial)` for a trivial change or `pass` for a nontrivial change allowed by selected rules. For permitted absent Footers, use `none`. Append the selected part status: `rewritten` when absence results from a correction; `compliant` for unchanged absence or intentional omission while drafting. Unresolved required author facts or message rules take precedence over these passing absence results.
-- Preserve safe compliant text verbatim; do not rewrite during validation. Report forbidden-content removal or redaction without reproducing that content or falsely passing the original.
+- In validate mode, preserve safe compliant text verbatim; do not rewrite except required disclosure removal/redaction. Report forbidden-content removal or redaction without reproducing that content or falsely passing the original.
 - Findings include every corrected, preserved, or unresolved violation; Needs author input contains every unresolved author fact or required message rule. A CLEAN report contains only informational convention notes, no split, and no author questions.
 - Return one message for the dominant change and a split recommendation when required. Do not claim a commit was created, code was reviewed, or validation ran when it did not.
 
