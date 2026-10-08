@@ -1,22 +1,13 @@
 # adversarial-review
 
-> Use when: performing adversarial review, red-team analysis, edge-case discovery, failure-mode analysis, misuse review, regression hunting, or risk-focused test planning. Do not use for ordinary readability, linting, idiomatic-style, or general best-practices review without an explicit failure, misuse, edge-case, or risk objective.
+> Challenge a concrete artifact for plausible failures, misuse, regressions, and behavior-specific verification gaps.
 
-This skill is aimed at specs, designs, implementations, workflows, migrations, operational procedures, and test plans that need deliberate failure-mode review before they are trusted.
+This read-only skill reviews specs, designs, implementations, workflows, migrations, runbooks, security controls, and test plans. It separates confirmed defects from risks, questions, tradeoffs, and test gaps; recommends tests and mitigations; and returns a deterministic `BLOCK`, `CONCERNS`, or `CLEAN` verdict. Readability and style reviews without an explicit failure or risk objective are outside its scope.
 
-Ordinary readability, linting, idiomatic-style, and general best-practices reviews are outside its scope unless the request explicitly asks to challenge failures, misuse, material edge cases, or risks.
-
-It helps an assistant:
-
-- identify the target, intended behavior, assumptions, and evidence basis before judging
-- apply optional review lenses for reliability, maintainability, security/privacy, user workflow, and verification
-- classify failure modes with concrete categories, severity, and evidence standards
-- distinguish confirmed issues, likely risks, open questions, accepted tradeoffs, and test gaps
-- convert top risks into adversarial tests, mitigations, or acceptance criteria
-- return `BLOCK`, `CONCERNS`, or `CLEAN` verdicts without inventing findings
-- classify target revisions deterministically, then deduplicate findings and retain verdict strength for unresolved findings across repeated passes on the same revision (paired review)
+The core defines boundaries, decision rules, the `## Adversarial Review Report` envelope, completion checks, and missing-target behavior. Prior passes load the revision and reconciliation rules before verdict selection; ordinary contextual prompts and category descriptions are independently consultable. Complete legacy report envelopes remain recognized as prior passes, including reports without findings. Partial reports require explicit user or trusted-caller identification as prior adversarial-review passes; shared labels alone do not establish prior-pass provenance.
 
 ## Files
 
-- [`SKILL.md`](SKILL.md) — the full skill definition.
-- [`references/paired-review.md`](references/paired-review.md) — cross-pass dedup and remediation-aware verdict rules for repeated passes on the same target revision.
+- [`SKILL.md`](SKILL.md) — triggers, workflow, values, report contract, checklist, and failure handling.
+- [`references/paired-review.md`](references/paired-review.md) — conditional revision identity, cross-pass deduplication, and remediation-aware verdict retention.
+- [`references/review-guide.md`](references/review-guide.md) — contextual prompts, optional lenses, and failure-mode category descriptions.
