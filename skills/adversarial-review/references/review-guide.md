@@ -41,4 +41,3 @@ Classify findings using the closest category:
 - `verification-gap`: Test or verification gaps tied to specific unverified behavior.
 
 Use the exact category values defined in the core; this catalogue explains them.
-
