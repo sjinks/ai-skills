@@ -4,7 +4,7 @@
 
 This read-only skill checks sibling fields, mirrored use sites, inverse operations, paths, modes, contracts, tests, documentation, and projections. It reports presence, disposition, severity, and a deterministic `BLOCK`, `CONCERNS`, or `CLEAN` verdict. It recommends follow-up without implementing fixes.
 
-`standard` and `exhaustive` cover all 18 axes; `quick` covers target-specific axes, blockers, and high-risk concerns with an omitted-axis summary. Missing required inputs produce a reduced report and one question. Deferrals require an explicit owner/team and reason; absent optional deferral metadata preserves the `fix-now` default.
+Full `standard` and `exhaustive` reports cover all 18 axes except the explicit catalogue-unavailable failure; `quick` covers target-specific axes, blockers, and high-risk concerns with an omitted-axis summary. Missing or unreadable required inputs produce a reduced report and one question, requesting only the triggering finding first when both are unavailable. Deferrals require an explicit owner/team and reason; absent optional deferral metadata preserves the `fix-now` default.
 
 The core owns workflow, failure branches, values, report labels, and the completion checklist. References contain the detailed catalogue and a worked report.
 

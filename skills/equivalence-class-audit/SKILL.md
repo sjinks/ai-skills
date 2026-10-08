@@ -20,7 +20,7 @@ description: >-
 
 ## Workflow
 
-1. Select requested depth: `quick`, `standard` (default), or `exhaustive`. Require a concrete `Triggering finding` and exact `Locked audit scope`; do not invent either. Follow Error Handling before enumeration if either is missing.
+1. Select requested depth: `quick`, `standard` (default), or `exhaustive`. Require a concrete `Triggering finding` and exact `Locked audit scope`; do not invent either. Follow Error Handling before enumeration if either is missing or unreadable.
 2. Lock the scope. Read [the catalogue](references/catalogue.md) for canonical axis names and candidate illustrations. For `standard` and `exhaustive`, represent all 18 axes; use one row per candidate or an explicit reasoned `n/a` row. Exhaustive expands all reasonably discoverable in-scope candidates. Quick covers target-specific applicable axes, blockers, and high-risk concerns, then explains omitted axes.
 3. Inspect each candidate and assign Presence from evidence. Cite a file, section, test, spec, log, or observable state; `n/a` needs a structural or scope reason. Missing critical evidence uses `blocked — clarification needed`, never a guessed `absent`.
 4. Assign Disposition using Values and Decisions. Record outside-scope leads only under Out-of-scope candidates discovered, with provenance; do not expand the table's scope.
@@ -70,12 +70,12 @@ This checklist gates completion:
 
 ## Error Handling
 
-If either required input is missing or unreadable, return the reduced template. Preserve supplied depth; request only the triggering finding first when both inputs are missing, otherwise the single missing input. Missing header values use one bare marker: `missing`, `not provided`, `not supplied`, `required`, or `needed`.
+Treat a required input as unavailable when it is missing or unreadable. If either input is unavailable, return the reduced template and preserve supplied depth. If both inputs are unavailable, request only `Triggering finding` first; otherwise request the single unavailable input. Unavailable header values use one bare marker: `missing`, `not provided`, `not supplied`, `required`, or `needed`.
 
 ```text
 ## Equivalence-Class Audit Report
-Triggering finding: <supplied value or bare missing marker>
-Locked audit scope: <supplied value or bare missing marker>
+Triggering finding: <readable supplied value or bare unavailable marker>
+Locked audit scope: <readable supplied value or bare unavailable marker>
 Output depth: <selected depth>
 Verdict: BLOCK
 Severity: UNASSESSED
@@ -86,12 +86,12 @@ Severity: UNASSESSED
 ### Out-of-scope candidates discovered
 - None
 ### Blocking questions
-- <request exactly one missing header label>
+- <request exactly one unavailable header label>
 ### Test/doc implications
 - None
 ```
 
-For quick depth, append Omitted axes and state that required input is missing and no axes were enumerated. Omit that section for standard/exhaustive. Other critical unknowns use blocked rows in the full report. If the catalogue is unavailable, do not claim complete coverage. Emit a full `BLOCK` report with a `Contract Symmetry` row for catalogue access (`blocked — clarification needed` / `blocked`) and request the reference; this failure report is exempt from the all-18-axes coverage requirement.
+For reduced quick reports, append Omitted axes and state that required input is unavailable and no axes were enumerated. Omit that section for reduced standard/exhaustive reports. For full quick reports, explain the actual coverage limitations under Omitted axes. Other critical unknowns use blocked rows in the full report. If the catalogue is unavailable, do not claim complete coverage. Emit a full `BLOCK` report with a `Contract Symmetry` row for catalogue access (`blocked — clarification needed` / `blocked`) and request the reference; this failure report is exempt from the all-18-axes coverage requirement.
 
 ## Examples
 
