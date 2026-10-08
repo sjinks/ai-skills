@@ -41,3 +41,9 @@ forcing users back through login. Refresh on the retry path instead.
 Mixed change, split recommended:
 
 A diff renames a config key (breaking) and also reformats an unrelated file. Recommend two commits: `feat(config)!: rename timeout to timeoutMs` (with `BREAKING CHANGE:` footer) and `style: reformat report builder`, rather than one combined subject.
+
+## Omission status illustrations
+
+Deleting a supplied, known-invalid optional footer during repair uses `Footers: none — rewritten`, an `error` finding describing the correction, and `CONCERNS`. An already absent permitted footer uses `Footers: none — compliant`.
+
+Deleting a supplied invalid body from a trivial change uses `Body: n/a (trivial) — rewritten`. If selected repository rules permit no body for a nontrivial change, correction by deletion uses `Body: pass — rewritten`; intentional omission while drafting uses `Body: pass — compliant`. Required unknown facts or rules override these passing examples with `fail (...) — needs-author-input`.
