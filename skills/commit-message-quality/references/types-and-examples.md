@@ -47,3 +47,15 @@ A diff renames a config key (breaking) and also reformats an unrelated file. Rec
 Deleting a supplied, known-invalid optional footer during repair uses `Footers: none — rewritten`, an `error` finding describing the correction, and `CONCERNS`. An already absent permitted footer uses `Footers: none — compliant`.
 
 Deleting a supplied invalid body from a trivial change uses `Body: n/a (trivial) — rewritten`. If selected repository rules permit no body for a nontrivial change, correction by deletion uses `Body: pass — rewritten`; intentional omission while drafting uses `Body: pass — compliant`. Required unknown facts or rules override these passing examples with `fail (...) — needs-author-input`.
+
+## Footer and input-finding illustrations
+
+A hypothetical trivial change with supplied real issue #123 may omit Body while retaining a footer separated from Subject:
+
+```text
+docs: clarify setup instructions
+
+Closes #123
+```
+
+For a valid safe message accompanied by a diff with sensitive source content, retain otherwise passing part checks, add `Input: error — excluded sensitive source content; review the source separately` under Findings, and select `CONCERNS`. Do not quote that content or add an Input check. Reduced BLOCK reports instead name the actual missing input and smallest requested addition; report-template placeholders are never copied literally.

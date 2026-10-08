@@ -31,21 +31,21 @@ Subject: in conventional mode use a lowercase type from `feat`, `fix`, `docs`, `
 
 Body: separate from subject by a blank line; explain why and any non-obvious context, without repeating the diff. Require a body unless the change is genuinely trivial; a trivial body may be absent or say `No functional change.`. Default to wrapping commit-body prose near 72 characters unless the caller requests otherwise. Keep test-run evidence in the PR, not the commit. Include real rationale, migration or reproduction details only when useful. Read [Git cleanup](references/git-cleanup.md) before returning required or optional comment-like headings; it explains conditional cleanup defaults and preservation options.
 
-Footers: include only real issue references (`Closes #123`, `Fixes #456`, `Refs #789`, or required project form) and real attribution/signoff trailers. Every breaking change requires `BREAKING CHANGE: <description>` in either mode; conventional mode also requires `!`. A supplied `!` without a breaking description fails Footers; unknown breaking intent needs author input rather than a fabricated claim.
+Footers: by default, separate the footer block from the preceding subject or body with a blank line. Include only real issue references (`Closes #123`, `Fixes #456`, `Refs #789`, or required project form) and real attribution/signoff trailers. Every breaking change requires `BREAKING CHANGE: <description>` in either mode; conventional mode also requires `!`. A supplied `!` without a breaking description fails Footers; unknown breaking intent needs author input rather than a fabricated claim.
 
-Never emit secrets, credentials, customer PII, sensitive internal hostnames/IPs/paths, or full diagnostic dumps anywhere in the report. Remove full diagnostic dumps and redact sensitive values even in validate mode. Identify the affected part without reproducing forbidden content and report the underlying violation. Removal or redaction alone does not make an unsafe message compliant.
+Never emit secrets, credentials, customer PII, sensitive internal hostnames/IPs/paths, or full diagnostic dumps anywhere in the report. Remove full diagnostic dumps and redact sensitive values even in validate mode. In a non-BLOCK report, identify any message part containing excluded content without reproducing it and report the underlying violation. If excluded content occurs only in a supplied diff/change description or other inspected source, use an `Input` finding in the non-BLOCK report; exclude it from the message and do not invent a failing message part. Removal or redaction alone does not make an unsafe message compliant.
 
 ## Status, Severity and Verdict
 
 Part status, first matching rule: `needs-author-input` when missing required author facts or undetermined required message rules prevent completion; `noncompliant` when an assessed violation remains uncorrected, including validate-mode violations despite disclosure removal/redaction; `rewritten` in draft/audit-rewrite mode for newly drafted nonempty parts or any correction, including deleting an invalid part; otherwise `compliant` for passing unchanged text or a permitted omission already present in the supplied message or intentionally selected while drafting. Permitted omissions include absent Body under selected rules (trivial or nontrivial) and optional absent Footers. Deletion as a correction takes precedence over the compliant-omission branch.
 
-Finding severity, first matching rule: `error` for an evidenced contract violation or forbidden disclosure, including corrected violations; otherwise `warning` for unresolved required author facts or message rules; otherwise `information` for convention evidence/assumptions. These severities do not replace per-part status or check results.
+Finding severity, first matching rule: `error` for an evidenced contract violation, forbidden disclosure, or an `Input` finding about excluded source content, including corrected violations; otherwise `warning` for unresolved required author facts or message rules; otherwise `information` for convention evidence/assumptions. These severities do not replace per-part status or check results.
 
 Verdict precedence: `BLOCK` only for unusable input; otherwise `CONCERNS` if any part is rewritten, noncompliant, or needs-author-input, a split is recommended, or forbidden content was found; otherwise `CLEAN`. Informational convention notes alone do not prevent CLEAN.
 
 ## Output
 
-Use these exact markers in order; do not substitute labels:
+Use these exact markers in order; do not substitute labels. In every report, replace every report-template placeholder with concrete content, including both BLOCK fields; do not copy template placeholders literally. Preserve literal angle-bracket text in supplied messages:
 
 - `## Commit Message Quality Report`
 - `Verdict:` — `CLEAN`, `CONCERNS`, or `BLOCK`.
@@ -55,7 +55,7 @@ Use these exact markers in order; do not substitute labels:
   - `Subject:` result is `pass`, `pass (length: <N> chars, over 50)`, or `fail (reason)`. Replace `<N>` with the measured whole-subject character count as a decimal integer.
   - `Body:` result is `pass`, `fail (reason)`, or `n/a (trivial)`.
   - `Footers:` result is `pass`, `fail (reason)`, or `none`.
-- `### Findings` — bullets `<part>: <severity> — <violation and correction/input needed>`, plus `Convention: information — <evidence or assumption>`.
+- `### Findings` — bullets `<anchor>: <severity> — <violation and correction/input needed>`, with anchor `Subject`, `Body`, `Footers`, or `Input`; use `Input` only for excluded source content outside the message parts. Also include `Convention: information — <evidence or assumption>`.
 - `### Split recommendation` — proposed commits or `- None`.
 - `### Needs author input` — exact missing facts or required message rules or `- None`.
 
@@ -64,7 +64,7 @@ Use these exact markers in order; do not substitute labels:
 - The checklist gates completion. Preserve all normal-path headings, field order and exact enum values; use bullets outside the message fence, with `- None` for an empty list.
 - Check results describe the emitted message in draft/audit-rewrite mode and the supplied message in validate mode. Successful corrections can have `pass — rewritten`; preserved violations use `fail (reason) — noncompliant`. Unknown author facts or undetermined required message rules use `fail (missing fact or rule) — needs-author-input`. Required-rule uncertainty takes precedence over compliant omissions; when affected parts are unknown, all three checks use `fail (missing rule or affected parts) — needs-author-input`. For a permitted absent Body, use `n/a (trivial)` for a trivial change or `pass` for a nontrivial change allowed by selected rules. For permitted absent Footers, use `none`. Append the selected part status: `rewritten` when absence results from a correction; `compliant` for unchanged absence or intentional omission while drafting. Unresolved required author facts or message rules take precedence over these passing absence results.
 - In validate mode, preserve safe compliant text verbatim; do not rewrite except required disclosure removal/redaction. Report forbidden-content removal or redaction without reproducing that content or falsely passing the original.
-- Findings include every corrected, preserved, or unresolved violation; Needs author input contains every unresolved author fact or required message rule. A CLEAN report contains only informational convention notes, no split, and no author questions.
+- Findings include every corrected, preserved, or unresolved violation and every excluded-source-content `Input` finding; Needs author input contains every unresolved author fact or required message rule. An `Input` finding requires `CONCERNS`, has no part status, and does not add a fourth check or change otherwise compliant message-part checks. A CLEAN report contains only informational convention notes, no split, and no author questions.
 - Return one message for the dominant change and a split recommendation when required. Do not claim a commit was created, code was reviewed, or validation ran when it did not.
 
 ## Error Handling
