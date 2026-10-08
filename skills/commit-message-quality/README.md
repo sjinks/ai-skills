@@ -4,7 +4,7 @@
 
 This read-only skill applies a whole-subject 72-character limit, conventional-by-default grammar, a why-focused body, and breaking-change/footer rules. It recommends splits for mixed changes without rewriting history or creating commits.
 
-Validation preserves the message except sensitive-value redaction and records failed parts as `noncompliant`. Drafting and repair use `rewritten`; unresolved facts use `needs-author-input`. The distinctive report keeps Subject/Body/Footers statuses and checks separate from finding severity. Missing required input produces a reduced `BLOCK` report.
+Validation preserves the message except required removal or redaction of forbidden content and records failed parts as `noncompliant`. Drafted nonempty parts and repairs use `rewritten`; permitted absent trivial Body or absent Footers use `compliant` in every mode; unresolved facts use `needs-author-input`. The distinctive report keeps Subject/Body/Footers statuses and checks separate from finding severity. Missing required input produces a reduced `BLOCK` report.
 
 The core contains all normal-path decisions, output labels and failure rules. References hold type-selection illustrations and sourced Git cleanup details. Repository prose is unwrapped; commit-body wrapping remains a caller-overridable default.
 

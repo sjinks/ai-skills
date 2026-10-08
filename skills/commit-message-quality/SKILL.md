@@ -20,7 +20,7 @@ description: >-
 
 ## Workflow
 
-1. Select the requested operation. Draft from a supplied diff/change description when no message exists. Audit/rewrite a supplied draft when repair is requested. Validate when asked only to check a message: preserve it except required sensitive-value redaction; report corrections without applying them. Follow Error Handling when usable input is unavailable.
+1. Select the requested operation. Draft from a supplied diff/change description when no message exists. Audit/rewrite a supplied draft when repair is requested. Validate when asked only to check a message: preserve it except removal or redaction required by the disclosure restrictions in Contract; report corrections without applying them. Follow Error Handling when usable input is unavailable.
 2. Detect convention before checking grammar. Explicit user convention wins, then repository configuration, then consistent history. Use `plain` only for explicit rejection of Conventional Commits or consistently non-conventional history. Otherwise use `conventional`, including empty/unknown/mixed history. State the evidence or assumption in Findings even when all parts pass.
 3. Check Subject, Body, and Footers under the contract. Read [types and examples](references/types-and-examples.md) when type selection or an illustration is needed. For mixed concerns, recommend a split and draft/rewrite only the dominant change; validate keeps the supplied message.
 4. Assign each part a status and check result. Ask only for author facts required to assess or complete the message; omit optional unknown issue links or attribution instead of blocking; do not invent issue keys, breaking-change claims, attribution, signoffs, or test evidence. Select the verdict, emit the report, and apply the checklist. Stop after one report.
@@ -33,11 +33,11 @@ Body: separate from subject by a blank line; explain why and any non-obvious con
 
 Footers: include only real issue references (`Closes #123`, `Fixes #456`, `Refs #789`, or required project form) and real attribution/signoff trailers. Every breaking change requires `BREAKING CHANGE: <description>` in either mode; conventional mode also requires `!`. A supplied `!` without a breaking description fails Footers; unknown breaking intent needs author input rather than a fabricated claim.
 
-Never emit secrets, credentials, customer PII, sensitive internal hostnames/IPs/paths, or full diagnostic dumps anywhere in the report. Redact sensitive values even in validate mode, identify the affected part without quoting the values, and report the underlying violation. Redaction alone does not make an unsafe message compliant.
+Never emit secrets, credentials, customer PII, sensitive internal hostnames/IPs/paths, or full diagnostic dumps anywhere in the report. Remove full diagnostic dumps and redact sensitive values even in validate mode. Identify the affected part without reproducing forbidden content and report the underlying violation. Removal or redaction alone does not make an unsafe message compliant.
 
 ## Status, Severity and Verdict
 
-Part status: `compliant` for an unchanged passing part; `rewritten` for a corrected part in draft/audit-rewrite mode (newly drafted parts also use this status); `noncompliant` for a failing part left uncorrected, including validate-mode failure; `needs-author-input` when missing author facts prevent completion. In validate mode, redaction preserves the underlying `noncompliant` or `needs-author-input` status.
+Part status: `compliant` for an unchanged passing part; `rewritten` for a corrected part in draft/audit-rewrite mode (newly drafted nonempty parts also use this status; permitted absent trivial Body or absent Footers use `compliant` in draft, audit-rewrite, and validate); `noncompliant` for a failing part left uncorrected, including validate-mode failure; `needs-author-input` when missing author facts prevent completion. In validate mode, removal or redaction preserves the underlying `noncompliant` or `needs-author-input` status.
 
 Finding severity: `error` for a contract violation or forbidden disclosure, `warning` for unresolved author facts, `information` for convention evidence/assumptions. These severities do not replace per-part status or check results.
 
@@ -63,7 +63,7 @@ Use these exact markers in order; do not substitute labels:
 
 - The checklist gates completion. Preserve all normal-path headings, field order and exact enum values; use bullets outside the message fence, with `- None` for an empty list.
 - Check results describe the emitted message in draft/audit-rewrite mode and the supplied message in validate mode. Successful corrections can have `pass — rewritten`; preserved violations use `fail (reason) — noncompliant`. Unknown author facts use `fail (missing fact) — needs-author-input`. A compliant absent trivial body uses `n/a (trivial) — compliant`; compliant absent footers use `none — compliant`.
-- Preserve safe compliant text verbatim; do not rewrite during validation. Report sensitive-value redaction without exposing the values or falsely passing the original.
+- Preserve safe compliant text verbatim; do not rewrite during validation. Report forbidden-content removal or redaction without reproducing that content or falsely passing the original.
 - Findings include every corrected, preserved, or unresolved violation; Needs author input contains every unresolved author fact. A CLEAN report contains only informational convention notes, no split, and no author questions.
 - Return one message for the dominant change and a split recommendation when required. Do not claim a commit was created, code was reviewed, or validation ran when it did not.
 

@@ -28,7 +28,7 @@ Vague draft, Conventional mode:
 
 Input subject: `fixed login bug`, no body, change refreshes expired sessions before retry.
 
-- Subject: fail (type, mood) — `fixed` is past tense and there is no type.
+Input diagnosis: `fixed` is past tense and there is no type. The corrected output below uses `Subject: pass — rewritten`; its newly written body also uses `Body: pass — rewritten`, and omitted optional footers use `Footers: none — compliant`.
 - Rewrite:
 
 ```text
@@ -36,8 +36,6 @@ fix(auth): refresh expired sessions before retry
 
 Expired sessions failed before the refresh path could renew the token,
 forcing users back through login. Refresh on the retry path instead.
-
-Closes #214
 ```
 
 Mixed change, split recommended:
