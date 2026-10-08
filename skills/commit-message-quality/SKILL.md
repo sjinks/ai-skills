@@ -55,7 +55,7 @@ Use these exact markers in order; do not substitute labels. In every report, rep
   - `Subject:` result is `pass`, `pass (length: <N> chars, over 50)`, or `fail (reason)`. Replace `<N>` with the measured whole-subject character count as a decimal integer.
   - `Body:` result is `pass`, `fail (reason)`, or `n/a (trivial)`.
   - `Footers:` result is `pass`, `fail (reason)`, or `none`.
-- `### Findings` — bullets `<anchor>: <severity> — <violation and correction/input needed>`, with anchor `Subject`, `Body`, `Footers`, or `Input`; use `Input` only for excluded source content outside the message parts. For required non-violating cleanup advice, use `Body: information — <cleanup preservation status and advice>`; say `unverified` when effective cleanup is unknown. Also include `Convention: information — <evidence or assumption>`.
+- `### Findings` — bullets `<anchor>: <severity> — <detail>`, with anchor `Subject`, `Body`, `Footers`, `Input`, or `Convention`. For `error`, detail names the violation and correction. For `warning`, detail names the unresolved fact or message rule and required input. Use `Input` only for excluded source content outside the message parts, always with `error`. For required non-violating cleanup advice, use `Body: information — <cleanup preservation status and advice>`; say `unverified` when effective cleanup is unknown. Always include `Convention: information — <evidence or assumption>`; `Convention` uses only `information`.
 - `### Split recommendation` — proposed commits or `- None`.
 - `### Needs author input` — exact missing facts or required message rules or `- None`.
 
