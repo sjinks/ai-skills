@@ -2,7 +2,7 @@ When to read: when selecting a conventional type, classifying a removal, or illu
 
 # Types and Examples
 
-The core defines required grammar, decisions and report structure. The type descriptions are repository style policy; examples are non-normative and use hypothetical supplied issue/change context.
+The core defines rule precedence, decisions and report structure. The type descriptions and removal choices below are fallback message defaults; apply caller and readable repository rules first under the core precedence. Examples are non-normative and use hypothetical supplied issue/change context.
 
 ## Conventional type selection
 
