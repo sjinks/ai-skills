@@ -6,11 +6,10 @@ This read-only skill checks sibling fields, mirrored use sites, inverse operatio
 
 `standard` and `exhaustive` cover all 18 axes; `quick` covers target-specific axes, blockers, and high-risk concerns with an omitted-axis summary. Missing required inputs produce a reduced report and one question. Deferrals require an explicit owner/team and reason; absent optional deferral metadata preserves the `fix-now` default.
 
-The core owns workflow, failure branches, values, report labels, and the completion checklist. References contain the detailed catalogue and a worked report. The former workflow path remains a compatibility link without duplicating policy.
+The core owns workflow, failure branches, values, report labels, and the completion checklist. References contain the detailed catalogue and a worked report.
 
 ## Files
 
 - [`SKILL.md`](SKILL.md) — activation, workflow, decision rules, output, and completion gate.
 - [`references/catalogue.md`](references/catalogue.md) — the 18 canonical axes and candidate illustrations.
 - [`references/examples.md`](references/examples.md) — a complete standard report with hypothetical evidence.
-- [`WORKFLOW.md`](WORKFLOW.md) — compatibility link to the reorganized package.
