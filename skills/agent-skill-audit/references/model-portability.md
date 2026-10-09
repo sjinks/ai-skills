@@ -18,9 +18,9 @@ Use these verdicts per model:
 - `Unsuitable`
 - `Not assessed`
 
-Assess each listed target independently with the checks below. Keep the default roster order in reports, but do not treat it as a benchmark ranking or infer compatibility from another model's result.
+Assess each selected target independently. For a target with a profile in this package, use its checks below. For an unprofiled target, apply Cross-Provider Checks without inferring model-specific behavior, emit `Not assessed` in its compatibility row, and record the missing profile under `Limitations` in `## Audit Scope`. Assess the readable artifact normally; this missing profile alone does not require `Blocked`. If all other readiness conditions pass, use `Ready with limitations`; otherwise retain the core's applicable revision or blocking verdict. Keep the default roster order in reports, but do not treat it as a benchmark ranking or infer compatibility from another model's result.
 
-Current Anthropic additions were checked against the [models overview](https://platform.claude.com/docs/en/models/overview) on 2026-10-09; earlier supported profiles remain in the roster.
+Current Anthropic additions were checked against the [models overview](https://platform.claude.com/docs/en/models/overview) on 2026-10-09; Haiku 5.5 replaces Haiku 4.5, while the other earlier default profiles remain in the roster.
 
 Do not infer one total capability order across Claude Opus and Fable profiles. Opus targets complex reasoning and synthesis; Fable targets long-horizon autonomy.
 
