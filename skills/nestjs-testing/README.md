@@ -6,7 +6,8 @@ This skill is aimed at verifying NestJS behavior with tests: picking the right l
 
 It helps an assistant:
 
-- restate the behavior to verify, enumerate happy/error/async/boundary cases, and assign each the lowest test layer that proves it
+- distinguish plan-only reports from implementation; include proposed code only when explicitly requested
+- identify the behavior to verify, enumerate applicable cases, and assign each the lowest test layer that proves it without mandatory e2e smoke tests
 - build a testing module with `@nestjs/testing`: keep real providers where needed, mock repositories via `getRepositoryToken`/`getModelToken`, and override guards, pipes, interceptors, and filters
 - use idiomatic patterns for service unit tests, Supertest e2e tests, async-rejection assertions, and idempotent message-handler tests
 - avoid anti-patterns such as asserting private call counts, skipping the production `ValidationPipe` in e2e, hitting a real database without managed fixtures, and unawaited async expectations
@@ -14,4 +15,5 @@ It helps an assistant:
 
 ## Files
 
-- [`SKILL.md`](SKILL.md) — the full skill definition.
+- [`SKILL.md`](SKILL.md) — operational workflow, decision rules, output contract, and completion gates.
+- [`references/patterns.md`](references/patterns.md) — partial implementation and test illustrations.

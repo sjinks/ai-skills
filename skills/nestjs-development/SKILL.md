@@ -1,12 +1,14 @@
 ---
 name: nestjs-development
-description: "Use when: designing, scaffolding, implementing, refactoring, or debugging NestJS applications; building modules, controllers, services, providers, guards, interceptors, pipes, exception filters, DTOs, validation, configuration, ORM integration (TypeORM, Prisma, Mongoose, Drizzle, MikroORM, or similar), authentication, authorization, the test setup that ships with a feature, microservices, or production wiring. Dedicated test design, repair, or coverage work belongs to a testing skill, not this one."
+description: "Use when: designing, scaffolding, implementing, refactoring, or debugging NestJS applications: modules, controllers, services, DI, request lifecycle, DTOs, ORM integration, auth, configuration, microservices, and production wiring, including tests that ship with a feature. Excludes dedicated test work, framework version upgrades, and review-only requests."
 argument-hint: "Describe the feature or change, target module, runtime/version, ORM choice, auth strategy, transports, and existing project conventions."
 ---
 
 # NestJS Development
 
 Use this skill when designing or implementing NestJS code: a new feature, a new module, an architectural change, a refactor, or a bug fix that requires reasoning about the framework. The goal is to produce idiomatic, secure, and testable NestJS code that fits the project's existing conventions.
+
+**UTILITY SKILL.** INVOKES: repository inspection and scoped edits/checks. FOR SINGLE OPERATIONS: Implement or propose scoped NestJS changes and their validation.
 
 ## Boundaries
 
@@ -32,9 +34,14 @@ Use this skill when any of these apply:
 - Bootstrap changes: `main.ts`, global pipes/filters/interceptors, configuration, environment loading.
 - Adding microservices transports, message handlers, or background workers.
 
+## DO NOT USE FOR:
+
+- Dedicated test-only work, framework version upgrades, or review-only requests.
+- Changes outside the requested feature or defect.
+
 ## Required Input Context
 
-Collect before generating or proposing code:
+Infer the following from the repository for the surfaces the task touches. Do not request unrelated context. If a missing fact changes the implementation or validation choice, ask for that fact before making the dependent change:
 
 - Feature intent and acceptance criteria.
 - Target module path and surrounding modules already in the codebase.
@@ -58,151 +65,18 @@ Collect before generating or proposing code:
 
 ## Build Workflow
 
-1. **Restate intent and acceptance criteria** in one or two sentences.
-2. **Locate or create the module.** Place the feature in its own module; export only what other modules genuinely need.
-3. **Define DTOs.** Request DTOs with `class-validator`; response DTOs or serializers.
-4. **Implement the service.** Encapsulate business logic; depend on injected providers/repositories; throw typed exceptions.
-5. **Wire the controller.** Bind HTTP method, path, status codes, validation, Swagger decorators, and guards. Keep it thin.
-6. **Wire DI.** Add providers and exports; pick the right scope; avoid `forwardRef` unless modules truly cannot be split.
-7. **Cover cross-cutting concerns.** Add or rely on existing guards, interceptors, pipes, and exception filters.
-8. **Write tests.** Unit tests for services with mocked dependencies; integration/e2e for the controller path.
-9. **Validate.** Run typecheck, lint, unit tests, then e2e if relevant. Resolve issues at the lowest layer that exposes them.
-10. **Document.** Add Swagger annotations and brief module/endpoint docs if the project expects them.
+For proposal-only requests, specify the scoped implementation and planned checks without editing files or running checks. For implementation requests, follow the workflow below.
 
-## Common Patterns
+1. Identify the requested behavior and acceptance criteria. Inspect the existing implementation and project conventions.
+2. Make the smallest coherent change within that scope. Use an existing feature module when it owns the behavior; create a module only for a new feature boundary. Preserve unrelated wiring.
+3. Apply the architecture principles to each touched surface. If request/response contracts change, update their DTOs and controller bindings. If dependencies change, update DI. If authentication, validation, serialization, or error handling changes, update the corresponding lifecycle wiring. Do not create untouched components to fill a workflow.
+4. Add regression coverage at the lowest layer that exercises the changed risk. Use integration/e2e coverage when the change depends on controller or module wiring; reuse existing coverage when it already proves the behavior.
+5. Run the project's applicable typecheck, lint, and test commands. Respect command dependencies; independent checks need no fixed order. Record each command and result. If a check fails, diagnose it; if it cannot run, state the blocker and the behavior left unverified. Do not report attempted checks as passing.
+6. If the public contract changes and the project maintains endpoint/module documentation, update that documentation. Stop when the scoped behavior is implemented and applicable checks pass, or report the remaining blocker.
 
-### Feature module skeleton
+## Examples
 
-The example below leaves the `imports` array empty and uses an inline
-comment as a placeholder to stay ORM-agnostic. In a real project,
-replace the comment with whatever the project already uses (for
-example `TypeOrmModule.forFeature([User])`,
-`MongooseModule.forFeature([{ name: User.name, schema: UserSchema }])`,
-`PrismaModule`, or no ORM import at all if the repository is a
-hand-rolled provider).
-
-```typescript
-@Module({
-  imports: [
-    // Project-specific ORM/feature wiring goes here. Examples:
-    //   TypeOrmModule.forFeature([User])
-    //   MongooseModule.forFeature([{ name: User.name, schema: UserSchema }])
-    //   PrismaModule
-    //   (omit entirely for a hand-rolled UsersRepository provider)
-  ],
-  controllers: [UsersController],
-  providers: [UsersService, UsersRepository],
-  exports: [UsersService],
-})
-export class UsersModule {}
-```
-
-### Thin controller with validation and OpenAPI
-
-```typescript
-@ApiTags('users')
-@Controller('users')
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
-
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a new user' })
-  @ApiResponse({ status: HttpStatus.CREATED, type: UserResponseDto })
-  create(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
-    return this.usersService.create(dto);
-  }
-
-  @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string): Promise<UserResponseDto> {
-    return this.usersService.findOne(id);
-  }
-}
-```
-
-### Service with typed errors
-
-```typescript
-@Injectable()
-export class UsersService {
-  constructor(private readonly users: UsersRepository) {}
-
-  async create(dto: CreateUserDto): Promise<UserResponseDto> {
-    if (await this.users.findByEmail(dto.email)) {
-      throw new ConflictException('Email already registered');
-    }
-    const user = await this.users.create(dto);
-    return UserResponseDto.from(user);
-  }
-
-  async findOne(id: string): Promise<UserResponseDto> {
-    const user = await this.users.findById(id);
-    if (!user) throw new NotFoundException(`User ${id} not found`);
-    return UserResponseDto.from(user);
-  }
-}
-```
-
-### Custom decorator that composes guards and metadata
-
-```typescript
-export const Auth = (...roles: Role[]) =>
-  applyDecorators(UseGuards(JwtAuthGuard, RolesGuard), Roles(...roles));
-```
-
-### Global pipes, filters, and interceptors at bootstrap
-
-```typescript
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: { enableImplicitConversion: true },
-    }),
-  );
-  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
-  app.useGlobalFilters(new HttpExceptionFilter());
-
-  await app.listen(process.env.PORT ?? 3000);
-}
-bootstrap();
-```
-
-### Config with schema validation
-
-```typescript
-ConfigModule.forRoot({
-  isGlobal: true,
-  load: [configuration],
-  validate: validateEnv,
-});
-```
-
-### Unit test for a service
-
-```typescript
-describe('UsersService', () => {
-  let service: UsersService;
-  const users = { findByEmail: jest.fn(), create: jest.fn(), findById: jest.fn() };
-
-  beforeEach(async () => {
-    const moduleRef = await Test.createTestingModule({
-      providers: [UsersService, { provide: UsersRepository, useValue: users }],
-    }).compile();
-    service = moduleRef.get(UsersService);
-    jest.clearAllMocks();
-  });
-
-  it('throws ConflictException when email exists', async () => {
-    users.findByEmail.mockResolvedValue({ id: '1' });
-    await expect(service.create({ email: 'a@b.c', password: 'x' })).rejects.toThrow(ConflictException);
-  });
-});
-```
+Read [patterns](references/patterns.md) when implementing or testing a matching surface; it illustrates modules, providers, lifecycle wiring, and assertions. Examples do not expand the task scope.
 
 ## Anti-Patterns to Avoid
 
@@ -252,19 +126,23 @@ propose a change of ORM, auth strategy, or test layering just to match a hint be
 
 ## Output Format
 
-When proposing or generating an implementation, return in this order:
+Return these labels in this order. Include only components the task requires. For repository edits, link changed files under `Code` instead of repeating their complete contents. Include proposed code only when the caller explicitly requests code. For a proposal without requested code, write `Not implemented — proposal-only request` under `Code`:
 
 1. **Intent and scope:** one or two sentences.
 2. **Module layout:** files to add or modify, with paths.
-3. **Code:** module, controller, service, DTOs, and tests in that order; keep code idiomatic and minimal.
+3. **Code:** changed-file links for repository edits; proposed components only when code is explicitly requested, idiomatic and minimal; for proposals without requested code, `Not implemented — proposal-only request`.
 4. **DI and bootstrap notes:** any global pipe/filter/interceptor, config, or env additions.
-5. **Tests:** unit tests for service logic; integration/e2e for the controller path.
-6. **Validation steps:** typecheck, lint, unit tests, e2e (in this order).
+5. **Tests:** changed-test links for implementation; planned coverage for proposals, with proposed test code only when explicitly requested. Use unit coverage for service logic and integration/e2e for applicable controller risks.
+6. **Validation steps:** commands and results, or checks not run with reasons. Include integration/e2e only when the changed risk requires that layer.
 7. **Risks and follow-ups:** anything intentionally deferred, with a short rationale.
+
+## Error Handling
+
+If the behavior or target is unavailable, stop dependent edits and report the missing input under the existing output labels. If only part of the task is blocked, complete independent authorized work and identify the blocked part. Record unavailable validation under `Validation steps`; do not fabricate code, test results, or readiness.
 
 ## Definition of Done
 
-A NestJS change is not ready until:
+For proposals, define how each applicable gate will be checked and report execution as not run; do not claim implementation readiness. For implemented changes, apply these gates to the surfaces the change touches. Unchanged components do not require new scaffolding. A NestJS change is not ready until:
 
 - Intent and scope are explicit.
 - The module is feature-scoped with clear `imports`, `controllers`, `providers`, and `exports`.

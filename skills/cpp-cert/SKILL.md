@@ -55,61 +55,11 @@ Default to `standard`. `quick` still reports missing required context, blockers,
 
 ## Decision Rules
 
-The Checklist below is the gating source of truth when these rules overlap; the rules explain rationale. Each rule names the CERT rule ID and the clang-tidy check it encodes. The subheadings match the Checklist sections so a rule and its gating item are found together.
+The Checklist is the gating source of truth. Evaluate every applicable item; do not skip a category merely because its explanations are in a reference.
 
 Cross-cutting suppression rule: a CERT finding may be downgraded only by a documented, rule-specific exception (a CERT "exception" clause, an explicit `NOLINT` with rationale, or a cast-to-void for an intentionally ignored return where the rule permits it). An undocumented suppression is itself a finding.
 
-### Declarations And Namespaces
-
-- When code adds declarations to namespace `std` or `posix` (other than the permitted explicit specializations of user-defined-type templates), it is undefined behavior - remove the modification (DCL58-CPP, `cert-dcl58-cpp`).
-- When an identifier uses a reserved form (leading underscore + uppercase or double underscore, or names reserved by the implementation), rename it (DCL37-C/DCL51-CPP, `cert-dcl37-c`/`cert-dcl51-cpp`).
-- When a class overloads a non-placement `operator new`, it must overload the corresponding `operator delete` in the same scope, and vice versa - add the missing partner (DCL54-CPP, `cert-dcl54-cpp`).
-- When a runtime `assert` tests a condition that is constant at compile time, use `static_assert` instead - it fails the build rather than at run time (DCL03-C, `cert-dcl03-c`).
-- When a function is defined as a C-style variadic (`...`) function, replace it with a C++ variadic template / parameter pack, which is type-safe (DCL50-CPP, `cert-dcl50-cpp`).
-- When an unnamed (anonymous) namespace appears in a header, every translation unit including it gets distinct symbols, risking ODR violations and bloat - move it to a source file or use `inline`/named entities (DCL59-CPP, `cert-dcl59-cpp`).
-- When an integer or floating-point literal uses a lowercase `l`-family suffix (`l`, `ll`, `lu`, `llu`), uppercase it (`L`, `LL`, ...) so it cannot be misread as a digit `1` (DCL16-C, `cert-dcl16-c`).
-
-### Error Handling And Exceptions
-
-- When a checked standard-library function's return value is ignored, consume it and handle the error; if intentionally discarded and the rule permits, cast to `void` with a comment (ERR33-C, `cert-err33-c` - ships a CERT-specified function list; the related `bugprone-unused-return-value` is a separate, user-configured check with different defaults).
-- When converting a string to a number with `atoi`/`atol`/`atoll`/`scanf`-family without error checking, use `strtol`-family (or C++ facilities) and check the result (ERR34-C, `cert-err34-c`).
-- When `setjmp`/`longjmp` is used, replace it with structured control flow or C++ exceptions; `longjmp` across automatic objects does not run destructors and is undefined in many cases (ERR52-CPP, `cert-err52-cpp`).
-- When a `static`/`thread_local` object's initializer can throw, an exception thrown before `main` cannot be caught and calls `std::terminate` - make the initializer non-throwing or defer it (ERR58-CPP, `cert-err58-cpp`).
-- When a type is thrown as an exception, its copy constructor must not throw (a throwing copy during exception propagation calls `std::terminate`) - make the exception type's copy constructor `noexcept` (ERR60-CPP, `cert-err60-cpp`).
-- When throwing, throw an anonymous temporary by value; when catching a non-trivial type, catch by reference, to avoid slicing and extra copies (ERR09-CPP/ERR61-CPP, `cert-err09-cpp`/`cert-err61-cpp`).
-
-### Memory And Object Operations
-
-- When `memset`/`memcpy`/`memmove`/`memcmp` (or `str*` equivalents) is applied to a non-trivial type, use the type's constructors, assignment, and comparison operators instead; raw byte operations bypass invariants and vtables (OOP57-CPP, `cert-oop57-cpp`).
-- When allocating an over-aligned type (alignment greater than fundamental) via the default `operator new`, the returned storage may be under-aligned - provide an aligned allocation path (MEM57-CPP, `cert-mem57-cpp`).
-- When a user-defined copy assignment operator on a class with a pointer/array/owning field does not guard against self-assignment, add a self-check or use copy-and-swap / copy-and-move (OOP54-CPP, `cert-oop54-cpp`).
-- When a copy constructor mutates its source argument, the copy is not a copy - make the source parameter `const` and copy without modifying it (OOP58-CPP, `cert-oop58-cpp`).
-- When a move constructor's mem-initializer list initializes a base or member through its copy constructor instead of its move constructor, it silently copies - move the base/member (OOP11-CPP, `cert-oop11-cpp`; the broader move-semantics-cost rationale is general performance work, mapped here only for the CERT rule).
-- When pointer arithmetic is performed on a pointer whose static type declares a virtual function, the dynamic type may have a different size, giving undefined behavior - index through the correct dynamic type or make the leaf type `final` (CTR56-CPP, `cert-ctr56-cpp`).
-- When a value already scaled by `sizeof`/`alignof`/`offsetof` is added to or subtracted from a pointer, the arithmetic scales it again by the pointee size, producing a doubly-scaled (often out-of-bounds) address - add the element count directly, not the byte count (ARR39-C, `cert-arr39-c`).
-- When a `FILE` or `pthread_mutex_t` object is declared by value or dereferenced as a value, it must not be copied - hold and pass it only through a pointer (FIO38-C, `cert-fio38-c`).
-
-### Expressions And Types
-
-- When a floating-point variable is used as a loop counter, accumulated rounding makes the iteration count unpredictable - use an integer counter (FLP30-C, `cert-flp30-c`).
-- When a `signed char` is converted to a wider integer (assignment, comparison with `unsigned char`, or array subscript), cast through `unsigned char` first so non-ASCII bytes do not become negative (STR34-C, `cert-str34-c`).
-- When `memcmp` compares whole-object representations of types with padding, non-standard layout, or floating-point members, compare value representations field-by-field instead - padding and `-0.0/NaN` bits make the byte comparison wrong (EXP42-C/FLP37-C, `cert-exp42-c`/`cert-flp37-c`).
-- When an assignment (`=`) appears inside an `if` condition where a comparison (`==`) was probably meant, use `==`, or wrap a deliberate assignment in extra parentheses (EXP45-C; clang-tidy's `bugprone-assignment-in-if-condition` covers `if` conditions only and there is no dedicated `cert-exp45-c` check, so loop-condition and logical-operand cases need manual review).
-- When an enum mixes explicitly-initialized and implicitly-valued enumerators, two enumerators can silently collide; initialize none, only the first, or all enumerators consistently (INT09-C, `cert-int09-c`).
-
-### Concurrency And Signals
-
-- When `wait`/`wait_for`/`wait_until`/`cnd_wait`/`cnd_timedwait` is called outside a loop that re-checks the condition predicate (or without a predicate argument), wrap it so spurious wakeups cannot proceed past an unmet condition (CON54-CPP/CON36-C, `cert-con54-cpp`/`cert-con36-c`).
-- When a signal handler calls non-async-signal-safe functions, uses C++-only constructs, or has non-C linkage, restrict it to async-safe functions and a plain C-linkage POD function (SIG30-C/MSC54-CPP, `cert-sig30-c`/`cert-msc54-cpp`; some C++-specific diagnostics are standard-dependent, so confirm the check's behavior for the target standard rather than assuming it is fully active or fully off).
-- When a thread is terminated by sending `SIGTERM` via `pthread_kill`, it kills the whole process - use a different mechanism or signal (POS44-C, `cert-pos44-c`).
-- When `pthread_setcanceltype` sets `PTHREAD_CANCEL_ASYNCHRONOUS`, switch to `PTHREAD_CANCEL_DEFERRED`; async cancellation can interrupt at an unsafe point (POS47-C, `cert-pos47-c`).
-
-### Security-Sensitive API
-
-- When `system()` or `popen()`/`_popen()` runs a command processor (with a non-null command), replace it with a direct exec API that does not invoke a shell - it is a command-injection vector (ENV33-C, `cert-env33-c`).
-- When a deprecated or non-bounds-checked C function (`strcpy`, `strcat`, `sprintf`, `gets`, `asctime`, ...) is used, replace it with its bounds-checked Annex K variant or a safe alternative and check the result (MSC24-C/MSC33-C, `cert-msc24-c`/`cert-msc33-c`).
-- When `std::rand()`/`rand()` is used to generate pseudorandom numbers, use a `<random>` engine with proper distribution; `rand` has poor statistical quality and is unsuitable for security (MSC50-CPP/MSC30-C, `cert-msc50-cpp`/`cert-msc30-c`).
-- When a random-number engine is default-constructed, seeded with a constant, or left unseeded, seed it from a non-deterministic source (e.g. `std::random_device`) (MSC51-CPP/MSC32-C, `cert-msc51-cpp`/`cert-msc32-c`).
+Read [the rule catalog](references/rule-catalog.md) for each applicable category before choosing a CERT mapping or compliant alternative. It supplies analyzer names, exceptions, and standard-dependent qualifications; it does not replace the Checklist.
 
 ## Checklist
 
@@ -139,13 +89,13 @@ Cross-cutting suppression rule: a CERT finding may be downgraded only by a docum
 
 ### Concurrency And Signals
 
-- Condition waits are wrapped in predicate-checking loops.
+- Condition waits re-check the predicate in a loop or use a predicate-taking overload.
 - Signal handlers are async-safe, plain C-linkage, and free of C++-only constructs (for the applicable standard); threads are not terminated with `SIGTERM`; cancellation type is deferred, not asynchronous.
 
 ### Security-Sensitive API
 
 - No `system()`/`popen()` command-processor calls; deprecated/unsafe C functions are replaced with bounds-checked alternatives and checked.
-- Pseudorandom numbers use `<random>` with a properly seeded engine, not `std::rand` or an unseeded/constant-seeded generator.
+- Non-security pseudorandom numbers use a seed policy and distribution suited to the application. Preserve intentional fixed seeds for reproducible tests, with a documented test-only rationale for any suppression. When unpredictability is required, use a seed source sufficient for that requirement. Security-sensitive randomness uses a generator documented as sufficient for the application; replacing `std::rand` with an arbitrary `<random>` engine or adding a seed is not a security proof.
 
 ### Suppressions And Tests
 
@@ -161,10 +111,10 @@ Severity reflects the CERT risk class and exploitability/UB reachability, not ju
 - `MEDIUM`: a latent or context-bounded violation (self-assignment unguarded on a class that is unlikely to self-assign today, `signed char` widening on ASCII-only data, `std::rand` for non-security randomness) that future edits or inputs will amplify.
 - `LOW`: a hardening or hygiene issue (reserved-identifier naming, throw-by-value/catch-by-reference style where copies are cheap) with no current UB or security path.
 
-Verdicts:
+Verdicts (apply BLOCK first, then CONCERNS, otherwise CLEAN subject to the stated design-stage limitation):
 
 - `BLOCK`: missing required context, any `CRITICAL`, or any unmitigated `HIGH`.
-- `CONCERNS`: remaining `HIGH`/`MEDIUM` findings each have a documented exception, compensating control, or bounded reachability.
+- `CONCERNS`: no BLOCK condition applies, but any finding remains or an applicable checklist item is missing. This includes unmitigated MEDIUM/LOW findings and compensated HIGH findings. Record the justification or required correction per finding.
 - `CLEAN`: every applicable checklist item holds and fixed violations have regression coverage where feasible. For design-stage or definition-only targets with no tests yet, the best achievable verdict is `CONCERNS` with test expectations recorded per finding.
 
 A CERT finding must never be silently dropped because a fix is inconvenient: if remediation conflicts with a hard external constraint, record the residual risk and the documented exception rather than asserting compliance.
@@ -224,11 +174,7 @@ Findings:
 
 ## Examples
 
-- Unchecked return: `malloc(n); /* never tested */` ignores a NULL-on-failure result, risking a null dereference. Check the result before use, or cast to `void` only if the allocation is provably unnecessary. (ERR33-C.)
-- Raw memcpy on a non-trivial type: `std::memcpy(&dst, &src, sizeof(Widget));` where `Widget` has a `std::string` member corrupts the destination. Use copy assignment `dst = src;`. (OOP57-CPP.)
-- Throwing exception copy: an exception class with a `std::string` member copied by a throwing allocation can call `std::terminate` mid-propagation. Make the copy constructor `noexcept` (store the message in a `shared_ptr<const std::string>`). (ERR60-CPP.)
-- Command injection: `system(user_supplied)` runs a shell. Replace with `posix_spawn`/`exec*` and an argument vector, no shell. (ENV33-C.)
-- Polymorphic pointer arithmetic: `Base* b = derived_array; b += 1;` strides by `sizeof(Base)`, not the dynamic type, giving UB. Iterate as the concrete `Derived` type. (CTR56-CPP.)
+Read [examples](references/examples.md) for partial illustrations of common findings. They do not add requirements or authorize a transformation without the core safety checks.
 
 ## Definition Of Done
 
