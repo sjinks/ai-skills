@@ -6,6 +6,7 @@ This skill is aimed at designing, scaffolding, implementing, refactoring, or deb
 
 It helps an assistant:
 
+- distinguish proposal-only reports from implementation; include proposed code only when explicitly requested
 - identify the requested behavior and update only the affected feature surfaces, preserving unrelated wiring
 - apply architecture principles such as thin controllers, fat services, explicit DI, validation at the edge, typed errors, and configuration over code
 - use idiomatic patterns for modules, controllers, services, DTOs, custom decorators, global pipes/filters/interceptors at bootstrap, and config validation, plus the test setup that ships with a feature using `@nestjs/testing`

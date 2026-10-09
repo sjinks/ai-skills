@@ -95,7 +95,7 @@ Read [the rule catalog](references/rule-catalog.md) for each applicable category
 ### Security-Sensitive API
 
 - No `system()`/`popen()` command-processor calls; deprecated/unsafe C functions are replaced with bounds-checked alternatives and checked.
-- Non-security pseudorandom numbers use a properly seeded engine and suitable distribution. Security-sensitive randomness uses a generator documented as sufficient for the application; replacing `std::rand` with an arbitrary `<random>` engine or adding a seed is not a security proof.
+- Non-security pseudorandom numbers use a seed policy and distribution suited to the application. Preserve intentional fixed seeds for reproducible tests, with a documented test-only rationale for any suppression. When unpredictability is required, use a seed source sufficient for that requirement. Security-sensitive randomness uses a generator documented as sufficient for the application; replacing `std::rand` with an arbitrary `<random>` engine or adding a seed is not a security proof.
 
 ### Suppressions And Tests
 

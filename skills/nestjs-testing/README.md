@@ -6,6 +6,7 @@ This skill is aimed at verifying NestJS behavior with tests: picking the right l
 
 It helps an assistant:
 
+- distinguish plan-only reports from implementation; include proposed code only when explicitly requested
 - identify the behavior to verify, enumerate applicable cases, and assign each the lowest test layer that proves it without mandatory e2e smoke tests
 - build a testing module with `@nestjs/testing`: keep real providers where needed, mock repositories via `getRepositoryToken`/`getModelToken`, and override guards, pipes, interceptors, and filters
 - use idiomatic patterns for service unit tests, Supertest e2e tests, async-rejection assertions, and idempotent message-handler tests

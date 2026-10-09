@@ -65,7 +65,7 @@ If a unit test proves the changed behavior and no wiring risk remains, add or up
 
 ## Test Plan Workflow
 
-For plan-only requests, define cases, wiring, fixtures, and commands without editing files or running tests. Skip implementation and execution steps; report Run steps as proposed commands, not results. For test-writing or repair requests, follow all applicable steps below.
+For plan-only requests, define cases, wiring, fixtures, and commands without editing files or running tests. Skip file edits and test execution; report Run steps as proposed commands, not results. For test-writing or repair requests, follow all applicable steps below.
 
 1. **Restate the behavior to verify** and its acceptance criteria in one or two sentences.
 2. **Enumerate applicable cases:** happy path, each error path (not-found, conflict, forbidden, validation failure), boundary inputs, and async rejection. List idempotency/retry cases for message handlers.
@@ -105,19 +105,19 @@ Use these only when the project has no established convention. Existing test lay
 
 ## Output Format
 
-Return these labels in this order. For repository edits, link changed tests instead of repeating their complete contents; for a proposal, include the proposed test code:
+Return these labels in this order. For repository edits, link changed tests instead of repeating their complete contents. Include proposed test code only when the caller explicitly requests code. For a plan-only request without requested code, write `Not implemented — plan-only request` under `Tests`:
 
 1. **Behavior under test:** one or two sentences plus the acceptance criteria or bug it guards.
 2. **Case list:** each case with its assigned layer (unit / integration / e2e).
 3. **Testing module plan:** real providers kept, dependencies mocked, guards/pipes/filters overridden or reproduced.
-4. **Tests:** code at the assigned layer, idiomatic and minimal, assertions on observable behavior.
-5. **Fixtures:** factories, builders, fake clock/IDs introduced.
+4. **Tests:** changed-test links for repository edits; proposed code only when explicitly requested, at the assigned layer with assertions on observable behavior; for plan-only requests without requested code, `Not implemented — plan-only request`.
+5. **Fixtures:** factories, builders, fake clock/IDs introduced or planned.
 6. **Run steps:** focused commands and actual results, or proposed commands with reasons they were not run.
 7. **Coverage gaps:** behaviors still unverified, the layer each belongs to, and why deferred.
 
 ## Error Handling
 
-If the behavior or target is unavailable, stop dependent edits and report the missing input under the existing output labels. If only part of the task is blocked, complete independent authorized work and identify the blocked part. Record unavailable validation under the validation/run label; do not fabricate code, test results, or readiness.
+If the behavior or target is unavailable, stop dependent edits and report the missing input under the existing output labels. If only part of the task is blocked, complete independent authorized work and identify the blocked part. Record unavailable validation under `Run steps`; do not fabricate code, test results, or readiness.
 
 ## Definition of Done
 

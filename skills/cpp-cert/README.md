@@ -8,6 +8,7 @@ It helps an assistant:
 
 - audit declarations/namespaces, error handling and exceptions, memory and object operations, expressions and types, concurrency and signals, and security-sensitive API calls against the matching CERT rule
 - cite the CERT rule ID and the canonical `cert-<id>` clang-tidy check name so each finding is reproducible and optionally automatable
+- preserve intentional fixed seeds for reproducible tests while requiring sufficient seed unpredictability when the application requires it
 - separate undefined-behavior and security violations (higher severity) from latent or hygiene issues, and require a documented, rule-specific exception for any suppression
 - name CERT rules that need program analysis beyond clang-tidy's reach, and route out-of-scope performance, lifetime, or general-concurrency concerns instead of judging them here
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with per-finding CERT mappings, checklist status, test expectations, residual risk, and a deterministic insufficient-context template

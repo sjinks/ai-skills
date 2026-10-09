@@ -126,19 +126,19 @@ propose a change of ORM, auth strategy, or test layering just to match a hint be
 
 ## Output Format
 
-Return these labels in this order. Include only components the task requires. For repository edits, link changed files under Code instead of repeating their complete contents; for a proposal, include the proposed code:
+Return these labels in this order. Include only components the task requires. For repository edits, link changed files under `Code` instead of repeating their complete contents. Include proposed code only when the caller explicitly requests code. For a proposal without requested code, write `Not implemented — proposal-only request` under `Code`:
 
 1. **Intent and scope:** one or two sentences.
 2. **Module layout:** files to add or modify, with paths.
-3. **Code:** changed or proposed components; keep code idiomatic and minimal.
+3. **Code:** changed-file links for repository edits; proposed components only when code is explicitly requested, idiomatic and minimal; for proposals without requested code, `Not implemented — proposal-only request`.
 4. **DI and bootstrap notes:** any global pipe/filter/interceptor, config, or env additions.
-5. **Tests:** unit tests for service logic; integration/e2e for the controller path.
+5. **Tests:** changed-test links for implementation; planned coverage for proposals, with proposed test code only when explicitly requested. Use unit coverage for service logic and integration/e2e for applicable controller risks.
 6. **Validation steps:** commands and results, or checks not run with reasons. Include integration/e2e only when the changed risk requires that layer.
 7. **Risks and follow-ups:** anything intentionally deferred, with a short rationale.
 
 ## Error Handling
 
-If the behavior or target is unavailable, stop dependent edits and report the missing input under the existing output labels. If only part of the task is blocked, complete independent authorized work and identify the blocked part. Record unavailable validation under the validation/run label; do not fabricate code, test results, or readiness.
+If the behavior or target is unavailable, stop dependent edits and report the missing input under the existing output labels. If only part of the task is blocked, complete independent authorized work and identify the blocked part. Record unavailable validation under `Validation steps`; do not fabricate code, test results, or readiness.
 
 ## Definition of Done
 
