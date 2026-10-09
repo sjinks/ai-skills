@@ -8,7 +8,7 @@ argument-hint: "The failure description, error output, or bug report, plus repro
 
 Run debugging as a sequence of falsifiable hypotheses and cheap discriminating experiments instead of guess-edit-rerun. Undisciplined debugging converges by luck; disciplined debugging converges by elimination and leaves a trail someone else can audit.
 
-**UTILITY SKILL.** INVOKES: repository inspection and non-destructive local checks. FOR SINGLE OPERATIONS: Investigate one reported failure; implementation remains downstream work.
+**UTILITY SKILL.** INVOKES: repository inspection and non-destructive local checks without repository edits or shared-state mutation. FOR SINGLE OPERATIONS: Investigate one reported failure; implementation remains downstream work.
 
 ## When to Use
 
@@ -33,7 +33,7 @@ Work the investigation loop in order. Fix implementation remains downstream work
 1. Establish reproduction status: record the smallest known reproduction and its reliability (`always`, `1-in-N`, `1-in-N (N unknown)`, `not yet reproduced`). Attempt a focused reproduction when available. If it is unavailable or unsuccessful, continue with supplied logs, source inspection, or experiments that improve reproduction; record the limitation. Successful runtime reproduction is not a prerequisite for investigating a mechanism.
 2. Observe: state the facts only — exact messages, versions, timing, what differs between working and failing cases. No interpretation in this step.
 3. Hypothesize: one falsifiable claim naming a mechanism ("the cache returns stale entries after TTL expiry because eviction does not run"), not a suspicion ("something with the cache").
-4. Experiment: the cheapest test that discriminates this hypothesis from its rivals — prefer reading code, adding one assertion, bisecting (over commits, configs, or input), or toggling one variable, before stepping through everything.
+4. Experiment: choose the cheapest test that discriminates this hypothesis from its rivals. Run source inspection or non-destructive checks without repository edits or shared-state mutation. If an experiment requires adding an assertion, changing a checkout/configuration, or mutating shared state, describe it as proposal-only; do not execute it. Record that experiment as `proposed` with Observed `pending`.
 5. Record: experiment, prediction, observed result, verdict — `confirmed`, `refuted`, `inconclusive`, or `proposed` (designed but not runnable yet; Observed `pending`). Refuted hypotheses stay in the log; they are paid-for progress.
 6. Repeat 3–5 until a hypothesis is confirmed and explains all recorded observations, then proceed to the fix gate. When the cheap experiments are exhausted or a user-stated time or experiment budget runs out without a confirmation, stop and emit the report with `Cause: not established` and the remaining hypotheses in `### Untested backlog`; an unfinished honest report beats a forced conclusion.
 
@@ -48,7 +48,7 @@ Before any fix counts as done:
 
 ## Rules
 
-- One hypothesis under test at a time; parallel speculation goes to `### Untested backlog`, not the loop. Independent read-only evidence collection may overlap; isolate experiments that mutate shared state.
+- One hypothesis under test at a time; parallel speculation goes to `### Untested backlog`, not the loop. Independent read-only evidence collection may overlap; experiments requiring repository edits or shared-state mutation remain proposal-only.
 - Confirm a hypothesis only when observed evidence establishes the proposed mechanism and discriminates it from plausible rivals. When using source inspection, trace the mechanism through the reported version, caller, and triggering conditions; if their applicability is unknown, use inconclusive. A suspicious pattern alone is inconclusive. Cite the evidence and its scope in Observed. A source-backed confirmation does not establish runtime reproduction or a passing regression check.
 - Change at most one variable per experiment; an experiment that changed two things confirms nothing.
 - Distinguish "cannot reproduce" from "fixed": a disappearance without a confirmed mechanism is recorded as `Cause: not established (not reproduced — cause unknown)`, never closed as fixed.

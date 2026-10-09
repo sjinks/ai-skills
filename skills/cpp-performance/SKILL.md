@@ -8,7 +8,7 @@ argument-hint: "Describe the code, API, hot path, or review target where copies,
 
 Use this skill when C++ code may pay avoidable runtime cost: copies that could be references or moves, allocations that could be hoisted or reserved, move-enabling operations that the compiler will silently downgrade to copies, or library calls that have a cheaper equivalent with identical semantics.
 
-The goal is to remove waste that does not change observable behavior: every expensive copy has a justification, every move actually moves, every container and string operation uses the cheapest correct form, and every type that participates in moves or containers is `noexcept` where the standard library rewards it.
+The goal is to remove waste that does not change observable behavior: every expensive copy has a justification, every move actually moves, every container and string operation uses the cheapest correct form, and move/swap exception specifications match their operations. Require `noexcept` only when the operations cannot throw; accurate exception specifications take precedence over library optimizations.
 
 **UTILITY SKILL.** INVOKES: read-only file access for supplied targets; no other tools or skills. FOR SINGLE OPERATIONS: use for focused copy/allocation review, move-semantics correctness, `noexcept` audit, or hot-path tuning.
 
@@ -48,7 +48,7 @@ Default to `standard`. `quick` still reports missing required context, blockers,
 1. Inventory types: for each type that is copied, passed, returned, stored, or moved in the target, classify it as trivially copyable, cheap, or expensive to copy.
 2. Trace copies: find every value parameter, copy-initialized local, range-for loop variable, and implicit conversion in a range-for; for each expensive-to-copy one, decide const-ref, move-in, or justified copy.
 3. Trace moves: find every `std::move`/`std::forward`, every return of a local, every copy-assignment of a local that is dead afterward; confirm each move can and does happen, and that no `const` or value-category mistake silently downgrades it to a copy.
-4. Audit move-enabling declarations: move ctor, move assignment, `swap`, `iter_swap`, and destructor for `noexcept`; move ctor's mem-initializers for accidental member/base copies; out-of-line defaulted destructors that block trivial destructibility.
+4. Audit move-enabling declarations: move ctor, move assignment, `swap`, `iter_swap`, and destructor for accurate exception specifications; require `noexcept` only when the operations cannot throw. Check move ctor mem-initializers for accidental member/base copies and out-of-line defaulted destructors for blocked trivial destructibility.
 5. Audit library-call efficiency: container growth without `reserve`, string `operator+` chains, STL algorithms on associative containers, `std::endl`, math-function float promotion, single-char `find`/`+=` literals, redundant `string`/`string_view` conversions.
 6. Audit type layout: enum underlying type vs enumerator range; integer-to-pointer casts.
 7. For each candidate fix, verify it preserves behavior, lifetime, and exception guarantees; classify by severity, map to a verdict, and state the regression test or benchmark each fix needs.
@@ -112,8 +112,8 @@ Read [copy and move explanations](references/copies-moves.md) for applicable val
 Severity reflects expected runtime impact, not just pattern presence: the same anti-pattern is higher severity on a hot path or per-iteration than in cold setup code. Use the Required Context definition of "hot path"; when a site cannot be confirmed hot (no profile, benchmark, or qualifying structural signal), mark the path unverified and cap the finding at `MEDIUM`.
 
 - `CRITICAL`: an avoidable copy, allocation, or copy-instead-of-move on a hot or per-iteration path that dominates the operation's cost (e.g. deep copy of a large container every iteration, container move falling back to copy during reallocation of many large elements).
-- `HIGH`: a clear, behavior-preserving waste on a frequently executed path (missing `reserve` before a large loop, expensive value parameter on a hot call, missing `noexcept` on a move type stored in containers).
-- `MEDIUM`: real but bounded or cold-path waste, or a latent issue (missing `noexcept`, `const`-blocked return move, redundant conversion) that future edits or scale will amplify.
+- `HIGH`: a clear, behavior-preserving waste on a frequently executed path (missing `reserve` before a large loop, expensive value parameter on a hot call, missing `noexcept` on a proven non-throwing move operation used by containers).
+- `MEDIUM`: real but bounded or cold-path waste, or a latent issue (missing `noexcept` on a proven non-throwing operation, `const`-blocked return move, redundant conversion) that future edits or scale will amplify.
 - `LOW`: micro-optimization with negligible measured impact (`std::endl` on a rarely written stream, single-char literal off the hot path) - flag for consistency, not as a blocker.
 
 Verdicts (apply BLOCK first, then CONCERNS, otherwise CLEAN subject to the stated design-stage limitation):
@@ -187,7 +187,7 @@ A performance change is ready only when:
 
 - Every expensive copy in the target is either eliminated (reference, move, or `reserve`) or has a stated justification (lifetime dependency, required overload, accepted tradeoff).
 - Every `std::move` provably enables a move, and no `const` declaration or value-category mistake silently downgrades a move to a copy.
-- Move/`swap` types are `noexcept` where the standard library rewards it, and no fix weakens an exception guarantee.
+- Move/`swap` operations are `noexcept` only when their operations cannot throw; otherwise retain an accurate exception specification. No fix weakens an exception guarantee.
 - Each library-call substitution (container, string, algorithm, stream, math, conversion) preserves observable behavior.
 - Hot-path fixes carry behavior-preserving regression tests; throughput/allocation claims carry a benchmark or allocation count. If no hot-path fixes were made, the Tests and measurement item is n/a and does not block `CLEAN`.
 - Any deferred lifetime or concurrency question raised by a candidate fix is named and routed to the governing skill rather than silently assumed safe.
