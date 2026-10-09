@@ -80,13 +80,19 @@ Otherwise assess this default set:
 - GPT-6 Sol
 - GPT-6.1 Sol
 - GPT-6 Astra
-- Claude Haiku 4.5
+- Claude Haiku 5.5
 - Claude Sonnet 5
+- Claude Sonnet 5.5
 - Claude Opus 4.8
 - Claude Opus 5
+- Claude Opus 5.5
 - Claude Fable 5
+- Claude Fable 5.1
+- Claude Mythos 5.1
 
-Use `references/model-portability.md` for static model-profile checks. Treat those profiles as heuristics, not proof of compatibility.
+The default compatibility floor is GPT-6 Luna and Claude Haiku 5.5. If the user supplies target models, assess that list instead. For a selected target without a profile in this package, apply generic cross-provider checks without inventing model-specific traits. Emit a `Not assessed` compatibility row and record the missing profile under `Limitations`. This alone does not block a readable artifact; an otherwise Ready audit becomes `Ready with limitations`, while stronger revision/blocking verdicts retain precedence.
+
+Use `references/model-portability.md` for static model-profile checks. Treat those profiles as heuristics, not proof of compatibility. Read [Haiku 5.5 runtime checks](references/haiku-5-5-runtime.md) only when auditing a Haiku 5.5 API integration or harness; it covers thinking, tool/output interactions, user-message delivery and failure handling. A static assessment does not establish runtime access, including to restricted models.
 
 ## Error Handling: Missing or Blocked Input
 

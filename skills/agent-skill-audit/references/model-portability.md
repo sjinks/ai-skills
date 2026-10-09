@@ -4,6 +4,8 @@ Read this reference when assessing static compatibility across supported target 
 
 These profiles are static-review heuristics. Runtime instructions, effort settings, tools, consumed context, and model snapshots can change behavior.
 
+The default compatibility floor is GPT-6 Luna and Claude Haiku 5.5. Treat these as the weaker-model targets for instruction design, not as a measured cross-provider capability ranking. If the user supplies target models, assess that list instead.
+
 Evaluate both:
 
 1. **compatibility floor**: can the smaller supported models execute the normal path without guessing essential rules?
@@ -16,7 +18,9 @@ Use these verdicts per model:
 - `Unsuitable`
 - `Not assessed`
 
-Assess each listed GPT target independently with the checks below. Keep the default roster order in reports, but do not treat it as a benchmark ranking or infer compatibility from another model's result.
+Assess each selected target independently. For a target with a profile in this package, use its checks below. For an unprofiled target, apply Cross-Provider Checks without inferring model-specific behavior, emit `Not assessed` in its compatibility row, and record the missing profile under `Limitations` in `## Audit Scope`. Assess the readable artifact normally; this missing profile alone does not require `Blocked`. If all other readiness conditions pass, use `Ready with limitations`; otherwise retain the core's applicable revision or blocking verdict. Keep the default roster order in reports, but do not treat it as a benchmark ranking or infer compatibility from another model's result.
+
+Current Anthropic additions were checked against the [models overview](https://platform.claude.com/docs/en/models/overview) on 2026-10-09; Haiku 5.5 replaces Haiku 4.5, while the other earlier default profiles remain in the roster.
 
 Do not infer one total capability order across Claude Opus and Fable profiles. Opus targets complex reasoning and synthesis; Fable targets long-horizon autonomy.
 
@@ -69,16 +73,18 @@ Check for:
 - progress and completion claims grounded in tool results;
 - protection against unrequested scope expansion without micromanaging normal work.
 
-## Claude Haiku 4.5
+## Claude Haiku 5.5
 
 Check for:
 
-- concrete steps when order matters;
-- explicit material parameters;
-- a defined unavailable-tool or missing-input default;
-- shallow decision rules;
-- no expectation that broad requirements will be inferred from one example;
-- output format simple enough to reproduce reliably.
+- concrete ordered steps, explicit parameters, shallow branches and missing-input/tool defaults;
+- explicit completion boundaries that prevent early hand-back without expanding scope;
+- checks that exercise runnable changes before reporting success, or an honest reason no check ran;
+- current-date context and retrieval triggers for changeable facts when search is available;
+- simple output grammar and broad rules stated explicitly rather than inferred from one example;
+- assessment tied to the intended effort/thinking settings, with unknown settings recorded as a limitation.
+
+[Anthropic's prompting guidance](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-haiku-5-5) reports effort-dependent search, completion and verification risks. Treat these as audit prompts, not guaranteed failures. For a supplied API integration or harness, read [runtime checks](haiku-5-5-runtime.md); do not require an adapter for a portable instruction-only artifact.
 
 ## Claude Sonnet 5
 
@@ -89,6 +95,12 @@ Check for:
 - no fixed progress cadence;
 - multi-step requirements sufficiently explicit at lower effort settings;
 - examples that do not narrow a broader written rule accidentally.
+
+## Claude Sonnet 5.5
+
+Check for effort-aware completion and verification rules; boundaries against unrequested additions or extra review cycles; retrieval triggers for mutable facts; and JSON reasoning requirements that fit the supplied thinking configuration. Preserve freedom to choose an efficient workflow.
+
+Use [Anthropic's Sonnet 5.5 guidance](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5-5). Do not transfer effort settings or observed behavior from Sonnet 5 without evidence.
 
 ## Claude Opus 4.8
 
@@ -110,6 +122,12 @@ Check for:
 - optional delegation guidance for genuinely independent investigations;
 - preservation of uncertainty, disagreement, and verification status in final conclusions.
 
+## Claude Opus 5.5
+
+Check for clear completion criteria in unattended work; progress reports distinguished from completed tasks; scope and consequential-action boundaries; and effort calibration that does not inherit Opus 5 assumptions. When a harness is supplied, check pending-work handling, bounded continuations and response-block handling rather than treating every text-only turn as completion.
+
+Use [Anthropic's Opus 5.5 guidance](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5). Keep runtime mechanics out of portable instructions.
+
 ## Claude Fable 5
 
 Check for:
@@ -120,6 +138,16 @@ Check for:
 - progress and completion claims grounded in tool results;
 - no micromanagement of ordinary execution;
 - optional delegation policy rather than a fixed subagent count.
+
+## Claude Fable 5.1
+
+Check for completion and scope boundaries; explicit search triggers at low effort; compaction preserving constraints and decisions; targeted edits; and clear deliverable formatting. Permit batching of independent calls when supported, without requiring parallel execution. With a harness, check append-only history and whether progress updates reach the user.
+
+Use [Anthropic's Fable 5.1 guidance](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1); calibrate effort independently of Fable 5.
+
+## Claude Mythos 5.1
+
+Apply the Fable 5.1 checks above; [Anthropic's shared guide](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1) covers both models. Assess Mythos separately rather than copying Fable's verdict. [Mythos access requires organizational verification](https://platform.claude.com/docs/en/models/mythos-5-1/overview). For a supplied runtime, record unverified or unavailable access as a limitation; do not claim runtime readiness from a static profile or seek access during this audit.
 
 ## Cross-Provider Checks
 
