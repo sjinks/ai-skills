@@ -14,6 +14,8 @@ closure gaps, harmful duplication, and output-contract defects.
 
 The default compatibility floor is GPT-6 Luna and Claude Haiku 5.5. Caller-supplied target models replace the default assessment roster; static profiles do not establish measured model behavior.
 
+The default roster also includes Sonnet 5.5, Opus 5.5, Fable 5.1 and restricted-access Mythos 5.1 alongside the existing profiles. Haiku 5.5 checks use current prompting guidance; API and harness checks are conditional and do not establish runtime access.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full readiness-audit skill definition.
@@ -21,3 +23,4 @@ The default compatibility floor is GPT-6 Luna and Claude Haiku 5.5. Caller-suppl
 - [`references/package-analysis.md`](references/package-analysis.md) — package/path load-graph rules, duplicate handling, and verification-artifact assessment.
 - [`references/readiness-rubric.md`](references/readiness-rubric.md) — the five readiness rating areas and calibration guidance.
 - [`references/report-contract.md`](references/report-contract.md) — the required readiness report markers, placeholder replacement rules, target-model verdict values, multiple-report numbering, blocked behavior, and no-findings contract.
+- [`references/haiku-5-5-runtime.md`](references/haiku-5-5-runtime.md) — conditional Haiku API/harness checks for thinking, tool use, input delivery and failure handling.
