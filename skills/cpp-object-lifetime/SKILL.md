@@ -82,8 +82,8 @@ The Checklist below is the gating source of truth when these rules overlap; the 
 ### Containers And Iterators
 
 - No iterator, reference, or pointer into a container is used across an operation that may invalidate it (insert, erase, reallocation, rehash) per that container's rules.
-- Erase-during-iteration uses a valid idiom; algorithms receiving iterator pairs cannot mutate the underlying container.
-- References into a vector are not retained across `push_back`/`emplace_back`/`reserve`; keys/values in node-based containers are only assumed stable where the standard guarantees it.
+- Erase-during-iteration uses a valid idiom; algorithms receiving iterator pairs do not perform structural mutations that invalidate those iterators.
+- References into a vector are not used after `push_back`/`emplace_back`/`reserve` unless stability is proved for that operation; keys/values in node-based containers are only assumed stable where the standard guarantees it.
 
 ### Captures, Callbacks, And Async Handoff
 
@@ -95,7 +95,7 @@ The Checklist below is the gating source of truth when these rules overlap; the 
 
 - Uses of moved-from objects are limited to operations valid for that exact type: destruction, assignment, and precondition-free operations such as `clear()` re-initialization. For standard containers and strings the moved-from state is valid but unspecified, so calling `empty()` is allowed but relying on its result is a finding; `unique_ptr`/`shared_ptr` are guaranteed null/empty after move and may be tested.
 - `unique_ptr`/`shared_ptr` ownership boundaries are explicit; raw pointers are non-owning observers only.
-- `shared_ptr` cycles are broken with `weak_ptr`; `get()` results never outlive the smart pointer that produced them.
+- `shared_ptr` cycles are broken with `weak_ptr`; `get()` results are used only while the pointed-to object is alive; establish that lifetime separately for an aliasing `shared_ptr`, whose stored pointer may differ from its managed object.
 
 ### Tests
 
@@ -108,10 +108,10 @@ The Checklist below is the gating source of truth when these rules overlap; the 
 - `MEDIUM`: a missing lifetime contract, undocumented borrow, or test gap that future edits are likely to convert into a dangling use.
 - `LOW`: clarity or hardening issue (naming, comment, redundant ownership) with no current dangling path.
 
-Verdicts:
+Verdicts (apply BLOCK first, then CONCERNS, otherwise CLEAN subject to the stated design-stage limitation):
 
 - `BLOCK`: missing required context, any `CRITICAL`, or any unmitigated `HIGH`.
-- `CONCERNS`: remaining `HIGH`/`MEDIUM` findings each have a compensating control, accepted tradeoff, or bounded reachability.
+- `CONCERNS`: no BLOCK condition applies, but any finding remains or an applicable checklist item is missing. This includes unmitigated MEDIUM/LOW findings and compensated HIGH findings. Record the justification or required correction per finding.
 - `CLEAN`: every applicable checklist item holds and existing regression tests cover the fixed classes. For design-stage targets with no code or tests yet, the best achievable verdict is `CONCERNS` with test expectations recorded per finding.
 
 ## Output Format
@@ -174,7 +174,7 @@ Findings:
 
 A lifetime change is ready only when:
 
-- Every borrow has a named owner and a stated interval, and no lifetime event can occur inside that interval.
+- Every borrow has a named owner and a stated interval, and no event invalidates the borrow or destroys its backing storage inside that interval.
 - API signatures express their lifetime contracts; storing a borrowed parameter requires ownership or an explicit documented contract.
 - Stored or posted callbacks cannot run after their captured objects are destroyed.
 - Moved-from usage satisfies the Moves And Smart Pointers checklist items.

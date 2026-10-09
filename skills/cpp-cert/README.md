@@ -12,6 +12,10 @@ It helps an assistant:
 - name CERT rules that need program analysis beyond clang-tidy's reach, and route out-of-scope performance, lifetime, or general-concurrency concerns instead of judging them here
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with per-finding CERT mappings, checklist status, test expectations, residual risk, and a deterministic insufficient-context template
 
+Verdicts apply in order: blocking conditions produce `BLOCK`; other findings or missing applicable checks produce `CONCERNS`; otherwise the package's `CLEAN` criteria apply. Design-stage verification limitations retain `CONCERNS`.
+
 ## Files
 
-- [`SKILL.md`](SKILL.md) — the full skill definition.
+- [`SKILL.md`](SKILL.md) — operational workflow, decision rules, output contract, and completion gates.
+- [`references/examples.md`](references/examples.md) — partial examples of common findings.
+- [`references/rule-catalog.md`](references/rule-catalog.md) — CERT rule IDs, analyzer mappings, and qualified alternatives.

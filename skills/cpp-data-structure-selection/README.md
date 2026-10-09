@@ -13,6 +13,8 @@ It helps an assistant:
 - gate hot-path changes on a benchmark or profile across the expected N range, recording a measurement gap when a swap is justified only by Big-O at small N
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with severity-tagged findings, recommended structure, crossover note, behavior risk, checklist status, and a deterministic insufficient-context template
 
+Verdicts apply in order: blocking conditions produce `BLOCK`; other findings or missing applicable checks produce `CONCERNS`; otherwise the package's `CLEAN` criteria apply. Design-stage verification limitations retain `CONCERNS`.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

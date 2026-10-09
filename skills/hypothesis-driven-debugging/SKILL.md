@@ -1,6 +1,6 @@
 ---
 name: hypothesis-driven-debugging
-description: "Use when: debugging a failure, bug, flaky test, or unexpected behavior with a disciplined loop: reproduce first, falsifiable hypothesis, cheapest discriminating experiment, evidence log, root-cause versus symptom decision, and a regression check before the fix counts as done."
+description: "Use when: debugging a failure, bug, flaky test, or unexpected behavior with a disciplined loop: reproduction status, falsifiable hypothesis, cheapest discriminating experiment, evidence log, root-cause versus symptom decision, and a regression check before the fix counts as done."
 argument-hint: "The failure description, error output, or bug report, plus reproduction info and any experiments already tried."
 ---
 
@@ -8,25 +8,31 @@ argument-hint: "The failure description, error output, or bug report, plus repro
 
 Run debugging as a sequence of falsifiable hypotheses and cheap discriminating experiments instead of guess-edit-rerun. Undisciplined debugging converges by luck; disciplined debugging converges by elimination and leaves a trail someone else can audit.
 
+**UTILITY SKILL.** INVOKES: repository inspection and non-destructive local checks. FOR SINGLE OPERATIONS: Investigate one reported failure; implementation remains downstream work.
+
 ## When to Use
 
 Use when a failure, bug, flaky test, or unexpected behavior needs structured investigation — whether starting fresh or rescuing a stalled guess-driven session. Out of scope: interpreting a specific sanitizer or memory-tool report against its own report anatomy, planning the fix's impact once the cause is known, post-incident retrospectives, and performance tuning without a defined misbehavior.
 
+## DO NOT USE FOR:
+
+- Fix implementation, post-incident retrospectives, or performance work without a defined failure.
+
 ## Required Inputs
 
 - The observed failure: what happens, what was expected instead, and the error output when there is any.
-- Reproduction status: known steps, frequency, environments where it does and does not occur. Intermittent frequency is estimated as `1-in-N` from supplied data, or written `1-in-N (N unknown)`; when supplied claims and supplied evidence disagree (user says "always", logs show intermittent), record both as observations and use the evidence-backed value on the `Reproduction:` line.
+- Reproduction status: known steps, frequency, environments where it does and does not occur. Intermittent frequency is estimated as `1-in-N` from supplied data, or written `1-in-N (N unknown)`; when supplied claims and supplied evidence disagree (user says "fails on every run", logs show intermittent), record both as observations and use the evidence-backed value on the `Reproduction:` line.
 - What has already been tried, when supplied; prior experiments are evidence, not noise.
 
 If no failure description is provided, emit the BLOCK template; do not invent symptoms.
 
 ## The Loop
 
-Work the loop in order; do not skip ahead to fixes:
+Work the investigation loop in order. Fix implementation remains downstream work:
 
-1. Reproduce: establish the smallest, fastest reproduction you can and state its reliability (`always`, `1-in-N`, `1-in-N (N unknown)`, `not yet reproduced`). Without a reproduction, the only valid next steps are experiments that improve reproduction (logging, tighter loops, environment matching) — record them as experiments against reproduction itself.
+1. Establish reproduction status: record the smallest known reproduction and its reliability (`always`, `1-in-N`, `1-in-N (N unknown)`, `not yet reproduced`). Attempt a focused reproduction when available. If it is unavailable or unsuccessful, continue with supplied logs, source inspection, or experiments that improve reproduction; record the limitation. Successful runtime reproduction is not a prerequisite for investigating a mechanism.
 2. Observe: state the facts only — exact messages, versions, timing, what differs between working and failing cases. No interpretation in this step.
-3. Hypothesize: one falsifiable claim naming a mechanism ("the cache returns stale entries after TTL expiry because eviction never runs"), not a suspicion ("something with the cache").
+3. Hypothesize: one falsifiable claim naming a mechanism ("the cache returns stale entries after TTL expiry because eviction does not run"), not a suspicion ("something with the cache").
 4. Experiment: the cheapest test that discriminates this hypothesis from its rivals — prefer reading code, adding one assertion, bisecting (over commits, configs, or input), or toggling one variable, before stepping through everything.
 5. Record: experiment, prediction, observed result, verdict — `confirmed`, `refuted`, `inconclusive`, or `proposed` (designed but not runnable yet; Observed `pending`). Refuted hypotheses stay in the log; they are paid-for progress.
 6. Repeat 3–5 until a hypothesis is confirmed and explains all recorded observations, then proceed to the fix gate. When the cheap experiments are exhausted or a user-stated time or experiment budget runs out without a confirmation, stop and emit the report with `Cause: not established` and the remaining hypotheses in `### Untested backlog`; an unfinished honest report beats a forced conclusion.
@@ -42,8 +48,9 @@ Before any fix counts as done:
 
 ## Rules
 
-- One hypothesis under test at a time; parallel speculation goes to `### Untested backlog`, not the loop.
-- Never change more than one variable per experiment; an experiment that changed two things confirms nothing.
+- One hypothesis under test at a time; parallel speculation goes to `### Untested backlog`, not the loop. Independent read-only evidence collection may overlap; isolate experiments that mutate shared state.
+- Confirm a hypothesis only when observed evidence establishes the proposed mechanism and discriminates it from plausible rivals. When using source inspection, trace the mechanism through the reported version, caller, and triggering conditions; if their applicability is unknown, use inconclusive. A suspicious pattern alone is inconclusive. Cite the evidence and its scope in Observed. A source-backed confirmation does not establish runtime reproduction or a passing regression check.
+- Change at most one variable per experiment; an experiment that changed two things confirms nothing.
 - Distinguish "cannot reproduce" from "fixed": a disappearance without a confirmed mechanism is recorded as `Cause: not established (not reproduced — cause unknown)`, never closed as fixed.
 - Evidence beats seniority of opinion: a refuted favorite hypothesis is closed, not retried with variations until it confesses.
 - When the session inherits prior guesses: guesses the supplied evidence confirms or refutes become log rows marked `(inherited)`, with the Experiment and Observed cells citing that supplied evidence; guesses whose supplied evidence is inconclusive become `(inherited)` rows with verdict `inconclusive`; guesses with no evidence go to `### Untested backlog`.

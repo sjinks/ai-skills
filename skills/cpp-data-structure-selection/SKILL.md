@@ -112,10 +112,10 @@ Severity reflects expected impact at the realistic N and call frequency, not jus
 - `MEDIUM`: a real but bounded superlinear shape (N capped at a modest limit), or a latent choice that future scale will amplify; also a correct-but-suboptimal structure whose win is unmeasured.
 - `LOW`: a structure choice with negligible impact at the actual N (small, bounded, cold) — flag for consistency, not as a blocker. The sole exception is the missing-required-context finding, which uses `LOW` severity but still yields `Verdict: BLOCK`; its severity reflects the open question, not a blocking gate.
 
-Verdicts:
+Verdicts (apply BLOCK first, then CONCERNS, otherwise CLEAN subject to the stated design-stage limitation):
 
 - `BLOCK`: either a **context gap** (the dominant access pattern is unknown, or all size information is unknown) — emit the reduced insufficient-context template with `Classification: Open question` — **or** a **finding-driven** block (any `CRITICAL`, or any unmitigated `HIGH`) — emit the full template. The verdict label is shared; the Classification and template distinguish the two.
-- `CONCERNS`: remaining `HIGH`/`MEDIUM` findings each have a compensating justification, a stated bound, or a recorded measurement gap.
+- `CONCERNS`: no BLOCK condition applies, but any finding remains or an applicable checklist item is missing. This includes unmitigated MEDIUM/LOW findings and compensated HIGH findings. Record the justification or required correction per finding.
 - `CLEAN`: every applicable checklist item holds and hot-path changes carry a benchmark across the expected N range. For design-stage targets with no benchmark yet, the best achievable verdict is `CONCERNS` with the measurement expectation recorded.
 
 A data-structure finding must never be promoted over a correctness or lifetime concern: if the faster structure changes ordering callers rely on, collapses duplicates, or invalidates retained references, downgrade or withdraw the finding and route the question to object-lifetime or concurrency review as appropriate.

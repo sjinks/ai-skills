@@ -12,6 +12,8 @@ It helps an assistant:
 - enforce move-semantics discipline (moved-from objects limited to destruction, assignment, precondition-free operations, and specified post-move states) and smart-pointer ownership boundaries with `weak_ptr` cycle breaks
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with owners/borrowers, findings, checklist status, test expectations, and an insufficient-context template
 
+Verdicts apply in order: blocking conditions produce `BLOCK`; other findings or missing applicable checks produce `CONCERNS`; otherwise the package's `CLEAN` criteria apply. Design-stage verification limitations retain `CONCERNS`.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

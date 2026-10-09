@@ -8,6 +8,8 @@ argument-hint: "Describe what needs testing, the test layer, NestJS/Node version
 
 Use this skill when the task is to verify NestJS behavior with tests: choosing the right test layer, building a testing module, overriding dependencies, asserting behavior and error paths, and closing coverage gaps. The goal is a test plan and tests that catch real regressions, run deterministically, and reuse production wiring where it matters.
 
+**UTILITY SKILL.** INVOKES: repository inspection and scoped edits/checks. FOR SINGLE OPERATIONS: Design, implement, or repair tests for specified NestJS behavior.
+
 ## Boundaries
 
 - This skill is for verifying NestJS behavior with tests and reporting coverage gaps. Designing or implementing the feature under test is a separate build task, and judging an entire change with a severity-classified review report is a separate review task; both are out of scope here.
@@ -32,9 +34,14 @@ Use this skill when any of these apply:
 - Designing fixtures, factories, or seed data for tests.
 - Triaging flaky tests, slow suites, or coverage gaps on high-risk flows.
 
+## DO NOT USE FOR:
+
+- Feature implementation, whole-change code review, or framework version upgrades.
+- Test-runner migration unless requested.
+
 ## Required Input Context
 
-Collect before designing or writing tests:
+Infer the following from the repository for the behavior under test. Do not request unrelated stack details. If a missing fact changes the test layer, wiring, or assertion, ask for that fact before writing the dependent test:
 
 - What behavior must be verified, and the acceptance criteria or bug it guards.
 - Target files and the modules/providers they depend on.
@@ -54,121 +61,28 @@ Choose the lowest layer that still exercises the risk. Use a higher layer only w
 - **Integration** — a slice of real wiring: a service plus its real repository against an ephemeral DB, or a guard plus the decorator it reads. Use when the bug lives in the interaction, not the unit.
 - **e2e** — the full HTTP path through `NestFactory`/`createTestingModule` + Supertest: routing, pipes, guards, filters, serialization. Use for contract behavior, validation rejection, auth enforcement, and status/shape of responses.
 
-If a behavior can be proven at the unit layer, do not promote it to e2e just for confidence; add a focused unit test plus one e2e smoke test for the path.
+If a unit test proves the changed behavior and no wiring risk remains, add or update that unit test without adding an e2e smoke test. Add integration/e2e coverage only for a specific wiring or request-contract risk that lower layers do not exercise. Check existing coverage before adding a duplicate test.
 
 ## Test Plan Workflow
 
+For plan-only requests, define cases, wiring, fixtures, and commands without editing files or running tests. Skip implementation and execution steps; report Run steps as proposed commands, not results. For test-writing or repair requests, follow all applicable steps below.
+
 1. **Restate the behavior to verify** and its acceptance criteria in one or two sentences.
-2. **Enumerate cases:** happy path, each error path (not-found, conflict, forbidden, validation failure), boundary inputs, and async rejection. List idempotency/retry cases for message handlers.
+2. **Enumerate applicable cases:** happy path, each error path (not-found, conflict, forbidden, validation failure), boundary inputs, and async rejection. List idempotency/retry cases for message handlers.
 3. **Assign a layer** to each case using the Test Layer Decision.
 4. **Plan the testing module:** which real providers to keep, which to mock, and which guards/pipes/filters to override or reproduce.
 5. **Plan fixtures:** factories or builders for entities/DTOs; deterministic clock and IDs where time or randomness matters.
 6. **Write tests** at the assigned layer; assert observable behavior (return value, thrown exception type, HTTP status and body), not private call counts.
-7. **Run the focused suite,** fix the lowest-layer failure first, then widen.
+7. **Run the focused suite.** Fix failures at the layer that exposes them. Widen only when shared wiring, broader affected behavior, or repository-required checks need verification. Record commands and results; if execution is unavailable, report the reason and do not claim verified behavior.
 8. **Report coverage gaps:** behaviors still unverified and why, with the layer each gap belongs to.
 
-## Common Patterns
+## Examples
 
-### Service unit test with mocked repository
-
-```typescript
-describe('UsersService', () => {
-  let service: UsersService;
-  const users = { findByEmail: jest.fn(), create: jest.fn(), findById: jest.fn() };
-
-  beforeEach(async () => {
-    const moduleRef = await Test.createTestingModule({
-      providers: [UsersService, { provide: UsersRepository, useValue: users }],
-    }).compile();
-    service = moduleRef.get(UsersService);
-    jest.clearAllMocks();
-  });
-
-  it('throws ConflictException when the email is taken', async () => {
-    users.findByEmail.mockResolvedValue({ id: '1' });
-    await expect(service.create({ email: 'a@b.c', password: 'x' })).rejects.toThrow(ConflictException);
-  });
-
-  it('returns a response DTO on success', async () => {
-    users.findByEmail.mockResolvedValue(null);
-    users.create.mockResolvedValue({ id: '1', email: 'a@b.c' });
-    await expect(service.create({ email: 'a@b.c', password: 'x' })).resolves.toMatchObject({ id: '1' });
-  });
-});
-```
-
-### Mocking an ORM repository token
-
-```typescript
-// TypeORM
-const moduleRef = await Test.createTestingModule({
-  providers: [
-    UsersService,
-    { provide: getRepositoryToken(User), useValue: { findOne: jest.fn(), save: jest.fn() } },
-  ],
-}).compile();
-
-// Mongoose
-//   { provide: getModelToken(User.name), useValue: { findById: jest.fn() } }
-// Prisma
-//   { provide: PrismaService, useValue: { user: { findUnique: jest.fn(), create: jest.fn() } } }
-```
-
-### Overriding a guard in an e2e test
-
-```typescript
-describe('UsersController (e2e)', () => {
-  let app: INestApplication;
-
-  beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
-      .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true })
-      .compile();
-
-    app = moduleRef.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-    await app.init();
-  });
-
-  afterAll(async () => {
-    await app.close();
-  });
-
-  it('rejects an invalid body with 400', () => {
-    return request(app.getHttpServer()).post('/users').send({}).expect(400);
-  });
-
-  it('creates a user with 201', () => {
-    return request(app.getHttpServer())
-      .post('/users')
-      .send({ email: 'a@b.c', password: 'sup3rsecret' })
-      .expect(201);
-  });
-});
-```
-
-### Asserting async rejection and validation failure
-
-```typescript
-await expect(service.findOne('missing')).rejects.toBeInstanceOf(NotFoundException);
-await expect(service.findOne('missing')).rejects.toThrow(/not found/i);
-```
-
-### Idempotent message-handler test
-
-```typescript
-it('processes a redelivered message exactly once', async () => {
-  const msg = { id: 'evt-1', payload: { orderId: 'o-1' } };
-  await handler.handle(msg);
-  await handler.handle(msg); // redelivery
-  expect(orders.markPaid).toHaveBeenCalledTimes(1);
-});
-```
+Read [patterns](references/patterns.md) when implementing or testing a matching surface; it illustrates modules, providers, lifecycle wiring, and assertions. Examples do not expand the task scope.
 
 ## Anti-Patterns to Avoid
 
-- Promoting a unit-testable behavior to e2e just for confidence instead of a focused unit test plus one smoke test.
+- Adding an e2e smoke test for unit-testable behavior without an additional wiring or request-contract risk.
 - Asserting private method call counts or internal implementation instead of observable behavior.
 - e2e tests that skip the production global `ValidationPipe`/filters, so validation and error-shape behavior is never actually exercised.
 - Tests that hit a real database, real auth provider, or real network without an explicit integration-test reason and managed fixtures.
@@ -191,24 +105,29 @@ Use these only when the project has no established convention. Existing test lay
 
 ## Output Format
 
-When proposing a test plan or tests, return in this order:
+Return these labels in this order. For repository edits, link changed tests instead of repeating their complete contents; for a proposal, include the proposed test code:
 
 1. **Behavior under test:** one or two sentences plus the acceptance criteria or bug it guards.
 2. **Case list:** each case with its assigned layer (unit / integration / e2e).
 3. **Testing module plan:** real providers kept, dependencies mocked, guards/pipes/filters overridden or reproduced.
 4. **Tests:** code at the assigned layer, idiomatic and minimal, assertions on observable behavior.
 5. **Fixtures:** factories, builders, fake clock/IDs introduced.
-6. **Run steps:** the focused command(s) to run, lowest layer first.
+6. **Run steps:** focused commands and actual results, or proposed commands with reasons they were not run.
 7. **Coverage gaps:** behaviors still unverified, the layer each belongs to, and why deferred.
+
+## Error Handling
+
+If the behavior or target is unavailable, stop dependent edits and report the missing input under the existing output labels. If only part of the task is blocked, complete independent authorized work and identify the blocked part. Record unavailable validation under the validation/run label; do not fabricate code, test results, or readiness.
 
 ## Definition of Done
 
-A NestJS testing task is not ready until:
+For plan-only requests, these gates describe the planned coverage and checks; execution remains not run, and the plan does not establish tested behavior. For test-writing or repair requests, a NestJS testing task is not ready until:
 
 - The behavior under test and its acceptance criteria are explicit.
 - Each case is assigned the lowest layer that proves it.
 - The testing module mocks external dependencies and reproduces the production pipes/filters that the assertions depend on.
-- Happy path, error paths, and async rejection are each asserted on observable behavior, not private internals.
+- Applicable happy paths, error paths, and async rejection are asserted on observable behavior, not private internals. Do not invent paths outside the behavior under test.
 - Async expectations are awaited; no floating rejected promises.
 - Tests run deterministically, with reset state and no reliance on real DB/auth/network unless an explicit integration test with managed fixtures.
+- Test commands and their results are recorded. If they cannot run, readiness remains unverified and the blocker is reported.
 - Remaining coverage gaps are reported with the layer they belong to.
