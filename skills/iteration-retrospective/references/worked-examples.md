@@ -6,11 +6,11 @@ These fictional inputs and complete reports illustrate the normative report rule
 
 ## Failure followed by success
 
-Input: The same fixture must pass. A1 fails because a required field is absent; A2 adds only that field and passes. Fixture logs and the one-field diff isolate the cause. Existing scripts show that a fixture check can run automatically in the current runner with no new dependency or operator action; the supplied local procedure establishes that guidance requires no new dependency and adds one recurring manual invocation. No other mechanism addresses this pattern under the supplied evidence.
+Input: The same fixture must pass. A1 fails because a required field is absent; A2 adds only that field and passes. Fixture logs (`fixture-log-1` and `fixture-log-2`) and `one-field-diff` isolate the cause. Existing scripts show that a fixture check can run automatically in the current runner with no new dependency or operator action; the supplied local procedure establishes that guidance requires no new dependency and adds one recurring manual invocation. No other mechanism addresses this pattern under the supplied evidence.
 
 ```text
 Retrospective: Make the supplied fixture pass; compare A1 and A2.
-Retrospective Assessment: A1 failed and A2 worked. Only the required field changed; fixture logs and the diff isolate that difference. Repeat checking required fields against the fixture. Baseline: current runner; scenario: next fixture change. Deterministic check has 0 new dependencies and 0 new steps; repository guidance has 0 and 1, supported by supplied scripts and procedure. The check detects the missing field before the full run; guidance prompts a manual check. Other mechanisms lack an evidenced connection. Select the automated check.
+Retrospective Assessment: A1 failed and A2 worked. Only the required field changed; fixture logs and the diff isolate that difference. Repeat checking required fields against the fixture. Baseline: current runner; scenario: next fixture change. Deterministic check has 0 new dependencies and 0 new steps per supplied scripts; repository guidance has 0 and 1 per supplied local procedure. The check detects the missing field before the full run; guidance prompts a manual check. Other mechanisms lack an evidenced connection. Select the automated check.
 Retrospective Attempts:
 - A1 | Status: failed | Action: Run the fixture without the required field | Result: Rejected | Evidence: fixture-log-1
 - A2 | Status: worked | Action: Add the required field and rerun the same fixture | Result: Passed | Evidence: fixture-log-2 and one-field-diff
@@ -28,7 +28,7 @@ No validation gap remains that could change the recommendation under these suppl
 
 ## Abandoned approach with unknown cause
 
-Input: The approach must complete within 60 seconds. A1 exceeds that limit and is abandoned. A summary establishes failure but does not identify where time was spent. No trace is supplied, and no prevention mechanism has an evidence-supported connection to a specific failure step.
+Input: The approach must complete within 60 seconds. A1 exceeds that limit and is abandoned. A summary (`supplied-run-summary`) establishes failure but does not identify where time was spent. No trace is supplied, and no prevention mechanism has an evidence-supported connection to a specific failure step.
 
 ```text
 Retrospective: Review the abandoned approach against the 60-second completion condition.
@@ -49,11 +49,11 @@ Abandonment does not erase an established failure. Unknown cause does not requir
 
 ## Selected prevention plus an unresolved comparison
 
-Input: The same authenticated fixture must pass. A1 lacks a required field; A2 changes only that field and reaches authentication but fails with an expired credential; A3 refreshes only the credential and passes. Logs, diffs, and credential metadata isolate both failures. For missing-field recurrence, the current runner supports an automatic check with 0 new dependencies/steps; guidance needs 0/1. For credential-expiry recurrence, local guidance needs 0/1, but the directly required dependencies of a refresh helper are unknown. Both expiry candidates address refresh before authentication; other mechanisms have no supported connection in these inputs.
+Input: The same authenticated fixture must pass. A1 lacks a required field; A2 changes only that field and reaches authentication but fails with an expired credential; A3 refreshes only the credential and passes. Logs (`log-1`, `log-2`, and `log-3`), `field-diff`, `refresh-diff`, and `credential-metadata` isolate both failures. For missing-field recurrence, the current runner supports an automatic check with 0 new dependencies/steps; guidance needs 0/1. For credential-expiry recurrence, local guidance needs 0/1, but the directly required dependencies of a refresh helper are unknown. Both expiry candidates address refresh before authentication; other mechanisms have no supported connection in these inputs.
 
 ```text
 Retrospective: Make the authenticated fixture pass; compare A1 through A3.
-Retrospective Assessment: A1 failed; A2 fixed the field but still failed authentication; A3 worked after credential refresh. Each transition changes one factor, isolated by logs and diffs. Preserve checking credential expiry before authenticated runs. Baseline: current runner and local procedure; scenarios: next missing-field recurrence and next credential-expiry recurrence. For L1, deterministic check costs 0 dependencies/0 steps and guidance costs 0/1 per supplied scripts; the check detects omission before execution and guidance prompts manual inspection. For L2, guidance costs 0/1 per procedure and prompts refresh before authentication; a helper would refresh before authentication but its dependency count is unknown. Other mechanisms have no evidenced connection. Select L1 prevention; leave L2 unselected.
+Retrospective Assessment: A1 failed; A2 fixed the field but still failed authentication; A3 worked after credential refresh. Each transition changes one factor, isolated by logs and diffs. Preserve checking credential expiry before authenticated runs. Baseline: current runner and local guidance; scenarios: next missing-field recurrence and next credential-expiry recurrence. For L1, deterministic check costs 0 dependencies/0 steps and guidance costs 0/1 per supplied cost facts; the check detects omission before execution and guidance prompts manual inspection. For L2, guidance costs 0/1 per supplied cost facts and prompts refresh before authentication; a helper would refresh before authentication but its dependency count is unknown. Other mechanisms have no evidenced connection. Select L1 prevention; leave L2 unselected.
 Retrospective Attempts:
 - A1 | Status: failed | Action: Run without the required field | Result: Rejected before authentication | Evidence: log-1
 - A2 | Status: partly-worked | Action: Add only the required field and rerun | Result: Field accepted; expired credential rejected | Evidence: log-2 and field-diff
