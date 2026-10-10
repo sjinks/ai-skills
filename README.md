@@ -40,6 +40,7 @@ The repository currently contains the following skills, grouped by area. Each li
 
 ### Code Review & Quality
 
+- [`complexity-audit`](skills/complexity-audit/README.md) — Reviewing supplied code for avoidable complexity with four evidence gates, behavior-preserving proposals, and explicit incomplete-review outcomes; read-only.
 - [`code-quality`](skills/code-quality/README.md) — Assessing production-code quality and applying its verified, behavior-preserving findings when requested; excludes isolated test-code reviews and standalone refactoring or simplification, and keeps behavior-changing fixes proposal-only.
 - [`adversarial-review`](skills/adversarial-review/README.md) — Challenging specs, designs, implementations, workflows, and test plans with evidence-based failure-mode review and risk-focused verification.
 - [`multi-lens-review`](skills/multi-lens-review/README.md) — Structuring a multi-lens review (intent, design, implementation, security, adversarial, verification) and synthesizing the lens findings into a single integrated decision with required actions and residual risk.
