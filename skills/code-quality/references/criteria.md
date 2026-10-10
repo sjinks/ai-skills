@@ -1,4 +1,4 @@
-When to read: during every code-quality review or simplification, to select and apply the relevant checks.
+When to read: during every code-quality assessment or application of its findings, to select and apply the relevant checks.
 
 # Contextual criteria
 

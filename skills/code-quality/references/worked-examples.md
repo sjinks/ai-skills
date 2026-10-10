@@ -56,7 +56,7 @@ Quality verdict: Needs attention
 
 Quality mode: simplify
 
-Quality scope: Supplied `format/label:12`; inspected neighboring comments and tooling configuration. Assessed comments and change safety. Naming, control flow, abstraction, duplication, API design, architecture, validation, errors, side effects, behavioral tests, and performance costs are not applicable to the ordinary prose-only edit because their code is unchanged. No exclusions or coverage gaps.
+Quality scope: Requested code-quality assessment of `format/label:12` with application of supported findings; inspected neighboring comments and tooling configuration. Assessed comments and change safety. Naming, control flow, abstraction, duplication, API design, architecture, validation, errors, side effects, behavioral tests, and performance costs are not applicable to the ordinary prose-only edit because their code is unchanged. No exclusions or coverage gaps.
 
 Quality findings:
 
@@ -90,7 +90,7 @@ Quality verdict: Clean
 
 Quality mode: simplify
 
-Quality scope: Supplied `checkout/eligibility`; inspected callers and available tests. Assessed naming, comments, control flow, abstraction, duplication, API design, architecture, validation, errors, side effects, performance costs, and change safety. Behavioral tests are a coverage gap: the available test files cannot be read in this checkout. No unrelated paths selected.
+Quality scope: Requested code-quality assessment of `checkout/eligibility` with application of supported findings; inspected callers and available tests. Assessed naming, comments, control flow, abstraction, duplication, API design, architecture, validation, errors, side effects, performance costs, and change safety. Behavioral tests are a coverage gap: the available test files cannot be read in this checkout. No unrelated paths selected.
 
 Quality findings:
 

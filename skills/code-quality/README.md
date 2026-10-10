@@ -1,12 +1,12 @@
 # code-quality
 
-> Review production-code quality or discover and verify behavior-preserving simplifications using project evidence.
+> Assess production-code quality and, when requested, apply verified behavior-preserving findings using project evidence.
 
 Targets can be supplied code snippets, diffs, or named paths; only when no target is supplied does the skill select relevant current workspace changes. Missing required snippet context remains an explicit coverage gap.
 
-Checks cover readability, API and module design, representations, trust boundaries, errors, resources, retries and concurrency, behavioral evidence, performance tradeoffs, and compatibility. Separate plan validation, new-code authoring, framework recipes, companion-skill orchestration, and AI fingerprints are intentionally outside this skill's scope. Comprehensive security audits, performance investigations, test-suite audits, isolated test-code reviews, and preplanned behavior-preserving refactors are excluded; performance costs and behavioral tests remain dimensions of a code-quality review.
+Checks cover readability, API and module design, representations, trust boundaries, errors, resources, retries and concurrency, behavioral evidence, performance tradeoffs, and compatibility. Separate plan validation, new-code authoring, framework recipes, companion-skill orchestration, and AI fingerprints are intentionally outside this skill's scope. Comprehensive security audits, performance investigations, test-suite audits, isolated test-code reviews, and standalone refactoring or simplification requests are excluded; performance costs and behavioral tests remain dimensions of a code-quality review.
 
-Isolated test-code review means a primary target of test assertions, determinism, or isolation. A preplanned refactor means the caller has already selected a transformation or plan to execute; this skill instead discovers quality problems and chooses simplifications. Correctness fixes and other behavior changes remain proposals here, even when separately authorized; implementation requires a separate behavior-changing task.
+Isolated test-code review means a primary target of test assertions, determinism, or isolation. Standalone refactoring or simplification means the requested deliverable is restructured or simplified code, including open-ended goals and preselected transformations. Edits here require a requested code-quality assessment and application of its supported findings; a mixed request must limit edits to those findings. Correctness fixes and other behavior changes remain proposals here, even when separately authorized; implementation requires a separate behavior-changing task.
 
 Simplification records a passing starting state and checks retained edits together. Failed or unavailable required checks, or uncertain equivalence, stop new edits and roll back the agent’s edits since the last passing combined state, preserving pre-existing work and reporting recovery results.
 

@@ -1,12 +1,12 @@
 ---
 name: code-quality
-description: "Use when: reviewing code for readability, maintainability, unnecessary abstractions, redundant defensive code, or behavioral evidence within production-code reviews; discovering and applying behavior-preserving simplifications in any language. Excludes AI-authorship detection, formatting-only reviews, comprehensive security audits, performance investigations, test-suite audits, isolated test-code reviews, and preplanned behavior-preserving refactors."
+description: "Use when: assessing production-code quality for readability, maintainability, abstractions, defensive code, and behavioral evidence; applying behavior-preserving findings of that assessment when requested, in any language. Excludes AI-authorship detection, formatting-only reviews, comprehensive security audits, performance investigations, test-suite audits, isolated test-code reviews, and standalone refactoring or simplification requests."
 ---
 # Code Quality
 
 Improve code comprehension and change safety using evidence from the project. Do not infer authorship from style, polish, or the absence of workaround comments.
 
-**UTILITY SKILL.** INVOKES: scoped code inspection and, only in simplify mode, requested code edits and checks. FOR SINGLE OPERATIONS: review or simplify one supplied code target.
+**UTILITY SKILL.** INVOKES: scoped code inspection and, only in simplify mode, requested code edits and checks. FOR SINGLE OPERATIONS: assess one supplied code target and, when requested, apply its behavior-preserving findings.
 
 ## DO NOT USE FOR:
 
@@ -14,11 +14,11 @@ Improve code comprehension and change safety using evidence from the project. Do
 - Comprehensive security audits, performance investigations, or test-suite audits. Assess performance costs and behavioral tests only as dimensions of a code-quality review; do not use this skill when a performance investigation or test-suite audit is the primary task.
 
 - Isolated test-code reviews: the primary target is test code and its assertion quality, determinism, or isolation. Assess behavioral tests here only as evidence for the production-code target.
-- Preplanned behavior-preserving refactors: the caller has selected a transformation or refactoring plan to execute. Use this skill for discovering quality problems and choosing simplifications, not executing a preselected refactor.
+- Standalone refactoring or simplification requests: the requested deliverable is restructured or simplified code, whether the goal is open-ended or the transformation is preselected. Apply edits here only as follow-through on a requested code-quality assessment. For a mixed request, use this skill only when the user requests that assessment and limits edits to its supported findings.
 
 ## Mode and scope
 
-Use `review` by default. Use `simplify` only when the user requests code changes. Explicit review-only or dry-run instructions take precedence; unresolved conflicting edit instructions require clarification before edits.
+Use `review` by default. Use `simplify` only when the user requests a code-quality assessment and application of its behavior-preserving findings. A standalone request to simplify code does not select this mode. Explicit review-only or dry-run instructions take precedence; unresolved conflicting edit instructions require clarification before edits.
 
 Use supplied code snippets, diffs, or named paths. For snippets, cite supplied snippet lines; report unavailable required caller or test context as coverage gaps. Do not select workspace changes instead of a supplied snippet. If no code target is supplied, inspect staged and unstaged tracked changes and related, nonignored untracked source/test files. Establish relevance from the requested task, affected module, imports, or tests; exclude unrelated, generated, and vendor files from automatic selection. Explicitly supplied targets override these file-selection exclusions, not the task exclusions in `DO NOT USE FOR`. If no target can be selected unambiguously, request one and return `Blocked`. Do not default to a repository-wide audit. Inspect callers, tests, and neighboring code as context without expanding the edit scope.
 
