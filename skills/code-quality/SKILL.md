@@ -1,6 +1,6 @@
 ---
 name: code-quality
-description: "Use when: reviewing code for readability, maintainability, unnecessary abstractions, redundant defensive code, or weak behavioral tests; simplifying code or removing code slop in any language. Excludes AI-authorship detection, formatting-only reviews, comprehensive security audits, performance investigations, and test-suite audits."
+description: "Use when: reviewing code for readability, maintainability, unnecessary abstractions, redundant defensive code, or behavioral evidence within production-code reviews; discovering and applying behavior-preserving simplifications in any language. Excludes AI-authorship detection, formatting-only reviews, comprehensive security audits, performance investigations, test-suite audits, isolated test-code reviews, and preplanned behavior-preserving refactors."
 ---
 # Code Quality
 
@@ -12,6 +12,9 @@ Improve code comprehension and change safety using evidence from the project. Do
 
 - AI-authorship detection or formatting-only reviews.
 - Comprehensive security audits, performance investigations, or test-suite audits. Assess performance costs and behavioral tests only as dimensions of a code-quality review; do not use this skill when a performance investigation or test-suite audit is the primary task.
+
+- Isolated test-code reviews: the primary target is test code and its assertion quality, determinism, or isolation. Assess behavioral tests here only as evidence for the production-code target.
+- Preplanned behavior-preserving refactors: the caller has selected a transformation or refactoring plan to execute. Use this skill for discovering quality problems and choosing simplifications, not executing a preselected refactor.
 
 ## Mode and scope
 
@@ -27,7 +30,7 @@ Use supplied code snippets, diffs, or named paths. For snippets, cite supplied s
 4. In `simplify`, classify each edit and satisfy its gate before editing:
    - `Documentation`: only prose that affects neither execution nor tooling. Inspect the diff and applicable documentation/lint checks; behavioral tests are not required solely for prose.
    - `Symbol`: a nonpublic rename with all bindings and consumers established, including dynamic uses. Check references and applicable compiler/analyzer checks before and after editing.
-   - `Behavior`: all other edits, including uncertain classifications. Establish passing checks that exercise affected behavior before editing and rerun them afterward.
+   - `Behavior`: all other proposed simplifications, including uncertain classifications. This verification class does not authorize behavior changes. Establish passing checks that exercise affected behavior before editing and rerun them afterward.
    Mixed edits use the strongest gate: `Behavior` before `Symbol` before `Documentation`. Missing or failing required checks leave the edit as a proposal. Preserve behavior for every class. Record the initial passing state before editing. Verify retained edits together with the applicable checks. If an individual or combined required check fails or cannot run, or equivalence becomes uncertain, stop new edits. Revert all your edits since the last passing combined state (the initial state if none), preserve pre-existing work, and rerun the applicable checks. Report the reverted edits and recovery results; if recovery checks fail or cannot run, report that limitation without claiming a verified state. Retain only edits covered by a passing combined check. Read [verification details](references/correctness-and-boundaries.md#proportional-verification) for class boundaries.
 5. Report once. Stop when the scope has been reviewed and requested changes are verified, or explicitly left as proposals.
 
@@ -38,7 +41,7 @@ Use supplied code snippets, diffs, or named paths. For snippets, cite supplied s
 - Treat names, wrappers, interfaces, comments, mocks, and snapshots as contextual signals. Retain them when they encode a contract, boundary, invariant, or observable behavior.
 - Before deleting a check, establish its invariant and enforcement point. Types, assertions, and conventions alone do not establish external-input validity. Preserve necessary runtime and trust-boundary checks.
 - Consolidate duplication only when the code represents the same concept and changes for the same reason. Avoid coupling independent concepts merely because their text matches.
-- Separate behavior changes from cleanup. Propose discovered correctness fixes unless separately authorized; do not present them as behavior-preserving edits.
+- Separate behavior changes from cleanup. Keep discovered correctness fixes and other behavior changes proposal-only in this skill, including separately authorized fixes. Implementation belongs to a separate behavior-changing task with its own validation; `simplify` never authorizes it.
 
 ## Checklist
 

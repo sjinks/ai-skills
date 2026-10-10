@@ -40,7 +40,7 @@ Evidence: The public `maxAttempts` option is accepted but the retry loop always 
 
 Consequence: A failed operation can be repeated despite the caller's explicit limit.
 
-Correction: Honor the configured limit as a separately authorized correctness fix.
+Correction: Propose honoring the configured limit in a separate behavior-changing task; do not apply the correctness fix in this skill.
 
 Resolved when: The loop follows the documented attempt-count contract, including the one-attempt case, and focused normal/failure checks pass.
 
@@ -80,7 +80,7 @@ Resolution evidence: The final diff removes only the three comments; the contrac
 
 Quality changes: Applied the comment removal.
 
-Quality verification: Documentation class. Before and after editing, inspected prose/tooling boundaries and documentation accuracy; project lint passed. Inspected the combined diff. Behavioral tests were not required for this prose-only edit.
+Quality verification: Documentation class. Before and after editing, inspected prose/tooling boundaries and documentation accuracy; project lint passed before editing (the initial passing state) and again after editing on the combined result. Inspected the combined diff. Behavioral tests were not required for this prose-only edit.
 
 Quality limitations: None.
 

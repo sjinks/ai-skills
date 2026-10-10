@@ -40,7 +40,7 @@ The repository currently contains the following skills, grouped by area. Each li
 
 ### Code Review & Quality
 
-- [`code-quality`](skills/code-quality/README.md) — Reviewing or simplifying code in any language for readability, API and module design, boundary correctness, behavioral tests, performance tradeoffs, and change safety, with contextual evidence and verified edits.
+- [`code-quality`](skills/code-quality/README.md) — Reviewing production-code quality and discovering verified, behavior-preserving simplifications; excludes isolated test-code reviews and preplanned refactors, and keeps behavior-changing fixes proposal-only.
 - [`adversarial-review`](skills/adversarial-review/README.md) — Challenging specs, designs, implementations, workflows, and test plans with evidence-based failure-mode review and risk-focused verification.
 - [`multi-lens-review`](skills/multi-lens-review/README.md) — Structuring a multi-lens review (intent, design, implementation, security, adversarial, verification) and synthesizing the lens findings into a single integrated decision with required actions and residual risk.
 - [`single-pass-review-completeness`](skills/single-pass-review-completeness/README.md) — Making one review round complete by construction: enumerate eight review dimensions up front, cover every file under each applicable dimension with flexible traversal order, and declare covered, skipped, and gapped coverage explicitly.

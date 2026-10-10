@@ -34,7 +34,7 @@ The design checks in this file apply to functions, data models, and module bound
 
 **Mock-heavy test:** a test asserts only that a mocked helper was called. That assertion is useful when the invocation is the contract. When the contract is a transformed result, propose an assertion on that result instead.
 
-**Pure cleanup versus bug fix:** flattening branches may preserve behavior. Adding a timeout or changing error propagation may change behavior. Report the latter as a separate correctness proposal unless authorized.
+**Pure cleanup versus bug fix:** flattening branches may preserve behavior. Adding a timeout or changing error propagation may change behavior. Keep the latter proposal-only in this skill. Separate authorization does not make it a behavior-preserving simplification.
 
 
 Apply these checks as contextual review criteria under the finding rules in `SKILL.md`. Do not redesign unrelated modules or impose one programming paradigm.
