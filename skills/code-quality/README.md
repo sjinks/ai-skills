@@ -2,7 +2,9 @@
 
 > Review or simplify code in any language using contextual evidence about comprehension, maintainability, and change safety.
 
-Checks cover readability, API and module design, representations, trust boundaries, errors, resources, retries and concurrency, behavioral evidence, performance tradeoffs, and compatibility. Separate plan validation, new-code authoring, framework recipes, companion-skill orchestration, and AI fingerprints are intentionally outside this skill's scope.
+Targets can be supplied code snippets, diffs, or named paths; only when no target is supplied does the skill select relevant current workspace changes. Missing required snippet context remains an explicit coverage gap.
+
+Checks cover readability, API and module design, representations, trust boundaries, errors, resources, retries and concurrency, behavioral evidence, performance tradeoffs, and compatibility. Separate plan validation, new-code authoring, framework recipes, companion-skill orchestration, and AI fingerprints are intentionally outside this skill's scope. Comprehensive security audits, performance investigations, and test-suite audits are excluded; performance costs and behavioral tests remain dimensions of a code-quality review.
 
 Simplification records a passing starting state and checks retained edits together. Failed or unavailable required checks, or uncertain equivalence, stop new edits and roll back the agent’s edits since the last passing combined state, preserving pre-existing work and reporting recovery results.
 
