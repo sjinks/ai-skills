@@ -12,7 +12,7 @@ Quality scope: Supplied `storage/port` and its single implementation; inspected 
 
 Quality findings: None.
 
-Quality changes: None. Retain the interface: one production implementation does not negate its boundary role.
+Quality changes: None.
 
 Quality verification: Not run; read-only source inspection established the boundary role and inspected test assertions. No runtime result is claimed.
 
