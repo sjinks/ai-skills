@@ -6,7 +6,7 @@ These fictional inputs and complete reports illustrate the normative report rule
 
 ## Failure followed by success
 
-Input: The same fixture must pass. A1 fails because a required field is absent; A2 adds only that field and passes. Fixture logs and the one-field diff isolate the cause. Existing scripts show that a fixture check can run automatically in the current runner with no new dependency or operator action; local guidance adds one recurring manual invocation. No other mechanism addresses this pattern under the supplied evidence.
+Input: The same fixture must pass. A1 fails because a required field is absent; A2 adds only that field and passes. Fixture logs and the one-field diff isolate the cause. Existing scripts show that a fixture check can run automatically in the current runner with no new dependency or operator action; the supplied local procedure establishes that guidance requires no new dependency and adds one recurring manual invocation. No other mechanism addresses this pattern under the supplied evidence.
 
 ```text
 Retrospective: Make the supplied fixture pass; compare A1 and A2.
