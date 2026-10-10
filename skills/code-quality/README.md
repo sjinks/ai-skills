@@ -10,6 +10,8 @@ Isolated test-code review means a primary target of test assertions, determinism
 
 Simplification records a passing starting state and checks retained edits together. Failed or unavailable required checks, or uncertain equivalence, stop new edits and roll back the agent’s edits since the last passing combined state, preserving pre-existing work and reporting recovery results.
 
+Applicability and reference loading consider the target and relevant inspected context, including callers and behavioral tests. Required but unavailable context is a coverage gap; context inspection does not expand edit scope.
+
 All 13 dimensions receive an applicability screen, followed by investigation of applicable signals and risks. Findings describe concrete consequences rather than smell counts and retain stable IDs, `Open`/`Resolved` statuses, and observable resolution criteria. The report uses `Quality` labels and returns `Blocked`, `Needs attention`, or `Clean`; `Clean` applies only to the inspected scope.
 
 ## Files

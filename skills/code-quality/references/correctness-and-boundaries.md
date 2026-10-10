@@ -1,4 +1,4 @@
-When to read: when the target handles boundaries, effects, numeric or temporal values, tests, potentially costly work, public evolution, or proposed edits.
+When to read: when the target or relevant inspected context involves validation, errors, I/O, numeric or temporal values, encoding, shared state, tests, potentially costly work, or public evolution; also before every proposed edit.
 
 # Correctness, verification, and change safety
 

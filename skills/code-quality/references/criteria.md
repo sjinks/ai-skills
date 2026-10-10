@@ -6,7 +6,7 @@ Apply the checks below within the target scope. A signal becomes a finding only 
 
 ## Required reference loading
 
-The design checks in this file apply to functions, data models, and module boundaries. For validation, errors, I/O, numeric or temporal values, encoding, shared state, tests, potentially costly work, public evolution, or proposed edits, read [correctness, verification, and change safety](correctness-and-boundaries.md). Apply each section only when its named subject exists in the target. Record other dimensions as not applicable with a reason.
+The design checks in this file apply to functions, data models, and module boundaries. If the target or relevant inspected context involves validation, errors, I/O, numeric or temporal values, encoding, shared state, tests, potentially costly work, or public evolution, read [correctness, verification, and change safety](correctness-and-boundaries.md). Also read that reference before every proposed edit. Assess section applicability using both the target and relevant inspected context, including callers and behavioral tests. Mark a dimension not applicable only when its subject has no bearing on the target contract or relevant context; give a reason. Tests outside the target or missing tests do not alone make behavioral evidence not applicable: assess a confirmed absence, or record a coverage gap when required context is unavailable. Context inspection does not expand the edit scope.
 
 | Dimension | Evidence to inspect | Useful correction and exception |
 |---|---|---|
