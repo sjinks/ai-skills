@@ -60,7 +60,7 @@ Emit these labels exactly once, in order, with nonempty bodies:
 - `Complexity limitations:` — unresolved candidates, missing evidence, assumptions, and verification boundaries; otherwise `None.`.
 - `Complexity verdict:` — one value below; final line.
 
-Each finding has `Location:`, `Severity:`, `Evidence:`, and `Minimal change:`. Cite file/snippet lines when available; otherwise identify the symbol or section. Evidence explains necessity and maintenance consequences; Minimal change includes preservation constraints.
+Each finding has `Location:`, `Severity:`, `Evidence:`, and `Minimal change:`. Cite file/snippet lines when available; otherwise identify the symbol or section. Evidence explains why the complexity lacks justification under current requirements and its concrete maintenance consequences; Minimal change includes preservation constraints.
 
 Severity: `high` means substantial maintenance or correctness risk from avoidable complexity; `medium` means meaningful cognitive or change cost; `low` means modest, concrete localized overhead. Suppress cosmetic preferences and generic best-practice advice.
 
