@@ -51,7 +51,7 @@ Discard a candidate if evidence disproves any gate, including when countereviden
 - Similar-looking code can intentionally differ. Do not consolidate independent concepts solely to remove duplication.
 - Preserve correctness, security, reliability, performance, accessibility, compatibility, observability, testability, architectural boundaries, and deliberate future compatibility.
 - Before proposing removal of a defensive check, establish its invariant and enforcement point. Preserve checks needed for external input, malformed state, concurrency, and resource failures.
-- Keep findings within the requested scope. Mention correctness/security risks only when they affect simplification safety; do not claim a comprehensive review.
+- Keep findings within the requested scope. Report correctness/security risks only when directly caused by the identified complexity or relevant to simplification safety. Do not claim a comprehensive correctness/security review.
 
 ## Output
 
