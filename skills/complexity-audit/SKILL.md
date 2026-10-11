@@ -65,10 +65,16 @@ Emit these labels exactly once, in order, with nonempty bodies:
 Each finding has `Location:`, `Severity:`, `Evidence:`, and `Minimal change:`. Map the four gates to these required fields:
 
 - `Location:` cites observed code (`Observable`); use file/snippet lines when available, otherwise the symbol or section.
-- `Evidence:` explains why current requirements do not justify the complexity (`Unnecessary`) and its concrete maintenance consequences. Cite the code, caller, invariant, or observed check evidence supporting retained behavior and properties (`Preservation`); do not substitute a list of constraints for supporting evidence.
+- `Evidence:` explains why current requirements do not justify the complexity (`Unnecessary`). State the concrete maintenance, correctness, or security consequence that supports the assigned `Severity:`. Cite the code, caller, invariant, or observed check evidence supporting retained behavior and properties (`Preservation`); do not substitute a list of constraints for supporting evidence.
 - `Minimal change:` specifies the simpler alternative and why it reduces maintenance cost (`Improvement`), with preservation constraints.
 
-Severity: `high` means substantial maintenance or correctness risk from avoidable complexity; `medium` means meaningful cognitive or change cost; `low` means modest, concrete localized overhead. Suppress cosmetic preferences and generic best-practice advice.
+Assign the highest matching severity from evidenced consequences of the current avoidable complexity:
+
+- `high`: substantial maintenance cost or substantial correctness/security risk.
+- `medium`: meaningful cognitive or change cost, or a correctness/security risk with more than minor localized impact that does not meet `high`.
+- `low`: modest, concrete localized overhead or minor localized correctness/security risk.
+
+Risks introduced by a proposed simplification affect `Preservation`, not finding severity. Suppress cosmetic preferences and generic best-practice advice.
 
 Verdict precedence: `Blocked` when no target is reviewable; otherwise `Incomplete` when required coverage or a decision gate remains unresolved; otherwise `Findings` when actionable findings remain; otherwise `No findings`. For `No findings`, use exactly `No actionable complexity findings.` in Complexity findings. For `Blocked`, use `None.` there and name the missing target/input in limitations. For `Incomplete`, retain supported findings or `None.` and name what is needed to finish.
 
@@ -80,5 +86,6 @@ Keep a one-caller authorization helper. Flag a redundant internal wrapper only w
 
 - Every requested target is assessed or recorded as unavailable.
 - Every actionable finding satisfies all four gates and reports their support in the mapped fields; justified candidates are discarded.
+- Every finding reports the consequence supporting its severity; proposal risks do not inflate severity.
 - No edits were made; unrun checks remain explicit.
 - Output labels, severity values, and verdict precedence match the contract.
