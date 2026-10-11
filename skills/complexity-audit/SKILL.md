@@ -7,7 +7,7 @@ description: "Use when the primary goal of a dedicated audit is identifying avoi
 
 Identify avoidable complexity using requirements, callers, and repository evidence.
 
-**UTILITY SKILL.** INVOKES: read-only inspection. FOR SINGLE OPERATIONS: propose behavior-preserving simplifications for one supplied target.
+**UTILITY SKILL.** INVOKES: read-only inspection. FOR SINGLE OPERATIONS: audit one supplied target; propose simplifications only when all four gates are established.
 
 ## USE FOR:
 
@@ -30,7 +30,7 @@ If no target is reviewable, use `Blocked`. If required context or evidence is un
 1. Establish the target, intended behavior, constraints, and scope. Distinguish supported requirements from assumptions.
 2. Inspect target code, relevant callers, comparable local patterns, and available behavioral tests. Record unavailable context needed to assess necessity or preservation.
 3. Read [review-rubric.md](references/review-rubric.md) for investigation prompts and counterevidence. Assess each candidate against the four gates below.
-4. Propose the smallest supported simplification. Recheck its behavior, public interfaces, and repository constraints. Report once when the requested scope is assessed or missing evidence prevents completion.
+4. Recheck each candidate alternative against required behavior, public interfaces, and repository constraints. Propose the smallest supported simplification only for candidates satisfying all four gates. If none qualify, report without a simplification proposal. Report once when the requested scope is assessed or missing evidence prevents completion.
 
 ## Decision Rules
 
@@ -45,7 +45,7 @@ Discard a candidate if evidence disproves any gate, including when countereviden
 
 ## Boundaries
 
-- For a mixed request that includes a dedicated complexity audit and implementation, perform only the audit and return proposals.
+- For a mixed request that includes a dedicated complexity audit and implementation, perform only the audit.
 - Perform a read-only audit. Do not modify code, tests, or configuration.
 - One implementation does not invalidate an interface; one caller does not invalidate a helper.
 - Similar-looking code can intentionally differ. Do not consolidate independent concepts solely to remove duplication.
@@ -86,6 +86,7 @@ Keep a one-caller authorization helper. Flag a redundant internal wrapper only w
 
 - Every requested target is assessed or recorded as unavailable.
 - Every actionable finding satisfies all four gates and reports their support in the mapped fields; justified candidates are discarded.
+- Every proposal belongs to an actionable finding; discarded or unresolved candidates receive no proposal.
 - Every finding reports the consequence supporting its severity; proposal risks do not inflate severity.
 - No edits were made; unrun checks remain explicit.
 - Output labels, severity values, and verdict precedence match the contract.
