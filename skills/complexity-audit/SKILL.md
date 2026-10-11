@@ -1,6 +1,6 @@
 ---
 name: complexity-audit
-description: "Use when the primary goal of a dedicated audit is identifying avoidable complexity in an implementation or refactor: speculative abstractions, redundant indirection, excessive configuration, or scope creep. Read-only; excludes broader production-code quality assessments, applying simplifications, cosmetic reviews, and comprehensive correctness or security audits."
+description: "Use when the primary goal of a dedicated audit is identifying avoidable complexity in an implementation or refactor: speculative abstractions, redundant indirection, excessive configuration, or scope creep. Read-only; excludes broader production-code quality assessments, standalone implementation requests, cosmetic reviews, and comprehensive correctness or security audits."
 ---
 
 # Complexity Audit
@@ -16,7 +16,7 @@ Identify avoidable complexity using requirements, callers, and repository eviden
 ## DO NOT USE FOR:
 
 - Broader production-code quality assessments, including reviews that cover complexity as one of several quality dimensions.
-- Implementing simplifications or unrelated refactoring.
+- Standalone requests to implement simplifications or refactoring without a dedicated complexity audit.
 - Cosmetic reviews or comprehensive correctness/security audits.
 
 ## Inputs and Error Handling
@@ -45,7 +45,8 @@ Discard a candidate if evidence disproves any gate, including when countereviden
 
 ## Boundaries
 
-- Perform a read-only audit. Do not modify code, tests, or configuration, even when implementation is also requested; return proposals.
+- For a mixed request that includes a dedicated complexity audit and implementation, perform only the audit and return proposals.
+- Perform a read-only audit. Do not modify code, tests, or configuration.
 - One implementation does not invalidate an interface; one caller does not invalidate a helper.
 - Similar-looking code can intentionally differ. Do not consolidate independent concepts solely to remove duplication.
 - Preserve correctness, security, reliability, performance, accessibility, compatibility, observability, testability, architectural boundaries, and deliberate future compatibility.
