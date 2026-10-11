@@ -1,6 +1,6 @@
 ---
 name: complexity-audit
-description: "Use for dedicated audits of implementations or refactors whose primary goal is identifying avoidable complexity: speculative abstractions, redundant indirection, excessive configuration, or scope creep. Read-only; excludes broader production-code quality assessments, applying simplifications, cosmetic reviews, and comprehensive correctness or security audits."
+description: "Use when the primary goal of a dedicated audit is identifying avoidable complexity in an implementation or refactor: speculative abstractions, redundant indirection, excessive configuration, or scope creep. Read-only; excludes broader production-code quality assessments, applying simplifications, cosmetic reviews, and comprehensive correctness or security audits."
 ---
 
 # Complexity Audit
