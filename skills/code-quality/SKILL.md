@@ -1,6 +1,6 @@
 ---
 name: code-quality
-description: "Use when: assessing production-code quality for readability, maintainability, abstractions, defensive code, and behavioral evidence; applying behavior-preserving findings of that assessment when requested, in any language. Excludes AI-authorship detection, formatting-only reviews, comprehensive security audits, performance investigations, test-suite audits, isolated test-code reviews, and standalone refactoring or simplification requests."
+description: "Use when: assessing production-code quality for readability, maintainability, abstractions, defensive code, and behavioral evidence; applying behavior-preserving findings of that assessment when requested, in any language. Excludes AI-authorship detection, formatting-only reviews, comprehensive security audits, performance investigations, test-suite audits, isolated test-code reviews, dedicated avoidable-complexity audits, and standalone refactoring or simplification requests."
 ---
 # Code Quality
 
@@ -10,6 +10,7 @@ Improve code comprehension and change safety using evidence from the project. Do
 
 ## DO NOT USE FOR:
 
+- Dedicated audits whose primary goal is identifying avoidable complexity. Assess complexity here only as a dimension of a broader production-code quality assessment.
 - AI-authorship detection or formatting-only reviews.
 - Comprehensive security audits, performance investigations, or test-suite audits. Assess performance costs and behavioral tests only as dimensions of a code-quality review; do not use this skill when a performance investigation or test-suite audit is the primary task.
 

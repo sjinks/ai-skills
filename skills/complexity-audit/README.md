@@ -2,7 +2,7 @@
 
 > Identify avoidable complexity and propose the smallest supported simplification.
 
-This read-only skill reviews supplied code, diffs, or paths against requirements, callers, and local conventions. Four evidence gates prevent speculative findings and protect necessary behavior, defensive checks, boundaries, and test seams. It does not apply changes or perform comprehensive correctness/security reviews.
+This read-only skill performs dedicated audits whose primary goal is identifying avoidable complexity in supplied code, diffs, or paths against requirements, callers, and local conventions. Broader production-code quality assessments, including reviews of complexity alongside other quality dimensions, are excluded. Four evidence gates prevent speculative findings and protect necessary behavior, defensive checks, boundaries, and test seams. It does not apply changes or perform comprehensive correctness/security reviews.
 
 The report uses `Complexity scope:`, `Complexity findings:`, `Complexity limitations:`, and `Complexity verdict:`. Verdict precedence is `Blocked`, then `Incomplete`, then `Findings`, then `No findings`; supported findings remain visible in an incomplete review. A completed review with no findings emits `No actionable complexity findings.`. Missing evidence is a coverage limitation, not a code defect.
 

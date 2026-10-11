@@ -1,6 +1,6 @@
 ---
 name: complexity-audit
-description: "Use when reviewing implementations or refactors for avoidable complexity: speculative abstractions, redundant indirection, excessive configuration, or scope creep. Read-only; excludes applying simplifications, cosmetic reviews, and comprehensive correctness or security audits."
+description: "Use for dedicated audits of implementations or refactors whose primary goal is identifying avoidable complexity: speculative abstractions, redundant indirection, excessive configuration, or scope creep. Read-only; excludes broader production-code quality assessments, applying simplifications, cosmetic reviews, and comprehensive correctness or security audits."
 ---
 
 # Complexity Audit
@@ -11,10 +11,11 @@ Identify avoidable complexity using requirements, callers, and repository eviden
 
 ## USE FOR:
 
-- Review unnecessary layers, options, abstractions, or refactoring complexity.
+- Dedicated audits whose primary goal is avoidable complexity in layers, options, abstractions, or refactors.
 
 ## DO NOT USE FOR:
 
+- Broader production-code quality assessments, including reviews that cover complexity as one of several quality dimensions.
 - Implementing simplifications or unrelated refactoring.
 - Cosmetic reviews or comprehensive correctness/security audits.
 
