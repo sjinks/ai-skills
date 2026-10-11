@@ -61,7 +61,11 @@ Emit these labels exactly once, in order, with nonempty bodies:
 - `Complexity limitations:` — unresolved candidates, missing evidence, assumptions, and verification boundaries; otherwise `None.`.
 - `Complexity verdict:` — one value below; final line.
 
-Each finding has `Location:`, `Severity:`, `Evidence:`, and `Minimal change:`. Cite file/snippet lines when available; otherwise identify the symbol or section. Evidence explains why the complexity lacks justification under current requirements and its concrete maintenance consequences; Minimal change includes preservation constraints.
+Each finding has `Location:`, `Severity:`, `Evidence:`, and `Minimal change:`. Map the four gates to these required fields:
+
+- `Location:` cites observed code (`Observable`); use file/snippet lines when available, otherwise the symbol or section.
+- `Evidence:` explains why current requirements do not justify the complexity (`Unnecessary`) and its concrete maintenance consequences. Cite the code, caller, invariant, or observed check evidence supporting retained behavior and properties (`Preservation`); do not substitute a list of constraints for supporting evidence.
+- `Minimal change:` specifies the simpler alternative and why it reduces maintenance cost (`Improvement`), with preservation constraints.
 
 Severity: `high` means substantial maintenance or correctness risk from avoidable complexity; `medium` means meaningful cognitive or change cost; `low` means modest, concrete localized overhead. Suppress cosmetic preferences and generic best-practice advice.
 
@@ -74,6 +78,6 @@ Keep a one-caller authorization helper. Flag a redundant internal wrapper only w
 ## Checklist and Done
 
 - Every requested target is assessed or recorded as unavailable.
-- Every actionable finding satisfies all four gates; justified candidates are discarded.
+- Every actionable finding satisfies all four gates and reports their support in the mapped fields; justified candidates are discarded.
 - No edits were made; unrun checks remain explicit.
 - Output labels, severity values, and verdict precedence match the contract.
