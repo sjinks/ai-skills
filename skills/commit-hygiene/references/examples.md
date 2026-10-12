@@ -6,7 +6,7 @@ These examples illustrate the core contract; they do not add requirements. Hashe
 
 ## Known fixup
 
-Input: an unmerged linear range, oldest-first. Supplied diffs show that `b2b2b2b` only corrects the parser introduced by `a1a1a1a`. Publication status is unknown; the merge style preserves commits. The author supplies passing verification for the proposed surviving steps. No open PR is reported.
+Input: an unmerged linear range, oldest-first. Supplied diffs establish a self-contained parser in `a1a1a1a`, an independent formatter in `c3c3c3c`, and that `b2b2b2b` only corrects the parser introduced by `a1a1a1a`. Supplied subjects: `a1a1a1a` = `add parser`; `b2b2b2b` = `fixup parser`; `c3c3c3c` = `add formatter`. Publication status is unknown; the merge style preserves commits. The author supplies passing verification for the proposed surviving steps, identifies `backup/parser-cleanup` as a valid unused Git branch name, and confirms both parser commits have the same author and no required distinct authorship metadata is lost, and that the folded message has no unique rationale, issue reference, attribution, or breaking-change disclosure to preserve. No open PR is reported.
 
 ````markdown
 ## Commit Hygiene Report
@@ -36,7 +36,7 @@ pick c3c3c3c add formatter
 
 ### Cautions
 
-- First create a backup at the original tip: `git branch <unused-backup-ref> c3c3c3c`; replace the placeholder with an unused ref name.
+- Before any authorized rewrite, create the supplied unused backup ref at the original tip: `git branch 'backup/parser-cleanup' 'c3c3c3c'`.
 - Publication status is unknown: coordinate with collaborators before rewriting shared history. Any force push requires an independently verified expected remote SHA and `--force-with-lease=<ref>:<expected-sha>`; substitute verified values.
 
 ### Needs author input
@@ -47,6 +47,10 @@ None
 ## Other branches
 
 - **Audit proposing a rewrite:** Return the full report, including the backup and publication cautions. Frame commands as safety recommendations conditional on a future rewrite; do not tell the author to execute the rebase plan.
+- **Unknown backup ref:** A supported rewrite still needs a backup. Open Cautions with a descriptive backup requirement, omit the unresolved backup command, and request an unused ref under Needs author input. Do not invent a verified-unused name.
+- **Folded-message facts unknown, authorship preservation established:** After the authorship and movement gates pass, use `squash` instead of `fixup`, annotate the surviving target `message pending`, and request message review to preserve any unique rationale, issue reference, attribution, or breaking disclosure.
+- **Distinct or unknown required authorship metadata:** Neither fold action preserves a later commit's distinct Git authorship metadata. Use `needs-author-input` / unchanged `pick`, retain the original position and provisional sequence entry, and request preservation requirements or a compatible alternative. Do not propose a rewrite solely for that pending fold.
+- **Approved attribution alternative:** Supplied explicit author approval permits a specified message-based attribution alternative. Use `squash` only after the movement gate passes, name the approved alternative, annotate the target `message pending`, and request message review. This deliberately substitutes attribution in the message for metadata; it does not claim the metadata is preserved.
 - **Titles only:** A commit titled `wip` without a change summary becomes `needs-author-input`, with an unchanged `pick` line and a concrete evidence request. Do not guess the squash target. Verdict: `CONCERNS`.
 - **Split:** An established feature plus unrelated formatting change becomes `split` / `edit`. List the two concern descriptions in intended order, each marked `subject pending`. Do not invent final subjects. Verdict: `CONCERNS`.
 - **Squash merge:** No unwanted final content and no pending final-message work yields all `keep` / `pick`, no cautions, and `CLEAN`, even with intermediate fixup titles. A missing final message that needs assessment belongs under `### Needs author input` and yields `CONCERNS`.
@@ -56,6 +60,46 @@ None
 - **Verification gap in a valid range:** Return the full report with verification pending under `### Needs author input`; do not emit BLOCK or claim passing tests.
 - **All commits safely dropped:** Keep every input commit as a `drop` line with its evidence-backed rationale. Resulting sequence is `None`; rewrite cautions apply and the verdict is `CONCERNS`.
 - **Missing hashes, ambiguous order, or merge topology:** Use the reduced BLOCK template from `SKILL.md`; do not fabricate a runnable linear todo.
+
+## Fixup crossing an unknown commit
+
+Input: an unmerged linear range, oldest-first. Supplied facts establish a self-contained parser in `a1a1a1a` and a parser fixup in `c3c3c3c`; the content and dependencies of intervening `b2b2b2b` are unknown. Supplied verification covers the current unchanged range, not a reordered range. Merge style preserves commits. Supplied subjects: `a1a1a1a` = `add parser`; `b2b2b2b` = `update pipeline`; `c3c3c3c` = `fixup parser`. No rewrite is proposed while the crossing is unresolved.
+
+````markdown
+## Commit Hygiene Report
+
+Verdict: CONCERNS
+
+Merge style: preserve
+
+### Rebase plan
+
+```text
+pick a1a1a1a add parser
+pick b2b2b2b update pipeline
+pick c3c3c3c fixup parser
+```
+
+### Actions
+
+- a1a1a1a: keep — none: Preserve the evidenced parser step at its current position.
+- b2b2b2b: needs-author-input — medium: Content and dependency evidence is missing; retain its position.
+- c3c3c3c: needs-author-input — medium: A parser fixup is evidenced, but moving it across b2b2b2b is not yet justified.
+
+### Resulting sequence
+
+- add parser
+- update pipeline (provisional)
+- fixup parser (provisional)
+
+### Cautions
+
+None
+
+### Needs author input
+
+- Provide the change summary and dependency/review-boundary evidence for b2b2b2b before considering a move of c3c3c3c across it, and verification for any subsequently proposed reordered steps.
+````
 
 ## Source verification
 
