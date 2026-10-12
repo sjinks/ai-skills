@@ -20,7 +20,7 @@ Use when restructuring existing code is planned or underway and behavior must no
 
 If no refactoring target is provided, emit the BLOCK template; do not invent the codebase.
 
-Select `plan` when the user requests planning or analysis; do not execute transformations. If the user authorizes implementation, select `execute`. If the requested action is unclear, use `plan`.
+Select the mode in this order: if the user requests planning or analysis, use `plan` even when implementation is also authorized; do not execute transformations. Otherwise, use `execute` only when the user requests implementation now and authorizes it. Conditional future authorization, authorization alone, and unclear requests use `plan`.
 
 ## Refactor Baseline
 
@@ -69,7 +69,7 @@ Record the reviewed state, inspected paths, and contract/boundary comparison evi
 ## Refactoring Safety Plan
 
 - Target: <code/surface and restructuring goal>
-- Mode: <plan or execute>
+- Mode: <plan or execute, selected by Required Inputs precedence>
 - Refactor baseline: <original state identifier and provenance, or unavailable with reason>; prior refactor changes: <identified changes, none for a new refactor, or unknown with reason>
 - Consumers considered: <identified consumers with supplied/discovered provenance, unknown, or none found within a searched scope>
 - Consumer inspection: <searched paths/surfaces and evidence, or not inspected with reason>; remaining unknowns: <list or None>
@@ -88,7 +88,7 @@ Record the reviewed state, inspected paths, and contract/boundary comparison evi
 
 ### Check results
 
-- <execution-start baseline or step #>: <command/check>; <passed, failed, or not run with reason>; checked state: <state identifier for an executed check, or not run>; <internal-assertion justification and preserved-behavior check, when applicable>
+- <execution-start or step #>: <command/check>; <passed, failed, or not run with reason>; checked state: <state identifier for an executed check, or not run>; <internal-assertion justification and preserved-behavior check, when applicable>
 
 ### Final diff review
 

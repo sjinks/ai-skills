@@ -6,7 +6,7 @@ This skill is aimed at planned or in-flight behavior-preserving restructurings w
 
 It helps an assistant:
 
-- distinguish planning from authorized execution, and plan completeness from completed refactoring
+- give planning requests precedence over implementation authorization; execute only when implementation is requested now and authorized, and distinguish plan completeness from completed refactoring
 - establish the original refactor state and attribute already-completed changes before any new execution; block further transformations when an in-flight baseline cannot be reconstructed
 - define the preserved observable contract, inspect authorized repository evidence, and distinguish reported coverage, inspected tests, and executed checks
 - record searched consumer surfaces, supplied versus discovered consumers, and remaining unknowns; an empty search result applies to the inspected scope

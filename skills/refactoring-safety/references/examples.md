@@ -2,6 +2,12 @@ When to read: when constructing a step table or checking common refactoring mist
 
 # Refactoring Examples
 
+## Mode Selection
+
+- “Plan this refactor; you may implement after approval”: `plan`; a planning request takes precedence and conditional future authorization does not request execution now.
+- “Implement this refactor now”: `execute` when implementation is authorized.
+- “You are allowed to implement this refactor”: `plan` without a request to implement now.
+
 ## Example
 
 Target: extract the pricing rules out of `OrderService` into a `PricingPolicy` collaborator; behavior must not change.
