@@ -4,7 +4,7 @@ Read before serializing a report or checking mode, missing-input, disclosure and
 
 ## Full report
 
-Emit exactly one report with the core's ordered markers, no preamble/trailing prose. Full reports use CLEAN or CONCERNS, never BLOCK. Structure is template or default for the selected body structure.
+Emit exactly one report with the core's ordered markers, no preamble/trailing prose. Full reports use CLEAN or CONCERNS, never BLOCK. Structure is template for repository-selected or caller-supplied heading/checklist structures, and default only for the unreplaced default body structure.
 
 Fence Title as text and Body as markdown; use backtick fences longer than every backtick run in each payload. Preserve safe validation text, whitespace and literal angle brackets; fences are framing. For rewrite with only one supplied part, draft the other from usable change evidence; otherwise leave its fence empty, mark needs-author-input and request content/evidence. Validate missing either part uses reduced BLOCK.
 
@@ -61,3 +61,5 @@ Examples illustrate existing rules:
 - Multiple unresolved templates or unreadable required template: BLOCK; no default compliance claim.
 - Reverted breaking API change: omit canceled claim; unresolved final-evidence conflict needs author input.
 - Optional missing issue: omit default Linked issues or leave its template section empty; do not block/invent a closure reference.
+
+Mixed-type selection and caller-supplied structure follow the core and evidence reference: an equally primary feature/fix pair selects feat under the default tie order; a custom caller heading set uses Structure: template. Both passing unchanged parts still yield CONCERNS if excluded source content was found.

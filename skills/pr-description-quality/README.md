@@ -6,7 +6,9 @@ This skill checks description quality without publishing PRs, executing checks, 
 
 Draft/rewrite creates or repairs text; validate preserves safe supplied text and reports defects. Every mode removes sensitive content without treating removal as original compliance. Missing required input or unresolved required template/rule selection returns BLOCK; missing author facts produces a full CONCERNS report. Optional unknown issue links are omitted; validation claims retain outcomes and evidence boundaries.
 
-The report preserves CLEAN/CONCERNS/BLOCK and template/default, with compliant/rewritten/noncompliant/needs-author-input statuses. Findings distinguish errors, unresolved facts and informational convention/structure evidence. Newly drafted/repaired parts yield CONCERNS even when emitted text passes; passing unchanged validation yields CLEAN.
+The report preserves CLEAN/CONCERNS/BLOCK and template/default, with compliant/rewritten/noncompliant/needs-author-input statuses. Findings distinguish errors, unresolved facts and informational convention/structure evidence. Newly drafted/repaired parts yield CONCERNS even when emitted text passes. CLEAN requires both parts to be compliant and no forbidden content found, including in supplied source outside the title/body.
+
+Conventional title types follow the stated primary outcome; unresolved mixed-type ties use a fixed priority order after caller/repository rules. Caller-supplied heading/checklist structures are templates and use Structure: template; default describes only the unreplaced default headings.
 
 ## Files
 

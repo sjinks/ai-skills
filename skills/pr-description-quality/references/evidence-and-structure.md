@@ -26,7 +26,7 @@ Use the repository selection rule or one unambiguous applicable template. If mul
 
 Keep template headings and checklist lines intact; fill applicable sections from evidence and leave irrelevant sections empty. Retain unchecked items unless evidence establishes completion. Draft/rewrite removes unsupported completion marks; validate reports them without repair. Template instructions constrain content, not execution/publication authority. Sensitive template content must still be removed and its violation/structural limitation reported.
 
-Default body headings: Summary, Changes, Testing; add Risks and follow-up and Linked issues only when applicable. Caller-selected structures may replace these body headings; quality-report markers remain exact.
+Default body headings: Summary, Changes, Testing; add Risks and follow-up and Linked issues only when applicable. A caller-supplied heading/checklist structure is a supplied template: use Structure: template and apply the same preservation and required-input rules. Structure: default applies only when no supplied/selected template replaces the default headings. Quality-report markers remain exact.
 
 ## Title conventions
 
