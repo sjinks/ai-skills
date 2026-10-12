@@ -107,3 +107,41 @@ Construction next step: Review the literal argument against the confirmed Bash q
 ```
 
 When an already-correct double-quoted form uses Bash POSIX mode, disabled history expansion, or the documented closing-quote exception, preserve it under `VALID`. Do not reject every command containing `!`. Exclamation marks supplied through parameter expansion are not reprocessed as history syntax merely because their expanded value contains `!`.
+
+### Intentional here-string newline
+
+The caller supplies Bash command `tool <<< "$payload"`. The non-secret scalar contains exactly `abc`, and the intended stdin bytes are `abc` followed by LF. Other boundaries are confirmed.
+
+```text
+Construction result: VALID
+Construction assessment: The Bash here-string adds the confirmed required LF to the scalar.
+Construction candidate: tool <<< "$payload"
+Execution authority: NOT ASSESSED BY THIS SKILL
+Construction next step: Preserve the confirmed here-string delivery form.
+```
+
+### Here-string newline conflicts with exact bytes
+
+The caller supplies the same Bash command with the same scalar, but requires stdin to contain exactly `abc` without LF and supplies no alternate transport.
+
+```text
+Construction result: BLOCKED
+Construction assessment: The Bash here-string appends an LF that conflicts with the exact stdin requirement.
+Construction candidate: Not provided
+Execution authority: NOT ASSESSED BY THIS SKILL
+Construction next step: Provide a confirmed byte-preserving alternative transport.
+```
+
+### Quoted tab-stripping heredoc
+
+A caller-required Bash `<<-'EOF'` body begins with a tab that must reach stdin as payload. The caller forbids changing the operator and supplies no alternate transport. Delimiter collision and terminal-newline intent are otherwise confirmed.
+
+```text
+Construction result: BLOCKED
+Construction assessment: The required operator strips the leading payload tab despite the quoted delimiter.
+Construction candidate: Not provided
+Execution authority: NOT ASSESSED BY THIS SKILL
+Construction next step: Provide an allowed representation that preserves the required leading tab.
+```
+
+If those tabs are instead confirmed syntactic indentation and all other facts match, preserve the already-correct `<<-` form as `VALID`. A tab followed by `EOF` alone becomes a delimiter under `<<-`; quoting the delimiter does not prevent that collision.

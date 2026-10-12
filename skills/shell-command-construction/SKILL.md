@@ -29,7 +29,9 @@ Before producing a candidate, establish only the facts that change construction:
 - one scalar argument versus a structured argument list;
 - quote boundaries; downstream-language grammar only when its token boundaries determine shell quoting;
 - stdin, file, heredoc, redirection, or argv transport;
-- for a byte-exact payload when a heredoc is considered: whether the payload ends with a terminal newline; if the caller fixes the delimiter, whether it occurs alone on any payload line, otherwise whether a collision-free delimiter can be selected; and, when byte-level input indicates NUL may be present, whether the selected transport can preserve it;
+- for a heredoc: terminal-newline intent when exact bytes matter; delimiter collisions after any `<<-` leading-tab stripping; when leading tabs are present, whether stripped tabs are syntactic indentation or required payload; and, when correction requires it, whether the caller allows changing the operator or delimiter;
+- for a Bash here-string: whether its appended LF matches intended stdin when exact bytes matter;
+- when byte-level input indicates NUL may be present in a payload: whether the selected transport can preserve it;
 - for SSH or another remote command boundary: the remote interpreter/parser and a confirmed boundary-preserving transport/serialization contract;
 - for command substitution when exact output bytes matter: whether its documented trailing-newline removal is compatible with the intended argument;
 - empty versus unset behavior when material;

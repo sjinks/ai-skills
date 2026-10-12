@@ -16,6 +16,8 @@ It is **not** for concrete shell command construction correctness where literal 
 
 Construction handoffs use exactly one ASCII framing space after each field colon and LF-only report separators. Decode the exact candidate without trimming or normalizing its payload; leading candidate spaces or tabs require multiline form. Other control characters and Unicode separators remain candidate data.
 
+Bash shebang selection preserves target-confirmed fixed paths. An `env`-based form requires confirmed `env` availability and the intended Bash version on `PATH`; platform path examples distinguish Homebrew from MacPorts.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

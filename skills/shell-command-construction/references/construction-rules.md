@@ -60,17 +60,23 @@ Portability handoff: separate portability review required before a cross-target 
 Provenance: POSIX Utility Syntax Guidelines; high.
 Safety projection: catalog metadata only; execution concerns not assessed by this skill.
 
-### SCC-M1 — Multiline stdin, file, and heredoc payloads
+### SCC-M1 — Stdin, file, heredoc, and here-string payloads
 
-Trigger: Markdown, JSON, commit messages, comments, or other multiline data must reach a supplied stdin, file, or heredoc interface.
-Construction risk: Inline quoting, unquoted heredocs, or substitution changes lines or expands payload text.
-Required facts: Interpreter when syntax materially differs; literal/expansion intent; confirmed destination interface and transport; when a heredoc is considered, whether a caller-fixed delimiter occurs alone on any payload line, or otherwise whether a collision-free delimiter can be selected; when a byte-exact payload and a heredoc are considered, terminal-newline intent and, if byte-level input indicates NUL may be present, NUL presence plus confirmed selected-transport capability to preserve it.
+Trigger: Literal or expanded payload data must reach a supplied stdin, file, heredoc, or here-string interface.
+Construction risk: Quoting, substitution, tab stripping, or an appended newline changes payload bytes or delimiter recognition.
+Required facts: Interpreter when syntax materially differs; literal/expansion intent; confirmed destination interface and transport. For a heredoc, establish whether its delimiter is fixed or selectable and whether it collides after the selected operator's leading-tab processing. For `<<-` with leading tabs, establish whether stripped tabs are syntactic indentation or required payload. If correction requires an operator change, establish whether it is allowed. When exact bytes matter, establish heredoc terminal-newline intent or compatibility with the Bash here-string's appended LF. If byte-level input indicates NUL may be present, establish NUL presence and the selected transport's preservation capability.
 Disposition: VALID, REWRITE, or BLOCKED.
-Construction-preserving action: Retain the confirmed required transport; when a proposed defective form uses another transport, an explicitly required caller-supplied transport supersedes that proposal. Use a quoted heredoc delimiter when literal body text requires it and the payload ends with the heredoc's unavoidable newline before its delimiter. The delimiter must be absent from body delimiter lines. If a caller-required or fixed delimiter collides and no caller-supplied alternate delimiter or transport is allowed, return `BLOCKED`. If the delimiter is selectable, use a confirmed collision-free delimiter without changing payload data. If a byte-exact payload must not end in a newline, retain another confirmed byte-preserving file/stdin-like interface or return `BLOCKED` when none is supplied; do not invent a transport. When byte-level input indicates NUL is present, a heredoc must return `BLOCKED` or switch only to a supplied confirmed NUL-capable transport; heredoc and argv cannot carry NUL, while a supplied file or binary-safe interface may.
-No-drift constraints: Preserve line boundaries, empty lines, payload-owned indentation and characters, the confirmed required transport, command name, fixed operands, and redirection placement. The two-space response serialization prefix is not payload data.
+Construction-preserving action:
+- Retain the confirmed required transport; an explicitly required caller-supplied transport supersedes a defective proposal. Preserve an already-correct supplied form as VALID.
+- For literal heredoc text, use a quoted delimiter when required to prevent expansion. A heredoc necessarily supplies the newline before its delimiter. If exact payload bytes must omit that newline, use only a supplied confirmed byte-preserving alternative or return BLOCKED.
+- With `<<-`, the shell strips all leading tabs from body and delimiter lines even when the delimiter is quoted; it does not strip spaces. Preserve this form when the stripped tabs are confirmed syntactic indentation. If required payload tabs would be stripped, change to plain `<<` only when the caller allows that operator change and it preserves the required payload; otherwise use only a supplied confirmed alternative or return BLOCKED. Unknown tab ownership requires BLOCKED.
+- Check delimiter collisions after the selected operator's leading-tab processing. If a fixed delimiter collides, use only a caller-supplied allowed alternate delimiter or transport; otherwise return BLOCKED. If selection is allowed, choose a collision-free delimiter without changing payload data. Recheck collisions after any operator change.
+- In declared Bash, `<<< word` delivers the expanded word followed by one LF, including when the word is empty or already ends in LF. When exact bytes matter, preserve the here-string only if those delivered bytes match intended stdin. Otherwise use only a supplied confirmed byte-preserving alternative or return BLOCKED; do not remove or add payload newlines to compensate. Missing newline intent requires BLOCKED when it changes the decision.
+- If actual NUL is present, heredoc, Bash here-string, and argv cannot preserve it. Use only a supplied confirmed NUL-capable file or binary-safe interface, or return BLOCKED.
+No-drift constraints: Preserve line boundaries, empty lines, payload-owned indentation and characters, the confirmed required transport, command name, fixed operands, and redirection placement. Heredoc operator changes require the caller's permission stated above. The two-space response serialization prefix is not payload data.
 Effectful marker: outside construction scope.
 Portability handoff: separate portability review required before a cross-target claim.
-Provenance: POSIX Shell Command Language; Git documentation; high.
+Provenance: POSIX Shell Command Language; GNU Bash Reference Manual, Here Documents and Here Strings; high.
 Safety projection: catalog metadata only; execution concerns not assessed by this skill.
 
 ### SCC-R1 — Redirections and pipelines
