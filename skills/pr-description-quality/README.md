@@ -1,17 +1,15 @@
 # pr-description-quality
 
-> Use when: writing, rewriting, updating from the branch's commit history, validating, or auditing one pull request's title and description for quality: a title that names the whole PR, a body that explains what changed and why with honest testing notes, linked issues, risks, and no leaked secrets — honoring the repo's PR template when one exists.
+> Prepare or validate one PR title and body, including before opening/updating a PR within a larger task; return copy-ready text and an evidence-backed quality report.
 
-This skill is aimed at one pull request's title and body — drafting them from the branch's commits, rewriting a weak draft, or validating them against the contract before the PR is opened or updated.
+This skill checks description quality without publishing PRs, executing checks, reviewing implementation correctness or authoring commit messages. It honors selected templates and title rules, covers the whole supplied change and reconciles final behavior with commit-history claims.
 
-It helps an assistant:
+Draft/rewrite creates or repairs text; validate preserves safe supplied text and reports defects. Every mode removes sensitive content without treating removal as original compliance. Missing required input or unresolved required template/rule selection returns BLOCK; missing author facts produces a full CONCERNS report. Optional unknown issue links are omitted; validation claims retain outcomes and evidence boundaries.
 
-- detect and honor the repo's `PULL_REQUEST_TEMPLATE` when present, falling back to a default summary/changes/testing/risks/linked-issues structure, and state which was used
-- enforce a title contract: one line describing the whole PR, conventional `type(scope)!:` form when the repo uses it, a length note past 72 characters, issue keys kept out of the title unless convention requires them
-- enforce a body contract written for the approving reviewer: what changed and why in reviewer terms over a restated diff, reproducible testing/verification steps a reviewer can rerun (never claiming an unrun check), linked issues, and explicit risks, breaking changes, and rollout notes
-- omit genuinely irrelevant sections instead of padding them, synthesize the branch's commit history into reviewer-meaningful points — collapsing fixups, theming related commits, and dropping noise rather than transcribing the log — and flag secrets or PII rather than posting them
-- mark each part `compliant`, `rewritten`, `noncompliant` (validate-mode failure left unchanged), or `needs-author-input`, and return the PR description quality report with a verdict, the detected structure, the title and body, and per-part checks, or `BLOCK` when neither a draft nor any change description is supplied
+The report preserves CLEAN/CONCERNS/BLOCK and template/default, with compliant/rewritten/noncompliant/needs-author-input statuses. Findings distinguish errors, unresolved facts and informational convention/structure evidence. Newly drafted/repaired parts yield CONCERNS even when emitted text passes; passing unchanged validation yields CLEAN.
 
 ## Files
 
-- [`SKILL.md`](SKILL.md) — the full skill definition.
+- [`SKILL.md`](SKILL.md) — activation, workflow, decisions and completion gates.
+- [`references/evidence-and-structure.md`](references/evidence-and-structure.md) — scope, validation evidence, history, templates and conventions.
+- [`references/report-and-examples.md`](references/report-and-examples.md) — report serialization, reduced failure form and decision examples.
