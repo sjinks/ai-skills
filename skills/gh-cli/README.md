@@ -1,19 +1,14 @@
 # gh-cli
 
-> Use when: scripting or running GitHub CLI (`gh`) commands — especially `gh api` calls, posting or editing PR/issue comments and review-thread replies, passing multi-line or special-character bodies, choosing `-f` vs `-F` fields, pagination, jq filtering, and avoiding silent wrong-output from quoting or stdin mistakes.
+> Prepare or execute GitHub CLI operations with the intended payload, destination, and verified outcome.
 
-This skill targets the failure mode where a `gh` command exits 0 but produces the wrong result — a literal `@-`, an unexpanded variable, mangled multi-line text, or a comment that does not thread under a review.
+This skill prevents successful commands from producing wrong content, targeting the wrong comment surface, or reporting incomplete reads as exhaustive results. It covers field interpretation, supported body transport, methods, root-comment selection for review replies, REST and GraphQL pagination, and persisted result verification.
 
-It helps an assistant:
+It distinguishes prepared commands, verified operations, incomplete attempts, and blockers. Failure handling preserves uncertainty and requires reconciliation before retrying a potentially committed write. Plain Git operations, general destructive-action review, workflow authoring, and API design are outside its scope.
 
-- choose `gh api -f`/`--raw-field` (literal) vs `-F`/`--field` (stdin `@-`, `@file`, typed values) correctly
-- pass multi-line or special-character comment bodies via stdin or `--body-file` instead of fragile inline double quotes
-- reply to PR review threads via the `/comments/{id}/replies` endpoint rather than a non-threading top-level comment
-- correct a botched comment with a `PATCH` edit instead of a duplicate
-- read with `--jq` filtering and `--paginate` so list results are not silently truncated
-
-It is **not** for plain git operations, general destructive-command safety review, or GitHub Actions/API design beyond invoking it through `gh`.
+The core contains the normal workflow, failure branches, completion gates, and five `GH` result fields. The reference provides optional command and report examples with authoritative sources. Static checks and instruction audits do not establish actual GitHub outcomes or measured model compatibility.
 
 ## Files
 
-- [`SKILL.md`](SKILL.md) — the full skill definition.
+- [`SKILL.md`](SKILL.md) — workflow, decision rules, failure handling, output contract, and completion checklist.
+- [`references/command-examples.md`](references/command-examples.md) — transport, reply/edit, pagination, and result examples; CLI and endpoint sources.
