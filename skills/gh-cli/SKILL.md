@@ -27,7 +27,7 @@ Prepare or execute one `gh` operation that produces the intended payload, destin
 
 - For review-thread replies, resolve the top-level review-comment ID. If given a reply, inspect its `in_reply_to_id` and validate the root against the repository and PR. POST to `/repos/{owner}/{repo}/pulls/{pr}/comments/{root_id}/replies`. `gh pr comment` creates a top-level conversation comment.
 - For comment corrections, PATCH the existing review comment at `/repos/{owner}/{repo}/pulls/comments/{id}` or issue comment at `/repos/{owner}/{repo}/issues/comments/{id}`; do not create a duplicate.
-- For complete REST collection reads, use `--paginate`. For complete GraphQL connection reads, also supply `$endCursor`, `after: $endCursor`, and `pageInfo { hasNextPage endCursor }`. For explicitly bounded reads, preserve and report the requested limit; do not claim exhaustive results. Use `--jq` for filtering; for cross-page aggregation, confirm page shape and supported `--slurp` behavior first.
+- For complete REST collection reads, use `--paginate`. For complete GraphQL connection reads, also supply `$endCursor`, `after: $endCursor`, and `pageInfo { hasNextPage endCursor }`. For explicitly bounded reads, preserve and report the requested limit; do not claim exhaustive results. Use `--jq` for per-page filtering. For cross-page aggregation, confirm page shape and external `jq` availability, pipe `--paginate --slurp` output to `jq`, and verify both stages; never combine `--slurp` with `--jq` or `--template`.
 
 ## Error handling
 

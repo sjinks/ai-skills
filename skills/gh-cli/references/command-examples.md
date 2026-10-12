@@ -63,10 +63,10 @@ For every write example, compare the returned object or read-back with the inten
 gh api --method GET --paginate repos/O/R/issues -f state=open --jq '.[] | {number, title}'
 
 # Each REST page is an array; --slurp adds an outer array for a global count.
-gh api --paginate --slurp repos/O/R/pulls/66/comments --jq '[.[][]] | length'
+gh api --paginate --slurp repos/O/R/pulls/66/comments | jq '[.[][]] | length'
 ```
 
-Filtering is applied to the fetched data. Confirm page completion before treating a filtered empty result as evidence of absence. For explicitly bounded reads, report that scope and do not describe it as exhaustive.
+`--jq` filters each page; external `jq` aggregates the slurped pages. `--slurp` cannot be combined with `--jq` or `--template`. The aggregation pipeline requires external `jq`; confirm that it is installed. A successful final filter does not prove the preceding `gh` command succeeded: verify both stages and page completion before reporting a count or treating an empty result as evidence of absence. For explicitly bounded reads, report that scope and do not describe it as exhaustive.
 
 ```sh
 gh api graphql --paginate -f owner=O -f name=R -f query='
@@ -127,6 +127,7 @@ GH limitation: Provide the repository, PR, and review-comment ID
 ## Sources
 
 - [GitHub CLI API manual](https://cli.github.com/manual/gh_api): methods, field conversion, placeholder expansion, stdin/files, raw request bodies, pagination, and page aggregation. Inspect installed `gh api --help` for version-specific support.
+- [GitHub CLI API command implementation](https://github.com/cli/cli/blob/trunk/pkg/cmd/api/api.go): incompatible output flags and the external `jq` aggregation example.
 - [Review comment endpoints](https://docs.github.com/en/rest/pulls/comments): root-comment reply restriction, reply parent fields, and review-comment updates.
 - [Issue comment endpoints](https://docs.github.com/en/rest/issues/comments#update-an-issue-comment): issue/PR conversation-comment updates.
 - [PR comment manual](https://cli.github.com/manual/gh_pr_comment): top-level comments and supported body-file transport.
