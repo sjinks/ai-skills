@@ -26,7 +26,7 @@ Removal type: deleting dead or unused code is `chore`; removing deprecated inter
 
 Vague draft, Conventional mode:
 
-Input subject: `fixed login bug`, no body, change refreshes expired sessions before retry.
+Supplied input: subject `fixed login bug`, no body. Author-supplied change facts say expired sessions failed before the refresh path could renew the session token, forcing users back through login; the change refreshes expired sessions before retry.
 
 Input diagnosis: `fixed` is past tense and there is no type. The corrected output below uses `Subject: pass — rewritten`; its newly written body also uses `Body: pass — rewritten`, and omitted optional footers use `Footers: none — compliant`.
 - Rewrite:
@@ -40,7 +40,17 @@ forcing users back through login. Refresh on the retry path instead.
 
 Mixed change, split recommended:
 
-A diff renames a config key (breaking) and also reformats an unrelated file. Recommend two commits: `feat(config)!: rename timeout to timeoutMs` (with `BREAKING CHANGE:` footer) and `style: reformat report builder`, rather than one combined subject.
+A supplied diff renames a config key (breaking) and also reformats an unrelated report builder. Recommend two commits, but the returned message still covers both changes unless the caller explicitly selects a prospective split. A full-scope subject could be `feat(config)!: rename timeout key and format report builder`; its body explains the rename and mentions the unrelated formatting, and its footer discloses the breaking rename.
+
+If the caller identifies only the config-key rename as the prospective commit, return a message for that scope with subject `feat(config)!: rename timeout to timeoutMs` and the breaking-change footer. Under Split recommendation, identify the returned message as prospective for the config rename and recommend a separate formatting commit. This does not assert that either split has occurred.
+
+These are subject/scope illustrations, not complete report templates. The core's required report sections and message body/footer rules still apply.
+
+## Claim-fidelity illustrations
+
+Supplied change facts say the fix refreshes expired sessions on retry and leaves other login failure paths unchanged. A draft claiming `fix all login failures` overstates that scope. Narrow it to `fix(auth): refresh expired sessions before retry` during repair; validation preserves the safe original and reports the contradicted Subject claim as `noncompliant`.
+
+A message says the change eliminates production timeouts, but the only evidence is a diff that changes a timeout setting. Validation requests evidence or corrected author facts and uses `Subject: fail (unverified timeout claim) — needs-author-input` if the claim is in Subject. Draft/repair omits the unsupported runtime-success claim and describes the evidenced setting change. If the required rationale is also unknown, Body still needs author input. Message-only validation does not treat the supplied claim as proof.
 
 ## Omission status illustrations
 
@@ -63,3 +73,35 @@ For a valid safe message accompanied by a diff with sensitive source content, re
 ## Cleanup-advice illustration
 
 When validating a safe, otherwise compliant message with a comment-like body heading and unknown cleanup mode, preserve the message, retain `Body: pass — compliant`, and include `Body: information — cleanup preservation unverified; use --cleanup=whitespace or --cleanup=verbatim to preserve headings` under Findings. Convention evidence still appears; no author question is required, and cleanup uncertainty alone permits `CLEAN`.
+
+## Complete validation report
+
+Hypothetical input: validate the exact message below. Supplied change facts establish that expired sessions are refreshed before retry, but provide no production evidence for the body claim. There are no readable repository message rules or known history; use the conventional default. The change is nontrivial and no issue or attribution is supplied. The report preserves safe text and requests evidence for the unsupported production guarantee.
+
+````markdown
+## Commit Message Quality Report
+Verdict: CONCERNS
+Mode: conventional
+
+### Commit message
+```text
+fix(auth): refresh expired sessions before retry
+
+Eliminate production login failures after session expiry.
+```
+
+### Checks
+- Subject: pass — compliant
+- Body: fail (missing evidence for production guarantee) — needs-author-input
+- Footers: none — compliant
+
+### Findings
+- Body: warning — the supplied change facts do not establish elimination of production login failures; provide supporting production evidence or corrected author facts.
+- Convention: information — no readable repository message rules or known history were supplied; conventional mode and default style rules apply.
+
+### Split recommendation
+- None
+
+### Needs author input
+- Provide evidence supporting the production guarantee or corrected author facts about the intended effect.
+````
