@@ -26,7 +26,7 @@ Scenario evidence identifies the web endpoint and importer as the validator's on
 
 | Cluster | Findings | Shared cause | Fix depth | Planned change | Verification |
 |---------|----------|--------------|-----------|----------------|--------------|
-| C1 | F1, F2 | Supplied source: shared validateQuantity checks integer shape but omits the required nonnegative bound; both entry points call it | root-cause | Reject negative integers in validateQuantity; preserve acceptance of zero and positive integers | Proposed validator tests: negative integers are rejected, zero/positive integers are accepted, existing noninteger rejection remains. Proposed web/importer tests: both reject negative input and retain valid-input behavior. Source comparison: both still delegate to the repaired shared validator. |
+| C1 | F1, F2 | Supplied source: shared validateQuantity checks integer shape but omits the required nonnegative bound; both entry points call it | root-cause | F1, F2: reject negative integers in validateQuantity; preserve acceptance of zero and positive integers | F1, F2 — proposed validator tests: negative integers are rejected, zero/positive integers are accepted, existing noninteger rejection remains. F1 — proposed web tests; F2 — proposed importer tests: each rejects negative input and retains valid-input behavior. F1, F2 — proposed source comparison: both still delegate to the repaired shared validator. |
 
 ### Symptom-level and no-fix justifications
 
@@ -61,7 +61,7 @@ The caller authorizes only a boundary hotfix. Changing the shared validator is e
 
 | Cluster | Findings | Shared cause | Fix depth | Planned change | Verification |
 |---------|----------|--------------|-----------|----------------|--------------|
-| C1 | F1, F2 | Supplied source: shared validateQuantity checks integer shape but omits the required nonnegative bound; both entry points call it | symptom-level | Reject negative integers at the web and importer boundaries before calling the unchanged validator | Proposed web/importer tests: both reject negative input and retain zero/positive acceptance and existing noninteger rejection. Source comparison: guards exist at both boundaries, while validateQuantity remains unchanged and still lacks the lower-bound check; passing endpoint tests alone does not demonstrate cause removal. |
+| C1 | F1, F2 | Supplied source: shared validateQuantity checks integer shape but omits the required nonnegative bound; both entry points call it | symptom-level | F1: reject negative integers at the web boundary; F2: apply the same guard at the importer boundary, both before calling the unchanged validator | F1 — proposed web tests; F2 — proposed importer tests: each rejects negative input and retains zero/positive acceptance and existing noninteger rejection. F1, F2 — proposed source comparison: guards exist at both boundaries, while validateQuantity remains unchanged and still lacks the lower-bound check; passing endpoint tests alone does not demonstrate cause removal. |
 
 ### Symptom-level and no-fix justifications
 
@@ -79,3 +79,7 @@ Verdict: BATCH-READY
 ```
 
 Both endpoint effects are contained, but the producing defect remains in the shared validator. The reason and named proposed follow-up make the depth honest; they do not imply that an issue was created or that its work is complete. The deferred compatibility assessment belongs to the documented follow-up, not an unresolved prerequisite for this caller-constrained containment plan. If that assessment were required to establish the containment change's safety, it would instead be a planning gap and the verdict would be `BATCH-PARTIAL`.
+
+## Incomplete member coverage
+
+In either example, suppose C1 still lists F1 and F2 but Planned change or Verification covers only F1. Membership alone does not address F2. Record `F2: planned change coverage missing`, `F2: verification coverage missing`, or both under Planning gaps, as applicable, and use `BATCH-PARTIAL`. A shared validator check may cover both findings when the plan explicitly maps it to F1 and F2 and supports that coverage with the supplied consumer evidence; separate tests per finding are not mandatory.
