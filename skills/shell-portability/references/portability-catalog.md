@@ -105,3 +105,9 @@ Targets referenced below:
 - For maximum portability the GNU coding standards name a conservative set of utilities a script may assume present: `awk cat cmp cp diff echo egrep expr false grep install-info ln ls mkdir mv printf pwd rm rmdir sed sleep sort tar test touch tr true`. Reaching outside this set (or for non-POSIX flags on these) is where portability findings concentrate.
 
 Provenance and source-confidence notes live in [source-map.md](source-map.md).
+
+## Bash shebang
+
+For a Bash-targeted script, preserve a fixed interpreter path when the target guarantees that path and the required version. Prefer `#!/usr/bin/env bash` only when the target guarantees `/usr/bin/env` and the first `bash` on `PATH` is the intended interpreter with the required version. If neither selection is confirmed, request that requirement. Do not replace a confirmed fixed path merely because it is fixed, or assume that `env` is available everywhere.
+
+Installation paths are target-dependent examples, not required choices. With their default macOS prefixes, Homebrew Bash uses `/usr/local/bin/bash` on Intel and `/opt/homebrew/bin/bash` on Apple Silicon; MacPorts Bash uses `/opt/local/bin/bash`. Custom prefixes change these paths. Verify the selected installation and version against the target rather than inferring them from the package manager's name. Default prefixes are documented by [Homebrew](https://docs.brew.sh/Installation) and [MacPorts](https://guide.macports.org/#installing.macports); the corresponding Bash paths assume the package's executable under that prefix's `bin` directory.
