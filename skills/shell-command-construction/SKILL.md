@@ -1,14 +1,14 @@
 ---
 name: shell-command-construction
-description: "Use when: constructing, repairing, or validating concrete shell commands, fragments, heredocs, redirections, or payload transport, including command-preparation subtasks within implementation or maintenance. Covers literal/expansion intent, argv and stream boundaries, and multiline data. Do not use for: generic goals without a concrete target, general grammar/debugging, tutoring, prose-only drafting, non-shell work, portability-only analysis, and GitHub CLI interface semantics."
+description: "Use when: preparing shell commands for execution tools, including routine commands, destructive commands such as rm, and subtasks within larger work; also constructing, repairing, or validating fragments and payload transport. Check quoting, expansion, arguments, and streams before submission. Do not use for: generic goals, tutoring, general debugging, non-shell work, portability-only analysis, or GitHub CLI interface semantics."
 argument-hint: "Provide the concrete command or fragment, shell/interpreter, and intended literal/expansion, argv, and transport boundaries."
 ---
 
 # Shell Command Construction
 
-Apply this skill to one concrete construction target, including a command being prepared within a larger task. The caller may supply the target or prepare it from established task facts. A generic goal alone does not activate this skill; first establish a concrete command, fragment, heredoc, redirection, or payload interface. A concrete but incomplete construction target activates and may be `BLOCKED`. A command mention without construction work does not activate.
+Apply this skill before submitting any concrete shell command to an execution tool, including routine commands, destructive commands such as `rm`, and commands prepared within larger tasks. Do not wait for suspected quoting errors or a separate user request to check construction. Apply the scope exclusions below first. This skill also applies to construction, repair, or validation of a concrete target without planned execution. The caller may supply the target or prepare it from established task facts. A generic goal alone does not activate this skill; first establish a concrete command, fragment, heredoc, redirection, or payload interface. A concrete but incomplete construction target activates and may be `BLOCKED`. A command mention without construction work does not activate.
 
-**UTILITY SKILL.** INVOKES: concrete command text and established construction facts only. The caller owns gathering facts, invoking tools, and any separately authorized execution. This skill returns a construction report and does not execute commands.
+**UTILITY SKILL.** INVOKES: concrete command text and established construction facts only. The caller owns gathering facts, invoking tools, and any separately authorized execution. This skill returns a construction report to the calling workflow and does not execute commands. The calling workflow must resolve `BLOCKED` before submitting that target. A `VALID` or `REWRITE` result establishes construction only; it does not grant execution authority. Recheck the exact shell text after any construction-affecting change, including altered quoting, expansion, operands, redirections, transport, or confirmed construction facts.
 
 ## Scope and exclusions
 
@@ -43,9 +43,9 @@ If a required fact is absent or conflicts, return `BLOCKED`; do not guess. If th
 
 ## Workflow
 
-1. Confirm this is an activated concrete construction request.
+1. Apply the scope exclusions, then activate for the concrete target, including every in-scope command prepared for an execution tool.
 2. Identify the interpreter and command form when construction differs by shell.
-3. Identify literal/expansion, scalar/list, operand, and transport intent.
+3. Check quoting and expansion intent, scalar/list argument boundaries, operands, and stream/transport intent even for routine or apparently correct commands.
 4. Select all applicable canonical rules in [construction-rules.md](references/construction-rules.md), then compose them by that catalog's precedence; read [quoting-rules.md](references/quoting-rules.md) only for semantic detail.
 5. Produce the smallest candidate that preserves the confirmed construction intent, or block on the smallest missing fact.
 6. Serialize the exact output contract below. For a mixed request, require a separate portability review of the exact construction candidate as the single next step. If construction is `BLOCKED`, request its smallest missing fact, required catalog, or confirmed alternative instead.
@@ -91,6 +91,7 @@ Construction next step: <one line with at least one non-whitespace character: on
 
 ## Checklist and done
 
+- Activate before every in-scope shell submission; check the exact text and recheck after construction-affecting changes. Return the construction report to the calling workflow; it must resolve `BLOCKED` before submission.
 - Apply every relevant catalog rule and its precedence. Required-fact conflicts, unrepresentable data, and unavailable catalog access require `BLOCKED`.
 - Preserve confirmed argument boundaries, literal data, command structure, and transport; do not render a secret.
 - Use exactly five ordered fields with the selected labels, one disposition, the matching candidate form, and the exact authority literal.

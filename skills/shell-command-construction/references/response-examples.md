@@ -145,3 +145,29 @@ Construction next step: Provide an allowed representation that preserves the req
 ```
 
 If those tabs are instead confirmed syntactic indentation and all other facts match, preserve the already-correct `<<-` form as `VALID`. A tab followed by `EOF` alone becomes a delimiter under `<<-`; quoting the delimiter does not prevent that collision.
+
+### Routine command before tool submission
+
+The calling workflow prepares Bash command `git status --short` for an execution tool. The three literal words and absence of redirections are confirmed. No defect is suspected, and the user has not separately requested a construction check.
+
+```text
+Construction result: VALID
+Construction assessment: The confirmed literal words retain their argument boundaries without expansion or redirection.
+Construction candidate: git status --short
+Execution authority: NOT ASSESSED BY THIS SKILL
+Construction next step: Preserve the exact checked command text in the calling workflow.
+```
+
+### Destructive command construction
+
+The calling workflow prepares Bash command `rm -- $target`. It confirms that `target` is a non-secret scalar requiring exactly one operand, and that the selected utility supports `--`. Target validity, deletion effects, and execution authorization remain outside this construction check.
+
+```text
+Construction result: REWRITE
+Construction assessment: Double quoting preserves the confirmed scalar as one operand after the confirmed option terminator.
+Construction candidate: rm -- "$target"
+Execution authority: NOT ASSESSED BY THIS SKILL
+Construction next step: Review the rewritten operand boundary against the confirmed scalar intent.
+```
+
+If scalar/list intent or required option-termination support is unknown, apply the required-fact blocker instead. Do not infer authorization from this report. Any later construction-affecting edit requires a new check of the exact shell text. Excluded interface-specific requests use their owning workflow rather than this package's report.
