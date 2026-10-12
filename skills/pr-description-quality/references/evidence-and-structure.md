@@ -32,7 +32,7 @@ Default body headings: Summary, Changes, Testing; add Risks and follow-up and Li
 
 Apply caller requirements, repository rules, consistent history, then core defaults. Report evidence/assumptions. Read configuration as text; never execute hooks/configuration. Required unavailable definitions use BLOCK.
 
-Use conventional titles when required or supported by consistent history; otherwise use plain imperative titles. Core lowercase type/scope and length policies are house style, not claims about all valid Conventional Commits. Repository style overrides those defaults; breaking disclosure and forbidden-content rules remain mandatory.
+When caller/repository rules do not select the convention, assess all readable nonempty historical PR titles supplied as relevant history; exclude the current draft and do not select a favorable subset. History is consistent-conventional only when strictly more than half match the core conventional title grammar. Use conventional titles for that majority; use plain imperative titles for a tie, minority, or no usable history. Higher-precedence caller/repository rules still apply. Core lowercase type/scope and length policies are house style, not claims about all valid Conventional Commits. Repository style overrides those defaults; breaking disclosure and forbidden-content rules remain mandatory.
 
 A supplied `!` requires established breaking intent and a concrete body disclosure. If intent is unknown, mark affected Title/Body needs-author-input and request it. If evidence confirms no breaking change, remove the unsupported marker during rewrite or report it as noncompliant in validate. Do not fabricate a breaking-change explanation.
 

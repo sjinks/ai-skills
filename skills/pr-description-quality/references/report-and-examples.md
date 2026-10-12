@@ -8,7 +8,7 @@ Emit exactly one report with the core's ordered markers, no preamble/trailing pr
 
 Fence Title as text and Body as markdown; use backtick fences longer than every backtick run in each payload. Preserve safe validation text, whitespace and literal angle brackets; fences are framing. For rewrite with only one supplied part, draft the other from usable change evidence; otherwise leave its fence empty, mark needs-author-input and request content/evidence. Validate missing either part uses reduced BLOCK.
 
-Checks has exactly two bullets, Title then Body: `- Part: status — result`, using core values. Findings uses `- Anchor: severity — detail`; anchors are Title, Body, Input, Convention, Structure. Include convention/template evidence or assumptions even in CLEAN. Input is only for excluded source content outside title/body; it causes CONCERNS without a third check or changing passing part statuses. Record all original violations even if corrected. Creation alone uses information.
+Checks has exactly two bullets, Title then Body: `- Part: status — result`, using core values. Findings uses `- Anchor: severity — detail`; anchors are Title, Body, Input, Convention, Structure. Include convention/template evidence or assumptions even in CLEAN. In full reports, Input is only for excluded source content outside title/body; it causes CONCERNS without a third check or changing passing part statuses. Record all original violations even if corrected. Creation alone uses information.
 
 Needs author input includes all unresolved required facts or one `- None`; optional unknown metadata is omitted. Empty Findings uses `- None`. Replace all placeholders in this complete template:
 
@@ -38,13 +38,24 @@ BODY
 
 ## Reduced BLOCK
 
-Use only this form for core Error handling; omit Structure, Title, Body, Checks and author-input sections. Request the smallest required input/selection, without inventing candidates:
+Use only this form for core Error handling; omit Structure, Title, Body, Checks and author-input sections. Request the smallest required input/selection, without inventing candidates. Always emit five lines. Inspect all readable input for forbidden content before returning this form. Use `- Disclosure: none` only when none was found; otherwise use exactly `- Disclosure: error — Forbidden content found in supplied input; excluded from output.`. This reduced field covers disclosure in any supplied input, including title/body, and does not change BLOCK. All fields remain sanitized:
 
 ```markdown
 ## PR Description Quality Report
 Verdict: BLOCK
 - Missing input: Concrete unavailable input or unresolved selection.
 - Smallest addition to proceed: Exact input needed for the selected operation.
+- Disclosure: none
+```
+
+When forbidden content accompanies a missing required template, the complete reduced report is:
+
+```markdown
+## PR Description Quality Report
+Verdict: BLOCK
+- Missing input: Required template text is unavailable.
+- Smallest addition to proceed: Supply the required template text.
+- Disclosure: error — Forbidden content found in supplied input; excluded from output.
 ```
 
 ## Decision examples
@@ -52,6 +63,8 @@ Verdict: BLOCK
 Examples illustrate existing rules:
 
 - Validate with only commits: BLOCK for title/body; do not silently draft.
+- Missing body or unavailable required template plus excluded content: five-line BLOCK with Disclosure: error and the fixed sanitized sentence; never reproduce the content. Without excluded content, the fifth line is Disclosure: none.
+- With no higher-precedence convention rule: three conventional titles among five supplied historical PR titles select conventional mode; two among four, one among three, or no usable history select plain.
 - Repair a vague draft with supported behavior/validation evidence: changed parts are rewritten/pass; record corrected violations as errors; CONCERNS even when emitted text is ready.
 - Unchanged safe passing title/body: compliant/pass, convention/template information only, no author input, CLEAN.
 - Validate a credential in Body: redact it, noncompliant/fail for the original disclosure, error finding without reproducing it, CONCERNS. Missing required facts take status precedence but retain that disclosure finding.
