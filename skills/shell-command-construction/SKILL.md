@@ -8,7 +8,7 @@ argument-hint: "Provide the concrete command or fragment, shell/interpreter, and
 
 Apply this skill before submitting any concrete shell command to an execution tool, including routine commands, destructive commands such as `rm`, and commands prepared within larger tasks. Do not wait for suspected quoting errors or a separate user request to check construction. Apply the scope exclusions below first. This skill also applies to construction, repair, or validation of a concrete target without planned execution. The caller may supply the target or prepare it from established task facts. A generic goal alone does not activate this skill; first establish a concrete command, fragment, heredoc, redirection, or payload interface. A concrete but incomplete construction target activates and may be `BLOCKED`. A command mention without construction work does not activate.
 
-**UTILITY SKILL.** INVOKES: concrete command text and established construction facts only. The caller owns gathering facts, invoking tools, and any separately authorized execution. This skill returns a construction report to the calling workflow and does not execute commands. The calling workflow must resolve `BLOCKED` before submitting that target. A `VALID` or `REWRITE` result establishes construction only; it does not grant execution authority. Recheck the exact shell text after any construction-affecting change, including altered quoting, expansion, operands, redirections, transport, or confirmed construction facts.
+**UTILITY SKILL.** INVOKES: concrete command text and established construction facts only. The caller owns gathering facts, invoking tools, and any separately authorized execution. This skill returns a construction report to the calling workflow and does not execute commands. The calling workflow must resolve `BLOCKED` before submitting that target. For an authorized submission, the calling workflow must send the execution tool exactly the decoded `Construction candidate` from its latest `VALID` or `REWRITE` report, never an unchecked original. Any later edit requires another construction check. A `VALID` or `REWRITE` result establishes construction only; it does not grant execution authority. Recheck the exact shell text after any construction-affecting change, including altered quoting, expansion, operands, redirections, transport, or confirmed construction facts.
 
 ## Scope and exclusions
 
@@ -65,7 +65,7 @@ Do not render a secret. Do not reveal raw, partial, split, escaped, encoded, tra
 
 ## Output
 
-For every activated request, output exactly these five top-level fields once, in this order, with no preamble or trailing prose. Zero or one terminal newline after `Construction next step` is allowed.
+For every activated command-preparation subtask, return exactly these five top-level fields once, in this order, with no preamble or trailing prose within the report. For a direct construction request, the report is the entire response and ends the request. For command preparation within a larger task, return the report internally to the calling workflow or as the delegated subtask result; end only this subtask. The calling workflow then continues its task and uses its own response contract; it need not expose the internal report in its user-facing response. Zero or one terminal newline after `Construction next step` is allowed.
 
 ```text
 Construction result: VALID | REWRITE | BLOCKED
@@ -92,12 +92,12 @@ Construction next step: <one line with at least one non-whitespace character: on
 
 ## Checklist and done
 
-- Activate before every in-scope shell submission; check the exact text and recheck after construction-affecting changes. Return the construction report to the calling workflow; it must resolve `BLOCKED` before submission.
+- Activate before every in-scope shell submission; check the exact text and recheck after construction-affecting changes. Return the construction report to the calling workflow; it must resolve `BLOCKED` before submission and submit only the exact decoded candidate from the latest `VALID`/`REWRITE` report when separately authorized.
 - Apply SCC-S0 and every other relevant catalog rule in the catalog's precedence. Unresolved malformed/incomplete grammar, missing fragment context, required-fact conflicts, unrepresentable data, and unavailable catalog access require `BLOCKED`.
 - Preserve confirmed argument boundaries, literal data, command structure, and transport; do not render a secret.
 - Use exactly five ordered fields with the selected labels, one disposition, the matching candidate form, and the exact authority literal.
 - Make no execution or portability claim. For a mixed request, resolve construction blockers first; otherwise require the portability handoff as the only next step.
-- A response is complete only when these checks pass.
+- A construction subtask is complete only when these checks pass. Direct requests stop after the report; nested preparation returns control to the calling workflow.
 
 ## Examples
 

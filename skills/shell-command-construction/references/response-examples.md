@@ -203,3 +203,7 @@ Construction next step: Preserve immediate termination of the confirmed empty he
 ```
 
 Inserting a blank body line would deliver LF and fail that exact-empty requirement. An empty Bash here-string also delivers LF; it is not byte-equivalent to this empty heredoc.
+
+## Nested command preparation
+
+For a larger implementation task, preparing `git status` returns the same five-field report internally to the caller and ends only command preparation. The caller continues the implementation task under its own response contract. A separately authorized submission uses the exact decoded candidate. For a `REWRITE` that changes `rm -- $target` to `rm -- "$target"` under confirmed one-operand expansion intent, the original text cannot be submitted; any later candidate edit requires another construction check. These are workflow illustrations, not additional report fields or execution authorization.
