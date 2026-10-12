@@ -12,7 +12,7 @@ Apply this skill before submitting any concrete shell command to an execution to
 
 ## Scope and exclusions
 
-This skill assesses construction only: shell parsing, argv boundaries, literal data, and selected input/output transport. Execution safety, authorization, target validity, destructive-effect review, and permission to run are outside scope and not assessed. Do not execute commands or recommend execution.
+This skill assesses construction only: shell parsing, argv boundaries, literal data, and selected input/output transport. Execution safety, authorization, target validity, destructive-effect review, and permission to run are outside scope and not assessed. Do not execute commands or recommend execution. Checking grammar completeness for an activated target is in scope; general grammar repair or debugging remains outside scope.
 
 Do not activate for generic shell tutoring, prose-only drafting without a shell invocation, non-shell work, or portability-only analysis; treat portability-only work as outside this skill's scope. For a mixed construction-and-portability request, produce the construction result first and require a separate portability review of the exact candidate as the only next step; make no cross-target compatibility claim. If construction is `BLOCKED`, resolve that first.
 
@@ -25,11 +25,12 @@ Do not activate when correctness depends on GitHub CLI-specific interface semant
 Before producing a candidate, establish only the facts that change construction:
 
 - interpreter and relevant modes/options when syntax or quoting behavior materially differs;
+- complete-command versus fragment intent; enclosing parser context when a fragment requires it for grammar validation;
 - literal versus expansion intent;
 - one scalar argument versus a structured argument list;
 - quote boundaries; downstream-language grammar only when its token boundaries determine shell quoting;
 - stdin, file, heredoc, redirection, or argv transport;
-- for a heredoc: terminal-newline intent when exact bytes matter; delimiter collisions after any `<<-` leading-tab stripping; when leading tabs are present, whether stripped tabs are syntactic indentation or required payload; and, when correction requires it, whether the caller allows changing the operator or delimiter;
+- for a heredoc: whether the intended payload is empty or nonempty, and terminal-newline intent when exact bytes matter; delimiter collisions after any `<<-` leading-tab stripping; when leading tabs are present, whether stripped tabs are syntactic indentation or required payload; and, when correction requires it, whether the caller allows changing the operator or delimiter;
 - for a Bash here-string: whether its appended LF matches intended stdin when exact bytes matter;
 - when byte-level input indicates NUL may be present in a payload: whether the selected transport can preserve it;
 - for SSH or another remote command boundary: the remote interpreter/parser and a confirmed boundary-preserving transport/serialization contract;
@@ -44,7 +45,7 @@ If a required fact is absent or conflicts, return `BLOCKED`; do not guess. If th
 ## Workflow
 
 1. Apply the scope exclusions, then activate for the concrete target, including every in-scope command prepared for an execution tool.
-2. Identify the interpreter and command form when construction differs by shell.
+2. Apply the catalog's SCC-S0 grammar gate: establish the interpreter when grammar differs, distinguish a complete command from a fragment, and block on unresolved malformed/incomplete grammar or missing enclosing context. Recheck grammar after any correction permitted by another catalog rule.
 3. Check quoting and expansion intent, scalar/list argument boundaries, operands, and stream/transport intent even for routine or apparently correct commands.
 4. Select all applicable canonical rules in [construction-rules.md](references/construction-rules.md), then compose them by that catalog's precedence; read [quoting-rules.md](references/quoting-rules.md) only for semantic detail.
 5. Produce the smallest candidate that preserves the confirmed construction intent, or block on the smallest missing fact.
@@ -92,7 +93,7 @@ Construction next step: <one line with at least one non-whitespace character: on
 ## Checklist and done
 
 - Activate before every in-scope shell submission; check the exact text and recheck after construction-affecting changes. Return the construction report to the calling workflow; it must resolve `BLOCKED` before submission.
-- Apply every relevant catalog rule and its precedence. Required-fact conflicts, unrepresentable data, and unavailable catalog access require `BLOCKED`.
+- Apply SCC-S0 and every other relevant catalog rule in the catalog's precedence. Unresolved malformed/incomplete grammar, missing fragment context, required-fact conflicts, unrepresentable data, and unavailable catalog access require `BLOCKED`.
 - Preserve confirmed argument boundaries, literal data, command structure, and transport; do not render a secret.
 - Use exactly five ordered fields with the selected labels, one disposition, the matching candidate form, and the exact authority literal.
 - Make no execution or portability claim. For a mixed request, resolve construction blockers first; otherwise require the portability handoff as the only next step.

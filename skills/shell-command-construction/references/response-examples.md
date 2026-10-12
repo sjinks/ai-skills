@@ -171,3 +171,33 @@ Construction next step: Review the rewritten operand boundary against the confir
 ```
 
 If scalar/list intent or required option-termination support is unknown, apply the required-fact blocker instead. Do not infer authorization from this report. Any later construction-affecting edit requires a new check of the exact shell text. Excluded interface-specific requests use their owning workflow rather than this package's report.
+
+### Incomplete command grammar
+
+The caller supplies Bash `if true; then echo ok` as a complete command for submission, not a fragment with enclosing context.
+
+```text
+Construction result: BLOCKED
+Construction assessment: The supplied complete command lacks the required closing fi token.
+Construction candidate: Not provided
+Execution authority: NOT ASSESSED BY THIS SKILL
+Construction next step: Provide a corrected syntax-complete command with the intended control flow.
+```
+
+A supplied trailing pipeline operator, unmatched quote, missing `done`/`esac`, or unterminated heredoc likewise blocks under SCC-S0 when no other canonical rule permits a deterministic correction from fully confirmed intent. Permitted quoting or boundary corrections require a grammar recheck before REWRITE. A confirmed fragment in a complete enclosing context is checked in that context; a missing context blocks rather than inventing closing syntax.
+
+### Exact-empty heredoc
+
+The caller supplies the following Bash command and requires exactly zero stdin bytes. The fixed delimiter and literal empty-body intent are confirmed; the command text has no terminal LF after the closing delimiter.
+
+```text
+Construction result: VALID
+Construction assessment: Immediate heredoc termination preserves the confirmed zero-byte stdin payload.
+Construction candidate: |
+  tool <<'EOF'
+  EOF
+Execution authority: NOT ASSESSED BY THIS SKILL
+Construction next step: Preserve immediate termination of the confirmed empty heredoc body.
+```
+
+Inserting a blank body line would deliver LF and fail that exact-empty requirement. An empty Bash here-string also delivers LF; it is not byte-equivalent to this empty heredoc.
