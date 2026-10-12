@@ -18,6 +18,8 @@ Construction handoffs use exactly one ASCII framing space after each field colon
 
 Bash shebang selection preserves target-confirmed fixed paths. An `env`-based form requires confirmed `env` availability and the intended Bash version on `PATH`; platform path examples distinguish Homebrew from MacPorts.
 
+Any supplied construction handoff activates review, including malformed or BLOCKED reports, which receive reduced BLOCK. Raw mixed requests still route through construction or interface correction first; normal portability analysis requires exact command text.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

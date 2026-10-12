@@ -1,6 +1,6 @@
 ---
 name: shell-portability
-description: "Use when writing, reviewing, or fixing shell code for a declared shell/OS target or multiple targets: POSIX sh, Bash, ksh, zsh, dash, ash, busybox, GNU/BSD/macOS utilities, CI containers, Alpine, or unknown targets. Excludes tutoring, construction-only repair, and mixed requests before construction or interface correction supplies an exact candidate. Covers interpreter targeting, bashisms, utility flags, locale, and splitting behavior."
+description: "Use for shell portability across declared shell/OS targets or the default baseline: POSIX sh/Bash/dash/ash, GNU/BSD/macOS/busybox utilities, interpreters, bashisms, flags, locale, and splitting. Activate for every supplied construction handoff, including malformed or BLOCKED reports; require exact code only for normal analysis. Exclude tutoring, construction-only repair, and raw mixed requests before construction or interface correction."
 argument-hint: "Paste the script or the commands, and name the target shells/OSes if known."
 ---
 
