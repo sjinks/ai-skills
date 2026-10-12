@@ -1,6 +1,8 @@
 # commit-message-quality
 
-> Draft, rewrite, or validate one commit message with clear rationale, consistent grammar, real trailers, and safe reporting.
+> Prepare or assess a commit message, including within implementation, PR preparation, review remediation, or history maintenance, with clear rationale, consistent grammar, real trailers, and safe reporting.
+
+Activation follows the message subtask, even when the user asks for broader work rather than explicitly requesting a message. For example, an implementation task activates the skill when preparing its commit, and a squash task activates it when drafting the resulting message. A mention of commits or a history operation that preserves existing messages does not activate it without message preparation or assessment. The skill returns a report and message text; the caller retains Git execution and authorization.
 
 This read-only skill reads existing commitlint/hook/check definitions before fallback grammar and applies a default whole-subject 72-character limit, conventional-by-default grammar, a why-focused body, and breaking-change/footer rules with default blank-line separation before footers. It recommends splits for mixed changes without rewriting history or creating commits.
 

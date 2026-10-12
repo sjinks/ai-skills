@@ -1,7 +1,7 @@
 ---
 name: commit-message-quality
 description: >-
-  Use to draft, rewrite, audit, or validate one git commit message against a subject/body/footer contract. Covers convention detection, clarity, breaking changes, real trailers, and sensitive content. Excludes history rewriting, PR descriptions, and code correctness review.
+  Use whenever drafting, rewriting, auditing, or validating one git commit message, including before a commit during implementation, PR preparation, or review remediation. Covers convention detection, subject/body/footer quality, breaking changes, real trailers, and sensitive content. Prepares message text; does not execute Git operations, rewrite history, author PR descriptions, or review code correctness.
 ---
 
 # Commit Message Quality
@@ -11,12 +11,15 @@ description: >-
 ## USE FOR:
 
 - Draft a message from a supplied diff or change description.
+- Prepare a message before creating a commit within implementation, PR preparation, review remediation, or history maintenance, even when the user did not separately request message drafting.
 - Audit and rewrite a weak commit message.
 - Validate one message without changing its safe text.
 
 ## DO NOT USE FOR:
 
-- History rewriting, commit execution, PR descriptions, or code correctness review.
+- Executing Git operations, rewriting history, authoring PR descriptions, or reviewing code correctness. These operations remain outside this skill; preparing or assessing their commit messages remains in scope.
+
+Apply the skill to the message-preparation subtask when the current workflow requires a new or revised commit message. Do not exclude that subtask because the broader request concerns implementation or Git operations. A mention of commits alone does not activate the skill when no message preparation or assessment is needed. Return the message-quality report to the caller; the caller's workflow controls any later Git execution and its authorization.
 
 ## Workflow
 
@@ -33,7 +36,7 @@ Body: separate from subject by a blank line; explain why and any non-obvious con
 
 Footers: by default, separate the footer block from the preceding subject or body with a blank line. Include only real issue references (`Closes #123`, `Fixes #456`, `Refs #789`, or required project form) and real attribution/signoff trailers. Every breaking change requires `BREAKING CHANGE: <description>` in either mode; conventional mode also requires `!`. A supplied `!` without a breaking description fails Footers; unknown breaking intent needs author input rather than a fabricated claim.
 
-Never emit secrets, credentials, customer PII, sensitive internal hostnames/IPs/paths, or full diagnostic dumps anywhere in the report. Remove full diagnostic dumps and redact sensitive values even in validate mode. In a non-BLOCK report, identify any message part containing excluded content without reproducing it and report the underlying violation. If excluded content occurs only in a supplied diff/change description or other inspected source, use an `Input` finding in the non-BLOCK report; exclude it from the message and do not invent a failing message part. Removal or redaction alone does not make an unsafe message compliant.
+Do not emit secrets, credentials, customer PII, sensitive internal hostnames/IPs/paths, or full diagnostic dumps anywhere in the report. Remove full diagnostic dumps and redact sensitive values even in validate mode. In a non-BLOCK report, identify any message part containing excluded content without reproducing it and report the underlying violation. If excluded content occurs only in a supplied diff/change description or other inspected source, use an `Input` finding in the non-BLOCK report; exclude it from the message and do not invent a failing message part. Removal or redaction alone does not make an unsafe message compliant.
 
 ## Status, Severity and Verdict
 
@@ -55,7 +58,7 @@ Use these exact markers in order; do not substitute labels. In every report, rep
   - `Subject:` result is `pass`, `pass (length: <N> chars, over 50)`, or `fail (reason)`. Replace `<N>` with the measured whole-subject character count as a decimal integer.
   - `Body:` result is `pass`, `fail (reason)`, or `n/a (trivial)`.
   - `Footers:` result is `pass`, `fail (reason)`, or `none`.
-- `### Findings` — bullets `<anchor>: <severity> — <detail>`, with anchor `Subject`, `Body`, `Footers`, `Input`, or `Convention`. For `error`, detail names the violation and correction. For `warning`, detail names the unresolved fact or message rule and required input. Use `Input` only for excluded source content outside the message parts, always with `error`. For required non-violating cleanup advice, use `Body: information — <cleanup preservation status and advice>`; say `unverified` when effective cleanup is unknown. Always include `Convention: information — <evidence or assumption>`; `Convention` uses only `information`.
+- `### Findings` — bullets `<anchor>: <severity> — <detail>`, with anchor `Subject`, `Body`, `Footers`, `Input`, or `Convention`. For `error`, detail names the violation and correction. For `warning`, detail names the unresolved fact or message rule and required input. Use `Input` only for excluded source content outside the message parts, always with `error`. For required non-violating cleanup advice, use `Body: information — <cleanup preservation status and advice>`; say `unverified` when effective cleanup is unknown. Include `Convention: information — <evidence or assumption>`; `Convention` uses only `information`.
 - `### Split recommendation` — proposed commits or `- None`.
 - `### Needs author input` — exact missing facts or required message rules or `- None`.
 
@@ -81,4 +84,5 @@ Verdict: BLOCK
 ## Examples
 
 - Activates: “Validate this commit message” with the message supplied.
-- Does not activate: “Squash this branch” or “Review this implementation.”
+- Activates within a larger task: “Fix this issue and open a PR” when preparing a commit message, or “Squash this branch” when drafting the resulting message. Git execution remains outside this skill.
+- Does not activate: “Review this implementation” with no message task, or a history operation that preserves existing messages without preparing or assessing one.
