@@ -37,7 +37,9 @@ Apply this skill to the history-planning subtask even when the broader task incl
 - `reorder` → moved `pick`: known dependency; name position.
 - `needs-author-input` → unchanged `pick`: name missing evidence.
 
-Place folds immediately after their target/fold group: `fixup` discards folded messages; `squash` requests message review. Use `fixup` only when supplied evidence establishes that the folded commit's message and authorship metadata contain no unique rationale, issue reference, attribution, or breaking-change disclosure that must survive; otherwise use `squash` and request the pending message review. Unique content requires author approval to drop. Reverted pairs require cancellation evidence and no intervening dependency.
+Before recommending any fold, establish whether required authorship metadata survives in the target. Both `fixup` and `squash` attribute the result to the first commit's author. If required distinct authorship metadata would be lost, or its preservation is unknown, use `needs-author-input` / unchanged `pick` and request preservation requirements or a compatible alternative. Only explicit author approval of a specified message-based attribution alternative permits `squash` in that case; name the approved alternative and request pending message review. Do not treat message review as preservation of Git authorship metadata.
+
+For folds that preserve required authorship metadata without an attribution alternative, use `fixup` only when supplied evidence establishes that no unique message rationale, issue reference, attribution, or breaking-change disclosure must survive. Otherwise use `squash` and request pending message review. For any permitted fold, satisfy the movement gate before placing it immediately after its target/fold group. Unique content requires author approval to drop. Reverted pairs require cancellation evidence and no intervening dependency.
 
 ## Severity
 
@@ -84,7 +86,7 @@ Empty range: full report.
 
 ## Checklist and Done
 
-Require matching actions/todo/sequence/verdict, conditional cautions, disclosed pending work, and advisory scope. For full reports, require each input commit exactly once in the todo and Actions; derive Resulting sequence by removing drops/folds and expanding splits. Preserve net content except explicitly author-approved discards. Reject any move/fold that crosses commits without the required preservation evidence; leave it pending at its original position. Every pending subject, message, split, or backup value has a matching Needs author input request. BLOCK uses only the reduced template. Stop.
+Require matching actions/todo/sequence/verdict, conditional cautions, disclosed pending work, and advisory scope. For full reports, require each input commit exactly once in the todo and Actions; derive Resulting sequence by removing drops/folds and expanding splits. Preserve net content except explicitly author-approved discards. Apply the authorship gate before selecting either fold action. Reject any move/fold that crosses commits without the required preservation evidence; leave it pending at its original position. Every pending subject, message, split, or backup value has a matching Needs author input request. BLOCK uses only the reduced template. Stop.
 
 ## Examples
 

@@ -6,7 +6,7 @@ These examples illustrate the core contract; they do not add requirements. Hashe
 
 ## Known fixup
 
-Input: an unmerged linear range, oldest-first. Supplied diffs establish a self-contained parser in `a1a1a1a`, an independent formatter in `c3c3c3c`, and that `b2b2b2b` only corrects the parser introduced by `a1a1a1a`. The supplied subjects are `add parser`, `fixup parser`, and `add formatter`, respectively. Publication status is unknown; the merge style preserves commits. The author supplies passing verification for the proposed surviving steps, identifies `backup/parser-cleanup` as a valid unused Git branch name, and confirms the folded commit's message and authorship metadata contain no unique rationale, issue reference, attribution, or breaking-change disclosure to preserve. No open PR is reported.
+Input: an unmerged linear range, oldest-first. Supplied diffs establish a self-contained parser in `a1a1a1a`, an independent formatter in `c3c3c3c`, and that `b2b2b2b` only corrects the parser introduced by `a1a1a1a`. Supplied subjects: `a1a1a1a` = `add parser`; `b2b2b2b` = `fixup parser`; `c3c3c3c` = `add formatter`. Publication status is unknown; the merge style preserves commits. The author supplies passing verification for the proposed surviving steps, identifies `backup/parser-cleanup` as a valid unused Git branch name, and confirms both parser commits have the same author and no required distinct authorship metadata is lost, and that the folded message has no unique rationale, issue reference, attribution, or breaking-change disclosure to preserve. No open PR is reported.
 
 ````markdown
 ## Commit Hygiene Report
@@ -48,7 +48,9 @@ None
 
 - **Audit proposing a rewrite:** Return the full report, including the backup and publication cautions. Frame commands as safety recommendations conditional on a future rewrite; do not tell the author to execute the rebase plan.
 - **Unknown backup ref:** A supported rewrite still needs a backup. Open Cautions with a descriptive backup requirement, omit the unresolved backup command, and request an unused ref under Needs author input. Do not invent a verified-unused name.
-- **Folded-message facts unknown:** Use `squash` instead of `fixup`, annotate the surviving target `message pending`, and request message review to preserve any unique rationale, issue reference, attribution, or breaking disclosure.
+- **Folded-message facts unknown, authorship preservation established:** After the authorship and movement gates pass, use `squash` instead of `fixup`, annotate the surviving target `message pending`, and request message review to preserve any unique rationale, issue reference, attribution, or breaking disclosure.
+- **Distinct or unknown required authorship metadata:** Neither fold action preserves a later commit's distinct Git authorship metadata. Use `needs-author-input` / unchanged `pick`, retain the original position and provisional sequence entry, and request preservation requirements or a compatible alternative. Do not propose a rewrite solely for that pending fold.
+- **Approved attribution alternative:** Supplied explicit author approval permits a specified message-based attribution alternative. Use `squash` only after the movement gate passes, name the approved alternative, annotate the target `message pending`, and request message review. This deliberately substitutes attribution in the message for metadata; it does not claim the metadata is preserved.
 - **Titles only:** A commit titled `wip` without a change summary becomes `needs-author-input`, with an unchanged `pick` line and a concrete evidence request. Do not guess the squash target. Verdict: `CONCERNS`.
 - **Split:** An established feature plus unrelated formatting change becomes `split` / `edit`. List the two concern descriptions in intended order, each marked `subject pending`. Do not invent final subjects. Verdict: `CONCERNS`.
 - **Squash merge:** No unwanted final content and no pending final-message work yields all `keep` / `pick`, no cautions, and `CLEAN`, even with intermediate fixup titles. A missing final message that needs assessment belongs under `### Needs author input` and yields `CONCERNS`.
@@ -61,7 +63,7 @@ None
 
 ## Fixup crossing an unknown commit
 
-Input: an unmerged linear range, oldest-first. Supplied facts establish a self-contained parser in `a1a1a1a` and a parser fixup in `c3c3c3c`; the content and dependencies of intervening `b2b2b2b` are unknown. Supplied verification covers the current unchanged range, not a reordered range. Merge style preserves commits. The supplied subjects are `add parser`, `update pipeline`, and `fixup parser`, respectively. No rewrite is proposed while the crossing is unresolved.
+Input: an unmerged linear range, oldest-first. Supplied facts establish a self-contained parser in `a1a1a1a` and a parser fixup in `c3c3c3c`; the content and dependencies of intervening `b2b2b2b` are unknown. Supplied verification covers the current unchanged range, not a reordered range. Merge style preserves commits. Supplied subjects: `a1a1a1a` = `add parser`; `b2b2b2b` = `update pipeline`; `c3c3c3c` = `fixup parser`. No rewrite is proposed while the crossing is unresolved.
 
 ````markdown
 ## Commit Hygiene Report
