@@ -20,7 +20,7 @@ description: >-
 
 ## Workflow
 
-1. First inspect all readable supplied input for forbidden content; retain only sanitized occurrence locations for reporting, including Error handling. Select draft for new text, rewrite for requested repair/update/audit, or validate for assessment without repair. Validate requires readable title and body. Draft requires usable change evidence. Rewrite requires readable draft text or usable change evidence. Otherwise use Error handling.
+1. First inspect all readable supplied input for forbidden content. For full reports, retain sanitized occurrence locations under Title/Body/Input; for reduced BLOCK, report only the generic Disclosure signal and omit locations. Select draft for new text, rewrite for requested repair/update/audit, or validate for assessment without repair. Validate requires readable title and body. Draft requires usable change evidence. Rewrite requires readable draft text or usable change evidence. Otherwise use Error handling.
 2. Establish the entire supplied PR scope. Final diff/change evidence governs resulting behavior; history supplies rationale, not proof of runtime success. Reconcile contradicted/reverted claims. Read [evidence and structure](references/evidence-and-structure.md) for validation, history, template selection and conventions.
 3. Resolve required template/title rules. If required artifacts or template selection are unavailable, use Error handling. If repository context is absent and no required template/rule is known, use default structure and plain titles; disclose the assumption.
 4. Apply Title and Body. Draft/rewrite corrects defects and omits optional unknowns. Validate preserves safe supplied text and reports defects without repair. Every mode removes sensitive content from output and reports its original violation; removal does not establish compliance.
@@ -32,7 +32,7 @@ For style use explicit caller rules, then readable repository requirements, then
 
 Body: explain resulting behavior and why; include supplied reproducible verification steps with actual outcomes or evidence limits. Distinguish run/proposed checks, static/runtime evidence and pending/passed CI. Include evidenced risks, migrations, breaking changes and real issue links. Optional unknown issue IDs are omitted. Do not invent commands, results, attribution or completion. Use natural Markdown without fixed-column wrapping.
 
-Never reproduce secrets, credentials, customer PII, sensitive internal hosts/addresses/paths or full diagnostic dumps anywhere in the report. Repository-relative pointers are allowed. Excluded source content outside title/body requires an Input finding even if both parts pass.
+Never reproduce secrets, credentials, customer PII, sensitive internal hosts/addresses/paths or full diagnostic dumps anywhere in the report. Repository-relative pointers are allowed. In full reports, excluded source content outside title/body requires an Input/error finding even if both parts pass. Use Input for source-evidence limitations, such as unavailable diff evidence; assign information unless unresolved required facts require warning. Information alone does not force CONCERNS.
 
 ## Decisions
 
@@ -53,7 +53,7 @@ Verdict precedence: BLOCK only for Error handling; otherwise CONCERNS if any par
 
 ## Output
 
-For full reports, use exact markers in order: `## PR Description Quality Report`, `Verdict:`, `Structure:`, `### Title`, `### Body`, `### Checks`, `### Findings`, `### Needs author input`. Preserve CLEAN/CONCERNS/BLOCK and template/default. Emit one report without preamble or trailing prose. Fence Title as text and Body as markdown, using fences longer than payload backtick runs. Checks has exactly two ordered bullets: `- Title: status — result` then `- Body: status — result`. Findings uses `- Anchor: severity — detail`, with Title/Body/Input/Convention/Structure anchors; include convention/template evidence or assumptions even in CLEAN. Empty lists use `- None`. Needs author input lists all unresolved required facts. Read [report and examples](references/report-and-examples.md) for full/reduced templates and partial-text handling.
+For full reports, use exact markers in order: `## PR Description Quality Report`, `Verdict:`, `Structure:`, `### Title`, `### Body`, `### Checks`, `### Findings`, `### Needs author input`. Full reports use CLEAN/CONCERNS and template/default; BLOCK uses only Error handling. Emit one report without preamble or trailing prose. Fence Title as text and Body as markdown, using fences longer than payload backtick runs. Checks has exactly two ordered bullets: `- Title: status — result` then `- Body: status — result`. Findings uses `- Anchor: severity — detail`, with Title/Body/Input/Convention/Structure anchors; include convention/template evidence or assumptions even in CLEAN. Empty lists use `- None`. Needs author input lists all unresolved required facts. Read [report and examples](references/report-and-examples.md) for full/reduced templates and partial-text handling.
 
 ## Error handling
 

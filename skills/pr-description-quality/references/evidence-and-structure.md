@@ -8,7 +8,7 @@ Use the entire supplied diff/change description as scope. Identify base/head or 
 
 Group related commits into outcomes. Fold fixups and review corrections into the final change. Remove reverted/canceled claims and irrelevant mechanical noise; retain mechanical changes with review-relevant impact. Do not promote an old breaking-change claim after final evidence removes it. Unresolved contradictions require author input for affected parts.
 
-When only a change description is supplied, state that no diff was available rather than implying repository inspection. Return safe partial text with needs-author-input for missing required behavior, rationale, breaking intent or validation facts; omit unsupported claims.
+When only a change description is supplied, state under an Input/information finding in a full report that no diff was available rather than implying repository inspection. Return safe partial text with needs-author-input for missing required behavior, rationale, breaking intent or validation facts; omit unsupported claims.
 
 ## Validation and links
 

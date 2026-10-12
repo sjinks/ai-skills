@@ -8,7 +8,7 @@ Emit exactly one report with the core's ordered markers, no preamble/trailing pr
 
 Fence Title as text and Body as markdown; use backtick fences longer than every backtick run in each payload. Preserve safe validation text, whitespace and literal angle brackets; fences are framing. For rewrite with only one supplied part, draft the other from usable change evidence; otherwise leave its fence empty, mark needs-author-input and request content/evidence. Validate missing either part uses reduced BLOCK.
 
-Checks has exactly two bullets, Title then Body: `- Part: status — result`, using core values. Findings uses `- Anchor: severity — detail`; anchors are Title, Body, Input, Convention, Structure. Include convention/template evidence or assumptions even in CLEAN. In full reports, Input is only for excluded source content outside title/body; it causes CONCERNS without a third check or changing passing part statuses. Record all original violations even if corrected. Creation alone uses information.
+Checks has exactly two bullets, Title then Body: `- Part: status — result`, using core values. Findings uses `- Anchor: severity — detail`; anchors are Title, Body, Input, Convention, Structure. Include convention/template evidence or assumptions even in CLEAN. In full reports, Input covers excluded source content and source-evidence limitations outside title/body. Excluded content uses error and causes CONCERNS; an evidence limitation uses information unless it identifies an unresolved required fact under the core severity rules. Input findings add no third check or independent part status; required facts still affect the relevant Title/Body status. Information alone does not prevent CLEAN. Full disclosure findings name sanitized occurrence locations; reduced BLOCK omits locations and uses only its generic Disclosure signal. Record all original violations even if corrected. Creation alone uses information.
 
 Needs author input includes all unresolved required facts or one `- None`; optional unknown metadata is omitted. Empty Findings uses `- None`. Replace all placeholders in this complete template:
 
@@ -38,7 +38,7 @@ BODY
 
 ## Reduced BLOCK
 
-Use only this form for core Error handling; omit Structure, Title, Body, Checks and author-input sections. Request the smallest required input/selection, without inventing candidates. Always emit five lines. Inspect all readable input for forbidden content before returning this form. Use `- Disclosure: none` only when none was found; otherwise use exactly `- Disclosure: error — Forbidden content found in supplied input; excluded from output.`. This reduced field covers disclosure in any supplied input, including title/body, and does not change BLOCK. All fields remain sanitized:
+Use only this form for core Error handling; omit Structure, Title, Body, Checks and author-input sections. Request the smallest required input/selection, without inventing candidates. Always emit five lines. Inspect all readable input for forbidden content before returning this form. Use `- Disclosure: none` only when none was found; otherwise use exactly `- Disclosure: error — Forbidden content found in supplied input; excluded from output.`. This reduced field covers disclosure in any supplied input, including title/body, and does not change BLOCK. Do not include occurrence locations, extra findings, or full-only sections in reduced BLOCK. All fields remain sanitized:
 
 ```markdown
 ## PR Description Quality Report
@@ -68,6 +68,7 @@ Examples illustrate existing rules:
 - Repair a vague draft with supported behavior/validation evidence: changed parts are rewritten/pass; record corrected violations as errors; CONCERNS even when emitted text is ready.
 - Unchanged safe passing title/body: compliant/pass, convention/template information only, no author input, CLEAN.
 - Validate a credential in Body: redact it, noncompliant/fail for the original disclosure, error finding without reproducing it, CONCERNS. Missing required facts take status precedence but retain that disclosure finding.
+- A usable change description supplies behavior and validation but no diff: report Input/information that no diff was available; unchanged compliant title/body can remain CLEAN.
 - A diff contains excluded content but safe title/body pass: compliant parts, Input/error finding, CONCERNS; no extra check.
 - Unsupported passing-test claim: validate marks Body needs-author-input; rewrite omits the claim and states the evidence limitation with the same status until facts arrive. Missing evidence never proves no checks ran.
 - Confirmed no checks: honest limitation passes description quality; drafting still yields rewritten and CONCERNS.
