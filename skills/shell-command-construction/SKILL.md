@@ -1,6 +1,6 @@
 ---
 name: shell-command-construction
-description: "Use whenever constructing, repairing, or validating concrete shell commands, fragments, heredocs, redirections, or payload transport, including command-preparation subtasks within implementation or maintenance. Covers literal/expansion intent, argv and stream boundaries, and multiline data. Excludes generic goals without a concrete target, general grammar/debugging, tutoring, prose-only drafting, non-shell work, portability-only analysis, and GitHub CLI interface semantics."
+description: "Use when: constructing, repairing, or validating concrete shell commands, fragments, heredocs, redirections, or payload transport, including command-preparation subtasks within implementation or maintenance. Covers literal/expansion intent, argv and stream boundaries, and multiline data. Do not use for: generic goals without a concrete target, general grammar/debugging, tutoring, prose-only drafting, non-shell work, portability-only analysis, and GitHub CLI interface semantics."
 argument-hint: "Provide the concrete command or fragment, shell/interpreter, and intended literal/expansion, argv, and transport boundaries."
 ---
 
@@ -8,7 +8,7 @@ argument-hint: "Provide the concrete command or fragment, shell/interpreter, and
 
 Apply this skill to one concrete construction target, including a command being prepared within a larger task. The caller may supply the target or prepare it from established task facts. A generic goal alone does not activate this skill; first establish a concrete command, fragment, heredoc, redirection, or payload interface. A concrete but incomplete construction target activates and may be `BLOCKED`. A command mention without construction work does not activate.
 
-Assess the concrete text and established construction facts only. The caller owns gathering facts, invoking tools, and any separately authorized execution. This skill returns a construction report and does not execute commands.
+**UTILITY SKILL.** INVOKES: concrete command text and established construction facts only. The caller owns gathering facts, invoking tools, and any separately authorized execution. This skill returns a construction report and does not execute commands.
 
 ## Scope and exclusions
 
