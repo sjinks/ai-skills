@@ -8,6 +8,8 @@ Draft/rewrite creates or repairs text; validate preserves safe supplied text and
 
 The report preserves CLEAN/CONCERNS/BLOCK and template/default, with compliant/rewritten/noncompliant/needs-author-input statuses. Findings distinguish errors, unresolved facts and informational convention/structure or source-evidence limits. Input/information evidence limits do not alone force CONCERNS. Full disclosure findings retain sanitized locations; reduced BLOCK reports only the generic Disclosure signal without locations. Newly drafted/repaired parts yield CONCERNS even when emitted text passes. CLEAN requires both parts to be compliant and no forbidden content found, including in supplied source outside the title/body.
 
+When no required template is known, unavailable repository template context selects default body structure, without changing title mode; supplied title history remains usable when repository files are unavailable.
+
 Without caller/repository convention rules, a strict majority of all usable supplied historical PR titles must match the core conventional grammar to select conventional mode; ties, minorities and empty history select plain.
 
 Conventional title types follow the stated primary outcome; unresolved mixed-type ties use a fixed priority order after caller/repository rules. Caller-supplied heading/checklist structures are templates and use Structure: template; default describes only the unreplaced default headings.

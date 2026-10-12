@@ -64,6 +64,7 @@ Examples illustrate existing rules:
 
 - Validate with only commits: BLOCK for title/body; do not silently draft.
 - Missing body or unavailable required template plus excluded content: five-line BLOCK with Disclosure: error and the fixed sanitized sentence; never reproduce the content. Without excluded content, the fifth line is Disclosure: none.
+- Repository template discovery is unavailable, but three of five supplied historical PR titles are conventional: use default body structure with the discovery limitation and conventional title mode; missing repository files do not override supplied history.
 - With no higher-precedence convention rule: three conventional titles among five supplied historical PR titles select conventional mode; two among four, one among three, or no usable history select plain.
 - Repair a vague draft with supported behavior/validation evidence: changed parts are rewritten/pass; record corrected violations as errors; CONCERNS even when emitted text is ready.
 - Unchanged safe passing title/body: compliant/pass, convention/template information only, no author input, CLEAN.
