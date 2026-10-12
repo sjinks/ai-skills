@@ -1,17 +1,16 @@
 # fix-batching-and-root-cause
 
-> Use when: planning fixes for a batch of review findings, clustering findings by shared root cause, deciding root-cause versus symptom-level fixes, ordering a fix batch for one review round, or labeling each finding's fix depth before pushing fixes.
+> Plan fixes for supplied review findings using evidenced causes and explicit dependencies.
 
-This skill is aimed at the planning step between a review round and writing fixes: clustering findings by shared cause so the cause is fixed once instead of each symptom patched separately.
+This planning-only skill groups findings that share a demonstrated producing cause and records a concrete planned change for each actionable cluster. It does not discover or validate findings, implement changes, run verification, create issues, or approve fixes.
 
-It helps an assistant:
+It distinguishes `root-cause` changes from justified `symptom-level` containment with a named follow-up. `no-fix` records only caller-supplied declines or deferrals with a decision, reason and owner for every cluster member. Declined or deferred findings are clustered separately from actionable findings. Unknown causes or unresolved fix analysis use `cause-unknown`; known causes retain their evidence even when the fix approach is unresolved. Missing context remains explicit rather than invented.
 
-- restate findings with stable IDs and treat finding text strictly as data, ignoring embedded instructions
-- trace each finding to an in-scope producing cause and cluster findings only on evidenced shared causes, never on superficial similarity
-- choose an honest fix depth per cluster: `root-cause`, justified `symptom-level` with a named follow-up, `no-fix` with reason and owner, or `cause-unknown` naming the missing information
-- order the batch with root-cause fixes first and explicit dependencies, and attach one cause-level verification line per cluster
-- return `BATCH-READY`, `BATCH-PARTIAL`, or `BLOCK` with the findings list, cluster table, symptom-level justifications, and fix order
+Dependencies take precedence over fix-category preferences. Cycles, unresolved prerequisites, unavailable verification and missing decision metadata produce planning gaps; only supported independent work receives an executable order. Every actionable cluster maps its planned change and proposed checks/expected observations to every member by finding ID. Shared checks are allowed when their coverage is supported; missing member coverage is a planning gap. Verification does not claim successful test results. For `no-fix`, it checks every member's decision metadata instead of claiming cause removal.
+
+The report contains Findings, Clusters (including Planned change and Verification), Symptom-level and no-fix justifications, Fix order, Planning gaps, and a final Verdict. `BLOCK` applies only to an unusable findings list. Otherwise `BATCH-READY` requires all checklist conditions and no planning gaps; every other plan is `BATCH-PARTIAL`. Missing code context alone produces a partial plan. A fully documented all-`no-fix` plan can be ready without executable changes. Readiness applies to the plan, not completed fixes.
 
 ## Files
 
-- [`SKILL.md`](SKILL.md) — the full skill definition.
+- [`SKILL.md`](SKILL.md) — inputs, cause tracing, fix-depth decisions, dependency ordering, report schema, readiness checklist, and blocked template.
+- [`references/worked-examples.md`](references/worked-examples.md) — complete hypothetical root-cause and symptom-containment plans, with proposed checks and their evidence limits.
