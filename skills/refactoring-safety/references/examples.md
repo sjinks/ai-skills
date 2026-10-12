@@ -8,6 +8,8 @@ Target: extract the pricing rules out of `OrderService` into a `PricingPolicy` c
 
 Mode: `plan`. Assume the characterization checks have not yet been created or run, so dependent restructuring is blocked.
 
+Refactor baseline: a supplied source checkpoint establishes the original state; this is a new refactor, so prior refactor changes are `none`. The checkpoint is source evidence, not evidence of passing checks.
+
 Preserved behavior row:
 
 | Behavior | Safety net |
@@ -29,7 +31,12 @@ Step rows:
 - Step 3: requires step 1 characterization to pass before moving callers; implementing agent verifies the results.
 - Step 4: requires step 1 characterization to pass and consumer inspection to establish safe deletion; implementing agent verifies the evidence.
 
-These rows and blocker entries are a partial `plan` example. A complete report also includes the heading, Target, Mode, Consumers considered, Consumer inspection, and all required sections. Empty sections contain `None`, except `### Final diff review`, which uses `Outcome: not run` and `Evidence: plan only`. For `execute`, add actual check results with checked-state identifiers and final diff review evidence. Record each pre-step state so rollback preserves unrelated edits.
+These rows and blocker entries are a partial `plan` example. A complete report also includes the heading, Target, Mode, Refactor baseline, Consumers considered, Consumer inspection, and all required sections. Empty sections contain `None`, except `### Final diff review`, which uses `Outcome: not run` and `Evidence: plan only`. For `execute`, add actual execution-start and after-step results with checked-state identifiers and final diff review evidence. Record each pre-step state so rollback preserves unrelated edits.
+
+## In-Flight Baseline Cases
+
+- Original state reconstructed: record the original revision/checkpoint and supporting diff, attribute earlier refactor edits separately from unrelated work, and derive the contract from that state. Current execution-start checks do not establish historical results. Final review includes the earlier changes.
+- Original state unavailable or prior changes unattributable: record `unavailable` or `unknown` with the reason in the appropriate baseline field and block all further transformations. Read-only planning and inspection may continue; current code and new pre-step snapshots do not replace the missing original state.
 
 ## Anti-Patterns
 

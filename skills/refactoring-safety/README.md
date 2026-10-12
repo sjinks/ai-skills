@@ -7,12 +7,13 @@ This skill is aimed at planned or in-flight behavior-preserving restructurings w
 It helps an assistant:
 
 - distinguish planning from authorized execution, and plan completeness from completed refactoring
+- establish the original refactor state and attribute already-completed changes before any new execution; block further transformations when an in-flight baseline cannot be reconstructed
 - define the preserved observable contract, inspect authorized repository evidence, and distinguish reported coverage, inspected tests, and executed checks
 - record searched consumer surfaces, supplied versus discovered consumers, and remaining unknowns; an empty search result applies to the inspected scope
 - block dependent restructuring until unknown coverage is verified, characterization passes, or a named user or accountable owner explicitly accepts the uncovered behavior; pending acceptance is not approval
 - pin current behavior (bugs included) with characterization tests, recording discovered bugs as owner questions rather than in-flight fixes
 - plan steps as single named transformations with a green check after each, separated mechanical vs hand edits, and revertibility status including `point-of-no-return` flags
-- record actual baseline and after-step check results; failed or unavailable required checks prevent execution completion
+- distinguish current execution-start checks from historical evidence about the original refactor state; failed or unavailable required checks prevent execution completion
 - bind executed check results to the checked state, including uncommitted changes, and rerun affected checks when inputs change
 - preserve pre-existing and concurrent work during rollback; stop when overlapping edits cannot be separated safely
 - enforce the tripwire when preserved behavior or its expectations change; permit justified internal-assertion edits only with evidence that the original behavior remains checked

@@ -22,22 +22,28 @@ If no refactoring target is provided, emit the BLOCK template; do not invent the
 
 Select `plan` when the user requests planning or analysis; do not execute transformations. If the user authorizes implementation, select `execute`. If the requested action is unclear, use `plan`.
 
+## Refactor Baseline
+
+Before any new execution, establish the state from before the entire refactor began, including relevant tracked and untracked contents. For a new refactor, capture that state before its first transformation. For an in-flight refactor, reconstruct it from an identified revision, checkpoint, or supplied diff with enough content to recover the original state. Identify already-completed refactor changes separately from unrelated edits and record the state identifier, provenance, and prior changes under `Refactor baseline`.
+
+If the original state or prior-change attribution cannot be established, mark all further transformation rows `Check after: blocked` and record the reason under `### Blocked`; read-only inspection and planning may continue. Do not substitute the current invocation's starting state or a pre-step record for the original baseline. A baseline identifier does not establish that checks ran against it; do not invent historical check results.
+
 ## Behavior Baseline
 
 Before any step executes:
 
-1. Define preserved behavior: the observable contract that must not change — outputs, side effects, error types and messages callers match on, serialization formats, public API shapes. Performance characteristics count only when a consumer depends on them; say which.
+1. Define preserved behavior from the established original refactor state: outputs, side effects, error types and messages callers match on, serialization formats, public API shapes. Performance characteristics count only when a consumer depends on them; say which. In a plan with an unavailable original state, mark dependent contract claims unknown rather than assuming current behavior is the original behavior.
 2. Map each preserved behavior to a safety net. Distinguish user-reported coverage from inspected tests and executed checks; cite the supplied evidence, file, or check result. Use `unknown — verify` until evidence establishes that the check exercises that behavior. For uncovered behavior, schedule characterization, or record `accepted-uncovered` with a reason and explicit acceptance by a named user or accountable owner. A named role alone is not acceptance: use `pending acceptance` with the reason and required role.
 3. Characterization tests pin what the code does, not what it should do; a bug discovered while characterizing is recorded under `### Discovered behavior questions`, not silently fixed.
 
-Coverage gate: before dependent restructuring executes, each preserved behavior it touches must have a verified safety net, passing characterization checks, or explicit acceptance of the uncovered behavior. Otherwise, mark dependent rows `Check after: blocked` and add matching `### Blocked` entries naming the missing evidence or acceptance. If characterization is impractical, name the missing seam. Prerequisite inspection and characterization may proceed. Acceptance waives only the stated coverage gap; it does not waive baseline or after-step checks.
+Coverage gate: before dependent restructuring executes, each preserved behavior it touches must have a verified safety net, passing characterization checks, or explicit acceptance of the uncovered behavior. Otherwise, mark dependent rows `Check after: blocked` and add matching `### Blocked` entries naming the missing evidence or acceptance. If characterization is impractical, name the missing seam. Read-only inspection may proceed; prerequisite characterization may proceed after the Refactor Baseline gate is satisfied. Acceptance waives only the stated coverage gap; it does not waive execution-start or after-step checks.
 
 ## Step Rules
 
 - Each step is one named transformation (characterize, extract, inline, rename, move, replace-internal, delete-dead-code) on one surface. Name the relevant build and regression checks in `Check after`.
 - After every executed step, run the checks exercising the touched surface and its consumers, named in `Check after`. If a check fails, revert or fix the step; do not continue until checks pass.
-- In `execute` mode, run applicable existing baseline checks against unchanged code before step 1. Run newly added characterization checks against unchanged production behavior after creating them and before dependent restructuring. Record baseline and after-step commands/checks and actual outcomes under `### Check results`. If required baseline checks fail or cannot run, record the reason under `### Blocked` and do not start. If required checks cannot run after a step, stop further steps and report the unchecked change; do not claim execution complete. Do not fix pre-existing failures in-flight.
-- Bind each executed check result to the checked state: a revision plus any tracked/untracked changes, or a content snapshot identifier covering the checked code, consumers, and check inputs. A revision alone is insufficient when those inputs contain uncommitted changes. Confirm that the checked inputs remain unchanged during the check; if they change, invalidate that result and rerun against a stable state. If those inputs later change, reassess affected safety nets and rerun affected checks before dependent execution or completion. Retain earlier results as historical evidence, including the original baseline; do not present them as validation of the changed state.
+- In `execute` mode, run applicable existing checks against the current execution-start state before the first new step. For in-flight work, label these as execution-start checks, not historical checks of the original refactor state. Run newly added characterization checks against unchanged production behavior after creating them and before dependent restructuring; do not treat current behavior as the original contract without comparing it to the Refactor Baseline. Record execution-start and after-step commands/checks and actual outcomes under `### Check results`. If required checks fail before the first new step or cannot run, record the reason under `### Blocked` and do not start. If required checks cannot run after a step, stop further steps and report the unchecked change; do not claim execution complete. Do not fix pre-existing failures in-flight.
+- Bind each executed check result to the checked state: a revision plus any tracked/untracked changes, or a content snapshot identifier covering the checked code, consumers, and check inputs. A revision alone is insufficient when those inputs contain uncommitted changes. Confirm that the checked inputs remain unchanged during the check; if they change, invalidate that result and rerun against a stable state. If those inputs later change, reassess affected safety nets and rerun affected checks before dependent execution or completion. Retain earlier results as historical evidence, including execution-start checks; do not present them as validation of the changed state.
 - Each step is independently revertible; steps that cannot be reverted alone (schema or serialized-format moves) are flagged `point-of-no-return` with a one-line rollback story.
 - Before executing each step, record the pre-step state of its touched surface and identify pre-existing edits. Revert or roll back only that step's changes, preserving pre-existing and concurrent work. Do not restore whole files or repository state when that would discard unrelated changes. If overlapping edits cannot be separated safely, stop and record the blocker instead of overwriting them. These protections also apply to a `point-of-no-return` rollback story.
 - Mechanical, tool-applied transformations (IDE rename, codemod) are separated from hand edits — different steps, so review effort can be calibrated.
@@ -53,7 +59,7 @@ Coverage gate: before dependent restructuring executes, each preserved behavior 
 
 ## Final Diff Review
 
-In `execute` mode, inspect the complete refactor diff against the recorded pre-refactor state, including committed, uncommitted, and newly created changes attributable to the refactor. Distinguish unrelated work using the pre-step records. Compare the changed production code, tests, and supporting files against the preserved behavior and each step's boundary. Passing checks alone do not establish behavior preservation.
+In `execute` mode, inspect the complete refactor diff against the original state established by Refactor Baseline, including already-completed work and committed, uncommitted, and newly created changes attributable to the refactor. Distinguish unrelated work using the prior-change attribution and pre-step records. Compare the changed production code, tests, and supporting files against the preserved behavior and each step's boundary. Passing checks alone do not establish behavior preservation.
 
 Record the reviewed state, inspected paths, and contract/boundary comparison evidence under `### Final diff review`. If behavior changed, apply the Step Rules tripwire. If a boundary was violated, fix or roll back the affected step using the Step Rules protections. If the diff is unavailable, changes cannot be attributed, or contract questions remain unresolved, record blockers and do not claim execution complete. After any further refactor edit, repeat the final diff review; apply the Step Rules check-invalidation rule to affected checks.
 
@@ -64,6 +70,7 @@ Record the reviewed state, inspected paths, and contract/boundary comparison evi
 
 - Target: <code/surface and restructuring goal>
 - Mode: <plan or execute>
+- Refactor baseline: <original state identifier and provenance, or unavailable with reason>; prior refactor changes: <identified changes, none for a new refactor, or unknown with reason>
 - Consumers considered: <identified consumers with supplied/discovered provenance, unknown, or none found within a searched scope>
 - Consumer inspection: <searched paths/surfaces and evidence, or not inspected with reason>; remaining unknowns: <list or None>
 
@@ -81,7 +88,7 @@ Record the reviewed state, inspected paths, and contract/boundary comparison evi
 
 ### Check results
 
-- <baseline or step #>: <command/check>; <passed, failed, or not run with reason>; checked state: <state identifier for an executed check, or not run>; <internal-assertion justification and preserved-behavior check, when applicable>
+- <execution-start baseline or step #>: <command/check>; <passed, failed, or not run with reason>; checked state: <state identifier for an executed check, or not run>; <internal-assertion justification and preserved-behavior check, when applicable>
 
 ### Final diff review
 
@@ -122,5 +129,5 @@ Read [examples](references/examples.md) when constructing step tables or checkin
 
 ## Definition of Done
 
-- Plan complete: the behavior map, step plan, and report satisfy Behavior Baseline, Step Rules, Rules, and Output Format. The plan may retain explicit blockers governed by the coverage gate; a complete plan does not authorize their execution.
-- Execution complete: all planned steps have executed; the Behavior Baseline coverage gate and Step Rules validation and rollback requirements are satisfied; Final Diff Review has passed against the final state; and Output Format records the evidence. No unresolved blockers or behavior changes remain. A complete plan alone is not completed execution.
+- Plan complete: the baseline entry, behavior map, step plan, and report satisfy Refactor Baseline, Behavior Baseline, Step Rules, Rules, and Output Format. The plan may retain explicit baseline or coverage blockers; a complete plan does not authorize their execution.
+- Execution complete: all planned steps have executed; Refactor Baseline, the Behavior Baseline coverage gate, and Step Rules validation and rollback requirements are satisfied; Final Diff Review has passed against the final state; and Output Format records the evidence. No unresolved blockers or behavior changes remain. A complete plan alone is not completed execution.
