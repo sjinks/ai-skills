@@ -12,6 +12,20 @@ All label sets use one ASCII framing space after each colon. Leading candidate w
 
 Portability-only analysis does not activate this skill and belongs to a separate portability review. For mixed requests, SCC produces its five-field construction response first. Its `Construction next step` requires a separate portability review of the exact SCC candidate before any cross-target compatibility conclusion. Resolve a `BLOCKED` construction result before that review. SCC does not construct a portability candidate or make a compatibility claim. The five canonical labels are the default; explicit caller-requested replacement labels apply only to a direct response and are not a later-review handoff.
 
+## Global routing example
+
+After installing this skill, add the following section to your global agent instructions (for example, Codex `AGENTS.md`). This example routes command preparation through the skill without granting execution authority.
+
+```markdown
+## Shell Command Preparation
+
+Before submitting shell command text to an execution tool, read and apply `shell-command-construction` to the exact text. This includes routine commands, destructive commands such as `rm`, and commands prepared within larger tasks. Do not wait for suspected quoting errors or a separate user request.
+
+Apply the skill's scope exclusions first. For excluded interface-specific requests, use the owning workflow to check shell delivery before submission. For in-scope commands, use the construction report within the command-preparation subtask; resolve `BLOCKED` before submission and recheck after any construction-affecting change. `VALID` and `REWRITE` establish construction only; execution authorization and effect review remain separate requirements of the calling workflow.
+
+If the skill or a required reference is unavailable, do not submit the affected command; locate or restore the package first. Read-only tool calls needed to locate or load these instructions may proceed without this construction check. This exception does not permit submitting the command under review.
+```
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — activation, workflow, output contract, and completion rules.
