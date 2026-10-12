@@ -20,7 +20,7 @@ Portability-only analysis does not activate this skill and belongs to a separate
 
 ## Global routing example
 
-After installing this skill, add the following section to your global agent instructions (for example, Codex `AGENTS.md`). This example routes command preparation through the skill without granting execution authority.
+This repository's `AGENTS.md` requires the routing below for Codex tasks in this checkout. For other repositories, install this skill and add the following section to applicable agent instructions (for example, global Codex `AGENTS.md`). The routing requires construction checks without granting execution authority; it is an instruction rule, not measured model adherence or runtime enforcement.
 
 ```markdown
 ## Shell Command Preparation
