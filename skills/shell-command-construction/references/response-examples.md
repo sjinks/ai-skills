@@ -190,7 +190,7 @@ A supplied trailing pipeline operator, unmatched quote, missing `done`/`esac`, o
 
 ### Exact-empty heredoc
 
-The caller supplies the following Bash command and requires exactly zero stdin bytes. The fixed delimiter and literal empty-body intent are confirmed; the command text has no terminal LF after the closing delimiter.
+The caller supplies the following Bash command and requires exactly zero stdin bytes. The literal empty-body intent and collision-free supplied delimiter are confirmed; delimiter mutability is unspecified because no selection/change is needed. The command text has no terminal LF after the closing delimiter.
 
 ```text
 Construction result: VALID

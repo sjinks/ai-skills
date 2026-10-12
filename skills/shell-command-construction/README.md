@@ -14,6 +14,8 @@ All label sets use one ASCII framing space after each colon. Leading candidate w
 
 Payload facts are transport-specific: an exact nonempty literal heredoc requires terminal-newline intent, while an exact Bash here-string requires compatibility with its appended LF. Facts about one transport cannot satisfy the other's gate.
 
+A supplied correct, collision-free heredoc delimiter needs no delimiter-change permission. Establish selection/change permission only when constructing or correcting the candidate actually requires it; collision checks and other payload facts still apply.
+
 Portability-only analysis does not activate this skill and belongs to a separate portability review. For mixed requests, SCC produces its five-field construction response first. Its `Construction next step` requires a separate portability review of the exact SCC candidate before any cross-target compatibility conclusion. Resolve a `BLOCKED` construction result before that review. SCC does not construct a portability candidate or make a compatibility claim. The five canonical labels are the default; explicit caller-requested replacement labels apply only to a direct response and are not a later-review handoff.
 
 ## Global routing example
