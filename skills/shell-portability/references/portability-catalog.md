@@ -105,3 +105,7 @@ Targets referenced below:
 - For maximum portability the GNU coding standards name a conservative set of utilities a script may assume present: `awk cat cmp cp diff echo egrep expr false grep install-info ln ls mkdir mv printf pwd rm rmdir sed sleep sort tar test touch tr true`. Reaching outside this set (or for non-POSIX flags on these) is where portability findings concentrate.
 
 Provenance and source-confidence notes live in [source-map.md](source-map.md).
+
+## Bash shebang
+
+When choosing a shebang for a bash-targeted script, prefer `#!/usr/bin/env bash` over `#!/bin/bash`: the bash you want is not always at `/bin/bash` (macOS ships an old bash 3.2 there; a newer Homebrew/MacPorts bash lives at `/usr/local/bin/bash` or `/opt/homebrew/bin/bash`; some BSDs put it under `/usr/local/bin` or have no `/bin/bash` at all). `env` resolves the first `bash` on `PATH`; the tradeoff is you get whichever that is.

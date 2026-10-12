@@ -1,6 +1,6 @@
 ---
 name: shell-portability
-description: "Use when: writing, reviewing, or fixing shell code where portability is the requested outcome against a declared shell/OS target or across multiple targets — POSIX sh vs bash/ksh/zsh, dash/ash/busybox as /bin/sh, GNU vs BSD/macOS vs busybox coreutils, CI containers, Alpine, or unknown targets. Covers bashisms, non-portable utility flags, shebang/interpreter targeting, locale and word-splitting hazards, and portable replacements. Do not use for generic shell feature tutoring, Bash-only command-construction repair when portability is explicitly excluded, or a raw mixed construction-and-portability request before a separate construction result is supplied."
+description: "Use when writing, reviewing, or fixing shell code for a declared shell/OS target or multiple targets: POSIX sh, Bash, ksh, zsh, dash, ash, busybox, GNU/BSD/macOS utilities, CI containers, Alpine, or unknown targets. Excludes tutoring, construction-only repair, and mixed requests before construction or interface correction supplies an exact candidate. Covers interpreter targeting, bashisms, utility flags, locale, and splitting behavior."
 argument-hint: "Paste the script or the commands, and name the target shells/OSes if known."
 ---
 
@@ -44,7 +44,7 @@ If no code is supplied, return `Portability verdict: BLOCK` with one open questi
 ## Workflow
 
 1. Establish the target (declared or default baseline) and read the shebang to learn the intended interpreter.
-2. Scan for **interpreter/shebang mismatch**: bash features under `#!/bin/sh`, a missing shebang on a directly-executed script, a hardcoded interpreter path that does not match the declared target (e.g. `#!/bin/bash` where bash is needed but not at that path — prefer `#!/usr/bin/env bash`), or reliance on the login shell.
+2. Scan for **interpreter/shebang mismatch**: bash features under `#!/bin/sh`, a missing shebang on a directly-executed script, a hardcoded interpreter path that does not match the declared target (e.g. `#!/bin/bash` where bash is needed but not at that path — prefer an `env`-based Bash shebang), or reliance on the login shell.
 3. Scan for **bashisms** (constructs absent from POSIX sh): see the catalog. Flag each with its POSIX replacement.
 4. Scan for **non-portable utility usage**: GNU-only flags and utilities that differ or are absent on BSD/macOS/busybox. Flag each with a portable form.
 5. Scan for **behavioral hazards**: unquoted expansions (word-splitting/globbing), `echo` with flags or escapes, locale-dependent `sort`/`sed`/`tr`, `$RANDOM`/`$SECONDS`/arrays/associative arrays, non-portable `trap`/`set` options (`pipefail`).
@@ -55,8 +55,8 @@ If no code is supplied, return `Portability verdict: BLOCK` with one open questi
 
 The Checklist below is the gating source of truth when these rules overlap; the rules explain rationale.
 
-- When a script's shebang is `#!/bin/sh`, every construct must be POSIX sh; bash-only syntax is a finding even if it runs on the author's machine. If bash features are genuinely needed, the fix is either to rewrite them in POSIX form or to change the shebang to `#!/usr/bin/env bash` and accept the bash dependency. Do not rely on `/bin/sh` being bash.
-- When choosing a shebang for a bash-targeted script, prefer `#!/usr/bin/env bash` over `#!/bin/bash`: the bash you want is not always at `/bin/bash` (macOS ships an old bash 3.2 there; a newer Homebrew/MacPorts bash lives at `/usr/local/bin/bash` or `/opt/homebrew/bin/bash`; some BSDs put it under `/usr/local/bin` or have no `/bin/bash` at all). `env` resolves the first `bash` on `PATH`; the tradeoff is you get whichever that is.
+- When a script's shebang is `#!/bin/sh`, every construct must be POSIX sh; bash-only syntax is a finding even if it runs on the author's machine. If bash features are genuinely needed, the fix is either to rewrite them in POSIX form or to change the shebang to an `env`-based Bash shebang and accept the bash dependency. Do not rely on `/bin/sh` being bash.
+- When choosing a shebang for a Bash-targeted script, select Bash through `env` on `PATH` instead of assuming a fixed Bash installation path. This selects the first Bash on `PATH`; verify that its version satisfies the target. Read [the catalog](references/portability-catalog.md#bash-shebang) for the exact shebang and platform-path examples.
 - When the target is POSIX sh, replace bashisms with POSIX equivalents: `[[ ]]`→`[ ]`/`test`, `==`→`=` in `[ ]`, arrays→positional params or whitespace-separated lists, `local`→note it is not POSIX (widely supported by dash/ash/busybox but not guaranteed; document the assumption), `function name()`→`name()`, `source`→`.`, `${var,,}`/`${var^^}`→`tr`, `+=`→`var="$var$add"`, `<()`/`>()` process substitution→temp files or pipes, `&>file`→`>file 2>&1`, `cmd1 |& cmd2`→`cmd1 2>&1 | cmd2`, `{1..10}`→a `while`-loop counter (`seq` is not POSIX), `$'...'`→`printf`, `read -a`→`read` + `IFS`/`set --`.
 - When portable output is needed, use `printf` instead of `echo`: `echo` is not portable for flags (`-n`, `-e`) or backslash escapes — escape interpretation and `-n` handling vary by implementation and by options (`xpg_echo`, `-e`/`-E`), and `echo -n` is unspecified by POSIX. `printf '%s\n' "$x"` and `printf '%s' "$x"` are the portable forms. Never pass user data as the `printf` format string; put it in a `%s` argument.
 - When `set -o pipefail` is used, note it is not POSIX (bash/ksh/zsh/busybox-ash have it; dash does not). For `#!/bin/sh` targeting dash, either drop it or guard it; do not assume it exists.
@@ -69,7 +69,7 @@ The Checklist below is the gating source of truth when these rules overlap; the 
 
 ### Interpreter And Shebang
 
-- Shebang matches the language actually used (POSIX sh script uses only POSIX features; bash script uses `#!/usr/bin/env bash`).
+- Shebang matches the language actually used (POSIX sh script uses only POSIX features; bash script uses an `env`-based Bash shebang).
 - No reliance on `/bin/sh` being bash, or on a hardcoded `/bin/bash` path.
 
 ### Bashisms (when target includes POSIX sh)

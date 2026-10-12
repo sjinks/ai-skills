@@ -21,13 +21,17 @@ Require exactly one complete result with these top-level fields in order:
 
 When the caller embeds a construction result inside surrounding prose, the handoff is the contiguous envelope that starts at the `Construction result:` line and ends immediately after the `Construction next step:` line, with zero or one terminal newline inside that envelope. Nonblank prose may appear before that start marker without a blank separator, but no preamble line may start with any of the five top-level field prefixes; that is a malformed reordered or duplicate handoff. Any later line anywhere after the envelope that starts with one of those prefixes is also a malformed duplicate, even after blank prose. A nonblank line immediately after `Construction next step:` is adjacent handoff content, not surrounding prose. A blank line after the envelope ends the handoff; later non-field prose is surrounding context and is allowed. Outside an open multiline candidate, blank or free-form lines between top-level fields, code fences, or any other extra unprefixed line before that boundary make the envelope malformed. Within an open multiline candidate, every payload line—including a two-space-only serialized empty line—remains in the envelope and is decoded under the rules below.
 
+Require exactly one ASCII space after each field colon as framing. For an inline candidate, everything after that framing space is candidate data. A candidate beginning with a space or tab requires multiline form; reject ambiguous inline framing rather than trimming the candidate.
+
+Split report framing only on LF (U+000A). Preserve CR, VT, FF, U+0085, U+2028, and U+2029 inside candidate data; do not normalize them or interpret them as report separators.
+
 Missing, unknown, reordered, duplicated, or blank fields make the handoff malformed.
 
 ## Construction candidate consistency
 
 - `BLOCKED` requires exact `Construction candidate: Not provided`.
-- `VALID` and `REWRITE` forbid that inline placeholder, including trailing-whitespace variants.
-- If the exact one-line candidate text is `Not provided` for `VALID` or `REWRITE`, canonical serialization is block form:
+- `VALID` and `REWRITE` forbid that inline placeholder, including variants followed only by spaces or tabs.
+- If the exact one-line candidate text is `Not provided` for `VALID` or `REWRITE`, canonical serialization is block form. This partial snippet begins at the candidate field; result and assessment precede it, and authority and next step follow it:
   ```text
   Construction candidate: |
     Not provided

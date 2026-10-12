@@ -1,10 +1,14 @@
 # shell-command-construction
 
-> Use when constructing, repairing, or validating a concrete supplied shell command, fragment, heredoc, redirection, or payload interface where literal text, argv boundaries, shell parsing, multiline data, or transport must be preserved.
+> Use when constructing, repairing, or validating a concrete shell command, fragment, heredoc, redirection, or payload interface where literal text, argv boundaries, shell parsing, multiline data, or transport must be preserved.
 
 This skill returns a construction result only. Execution safety, authorization, target validity, destructive-effect review, and permission to run are outside its scope and are not assessed.
 
-It activates only when the request supplies a concrete shell target: a named executable, exact command fragment, heredoc/redirection, or payload interface/data. A generic goal with no command, executable, path, shell syntax, or supplied payload interface/data does not activate; a concrete but incomplete construction request activates and blocks rather than guessing. It preserves confirmed shell token and quote boundaries, literal-versus-expansion intent, operand order, input transport, and multiline payloads. SCC-Q1 keeps even a multiline scalar in one argv word; SCC-M1 covers only supplied stdin, file, and heredoc payload transport. Exact supplied literal argument text does not require validating downstream semantics; downstream grammar is required only when its token boundaries affect shell parsing. Positive and negative downstream syntax or semantic judgments are not assessed.
+It activates for a concrete shell target supplied by the caller or prepared from established task facts, including command construction within implementation or maintenance. Generic goals alone and mere command mentions do not activate. An incomplete concrete target blocks rather than guessing. The caller owns evidence gathering and any separately authorized execution; the skill returns one construction report.
+
+It preserves confirmed token boundaries, literal-versus-expansion intent, operand order, transport, and payload data. SCC-Q1 keeps a multiline literal scalar in one argv word. SCC-A1 distinguishes one-argument quoting from byte preservation: when exact output bytes matter, command substitution must preserve those bytes or block pending a confirmed alternative. SCC-M1 covers supplied stdin, file, and heredoc transport. Downstream semantics are outside scope unless their token boundaries determine shell parsing.
+
+All label sets use one ASCII framing space after each colon. Leading candidate whitespace and LF require multiline serialization; only LF separates report lines. Other control characters and Unicode separators remain literal candidate data. The five canonical fields, disposition values, authority literal, and construction-only boundary are unchanged.
 
 Portability-only analysis does not activate this skill and belongs to a separate portability review. For mixed requests, SCC produces its five-field construction response first. Its `Construction next step` requires a separate portability review of the exact SCC candidate before any cross-target compatibility conclusion. Resolve a `BLOCKED` construction result before that review. SCC does not construct a portability candidate or make a compatibility claim. The five canonical labels are the default; explicit caller-requested replacement labels apply only to a direct response and are not a later-review handoff.
 
@@ -12,5 +16,5 @@ Portability-only analysis does not activate this skill and belongs to a separate
 
 - [`SKILL.md`](SKILL.md) — activation, workflow, output contract, and completion rules.
 - [`references/construction-rules.md`](references/construction-rules.md) — canonical construction decisions.
-- [`references/quoting-rules.md`](references/quoting-rules.md) — explanatory shell semantics.
-- [`references/source-map.md`](references/source-map.md) — provenance and scope boundaries.
+- [`references/quoting-rules.md`](references/quoting-rules.md) — explanatory shell semantics, source map, and scope provenance.
+- [`references/response-examples.md`](references/response-examples.md) — optional caller-label eligibility and complete construction reports.

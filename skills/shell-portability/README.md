@@ -14,6 +14,8 @@ It helps an assistant:
 
 It is **not** for concrete shell command construction correctness where literal data, argv boundaries, heredocs, redirection, or transport preservation are primary; it is also not for pure bash-only feature questions or non-shell languages. Direct portability code follows the normal path. For raw mixed requests, a preceding construction review or an excluded domain-specific interface workflow supplies the exact candidate first. Construction handoffs are validated and decoded using [`references/construction-handoff.md`](references/construction-handoff.md); malformed, inconsistent, and `BLOCKED` handoffs use reduced `BLOCK`. A prior direct response that uses caller-requested replacement labels is not a canonical handoff: request canonical fields or separately supplied direct code.
 
+Construction handoffs use exactly one ASCII framing space after each field colon and LF-only report separators. Decode the exact candidate without trimming or normalizing its payload; leading candidate spaces or tabs require multiline form. Other control characters and Unicode separators remain candidate data.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.
