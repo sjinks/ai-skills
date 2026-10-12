@@ -122,6 +122,8 @@ Construction next step: Preserve the confirmed here-string delivery form.
 
 ### Here-string newline conflicts with exact bytes
 
+Evaluate newline facts for the selected transport only. A here-string's confirmed appended-LF compatibility cannot satisfy missing terminal-newline intent for a nonempty exact literal heredoc. Heredoc empty/nonempty intent is not required for a here-string; its own exact-byte compatibility remains required.
+
 The caller supplies the same Bash command with the same scalar, but requires stdin to contain exactly `abc` without LF and supplies no alternate transport.
 
 ```text

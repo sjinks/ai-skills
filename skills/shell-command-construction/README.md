@@ -12,6 +12,8 @@ It preserves confirmed token boundaries, literal-versus-expansion intent, operan
 
 All label sets use one ASCII framing space after each colon. Leading candidate whitespace and LF require multiline serialization; only LF separates report lines. Other control characters and Unicode separators remain literal candidate data. The five canonical fields, disposition values, authority literal, and construction-only boundary are unchanged.
 
+Payload facts are transport-specific: an exact nonempty literal heredoc requires terminal-newline intent, while an exact Bash here-string requires compatibility with its appended LF. Facts about one transport cannot satisfy the other's gate.
+
 Portability-only analysis does not activate this skill and belongs to a separate portability review. For mixed requests, SCC produces its five-field construction response first. Its `Construction next step` requires a separate portability review of the exact SCC candidate before any cross-target compatibility conclusion. Resolve a `BLOCKED` construction result before that review. SCC does not construct a portability candidate or make a compatibility claim. The five canonical labels are the default; explicit caller-requested replacement labels apply only to a direct response and are not a later-review handoff.
 
 ## Global routing example
