@@ -93,3 +93,17 @@ When confirmed non-secret candidate data contains CR, VT, FF, U+0085, U+2028, or
 ### Replacement-label fallback
 
 Five eligible caller labels map to the five fields in order. A repeated label, a canonical label, or a label containing punctuation rejects the entire replacement set. Use canonical labels for that response. Mixed construction-and-portability requests also use canonical labels, even when all five replacements are otherwise eligible.
+
+### Literal Bash exclamation mark
+
+The caller supplies Bash command `tool "!42 suffix"` and confirms that the single literal argument must be `!42 suffix`. Bash history expansion is enabled outside POSIX mode. Other boundaries are confirmed.
+
+```text
+Construction result: REWRITE
+Construction assessment: Single quoting preserves the confirmed literal argument without history expansion.
+Construction candidate: tool '!42 suffix'
+Execution authority: NOT ASSESSED BY THIS SKILL
+Construction next step: Review the literal argument against the confirmed Bash quoting intent.
+```
+
+When an already-correct double-quoted form uses Bash POSIX mode, disabled history expansion, or the documented closing-quote exception, preserve it under `VALID`. Do not reject every command containing `!`. Exclamation marks supplied through parameter expansion are not reprocessed as history syntax merely because their expanded value contains `!`.

@@ -24,7 +24,7 @@ Do not activate when correctness depends on GitHub CLI-specific interface semant
 
 Before producing a candidate, establish only the facts that change construction:
 
-- interpreter when syntax materially differs;
+- interpreter and relevant modes/options when syntax or quoting behavior materially differs;
 - literal versus expansion intent;
 - one scalar argument versus a structured argument list;
 - quote boundaries; downstream-language grammar only when its token boundaries determine shell quoting;
