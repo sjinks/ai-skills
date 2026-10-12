@@ -17,6 +17,7 @@ Prepare or execute one `gh` operation that produces the intended payload, destin
 ## Workflow
 
 1. Establish preparation versus execution, read versus write, hostname, repository, resource IDs, intended content, and requested read limit. Resolve ambiguous targets before execution. Confirm needed flags with installed subcommand help.
+   For `gh api`, pass the resolved hostname with `--hostname`. For other subcommands, use a supported host-qualified target or set `GH_HOST` to the resolved hostname. Do not rely on an ambient default that can disagree with `GH target`.
 2. Select the endpoint and method. For REST reads with fields, set `--method GET`; adding fields otherwise selects POST. For REST writes, use the documented endpoint method. GraphQL uses `gh api graphql`; distinguish queries from mutations by their operation, not HTTP method.
 3. Select field interpretation by intent: `-f` preserves a string, including literal `@-`, `@file`, `true`, or `123`. Use `-F` for intentional file/stdin references, typed values, or repository placeholders. For API body text from a file/stdin, use `-F body=@PATH` or `-F body=@-`. Use `--body-file` only on a subcommand whose help supports it; `gh api` does not.
 4. Prepare the exact payload once. For bodies containing newlines, quotes, backticks, `$`, or `!`, use a file or stdin. Preserve intended bytes, including terminal newlines. Never evaluate literal body text as shell code. Check quoting, expansion intent, argument boundaries, and stdin delivery in the actual shell before submission.
@@ -27,7 +28,7 @@ Prepare or execute one `gh` operation that produces the intended payload, destin
 
 - For review-thread replies, resolve the top-level review-comment ID. If given a reply, inspect its `in_reply_to_id` and validate the root against the repository and PR. POST to `/repos/{owner}/{repo}/pulls/{pr}/comments/{root_id}/replies`. `gh pr comment` creates a top-level conversation comment.
 - For comment corrections, PATCH the existing review comment at `/repos/{owner}/{repo}/pulls/comments/{id}` or issue comment at `/repos/{owner}/{repo}/issues/comments/{id}`; do not create a duplicate.
-- For complete REST collection reads, use `--paginate`. For complete GraphQL connection reads, also supply `$endCursor`, `after: $endCursor`, and `pageInfo { hasNextPage endCursor }`. For explicitly bounded reads, preserve and report the requested limit; do not claim exhaustive results. Use `--jq` for per-page filtering. For cross-page aggregation, confirm page shape and external `jq` availability, pipe `--paginate --slurp` output to `jq`, and verify both stages; never combine `--slurp` with `--jq` or `--template`.
+- For complete REST collection reads, use `--paginate`. For complete GraphQL connection reads, also supply `$endCursor`, `after: $endCursor`, and `pageInfo { hasNextPage endCursor }`. For explicitly bounded reads, preserve and report the requested limit; do not claim exhaustive results. Use `--jq` for per-page filtering. For cross-page aggregation, confirm page shape and external `jq` availability, capture `--paginate --slurp` JSON in a fresh file, run `jq` only after `gh` succeeds, and check `jq`'s status; never combine `--slurp` with `--jq` or `--template`.
 
 ## Error handling
 

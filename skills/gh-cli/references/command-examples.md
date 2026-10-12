@@ -2,7 +2,7 @@ Read this reference when adapting a transport, reply/edit, pagination, or result
 
 # Command examples
 
-Shell examples use POSIX `sh` syntax. Replace `O`, `R`, numeric IDs, and local paths with resolved task values. Commands that write to GitHub are illustrations, not requests to execute them. Use installed subcommand help to confirm available flags.
+Shell examples use POSIX `sh` syntax and explicitly target `github.com`. Replace that hostname, `O`, `R`, numeric IDs, and local paths with resolved task values. For Enterprise, use the resolved Enterprise hostname in every `--hostname` or `GH_HOST` value; do not leave the example host unchanged. Use a fresh output path for `pages.json` so redirection does not overwrite an existing file. Commands that write to GitHub are illustrations, not requests to execute them. Use installed subcommand help to confirm available flags.
 
 ## Literal text versus references
 
@@ -10,13 +10,13 @@ These requests deliberately deliver different content:
 
 ```sh
 # The requested body is literally the two characters @-.
-gh api --method POST repos/O/R/issues/66/comments -f 'body=@-'
+gh api --hostname github.com --method POST repos/O/R/issues/66/comments -f 'body=@-'
 
 # The requested body is the exact text already stored in body.md.
-gh api --method POST repos/O/R/issues/66/comments -F 'body=@body.md'
+gh api --hostname github.com --method POST repos/O/R/issues/66/comments -F 'body=@body.md'
 
 # body is already populated with the intended text; printf adds no newline.
-printf '%s' "$body" | gh api --method POST repos/O/R/issues/66/comments -F 'body=@-'
+printf '%s' "$body" | gh api --hostname github.com --method POST repos/O/R/issues/66/comments -F 'body=@-'
 ```
 
 Use the same literal-string distinction for text such as `@file`, `true`, `null`, or `123`. For a typed Boolean parameter, `-F enabled=true` expresses a different intent from the string `-f enabled=true`.
@@ -31,7 +31,7 @@ I've updated `foo()`.
 
 The literal example is $HOME, not an expansion!
 GH_BODY
-gh api --method POST repos/O/R/pulls/66/comments/123/replies -F 'body=@body.md'
+gh api --hostname github.com --method POST repos/O/R/pulls/66/comments/123/replies -F 'body=@body.md'
 ```
 
 For that reply, `123` must already be resolved as the thread's top-level review-comment ID. If a supplied comment has `in_reply_to_id`, inspect that parent and establish the root before constructing the write. Never substitute `gh pr comment` for this destination.
@@ -39,7 +39,7 @@ For that reply, `123` must already be resolved as the thread's top-level review-
 For a top-level PR conversation comment, a supporting subcommand offers another transport:
 
 ```sh
-gh pr comment 66 --repo O/R --body-file body.md
+GH_HOST=github.com gh pr comment 66 --repo O/R --body-file body.md
 ```
 
 `gh api --body-file body.md` is invalid. API fields read text using `-F`; `--input` instead sends a preconstructed request body such as JSON, rather than wrapping arbitrary Markdown in a `body` field. When using `--input`, field flags go into the query string; set the required method explicitly and inspect the prepared request structure.
@@ -48,10 +48,10 @@ gh pr comment 66 --repo O/R --body-file body.md
 
 ```sh
 # Review comment: the edit endpoint has no PR number.
-gh api --method PATCH repos/O/R/pulls/comments/123 -F 'body=@body.md'
+gh api --hostname github.com --method PATCH repos/O/R/pulls/comments/123 -F 'body=@body.md'
 
 # Issue/PR conversation comment: use its issue-comment ID.
-gh api --method PATCH repos/O/R/issues/comments/456 -F 'body=@body.md'
+gh api --hostname github.com --method PATCH repos/O/R/issues/comments/456 -F 'body=@body.md'
 ```
 
 For every write example, compare the returned object or read-back with the intended resource and exact body. For replies, also check the parent relationship. If the result cannot be verified, use `INCOMPLETE`; a local preview does not establish persistence.
@@ -60,16 +60,17 @@ For every write example, compare the returned object or read-back with the inten
 
 ```sh
 # Fields on a REST read need an explicit GET method.
-gh api --method GET --paginate repos/O/R/issues -f state=open --jq '.[] | {number, title}'
+gh api --hostname github.com --method GET --paginate repos/O/R/issues -f state=open --jq '.[] | {number, title}'
 
 # Each REST page is an array; --slurp adds an outer array for a global count.
-gh api --paginate --slurp repos/O/R/pulls/66/comments | jq '[.[][]] | length'
+gh api --hostname github.com --paginate --slurp repos/O/R/pulls/66/comments > pages.json &&
+  jq '[.[][]] | length' pages.json
 ```
 
-`--jq` filters each page; external `jq` aggregates the slurped pages. `--slurp` cannot be combined with `--jq` or `--template`. The aggregation pipeline requires external `jq`; confirm that it is installed. A successful final filter does not prove the preceding `gh` command succeeded: verify both stages and page completion before reporting a count or treating an empty result as evidence of absence. For explicitly bounded reads, report that scope and do not describe it as exhaustive.
+`--jq` filters each page; external `jq` aggregates the slurped pages. `--slurp` cannot be combined with `--jq` or `--template`. Confirm that external `jq` is installed. The `&&` guard runs `jq` only after `gh` succeeds and preserves a nonzero status from either command. A failed `gh` can leave partial JSON in `pages.json`; do not aggregate that file or report a count. Retain the file only as diagnostic evidence or remove it after inspection. Verify command status and page completion before treating an empty result as evidence of absence. For explicitly bounded reads, report that scope and do not describe it as exhaustive.
 
 ```sh
-gh api graphql --paginate -f owner=O -f name=R -f query='
+gh api --hostname github.com graphql --paginate -f owner=O -f name=R -f query='
 query($owner: String!, $name: String!, $endCursor: String) {
   repository(owner: $owner, name: $name) {
     issues(first: 100, after: $endCursor) {
@@ -90,7 +91,7 @@ Illustrative preparation-only result:
 GH operation: Read all open issues
 GH target: github.com, O/R, issues
 GH status: PREPARED
-GH evidence: gh api --method GET --paginate repos/O/R/issues -f state=open
+GH evidence: gh api --hostname github.com --method GET --paginate repos/O/R/issues -f state=open
 GH limitation: None
 ```
 
@@ -127,6 +128,7 @@ GH limitation: Provide the repository, PR, and review-comment ID
 ## Sources
 
 - [GitHub CLI API manual](https://cli.github.com/manual/gh_api): methods, field conversion, placeholder expansion, stdin/files, raw request bodies, pagination, and page aggregation. Inspect installed `gh api --help` for version-specific support.
+- [GitHub CLI environment manual](https://cli.github.com/manual/gh_help_environment): `GH_HOST`, host-qualified repository context, and host-specific authentication.
 - [GitHub CLI API command implementation](https://github.com/cli/cli/blob/trunk/pkg/cmd/api/api.go): incompatible output flags and the external `jq` aggregation example.
 - [Review comment endpoints](https://docs.github.com/en/rest/pulls/comments): root-comment reply restriction, reply parent fields, and review-comment updates.
 - [Issue comment endpoints](https://docs.github.com/en/rest/issues/comments#update-an-issue-comment): issue/PR conversation-comment updates.

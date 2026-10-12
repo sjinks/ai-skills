@@ -2,7 +2,7 @@
 
 > Prepare or execute GitHub CLI operations with the intended payload, destination, and verified outcome.
 
-This skill prevents successful commands from producing wrong content, targeting the wrong comment surface, or reporting incomplete reads as exhaustive results. It covers field interpretation, supported body transport, methods, root-comment selection for review replies, REST and GraphQL pagination, and persisted result verification.
+This skill prevents successful commands from producing wrong content, targeting the wrong host or comment surface, or reporting incomplete reads as exhaustive results. It covers explicit hostname selection, field interpretation, supported body transport, methods, root-comment selection for review replies, REST and GraphQL pagination, guarded cross-page aggregation, and persisted result verification.
 
 It distinguishes prepared commands, verified operations, incomplete attempts, and blockers. Failure handling preserves uncertainty and requires reconciliation before retrying a potentially committed write. Plain Git operations, general destructive-action review, workflow authoring, and API design are outside its scope.
 
