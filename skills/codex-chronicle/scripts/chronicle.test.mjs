@@ -600,3 +600,21 @@ test('excerpt clipping status uses masked length for expansion, contraction and 
     assert.ok(e.text.length <= 1600);
   }
 });
+
+test('excerpt truncation never splits a valid supplementary-plane character at the UTF-16 limit', async t => {
+  const f = await fixture(t);
+  const cases = [
+    ['crossing', 'x'.repeat(1599) + '🙂', 'x'.repeat(1599), true],
+    ['exact', 'x'.repeat(1598) + '🙂', 'x'.repeat(1598) + '🙂', false],
+    ['complete', 'x'.repeat(1598) + '🙂z', 'x'.repeat(1598) + '🙂', true],
+    ['two', 'x'.repeat(1597) + '🙂🚀', 'x'.repeat(1597) + '🙂', true],
+  ];
+  for (const [id, raw, expected, clipped] of cases) {
+    await f.write('sessions/' + id + '.jsonl', [meta(id), message('user', raw)]);
+    const e = (await analyze(f.options('--session', id))).sessions[0].excerpts[0];
+    assert.equal(e.text, expected);
+    assert.equal(e.clipped, clipped);
+    assert.ok(e.text.length <= 1600);
+    assert.equal(Buffer.from(e.text, 'utf8').toString('utf8'), e.text);
+  }
+});

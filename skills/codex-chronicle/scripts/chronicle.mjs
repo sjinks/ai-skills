@@ -173,8 +173,11 @@ async function readSession(file, options, coverage) {
     if (!options.session || session.id !== options.session || !inWindow(timestamp)) return;
     if (options.line && Math.abs(options.line - location) > 3) return;
     const masked = mask(text);
+    let end = Math.min(masked.length, 1600);
+    if (end < masked.length && masked.charCodeAt(end - 1) >= 0xd800 && masked.charCodeAt(end - 1) <= 0xdbff &&
+      masked.charCodeAt(end) >= 0xdc00 && masked.charCodeAt(end) <= 0xdfff) end--;
     session.excerpts.push({ role, line: location, timestamp: new Date(timestamp).toISOString(),
-      text: masked.slice(0, 1600), clipped: masked.length > 1600 });
+      text: masked.slice(0, end), clipped: end < masked.length });
     session.excerpts.sort((a, b) => a.line - b.line);
     if (session.excerpts.length > options.limit) session.excerpts.shift();
   }

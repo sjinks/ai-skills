@@ -19,6 +19,10 @@ repository, it requires an explicit repository selection or, for `tips` and
 `cost-tips`, an explicit all-repositories request. The low-level helper's
 working-directory default is directory scope, not automatic repository discovery;
 it must not substitute for this selection step.
+Inside a repository, the default current repository root counts as selected;
+no additional confirmation is needed for its configuration inspection or
+repository-specific recommendations. Explicit selection is needed outside a
+repository, not for an already-resolved default.
 
 ## Scope and drill-down
 
@@ -128,7 +132,7 @@ in a partially populated preferred stream cannot be detected reliably.
 The helper itself performs no network or model calls. When invoked through
 Codex, its tool results enter the active model context, which may be hosted
 remotely. Summaries contain metadata/counts; drill-down includes transcript text.
-Before drill-down, explain the selected scope, 1600-character excerpt bound,
+Before drill-down, explain the selected scope, 1600-UTF-16-unit excerpt bound,
 best-effort masking, and this model-context disclosure; obtain explicit informed
 approval unless it already covers that scope. Without it, use only summary
 metadata, do not attribute conversational causes, and report the limitation.
@@ -137,7 +141,9 @@ local unless the caller shares it.
 
 Drill-down
 strips control characters, masks common credential formats, then clips each
-excerpt to 1600 characters. `clipped` is based on the masked length, so it
+excerpt to at most 1600 UTF-16 code units, retaining complete surrogate pairs.
+A pair crossing the limit is omitted together, so the result may be shorter.
+`clipped` is based on the masked length and actual cutoff, so it
 describes actual truncation rather than redaction or control-character removal.
 Control removal covers C0 except tab/LF, DEL, and C1 (U+0080–U+009F).
 This is not comprehensive redaction. Do not publish

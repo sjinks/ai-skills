@@ -28,7 +28,8 @@ $codex-chronicle improve
 | `tips` | Identify workflow friction and concrete ways to improve it | 7 days |
 | `improve` | Propose evidence-backed changes to the selected project's instructions | 30 days |
 
-The default scope is the current repository and root sessions. Ask explicitly
+The default scope is the current repository and root sessions. The resolved
+current repository counts as selected without additional confirmation. Ask explicitly
 to include all repositories or subagents. `improve` stays within one selected
 repository. Outside a repository, select a repository explicitly or request
 all repositories for `tips`/`cost-tips`; the skill does not fall back to a parent
@@ -76,6 +77,7 @@ Empty or unsupported response text cannot suppress usable fallback text; control
 removal includes C1 characters as well as C0 (except tab/LF) and DEL.
 Decreasing cumulative subsets produce field-specific warnings. Excerpt clipping
 status reflects truncation after masking, including text expansion or contraction.
+The 1600-UTF-16-unit limit preserves complete surrogate pairs, including emoji.
 
 Correction signals are keyword-based candidates, not confirmed mistakes.
 Cause-based recommendations require approved conversation inspection.
