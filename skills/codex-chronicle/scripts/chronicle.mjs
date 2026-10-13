@@ -152,8 +152,9 @@ async function readSession(file, options, coverage) {
   function excerpt(role, text, timestamp, location) {
     if (!options.session || session.id !== options.session || !inWindow(timestamp)) return;
     if (options.line && Math.abs(options.line - location) > 3) return;
+    const masked = mask(text);
     session.excerpts.push({ role, line: location, timestamp: new Date(timestamp).toISOString(),
-      text: mask(text).slice(0, 1600), clipped: text.length > 1600 });
+      text: masked.slice(0, 1600), clipped: masked.length > 1600 });
     session.excerpts.sort((a, b) => a.line - b.line);
     if (session.excerpts.length > options.limit) session.excerpts.shift();
   }
@@ -221,7 +222,7 @@ async function readSession(file, options, coverage) {
           if (inWindow(timestamp)) session.warnings.push('Counter reset: first counter of new segment omitted');
         } else if (baseline) {
           delta = Object.fromEntries(KEYS.map(key => [key,
-            integer(current[key]) && integer(baseline[key]) && current[key] >= baseline[key] ? current[key] - baseline[key] : null]));
+            integer(current[key]) && integer(baseline[key]) ? current[key] - baseline[key] : null]));
         } else if (firstCounter && started >= options.start && started <= options.end) delta = current;
         else if (inWindow(timestamp)) session.warnings.push('No earlier usage baseline: first cumulative counter omitted');
         baseline = current;

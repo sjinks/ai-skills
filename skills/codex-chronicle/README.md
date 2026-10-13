@@ -64,6 +64,8 @@ Event timestamps must be strings. Explicitly invalid session-start timestamps
 stay unknown and cannot establish a zero counter baseline.
 Message fallback is selected per role within the requested window, so older or
 future response messages cannot hide in-window activity.
+Decreasing cumulative subsets produce field-specific warnings. Excerpt clipping
+status reflects truncation after masking, including text expansion or contraction.
 
 Correction signals are keyword-based candidates, not confirmed mistakes.
 Recommendations require inspection of surrounding conversations and current

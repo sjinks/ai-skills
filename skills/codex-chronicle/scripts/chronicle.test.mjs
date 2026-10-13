@@ -110,6 +110,23 @@ test('invalid required counter totals break the baseline and never become a zero
   }
 });
 
+test('decreasing cumulative subsets warn independently while preserving measured whole counts', async t => {
+  const f = await fixture(t);
+  for (const [id, current, expected, fields] of [
+    ['cached', usage(150, 15, 80, 10), usage(50, 5, null, 1), ['cached_input_tokens']],
+    ['reasoning', usage(150, 15, 100, 8), usage(50, 5, 10, null), ['reasoning_output_tokens']],
+    ['both', usage(150, 15, 80, 8), usage(50, 5, null, null), ['cached_input_tokens', 'reasoning_output_tokens']],
+  ]) {
+    await f.write('sessions/' + id + '.jsonl', [meta(id, '/repo', {}, before),
+      counter(usage(100, 10, 90, 9), before), counter(current)]);
+    const s = (await analyze(f.options('--session', id))).sessions[0];
+    assert.deepEqual(s.usage, expected);
+    assert.deepEqual(s.models['unknown/unknown'], expected);
+    assert.equal(s.warnings.length, fields.length);
+    for (const field of fields) assert.ok(s.warnings.some(w => w.includes(field)));
+  }
+});
+
 test('an invalid cumulative timestamp breaks rather than bridges the baseline', async t => {
   const f = await fixture(t);
   for (const [i, timestamp] of ['invalid', 2026, null, false, [], [2026], {}].entries()) {
@@ -434,4 +451,22 @@ test('source-directory symlinks are skipped rather than followed', async t => {
 test('masking happens before clipping and removes common credentials and control sequences', () => {
   assert.equal(mask('Bearer abc.def\u001b password="secret words"'), 'Bearer [REDACTED] password=[REDACTED]');
   assert.equal(mask('-----BEGIN PRIVATE KEY-----\nprivate\n-----END PRIVATE KEY-----'), '[REDACTED KEY]');
+});
+
+test('excerpt clipping status uses masked length for expansion, contraction and exact boundaries', async t => {
+  const f = await fixture(t);
+  const cases = [
+    ['expansion', 'x'.repeat(1586) + ' password=x', true],
+    ['key', '-----BEGIN PRIVATE KEY-----\n' + 'x'.repeat(1700) + '\n-----END PRIVATE KEY-----', false],
+    ['controls', '\u001b'.repeat(1700) + 'safe', false],
+    ['exact', 'x'.repeat(1600), false],
+    ['over', 'x'.repeat(1601), true],
+  ];
+  for (const [id, raw, clipped] of cases) {
+    await f.write('sessions/' + id + '.jsonl', [meta(id), message('user', raw)]);
+    const e = (await analyze(f.options('--session', id))).sessions[0].excerpts[0];
+    assert.equal(e.text, mask(raw).slice(0, 1600));
+    assert.equal(e.clipped, clipped);
+    assert.ok(e.text.length <= 1600);
+  }
 });

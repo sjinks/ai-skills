@@ -76,6 +76,8 @@ before subtraction and validate resulting delta subsets again. Invalid required
 totals or invalid counter timestamps are warned and discard the baseline; omit the next valid snapshot to
 establish a new baseline without bridging unknown activity. Invalid or missing
 subset counts stay unknown for deltas that depend on them.
+If a cached/reasoning counter decreases while required totals increase, its
+negative delta is invalid, becomes unknown, and emits a field-specific warning.
 The baseline is zero only for the first observed counter
 when the session starts within the window; for an older session with no earlier
 counter, omit the first counter and warn. Counter decreases start a new segment,
@@ -98,8 +100,10 @@ in a partially populated preferred stream cannot be detected reliably.
 ## Privacy and interpretation
 
 Summaries contain metadata and counts, not transcript excerpts. Drill-down
-clips each excerpt to 1600 characters, strips control characters, and masks
-common credential formats. This is not comprehensive redaction. Do not publish
+strips control characters, masks common credential formats, then clips each
+excerpt to 1600 characters. `clipped` is based on the masked length, so it
+describes actual truncation rather than redaction or control-character removal.
+This is not comprehensive redaction. Do not publish
 raw output without inspection. For excerpt-backed findings, record timestamps,
 session ID, file, and log line. For aggregate usage, cite session IDs,
 `usage_source`, and the relevant JSON fields; usage-event line provenance is
