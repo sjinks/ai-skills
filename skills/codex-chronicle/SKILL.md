@@ -54,7 +54,7 @@ Use these labels once, in order:
 
 `Chronicle scope:` mode, repository, time window, root/subagent scope, matched session count, and sessions inspected through excerpts.
 
-`Observed patterns:` distinguish heuristic candidates from confirmed findings. Cite session IDs, `usage_source`, and JSON fields for session usage. For surface totals, cite the JSON field, `sessions_with_usage` contributor count, available `usage_provenance`, and `usage_provenance_truncated`; disclose omitted IDs. Cite log lines for approved excerpt-backed findings. Usage-event log lines are not exported.
+`Observed patterns:` distinguish heuristic candidates from confirmed findings. Cite session IDs, `usage_source`, and JSON fields for session usage. For surface totals, cite the JSON field, `sessions_with_usage` contributor count, available `usage_provenance`, and `usage_provenance_truncated`. When provenance is truncated, report the omitted contributor count (`sessions_with_usage - usage_provenance.length`) and state that their identities are unavailable from the sample. Cite log lines for approved excerpt-backed findings. Usage-event log lines are not exported.
 
 `Recommendations:` up to five numbered recommendations. For each, give evidence, a concrete action, expected benefit, and uncertainty. For `improve`, include proposed wording and target file. Use `None supported.` when evidence is insufficient.
 

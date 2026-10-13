@@ -44,6 +44,11 @@ independently of `--limit` or `--session`. At most 100 entries are exported acro
 all surfaces together; the top-level `usage_provenance_limit` declares this cap.
 Each surface's `sessions_with_usage` is its complete contributor count, and
 `usage_provenance_truncated` flags omitted contributors. Totals remain complete.
+For each truncated surface, report the omitted contributor count as
+`sessions_with_usage - usage_provenance.length`. Their identities are unavailable
+from the sample; do not invent them or claim complete session attribution.
+For example, 60 contributors and 50 sampled entries means 10 omitted contributors
+whose identities are unavailable from that sample.
 Only sessions with usage contribute; missing usage is visible in session counts
 and coverage. A no-usage surface has `measured_usage` set to `null`, empty
 provenance and a false truncation flag. Deduplication and scope filtering precede
@@ -153,8 +158,9 @@ raw output without inspection. For excerpt-backed findings, record timestamps,
 session ID, file, and log line. For aggregate usage, cite session IDs,
 `usage_source`, and the relevant JSON fields; usage-event line provenance is
 not exported. For surface totals, cite the JSON field, `sessions_with_usage`,
-the bounded `usage_provenance` sample and `usage_provenance_truncated`; disclose
-missing contributor IDs instead of implying complete attribution. Do not treat a
+the bounded `usage_provenance` sample and `usage_provenance_truncated`. When
+truncated, disclose the omitted contributor count and unavailable identities
+using the rule in Scope and drill-down. Do not treat a
 regex match or a large token total as causal proof.
 
 Do not convert these local observations into a bill. Any optional API-dollar

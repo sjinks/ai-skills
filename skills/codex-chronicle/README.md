@@ -66,7 +66,9 @@ is attributed by session, `usage_source`, and JSON field; log-line references
 accompany excerpts, not usage events.
 Surface totals remain complete when the displayed session list is truncated or
 a single session is inspected. Provenance is a sample capped at 100 entries
-across all surfaces; contributor counts and truncation flags expose omitted IDs.
+across all surfaces. Reports disclose the omitted contributor count, calculated
+as `sessions_with_usage - usage_provenance.length` for each truncated surface,
+and state that the omitted identities are unavailable from the sample.
 Event timestamps must be strings. Explicitly invalid session-start timestamps
 stay unknown and cannot establish a zero counter baseline.
 Endpoint and log timestamps also require valid timezone-bearing ISO calendar
