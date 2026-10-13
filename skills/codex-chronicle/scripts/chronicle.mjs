@@ -238,7 +238,7 @@ async function readSession(file, options, coverage) {
       if (row.type === 'token_usage_record') {
         if (!validUsage(p.usage) || typeof p.response_id !== 'string' || !p.response_id) {
           session.warnings.push('Invalid per-response usage record omitted');
-        } else if (!records.has(p.response_id)) records.set(p.response_id, { usage: p.usage, timestamp, model, effort });
+        } else if (inWindow(timestamp) && !records.has(p.response_id)) records.set(p.response_id, { usage: p.usage, timestamp, model, effort });
       }
       if (row.type === 'event_msg' && p.type === 'token_count') {
         const firstCounter = !counterSeen;
@@ -291,7 +291,7 @@ async function readSession(file, options, coverage) {
   } finally { reader.close(); input.destroy(); await handle.close(); }
   for (const item of eventMessages) if (!responseRoles.has(item.role)) message(item.role, item.text, item.timestamp, item.line);
   session.excerpts.sort((a, b) => a.line - b.line);
-  const usageRows = records.size ? [...records.values()].filter(x => inWindow(x.timestamp)) : fallback;
+  const usageRows = records.size ? [...records.values()] : fallback;
   session.usage_source = records.size ? 'response_records' : fallback.length ? 'cumulative_deltas' : 'missing';
   if (records.size) session.warnings = session.warnings.filter(x => !x.startsWith('Counter reset') && !x.startsWith('No earlier'));
   if (usageRows.length) {

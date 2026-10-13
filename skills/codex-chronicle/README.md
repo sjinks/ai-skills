@@ -61,7 +61,10 @@ Unsafe token sums remain unknown and produce warnings at the affected session
 or client surface. Recorded working directories must be absolute to qualify for
 repository-scoped analysis; invalid paths remain unassigned.
 Cumulative snapshots are validated before subtraction; malformed required
-totals break the baseline, and invalid subsets remain unknown. Aggregate usage
+totals break the baseline, and invalid subsets remain unknown. Usage accounting
+prefers valid response records within the selected inclusive window, with
+deduplication after filtering; older and future records cannot suppress
+in-window cumulative usage or change its source classification. Aggregate usage
 is attributed by session, `usage_source`, and JSON field; log-line references
 accompany excerpts, not usage events.
 Surface totals remain complete when the displayed session list is truncated or

@@ -101,9 +101,12 @@ injected system/developer instructions are exported.
 Largest prompt and tool-output lengths include log line references for targeted inspection.
 
 For usage, prefer `token_usage_record.payload.usage`, deduplicated by
-`response_id`. Records lacking a response ID or valid nonnegative integer input
-and output counts are excluded with warnings. If any valid records exist in a
-file, do not also count its `event_msg.token_count` events. Otherwise, subtract
+`response_id` within the selected inclusive window. Filter by window before
+deduplication and source selection; older or future records cannot suppress
+in-window records or cumulative usage. Records lacking a response ID or valid
+nonnegative integer input and output counts are excluded with warnings.
+If any valid in-window records exist in a file, do not also count its
+`event_msg.token_count` events. Otherwise, subtract
 successive valid cumulative input/output counters. Validate snapshot subsets
 before subtraction and validate resulting delta subsets again. Invalid required
 totals or invalid counter timestamps are warned and discard the baseline; omit the next valid snapshot to

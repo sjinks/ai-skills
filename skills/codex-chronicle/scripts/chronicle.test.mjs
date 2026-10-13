@@ -50,6 +50,64 @@ test('uses an older baseline, inclusive window boundaries and omits future usage
   assert.deepEqual(result.sessions[0].usage, usage(100, 10));
 });
 
+test('out-of-window response records cannot suppress measured in-window cumulative usage', async t => {
+  const f = await fixture(t);
+  const future = '2026-10-12T12:00:01Z';
+  for (const [id, timestamps] of [['older', [before]], ['future', [future]], ['both', [before, future]]]) {
+    await f.write('sessions/' + id + '.jsonl', [meta(id, '/repo', {}, before),
+      counter(usage(100, 10), before),
+      ...timestamps.filter(x => x === before).map(x => record('outside', usage(900, 90), x)),
+      counter(usage(150, 15), '2026-10-11T12:00:00Z'), counter(usage(200, 20)),
+      ...timestamps.filter(x => x === future).map(x => record('outside', usage(900, 90), x))]);
+  }
+  for (const mode of ['cost-tips', 'tips', 'improve']) {
+    const r = await analyze({ ...f.options(), mode });
+    assert.equal(r.coverage.missing_usage_sessions, 0);
+    assert.deepEqual(r.surfaces.vscode.measured_usage, usage(300, 30));
+    for (const s of r.sessions) {
+      assert.equal(s.usage_source, 'cumulative_deltas');
+      assert.deepEqual(s.usage, usage(100, 10));
+      assert.deepEqual(s.models['["unknown","unknown"]'], usage(100, 10));
+    }
+    assert.deepEqual(r.surfaces.vscode.usage_provenance.map(p => [p.id, p.usage_source]).sort(),
+      [['both', 'cumulative_deltas'], ['future', 'cumulative_deltas'], ['older', 'cumulative_deltas']]);
+  }
+});
+
+test('in-window response records win at inclusive boundaries without out-of-window deduplication interference', async t => {
+  const f = await fixture(t);
+  await f.write('sessions/a.jsonl', [meta('a', '/repo', {}, before),
+    record('same', usage(900, 90), before), counter(usage(100, 10), before),
+    record('same', usage(20, 2), '2026-10-11T12:00:00Z'),
+    record('end', usage(30, 3)), record('end', usage(30, 3)), counter(usage(200, 20)),
+    record('future', usage(900, 90), '2026-10-12T12:00:01Z')]);
+  const s = (await analyze(f.options())).sessions[0];
+  assert.equal(s.usage_source, 'response_records');
+  assert.deepEqual(s.usage, usage(50, 5));
+  assert.deepEqual(s.models['["unknown","unknown"]'], usage(50, 5));
+});
+
+test('out-of-window response records preserve missing usage and fallback baseline warnings', async t => {
+  const f = await fixture(t);
+  await f.write('sessions/missing.jsonl', [meta('missing', '/repo', {}, before),
+    record('old', usage(900, 90), before), message('user', 'in-window activity')]);
+  await f.write('sessions/fallback.jsonl', [meta('fallback', '/repo', {}, before),
+    counter(usage(100, 10)), counter(usage(150, 15)),
+    counter(usage(10, 1)), counter(usage(30, 3)), record('invalid', usage(-1, 1)),
+    record('future', usage(900, 90), '2026-10-12T12:00:01Z')]);
+  const r = await analyze(f.options());
+  const missing = r.sessions.find(s => s.id === 'missing');
+  assert.equal(missing.usage, null);
+  assert.equal(missing.usage_source, 'missing');
+  assert.equal(r.coverage.missing_usage_sessions, 1);
+  const fallback = r.sessions.find(s => s.id === 'fallback');
+  assert.equal(fallback.usage_source, 'cumulative_deltas');
+  assert.deepEqual(fallback.usage, usage(70, 7));
+  assert.ok(fallback.warnings.some(w => w.startsWith('No earlier usage baseline')));
+  assert.ok(fallback.warnings.some(w => w.startsWith('Counter reset')));
+  assert.ok(fallback.warnings.some(w => w.startsWith('Invalid per-response usage record')));
+});
+
 test('model and effort pairs remain distinct and reversible in both accounting streams', async t => {
   const f = await fixture(t);
   const pairs = [['a/b', 'c'], ['a', 'b/c'], ['a%2Fb', 'c'], ['', '/'],
