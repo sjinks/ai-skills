@@ -1,11 +1,28 @@
-import { createReadStream } from 'node:fs';
-import { readdir, lstat } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { readdir, lstat, open } from 'node:fs/promises';
+import { Readable } from 'node:stream';
 import { createInterface } from 'node:readline';
 import { homedir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const MODES = ['tips', 'cost-tips', 'improve'];
+const PROVENANCE_LIMIT = 100;
+
+export async function openLogSnapshot(file) {
+  if (!Number.isInteger(constants.O_NOFOLLOW) || constants.O_NOFOLLOW <= 0) throw Object.assign(new Error('No-follow reads unavailable'), { code: 'ENOTSUP' });
+  const handle = await open(file, constants.O_RDONLY | constants.O_NOFOLLOW | (constants.O_NONBLOCK || 0));
+  try {
+    const info = await handle.stat();
+    if (!info.isFile()) throw Object.assign(new Error('Not a regular log file'), { code: 'ENOTFILE' });
+    if (info.size > 64 * 1024 * 1024) throw Object.assign(new Error('Log exceeds byte limit'), { code: 'EFBIG' });
+    const input = info.size ? handle.createReadStream({ encoding: 'utf8', start: 0, end: info.size - 1, autoClose: false }) : Readable.from([]);
+    return { handle, input, size: info.size };
+  } catch (error) {
+    await handle.close();
+    throw error;
+  }
+}
 const KEYS = ['input_tokens', 'output_tokens', 'cached_input_tokens', 'reasoning_output_tokens'];
 const KNOWN = new Set(['session_meta', 'turn_context', 'response_item', 'event_msg',
   'token_usage_record', 'compacted', 'world_state']);
@@ -113,14 +130,17 @@ function requestText(text) {
 }
 
 async function readSession(file, options, coverage) {
-  let size;
+  let snapshot;
   try {
-    const info = await lstat(file);
-    if (!info.isFile()) { coverage.symlinks_skipped++; return null; }
-    size = info.size;
+    snapshot = await openLogSnapshot(file);
   }
-  catch (error) { coverage.file_errors.push({ file, code: error.code || 'UNKNOWN' }); return null; }
-  if (size > 64 * 1024 * 1024) { coverage.large_files_skipped++; return null; }
+  catch (error) {
+    if (error.code === 'ELOOP') coverage.symlinks_skipped++;
+    else if (error.code === 'EFBIG') coverage.large_files_skipped++;
+    else coverage.file_errors.push({ file, code: error.code || 'UNKNOWN' });
+    return null;
+  }
+  const { size, input, handle } = snapshot;
   const session = { id: null, file, size, cwd: null, surface: 'unknown', subagent: false,
     first: null, last: null, messages: { user: 0, assistant: 0 }, prompt_characters: 0,
     largest_prompt: 0, largest_prompt_line: null, tool_output_characters: 0,
@@ -158,7 +178,6 @@ async function readSession(file, options, coverage) {
     session.excerpts.sort((a, b) => a.line - b.line);
     if (session.excerpts.length > options.limit) session.excerpts.shift();
   }
-  const input = createReadStream(file, { encoding: 'utf8' });
   const reader = createInterface({ input, crlfDelay: Infinity });
   try {
     for await (const raw of reader) {
@@ -256,7 +275,7 @@ async function readSession(file, options, coverage) {
   } catch (error) {
     coverage.file_errors.push({ file, code: error.code || 'UNKNOWN' });
     return null;
-  } finally { reader.close(); input.destroy(); }
+  } finally { reader.close(); input.destroy(); await handle.close(); }
   for (const item of eventMessages) if (!responseRoles.has(item.role)) message(item.role, item.text, item.timestamp, item.line);
   session.excerpts.sort((a, b) => a.line - b.line);
   const usageRows = records.size ? [...records.values()].filter(x => inWindow(x.timestamp)) : fallback;
@@ -307,18 +326,23 @@ export async function analyze(options) {
   coverage.matched_sessions = sessions.length;
   coverage.missing_usage_sessions = sessions.filter(x => !x.usage).length;
   const surfaces = Object.create(null);
+  let provenanceEntries = 0;
   for (const session of sessions) {
     surfaces[session.surface] ??= { sessions: 0, sessions_with_usage: 0, measured_usage: emptyUsage(), warnings: [], usage_provenance: [] };
     const group = surfaces[session.surface];
     group.sessions++;
     if (session.usage) {
       group.sessions_with_usage++;
-      group.usage_provenance.push({ id: session.id, usage_source: session.usage_source });
+      if (provenanceEntries < PROVENANCE_LIMIT) {
+        group.usage_provenance.push({ id: session.id, usage_source: session.usage_source });
+        provenanceEntries++;
+      }
       addUsage(group.measured_usage, session.usage, group.warnings);
     }
   }
   for (const group of Object.values(surfaces)) {
     if (!group.sessions_with_usage) group.measured_usage = null;
+    group.usage_provenance_truncated = group.usage_provenance.length < group.sessions_with_usage;
     group.warnings = [...new Set(group.warnings)];
   }
   sessions.sort((a, b) => (options.mode === 'cost-tips'
@@ -327,7 +351,7 @@ export async function analyze(options) {
   const selected = options.session ? sessions.filter(x => x.id === options.session) : sessions.slice(0, options.limit);
   return { schema_version: 1, scope: { mode: options.mode, home: options.home, repo: options.repo,
     start: new Date(options.start).toISOString(), until: new Date(options.end).toISOString(), agents: options.agents },
-    coverage, surfaces, listed_sessions: selected.length, session_list_truncated: !options.session && sessions.length > selected.length,
+    coverage, surfaces, usage_provenance_limit: PROVENANCE_LIMIT, listed_sessions: selected.length, session_list_truncated: !options.session && sessions.length > selected.length,
     sessions: selected.map(({ size, first, last, excerpts, ...session }) => ({ ...session,
       first: new Date(first).toISOString(), last: new Date(last).toISOString(),
       ...(options.session ? { excerpts } : {}) })) };

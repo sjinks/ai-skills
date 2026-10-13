@@ -4,8 +4,11 @@ Analyze local Codex history for personalized token-efficiency tips, workflow
 recommendations, and proposed improvements to project instructions. Supports
 `cost-tips`, `tips`, and `improve` through a dependency-free Node.js helper.
 
-The helper reads local logs; it does not call models, upload history, or change
-session stores. Recommendations require conversation evidence. Instruction
+The helper reads local logs without network/model calls or changes to session
+stores. In Codex, tool results enter the active model context, which may be hosted
+remotely. Transcript drill-down requires informed approval for the selected
+scope; without it, analysis stays metadata-only and conversational causes remain
+unverified. Recommendations require evidence. Instruction
 changes require explicit authorization. Token observations are not billing data.
 
 ## Usage
@@ -60,8 +63,9 @@ Cumulative snapshots are validated before subtraction; malformed required
 totals break the baseline, and invalid subsets remain unknown. Aggregate usage
 is attributed by session, `usage_source`, and JSON field; log-line references
 accompany excerpts, not usage events.
-Surface totals include complete `usage_provenance` even when the displayed
-session list is truncated or a single session is selected for inspection.
+Surface totals remain complete when the displayed session list is truncated or
+a single session is inspected. Provenance is a sample capped at 100 entries
+across all surfaces; contributor counts and truncation flags expose omitted IDs.
 Event timestamps must be strings. Explicitly invalid session-start timestamps
 stay unknown and cannot establish a zero counter baseline.
 Message fallback is selected per role within the requested window, so older or
@@ -72,8 +76,10 @@ Decreasing cumulative subsets produce field-specific warnings. Excerpt clipping
 status reflects truncation after masking, including text expansion or contraction.
 
 Correction signals are keyword-based candidates, not confirmed mistakes.
-Recommendations require inspection of surrounding conversations and current
-project configuration. Excerpts are bounded and common credential formats are
+Cause-based recommendations require approved conversation inspection.
+Repository-specific recommendations also require a selected repository and its
+current configuration; all-repository recommendations stay cross-repository.
+Excerpts are bounded and common credential formats are
 masked, but masking is not comprehensive. Inspect output before sharing it.
 Unknown log formats and history from other devices can limit conclusions.
 
@@ -85,6 +91,9 @@ node --test skills/codex-chronicle/scripts/chronicle.test.mjs
 
 Tests use synthetic temporary logs. Local smoke tests can read this computer's
 history without model calls or changes to session stores.
+Log reads use a single validated descriptor and a bounded initial byte range;
+platforms without no-follow open support fail closed. Ancestor-directory races
+and in-place edits remain outside the snapshot guarantee.
 
 ## Files
 

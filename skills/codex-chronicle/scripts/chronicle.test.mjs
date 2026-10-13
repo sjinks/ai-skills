@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, readFile, rm, symlink } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, readFile, rm, symlink, rename, appendFile, truncate } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { analyze, parseArgs, mask } from './chronicle.mjs';
+import { analyze, parseArgs, mask, openLogSnapshot } from './chronicle.mjs';
 
 const at = '2026-10-12T12:00:00Z';
 const before = '2026-10-10T00:00:00Z';
@@ -272,7 +272,7 @@ test('repository boundaries and agent scopes exclude neighbors; aggregates excee
   assert.equal((await analyze(rootOptions)).coverage.matched_sessions, 3);
 });
 
-test('surface provenance stays complete in truncated summaries and session drill-downs', async t => {
+test('surface provenance retains eligible contributors independently of summary and drill-down limits', async t => {
   const f = await fixture(t);
   await f.write('sessions/response.jsonl', [meta('response'), record('one', usage(20, 2))]);
   await f.write('sessions/cumulative.jsonl', [meta('cumulative'), counter(usage(30, 3))]);
@@ -302,6 +302,72 @@ test('surface provenance stays complete in truncated summaries and session drill
   assert.equal(missing.usage, null);
   const all = await analyze(f.options('--agents', 'all', '--limit', '1'));
   assert.deepEqual(all.surfaces.subagent.usage_provenance, [{ id: 'subagent', usage_source: 'response_records' }]);
+});
+
+test('provenance has a global bound while all surface totals and contributor counts stay complete', async t => {
+  const f = await fixture(t);
+  for (let i = 0; i < 120; i++) {
+    const id = String(i).padStart(3, '0');
+    await f.write('sessions/' + id + '.jsonl', [meta(id, '/repo', { source: i % 2 ? 'cli' : 'vscode' }), record('one', usage(1, 1))]);
+  }
+  for (const args of [['--limit', '1'], ['--session', '119', '--limit', '1']]) {
+    const r = await analyze(f.options(...args));
+    assert.equal(r.usage_provenance_limit, 100);
+    assert.equal(Object.values(r.surfaces).reduce((sum, g) => sum + g.usage_provenance.length, 0), 100);
+    for (const g of Object.values(r.surfaces)) {
+      assert.equal(g.sessions_with_usage, 60);
+      assert.equal(g.measured_usage.input_tokens, 60);
+      assert.equal(g.usage_provenance.length, 50);
+      assert.equal(g.usage_provenance_truncated, true);
+    }
+  }
+});
+
+test('a pinned descriptor cannot follow a replacement symlink and never reads appended bytes', async t => {
+  const f = await fixture(t);
+  const file = await f.write('sessions/a.jsonl', [meta('original')]);
+  const original = await readFile(file, 'utf8');
+  const outside = path.join(f.home, 'outside');
+  await writeFile(outside, 'unrelated private data');
+  const snapshot = await openLogSnapshot(file);
+  try {
+    await appendFile(file, 'new bytes beyond validated size');
+    await rename(file, file + '.moved');
+    await symlink(outside, file);
+    let actual = '';
+    for await (const chunk of snapshot.input) actual += chunk;
+    assert.equal(actual, original);
+    assert.equal(snapshot.size, Buffer.byteLength(original));
+  } finally {
+    snapshot.input.destroy();
+    await snapshot.handle.close();
+  }
+  await assert.rejects(openLogSnapshot(file), { code: 'ELOOP' });
+  await assert.rejects(snapshot.handle.stat(), { code: 'EBADF' });
+});
+
+test('descriptor validation rejects non-regular and oversized files and empty snapshots read zero bytes', async t => {
+  const f = await fixture(t);
+  await assert.rejects(openLogSnapshot(path.join(f.home, 'sessions')), { code: 'ENOTFILE' });
+  const large = path.join(f.home, 'sessions/large.jsonl');
+  await writeFile(large, '');
+  await truncate(large, 64 * 1024 * 1024 + 1);
+  await assert.rejects(openLogSnapshot(large), { code: 'EFBIG' });
+  const empty = path.join(f.home, 'sessions/empty.jsonl');
+  await writeFile(empty, '');
+  const snapshot = await openLogSnapshot(empty);
+  try {
+    await appendFile(empty, 'later content');
+    let actual = '';
+    for await (const chunk of snapshot.input) actual += chunk;
+    assert.equal(actual, '');
+    assert.equal(snapshot.size, 0);
+  } finally {
+    snapshot.input.destroy();
+    await snapshot.handle.close();
+  }
+  const r = await analyze(f.options());
+  assert.equal(r.coverage.large_files_skipped, 1);
 });
 
 test('duplicate active/archive files do not double count, malformed input and unknown types are reported', async t => {

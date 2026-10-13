@@ -35,12 +35,17 @@ it must not substitute for this selection step.
 `tips` and `improve` order candidates by correction-signal count, then recency.
 `cost-tips` orders by measured input tokens, then recency. All aggregates cover
 all matched sessions, even when the session list is truncated.
-Each surface's `usage_provenance` lists every contributing session's `id` and
-`usage_source`, independently of `--limit` or `--session`. Only sessions with
-usage contribute; missing-usage sessions are reflected in `sessions` versus
-`sessions_with_usage` and coverage. A surface with no usage has `measured_usage`
-set to `null` and an empty provenance list. Deduplication and scope filters apply before
-aggregation and provenance collection.
+`usage_provenance` samples contributing sessions' `id` and `usage_source`,
+independently of `--limit` or `--session`. At most 100 entries are exported across
+all surfaces together; the top-level `usage_provenance_limit` declares this cap.
+Each surface's `sessions_with_usage` is its complete contributor count, and
+`usage_provenance_truncated` flags omitted contributors. Totals remain complete.
+Only sessions with usage contribute; missing usage is visible in session counts
+and coverage. A no-usage surface has `measured_usage` set to `null`, empty
+provenance and a false truncation flag. Deduplication and scope filtering precede
+aggregation; the sample follows deterministic file-discovery order.
+This cap bounds the provenance payload, not the entire analyzer's memory;
+the complete session inventory still scales with history size.
 
 ## Sources and accounting
 
@@ -49,6 +54,14 @@ The helper recursively reads regular `.jsonl` files under `sessions/` and
 parse, unknown-event, duplicate-session, and coverage counts. A missing source
 directory is reported. Scan/error counts cover the entire data directory;
 matched-session and usage counts cover the selected scope.
+Files are opened once with `O_NOFOLLOW` (and `O_NONBLOCK` when available), then
+type and size are checked on that descriptor. The same descriptor reads only
+the initial byte range, bounded to 64 MiB; appends cannot expand that range.
+Empty files read zero bytes. Unsupported no-follow opens fail closed with
+`ENOTSUP`; non-regular files report `ENOTFILE`. No-follow protects the final
+path component; discovery skips observed directory symlinks but is not a
+race-proof sandbox against ancestor-directory replacement. In-place changes
+and truncation can still affect a best-effort snapshot.
 With duplicate session IDs, it selects the largest file
 (lexical path breaks ties); it does not merge divergent copies. This can omit
 activity and must be disclosed. Growing logs are a best-effort snapshot.
@@ -108,7 +121,17 @@ in a partially populated preferred stream cannot be detected reliably.
 
 ## Privacy and interpretation
 
-Summaries contain metadata and counts, not transcript excerpts. Drill-down
+The helper itself performs no network or model calls. When invoked through
+Codex, its tool results enter the active model context, which may be hosted
+remotely. Summaries contain metadata/counts; drill-down includes transcript text.
+Before drill-down, explain the selected scope, 1600-character excerpt bound,
+best-effort masking, and this model-context disclosure; obtain explicit informed
+approval unless it already covers that scope. Without it, use only summary
+metadata, do not attribute conversational causes, and report the limitation.
+Do not transfer logs to other services. Direct standalone CLI output remains
+local unless the caller shares it.
+
+Drill-down
 strips control characters, masks common credential formats, then clips each
 excerpt to 1600 characters. `clipped` is based on the masked length, so it
 describes actual truncation rather than redaction or control-character removal.
@@ -117,8 +140,9 @@ This is not comprehensive redaction. Do not publish
 raw output without inspection. For excerpt-backed findings, record timestamps,
 session ID, file, and log line. For aggregate usage, cite session IDs,
 `usage_source`, and the relevant JSON fields; usage-event line provenance is
-not exported. For surface totals, cite the complete `usage_provenance` list,
-including contributors omitted from the displayed sessions. Do not treat a
+not exported. For surface totals, cite the JSON field, `sessions_with_usage`,
+the bounded `usage_provenance` sample and `usage_provenance_truncated`; disclose
+missing contributor IDs instead of implying complete attribution. Do not treat a
 regex match or a large token total as causal proof.
 
 Do not convert these local observations into a bill. Any optional API-dollar
