@@ -55,8 +55,10 @@ to the event timestamp; an explicitly invalid start remains unknown, warns,
 and cannot authorize a zero counter baseline. `invalid_timestamps` counts
 invalid event timestamps and explicitly invalid session-start timestamp fields.
 Messages
-come from `response_item`, with `event_msg` message fallback only when the file
-has no response messages for that role. Tool names and output lengths are
+come from `response_item`, with `event_msg` message fallback only when the selected
+window has no response messages for that role. Older or future response messages
+do not suppress in-window fallback messages; in-window response messages still
+prevent duplicate fallback counts for their role. Tool names and output lengths are
 observations; outputs are not interpreted as verified failures. Correction
 signals are keyword heuristics over request text, not proven mistakes. Recognized
 AGENTS/environment/skill/open-page wrappers are excluded from that heuristic; IDE context is

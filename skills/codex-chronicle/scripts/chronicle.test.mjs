@@ -326,6 +326,45 @@ test('falls back to event messages and omits reasoning/system/developer payloads
   assert.deepEqual(result.sessions[0].excerpts.map(x => x.text), ['hello']);
 });
 
+test('response messages outside the window do not suppress in-window fallback for either role', async t => {
+  const f = await fixture(t);
+  await f.write('sessions/a.jsonl', [meta('a', '/repo', {}, before),
+    message('user', 'old wrong prompt', before),
+    message('assistant', 'future answer', '2026-10-12T12:00:01Z'),
+    row('event_msg', { type: 'user_message', message: 'wrong fallback prompt' }),
+    row('event_msg', { type: 'agent_message', message: 'fallback answer' })]);
+  const s = (await analyze(f.options('--session', 'a'))).sessions[0];
+  assert.deepEqual(s.messages, { user: 1, assistant: 1 });
+  assert.equal(s.prompt_characters, 'wrong fallback prompt'.length);
+  assert.equal(s.correction_signals, 1);
+  assert.deepEqual(s.candidate_lines, [4]);
+  assert.equal(s.largest_prompt_line, 4);
+  assert.deepEqual(s.excerpts.map(e => [e.role, e.line, e.text]), [
+    ['user', 4, 'wrong fallback prompt'], ['assistant', 5, 'fallback answer']]);
+  const targeted = (await analyze(f.options('--session', 'a', '--line', '4'))).sessions[0];
+  assert.deepEqual(targeted.excerpts, s.excerpts);
+});
+
+test('in-window response selection is per role and inclusive at both window boundaries', async t => {
+  const f = await fixture(t);
+  const start = '2026-10-11T12:00:00Z';
+  await f.write('sessions/mixed.jsonl', [meta('mixed', '/repo', {}, before),
+    message('user', 'response prompt', start),
+    row('event_msg', { type: 'user_message', message: 'wrong duplicate' }),
+    row('event_msg', { type: 'agent_message', message: 'fallback answer' })]);
+  const mixed = (await analyze(f.options('--session', 'mixed'))).sessions[0];
+  assert.deepEqual(mixed.messages, { user: 1, assistant: 1 });
+  assert.equal(mixed.correction_signals, 0);
+  assert.deepEqual(mixed.excerpts.map(e => e.text), ['response prompt', 'fallback answer']);
+  await f.write('sessions/end.jsonl', [meta('end', '/repo', {}, before),
+    row('event_msg', { type: 'user_message', message: 'fallback prompt' }, start),
+    row('event_msg', { type: 'agent_message', message: 'duplicate answer' }),
+    message('assistant', 'response answer', at)]);
+  const end = (await analyze(f.options('--session', 'end'))).sessions[0];
+  assert.deepEqual(end.messages, { user: 1, assistant: 1 });
+  assert.deepEqual(end.excerpts.map(e => e.text), ['fallback prompt', 'response answer']);
+});
+
 test('structured tool outputs are counted and instruction wrappers do not become correction candidates', async t => {
   const f = await fixture(t);
   await f.write('sessions/a.jsonl', [meta('a'), message('user', '# AGENTS.md instructions\nDo not do wrong things'),

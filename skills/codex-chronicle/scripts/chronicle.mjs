@@ -227,11 +227,11 @@ async function readSession(file, options, coverage) {
         baseline = current;
         if (delta && inWindow(timestamp)) fallback.push({ usage: delta, model, effort });
       }
-      if (row.type === 'response_item' && p.type === 'message' && ['user', 'assistant'].includes(p.role)) {
+      if (row.type === 'response_item' && p.type === 'message' && ['user', 'assistant'].includes(p.role) && inWindow(timestamp)) {
         responseRoles.add(p.role);
         message(p.role, textContent(p), timestamp, line);
       }
-      if (row.type === 'event_msg' && ['user_message', 'agent_message'].includes(p.type) && typeof p.message === 'string') {
+      if (row.type === 'event_msg' && ['user_message', 'agent_message'].includes(p.type) && typeof p.message === 'string' && inWindow(timestamp)) {
         eventMessages.push({ role: p.type === 'user_message' ? 'user' : 'assistant', text: p.message, timestamp, line });
       }
       if (row.type === 'response_item' && ['function_call', 'custom_tool_call'].includes(p.type) && inWindow(timestamp)) {

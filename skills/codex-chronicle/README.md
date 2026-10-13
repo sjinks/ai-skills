@@ -62,6 +62,8 @@ Surface totals include complete `usage_provenance` even when the displayed
 session list is truncated or a single session is selected for inspection.
 Event timestamps must be strings. Explicitly invalid session-start timestamps
 stay unknown and cannot establish a zero counter baseline.
+Message fallback is selected per role within the requested window, so older or
+future response messages cannot hide in-window activity.
 
 Correction signals are keyword-based candidates, not confirmed mistakes.
 Recommendations require inspection of surrounding conversations and current
