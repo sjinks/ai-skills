@@ -69,6 +69,8 @@ a single session is inspected. Provenance is a sample capped at 100 entries
 across all surfaces; contributor counts and truncation flags expose omitted IDs.
 Event timestamps must be strings. Explicitly invalid session-start timestamps
 stay unknown and cannot establish a zero counter baseline.
+Endpoint and log timestamps also require valid timezone-bearing ISO calendar
+dates; impossible month/day combinations are rejected before window accounting.
 Model/effort totals use JSON-encoded pair keys so separators in log strings
 cannot merge distinct contexts.
 Message fallback is selected per role within the requested window, so older or

@@ -554,6 +554,41 @@ test('CLI rejects invalid scope and values, uses mode defaults, and returns nonz
   assert.match(result.stderr, /requires repository scope/);
 });
 
+test('endpoint validation rejects impossible dates and normalized times while retaining valid leap boundaries', () => {
+  const invalid = ['2026-02-30T00:00:00Z', '2026-02-29T00:00:00Z', '1900-02-29T00:00:00Z',
+    '2100-02-29T00:00:00Z', '2026-04-31T00:00:00Z', '2026-01-00T00:00:00Z',
+    '2026-00-01T00:00:00Z', '2026-13-01T00:00:00Z', '2026-01-01T24:00:00Z',
+    '2026-01-01T00:60:00Z', '2026-01-01T00:00:60Z', '2026-01-01T00:00:00+24:00',
+    '2026-01-01T00:00:00+03:60', '2026-01-01T00:00Z'];
+  for (const until of invalid) assert.throws(() => parseArgs(['tips', '--until', until]), /valid ISO calendar/);
+  for (const until of ['2024-02-29T00:00:00Z', '2000-02-29T00:00:00Z', '2400-02-29T00:00:00Z',
+    '2026-04-30T23:59:59.123+03:00', '2026-12-31T23:59:59-02:30', '0000-02-29T00:00:00Z']) {
+    const o = parseArgs(['tips', '--until', until]);
+    assert.equal(o.end, Date.parse(until));
+    assert.equal(o.start, o.end - 7 * 86400000);
+  }
+  const script = fileURLToPath(new URL('./chronicle.mjs', import.meta.url));
+  const r = spawnSync(process.execPath, [script, 'tips', '--until', invalid[0]], { encoding: 'utf8' });
+  assert.equal(r.status, 1);
+  assert.equal(r.stdout, '');
+  assert.match(r.stderr, /valid ISO calendar/);
+});
+
+test('impossible log calendar dates cannot enter the window or authorize a zero baseline', async t => {
+  const f = await fixture(t);
+  const bad = '2026-02-30T00:00:00Z';
+  await f.write('sessions/a.jsonl', [meta('a', '/repo', { timestamp: bad }, '2026-03-01T00:00:00Z'),
+    row('turn_context', { model: 'good', effort: 'low' }, '2026-03-01T00:00:00Z'),
+    row('turn_context', { model: 'invalid', effort: 'high' }, bad),
+    record('bad', usage(900, 90), bad), counter(usage(100, 10), '2026-03-02T01:00:00Z'),
+    counter(usage(150, 15), '2026-03-02T02:00:00Z')]);
+  const r = await analyze(parseArgs(['cost-tips', '--home', f.home, '--repo', '/repo', '--days', '3', '--until', '2026-03-03T00:00:00Z']));
+  assert.equal(r.coverage.invalid_timestamps, 3);
+  assert.deepEqual(r.sessions[0].usage, usage(50, 5));
+  assert.deepEqual({ ...r.sessions[0].models }, { '["good","low"]': usage(50, 5) });
+  assert.equal(r.sessions[0].usage_source, 'cumulative_deltas');
+});
+
 test('oversized token subsets become unknown and arbitrary metadata keys remain data', async t => {
   const f = await fixture(t);
   await f.write('sessions/a.jsonl', [meta('a', '/repo', { source: 'constructor' }),

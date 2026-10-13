@@ -29,7 +29,17 @@ const KNOWN = new Set(['session_meta', 'turn_context', 'response_item', 'event_m
 const integer = value => Number.isSafeInteger(value) && value >= 0;
 const validUsage = value => value && integer(value.input_tokens) && integer(value.output_tokens);
 const emptyUsage = () => Object.fromEntries(KEYS.map(key => [key, 0]));
-const timestampValue = value => typeof value === 'string' ? Date.parse(value) : NaN;
+function timestampValue(value) {
+  if (typeof value !== 'string') return NaN;
+  const parts = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-](\d{2}):(\d{2}))$/.exec(value);
+  if (!parts) return NaN;
+  const [year, month, day, hour, minute, second] = parts.slice(1, 7).map(Number);
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+  if (!days || day < 1 || day > days || hour > 23 || minute > 59 || second > 59 ||
+    Number(parts[7] ?? 0) > 23 || Number(parts[8] ?? 0) > 59) return NaN;
+  return Date.parse(value);
+}
 
 function validatedSubsets(usage, warnings) {
   const counts = { ...usage };
@@ -67,8 +77,8 @@ export function parseArgs(args, now = new Date()) {
     options[name] = Number(options[name]);
   }
   if (options.line && !options.session) throw new Error('--line requires --session');
-  if (!/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(options.until) || !Number.isFinite(Date.parse(options.until))) throw new Error('--until requires an ISO timestamp with timezone');
-  options.end = Date.parse(options.until);
+  options.end = timestampValue(options.until);
+  if (!Number.isFinite(options.end)) throw new Error('--until requires a valid ISO calendar timestamp with timezone');
   options.start = options.end - options.days * 86400000;
   options.home = path.resolve(options.home);
   if (options.repo !== null) options.repo = path.resolve(options.repo);
@@ -208,10 +218,6 @@ async function readSession(file, options, coverage) {
           session.warnings.push('Invalid session start timestamp: zero usage baseline unavailable');
         }
       }
-      if (row.type === 'turn_context') {
-        model = typeof p.model === 'string' ? p.model : 'unknown';
-        effort = typeof p.effort === 'string' ? p.effort : 'unknown';
-      }
       if (!Number.isFinite(timestamp)) {
         coverage.invalid_timestamps++;
         if (row.type === 'event_msg' && p.type === 'token_count') {
@@ -220,6 +226,10 @@ async function readSession(file, options, coverage) {
           session.warnings.push('Invalid cumulative usage timestamp omitted; baseline discarded');
         }
         continue;
+      }
+      if (row.type === 'turn_context') {
+        model = typeof p.model === 'string' ? p.model : 'unknown';
+        effort = typeof p.effort === 'string' ? p.effort : 'unknown';
       }
       if (inWindow(timestamp)) {
         session.first = session.first === null ? timestamp : Math.min(session.first, timestamp);

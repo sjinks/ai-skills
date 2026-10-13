@@ -30,7 +30,7 @@ repository, not for an already-resolved default.
 - `--repo PATH`: include sessions whose recorded working directory is this path or a descendant, with a path-separator boundary. Only absolute recorded paths are accepted; missing, empty, or relative paths remain `null` and are excluded from repository-scoped runs. They can still appear in an all-repositories run. Default: process working directory. This is directory scope, not remote-repository identity; separate worktrees require separate passes.
 - `--all-repos`: explicitly widen scope; incompatible with `--repo` and `improve`.
 - `--days N`: positive integer, at most 3650. Default: 7 for `tips`, 30 otherwise.
-- `--until ISO`: inclusive endpoint with an explicit timezone. Default: current instant. Start is endpoint minus N times 24 hours, inclusive. These are rolling windows, not calendar-day boundaries.
+- `--until ISO`: inclusive endpoint with an explicit timezone. Require `YYYY-MM-DDTHH:mm:ss[.fraction]Z` or the same with `±HH:mm`; validate Gregorian month/day and leap years before parsing. Hours are 00–23 and minutes/seconds 00–59; impossible dates and normalized `24:00` are rejected. Default: current instant. Start is endpoint minus N times 24 hours, inclusive. These are rolling windows, not calendar-day boundaries.
 - `--agents roots|subagents|all`: default `roots`. JSON groups surfaces separately; unknown metadata is its own surface.
 - `--limit N`: summary session limit (default 20); excerpt limit (default 12) when `--session` is supplied. Range 1–100 for summaries, 1–50 for excerpts.
 - `--session ID`: select one exact session ID within the same scope and window. Returns bounded user/assistant/tool excerpts with log line references. Default excerpts are the most recent ones. No match is an explicit empty result.
@@ -71,8 +71,10 @@ With duplicate session IDs, it selects the largest file
 activity and must be disclosed. Growing logs are a best-effort snapshot.
 
 Metadata comes from `session_meta`; model/effort from `turn_context`. Messages
-and usage events require finite parsed string timestamps; non-string timestamps
-are invalid rather than coerced. An absent session-start timestamp falls back
+and usage events require valid timezone-bearing ISO calendar strings using the
+same validation as `--until`; invalid calendar dates, incomplete forms and
+non-string timestamps are rejected rather than normalized or coerced.
+An absent session-start timestamp falls back
 to the event timestamp; an explicitly invalid start remains unknown, warns,
 and cannot authorize a zero counter baseline. `invalid_timestamps` counts
 invalid event timestamps and explicitly invalid session-start timestamp fields.
