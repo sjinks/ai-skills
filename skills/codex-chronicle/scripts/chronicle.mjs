@@ -304,10 +304,14 @@ export async function analyze(options) {
   coverage.missing_usage_sessions = sessions.filter(x => !x.usage).length;
   const surfaces = Object.create(null);
   for (const session of sessions) {
-    surfaces[session.surface] ??= { sessions: 0, sessions_with_usage: 0, measured_usage: emptyUsage(), warnings: [] };
+    surfaces[session.surface] ??= { sessions: 0, sessions_with_usage: 0, measured_usage: emptyUsage(), warnings: [], usage_provenance: [] };
     const group = surfaces[session.surface];
     group.sessions++;
-    if (session.usage) { group.sessions_with_usage++; addUsage(group.measured_usage, session.usage, group.warnings); }
+    if (session.usage) {
+      group.sessions_with_usage++;
+      group.usage_provenance.push({ id: session.id, usage_source: session.usage_source });
+      addUsage(group.measured_usage, session.usage, group.warnings);
+    }
   }
   for (const group of Object.values(surfaces)) {
     if (!group.sessions_with_usage) group.measured_usage = null;

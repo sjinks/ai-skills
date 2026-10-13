@@ -246,11 +246,45 @@ test('repository boundaries and agent scopes exclude neighbors; aggregates excee
   assert.equal(result.sessions[0].id, 'b');
   assert.equal(result.session_list_truncated, true);
   assert.equal(result.surfaces.vscode.measured_usage.input_tokens, 50);
+  assert.deepEqual(result.surfaces.vscode.usage_provenance, [
+    { id: 'a', usage_source: 'response_records' }, { id: 'b', usage_source: 'response_records' }]);
   const all = await analyze(f.options('--agents', 'all'));
   assert.equal(all.surfaces.subagent.measured_usage.input_tokens, 800);
   const rootOptions = f.options();
   rootOptions.repo = path.parse('/repo').root;
   assert.equal((await analyze(rootOptions)).coverage.matched_sessions, 3);
+});
+
+test('surface provenance stays complete in truncated summaries and session drill-downs', async t => {
+  const f = await fixture(t);
+  await f.write('sessions/response.jsonl', [meta('response'), record('one', usage(20, 2))]);
+  await f.write('sessions/cumulative.jsonl', [meta('cumulative'), counter(usage(30, 3))]);
+  await f.write('sessions/missing.jsonl', [meta('missing'), message('user', 'no usage')]);
+  await f.write('sessions/empty.jsonl', [meta('empty', '/repo', { source: 'empty' }), message('user', 'no usage')]);
+  await f.write('archived_sessions/copy.jsonl', [meta('response'), record('one', usage(20, 2))]);
+  await f.write('sessions/cli.jsonl', [meta('cli', '/repo', { source: 'cli' }), record('one', usage(40, 4))]);
+  await f.write('sessions/subagent.jsonl', [meta('subagent', '/repo', { thread_source: 'subagent' }), record('one', usage(50, 5))]);
+  await f.write('sessions/other.jsonl', [meta('other', '/repo-other'), record('one', usage(60, 6))]);
+  for (const args of [['--limit', '1'], ['--session', 'response', '--limit', '1']]) {
+    const r = await analyze(f.options(...args));
+    assert.equal(r.listed_sessions, 1);
+    const surface = r.surfaces.vscode;
+    assert.equal(surface.sessions, 3);
+    assert.equal(surface.sessions_with_usage, 2);
+    assert.equal(surface.measured_usage.input_tokens, 50);
+    assert.deepEqual(surface.usage_provenance.slice().sort((a, b) => a.id.localeCompare(b.id)), [
+      { id: 'cumulative', usage_source: 'cumulative_deltas' },
+      { id: 'response', usage_source: 'response_records' }]);
+    assert.deepEqual(r.surfaces.cli.usage_provenance, [{ id: 'cli', usage_source: 'response_records' }]);
+    assert.equal(r.surfaces.empty.measured_usage, null);
+    assert.deepEqual(r.surfaces.empty.usage_provenance, []);
+    assert.equal(r.coverage.duplicate_sessions, 1);
+    if (!args.includes('--session')) assert.equal(r.session_list_truncated, true);
+  }
+  const missing = (await analyze({ ...f.options(), repo: '/repo', agents: 'roots' })).sessions.find(s => s.id === 'missing');
+  assert.equal(missing.usage, null);
+  const all = await analyze(f.options('--agents', 'all', '--limit', '1'));
+  assert.deepEqual(all.surfaces.subagent.usage_provenance, [{ id: 'subagent', usage_source: 'response_records' }]);
 });
 
 test('duplicate active/archive files do not double count, malformed input and unknown types are reported', async t => {

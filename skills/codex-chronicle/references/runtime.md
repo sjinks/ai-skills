@@ -30,6 +30,12 @@ stdout; fatal errors go to stderr with exit status 1. `--help` lists options.
 `tips` and `improve` order candidates by correction-signal count, then recency.
 `cost-tips` orders by measured input tokens, then recency. All aggregates cover
 all matched sessions, even when the session list is truncated.
+Each surface's `usage_provenance` lists every contributing session's `id` and
+`usage_source`, independently of `--limit` or `--session`. Only sessions with
+usage contribute; missing-usage sessions are reflected in `sessions` versus
+`sessions_with_usage` and coverage. A surface with no usage has `measured_usage`
+set to `null` and an empty provenance list. Deduplication and scope filters apply before
+aggregation and provenance collection.
 
 ## Sources and accounting
 
@@ -95,7 +101,9 @@ common credential formats. This is not comprehensive redaction. Do not publish
 raw output without inspection. For excerpt-backed findings, record timestamps,
 session ID, file, and log line. For aggregate usage, cite session IDs,
 `usage_source`, and the relevant JSON fields; usage-event line provenance is
-not exported. Do not treat a regex match or a large token total as causal proof.
+not exported. For surface totals, cite the complete `usage_provenance` list,
+including contributors omitted from the displayed sessions. Do not treat a
+regex match or a large token total as causal proof.
 
 Do not convert these local observations into a bill. Any optional API-dollar
 estimate needs verified model rates, cache categories, billing mode, and an
