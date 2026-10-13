@@ -36,7 +36,7 @@ test('prefers per-response records, deduplicates, keeps subsets separate and doe
   const original = await readFile(file);
   const result = await analyze(f.options());
   assert.deepEqual(result.sessions[0].usage, usage(300, 30, 200, 8));
-  assert.deepEqual(result.sessions[0].models['example/low'], usage(300, 30, 200, 8));
+  assert.deepEqual(result.sessions[0].models['["example","low"]'], usage(300, 30, 200, 8));
   assert.equal(result.sessions[0].usage_source, 'response_records');
   assert.deepEqual(await readFile(file), original);
 });
@@ -48,6 +48,34 @@ test('uses an older baseline, inclusive window boundaries and omits future usage
     counter(usage(900, 90), '2026-10-12T12:00:01Z')]);
   const result = await analyze(f.options());
   assert.deepEqual(result.sessions[0].usage, usage(100, 10));
+});
+
+test('model and effort pairs remain distinct and reversible in both accounting streams', async t => {
+  const f = await fixture(t);
+  const pairs = [['a/b', 'c'], ['a', 'b/c'], ['a%2Fb', 'c'], ['', '/'],
+    ['quote"\\model', 'effort/"\\'], ['\ud800', '\u0000']];
+  for (const stream of ['records', 'counters']) {
+    const rows = [meta(stream)];
+    let input = 0, output = 0;
+    for (const [i, [model, effort]] of pairs.entries()) {
+      rows.push(row('turn_context', { model, effort }));
+      input += i + 1;
+      output += 1;
+      rows.push(stream === 'records' ? record(String(i), usage(i + 1, 1)) : counter(usage(input, output)));
+    }
+    // Repeat a context to verify that identical pairs still aggregate.
+    rows.push(row('turn_context', { model: pairs[0][0], effort: pairs[0][1] }));
+    rows.push(stream === 'records' ? record('repeat', usage(10, 1)) : counter(usage(input + 10, output + 1)));
+    await f.write('sessions/' + stream + '.jsonl', rows);
+    const s = (await analyze(f.options('--session', stream))).sessions[0];
+    assert.equal(Object.keys(s.models).length, pairs.length);
+    for (const [i, pair] of pairs.entries()) {
+      const key = JSON.stringify(pair);
+      assert.deepEqual(JSON.parse(key), pair);
+      assert.deepEqual(s.models[key], usage(i + 1 + (i === 0 ? 10 : 0), i === 0 ? 2 : 1));
+    }
+    assert.deepEqual(s.usage, usage(input + 10, output + 1));
+  }
 });
 
 test('unknown baseline and counter reset do not inflate usage', async t => {
@@ -121,7 +149,7 @@ test('decreasing cumulative subsets warn independently while preserving measured
       counter(usage(100, 10, 90, 9), before), counter(current)]);
     const s = (await analyze(f.options('--session', id))).sessions[0];
     assert.deepEqual(s.usage, expected);
-    assert.deepEqual(s.models['unknown/unknown'], expected);
+    assert.deepEqual(s.models['["unknown","unknown"]'], expected);
     assert.equal(s.warnings.length, fields.length);
     for (const field of fields) assert.ok(s.warnings.some(w => w.includes(field)));
   }
@@ -198,7 +226,7 @@ test('session and model totals become persistently unknown on overflow in either
     const session = result.sessions.find(s => s.id === id);
     const unknown = Object.fromEntries(Object.keys(large).map(k => [k, null]));
     assert.deepEqual(session.usage, unknown);
-    assert.deepEqual(session.models['example/low'], unknown);
+    assert.deepEqual(session.models['["example","low"]'], unknown);
     for (const key of Object.keys(large)) assert.ok(session.warnings.some(w => w.includes(key)));
   }
 });
@@ -210,7 +238,7 @@ test('safe-integer boundary stays measured and independently overflowing surface
     record('one', usage(maximum - 1, 1, maximum - 1, 0)), record('two', usage(1, 1, 1, 0))]);
   const safe = (await analyze(f.options())).sessions[0];
   assert.deepEqual(safe.usage, usage(maximum, 2, maximum, 0));
-  assert.deepEqual(safe.models['unknown/unknown'], safe.usage);
+  assert.deepEqual(safe.models['["unknown","unknown"]'], safe.usage);
   assert.deepEqual(safe.warnings, []);
   await f.write('sessions/b.jsonl', [meta('b'), record('one', usage(1, 1, 1, 1))]);
   await f.write('sessions/c.jsonl', [meta('c'), record('one', usage(1, 1, 1, 1))]);

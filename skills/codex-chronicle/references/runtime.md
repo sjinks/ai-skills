@@ -115,8 +115,12 @@ warnings appear in the session or surface's `warnings` array. Other fields
 remain independently measurable. Unknown input totals sort after measured
 totals in `cost-tips`.
 Model attribution uses the
-latest preceding turn context; missing values use `unknown`. Unrecognized
-formats are reported, not treated as zero usage. Missing per-response records
+latest preceding turn context; missing values use `unknown`.
+Per-session `models` keys are JSON-encoded `[model, effort]` string pairs, such
+as `["example","low"]`. Decode a key with `JSON.parse`; do not split on `/`.
+Separators, quotes, backslashes and other log characters cannot merge distinct
+pairs. The same encoding applies to both accounting streams.
+Unrecognized formats are reported, not treated as zero usage. Missing per-response records
 in a partially populated preferred stream cannot be detected reliably.
 
 ## Privacy and interpretation

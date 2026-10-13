@@ -286,7 +286,7 @@ async function readSession(file, options, coverage) {
     for (const item of usageRows) {
       const counts = validatedSubsets(item.usage, session.warnings);
       addUsage(session.usage, counts, session.warnings);
-      const key = item.model + '/' + item.effort;
+      const key = JSON.stringify([item.model, item.effort]);
       session.models[key] ??= emptyUsage();
       addUsage(session.models[key], counts, session.warnings);
     }
