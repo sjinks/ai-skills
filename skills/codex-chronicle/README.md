@@ -27,7 +27,9 @@ $codex-chronicle improve
 
 The default scope is the current repository and root sessions. Ask explicitly
 to include all repositories or subagents. `improve` stays within one selected
-repository and requires evidence from at least two sessions for each recurring
+repository. Outside a repository, select a repository explicitly or request
+all repositories for `tips`/`cost-tips`; the skill does not fall back to a parent
+directory's subtree. `improve` requires evidence from at least two sessions for each recurring
 problem. It proposes changes before applying explicitly authorized edits.
 When no changes are supported, its `Instruction changes:` field is `None supported.`.
 
@@ -64,6 +66,8 @@ Event timestamps must be strings. Explicitly invalid session-start timestamps
 stay unknown and cannot establish a zero counter baseline.
 Message fallback is selected per role within the requested window, so older or
 future response messages cannot hide in-window activity.
+Empty or unsupported response text cannot suppress usable fallback text; control
+removal includes C1 characters as well as C0 (except tab/LF) and DEL.
 Decreasing cumulative subsets produce field-specific warnings. Excerpt clipping
 status reflects truncation after masking, including text expansion or contraction.
 

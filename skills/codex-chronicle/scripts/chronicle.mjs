@@ -59,7 +59,7 @@ export function parseArgs(args, now = new Date()) {
 }
 
 export function mask(text) {
-  return text.replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '')
+  return text.replace(/[\u0000-\u0008\u000b-\u001f\u007f-\u009f]/g, '')
     .replace(/-----BEGIN [^-\n]*PRIVATE KEY-----[\s\S]*?(?:-----END [^-\n]*PRIVATE KEY-----|$)/g, '[REDACTED KEY]')
     .replace(/\b(?:sk-[\w-]{12,}|gh[pousr]_[\w]{12,}|github_pat_[\w]{12,}|AKIA[A-Z0-9]{16})\b/g, '[REDACTED]')
     .replace(/((?:api[_-]?key|password|secret|access[_-]?token)\s*[=:]\s*)(?:"[^"\n]*"|'[^'\n]*'|[^\s,;]+)/gi, '$1[REDACTED]')
@@ -229,10 +229,13 @@ async function readSession(file, options, coverage) {
         if (delta && inWindow(timestamp)) fallback.push({ usage: delta, model, effort });
       }
       if (row.type === 'response_item' && p.type === 'message' && ['user', 'assistant'].includes(p.role) && inWindow(timestamp)) {
-        responseRoles.add(p.role);
-        message(p.role, textContent(p), timestamp, line);
+        const text = textContent(p);
+        if (mask(text).trim()) {
+          responseRoles.add(p.role);
+          message(p.role, text, timestamp, line);
+        }
       }
-      if (row.type === 'event_msg' && ['user_message', 'agent_message'].includes(p.type) && typeof p.message === 'string' && inWindow(timestamp)) {
+      if (row.type === 'event_msg' && ['user_message', 'agent_message'].includes(p.type) && typeof p.message === 'string' && mask(p.message).trim() && inWindow(timestamp)) {
         eventMessages.push({ role: p.type === 'user_message' ? 'user' : 'assistant', text: p.message, timestamp, line });
       }
       if (row.type === 'response_item' && ['function_call', 'custom_tool_call'].includes(p.type) && inWindow(timestamp)) {

@@ -35,7 +35,7 @@ Turn local session evidence into actionable recommendations. Supported modes are
 
 ## Workflow
 
-1. Resolve the mode, repository, and window. Default to the current working directory and root sessions. Default to 7 days for `tips`, 30 days otherwise. Widen repository or subagent scope only when requested. If the current directory is inside a repository, use its root as `--repo`.
+1. Resolve the mode, repository, and window. Default to the current repository root and root sessions. If no repository root is available and no repository was selected, proceed only for an explicit all-repository `tips` or `cost-tips` request; otherwise ask for a repository and stop before analysis. Do not analyze the working-directory subtree as a fallback. Default to 7 days for `tips`, 30 days otherwise. Widen repository or subagent scope only when requested.
 2. Read [the runtime guide](references/runtime.md) for invocation, schema handling, and limitations. Run the helper with the selected scope. Inspect coverage and warnings before interpreting metrics. If the helper cannot run, report the prerequisite or error and return no recommendations.
 3. Select candidate sessions from the summary. Use `--session` and, when useful, `--line` to read bounded excerpts. Inspect surrounding user messages and assistant/tool outcomes before attributing a cause. Stop investigating when the evidence supports recommendations or establishes insufficient history.
 4. Inspect current repository configuration: `AGENTS.md`, applicable nested instruction files, and relevant skill/agent configuration. Verify that proposed commands and features exist in the current runtime. Treat historical failures as historical until current evidence confirms them.

@@ -382,6 +382,42 @@ test('in-window response selection is per role and inclusive at both window boun
   assert.deepEqual(end.excerpts.map(e => e.text), ['fallback prompt', 'response answer']);
 });
 
+test('unusable response text does not suppress fallback and unusable fallback text is excluded', async t => {
+  const f = await fixture(t);
+  const contents = [undefined, [], [{ type: 'image', image_url: 'unused' }],
+    [{ type: 'input_text', text: '' }], [{ type: 'input_text', text: ' \t\n' }],
+    [{ type: 'input_text', text: '\u001b\u0085\u009b' }]];
+  for (const [i, content] of contents.entries()) {
+    for (const role of ['user', 'assistant']) {
+      const id = i + '-' + role;
+      const fallbackType = role === 'user' ? 'user_message' : 'agent_message';
+      await f.write('sessions/' + id + '.jsonl', [meta(id),
+        row('response_item', { type: 'message', role, content }),
+        row('event_msg', { type: fallbackType, message: 'wrong fallback' }),
+        row('event_msg', { type: fallbackType, message: ' \u0085\t\n' })]);
+      const s = (await analyze(f.options('--session', id))).sessions[0];
+      assert.equal(s.messages[role], 1);
+      assert.deepEqual(s.excerpts.map(e => [e.line, e.text]), [[3, 'wrong fallback']]);
+      if (role === 'user') {
+        assert.equal(s.prompt_characters, 'wrong fallback'.length);
+        assert.equal(s.correction_signals, 1);
+        assert.deepEqual(s.candidate_lines, [3]);
+      }
+    }
+  }
+});
+
+test('C1 control removal preserves ordinary Unicode, tab and LF in excerpts', async t => {
+  const f = await fixture(t);
+  const controls = Array.from({ length: 32 }, (_, i) => String.fromCharCode(0x80 + i)).join('');
+  const text = 'café\tпривіт\n🙂';
+  assert.equal(mask(controls + text + controls), text);
+  await f.write('sessions/a.jsonl', [meta('a'), message('user', controls + text + controls)]);
+  const e = (await analyze(f.options('--session', 'a'))).sessions[0].excerpts[0];
+  assert.equal(e.text, text);
+  assert.equal(e.clipped, false);
+});
+
 test('structured tool outputs are counted and instruction wrappers do not become correction candidates', async t => {
   const f = await fixture(t);
   await f.write('sessions/a.jsonl', [meta('a'), message('user', '# AGENTS.md instructions\nDo not do wrong things'),

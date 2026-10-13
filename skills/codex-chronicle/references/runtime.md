@@ -14,6 +14,11 @@ node skills/codex-chronicle/scripts/chronicle.mjs improve --repo /absolute/repos
 
 The helper returns evidence, not finished recommendations. JSON is written to
 stdout; fatal errors go to stderr with exit status 1. `--help` lists options.
+The skill selects a repository root before invoking the helper. Outside a
+repository, it requires an explicit repository selection or, for `tips` and
+`cost-tips`, an explicit all-repositories request. The low-level helper's
+working-directory default is directory scope, not automatic repository discovery;
+it must not substitute for this selection step.
 
 ## Scope and drill-down
 
@@ -58,7 +63,11 @@ Messages
 come from `response_item`, with `event_msg` message fallback only when the selected
 window has no response messages for that role. Older or future response messages
 do not suppress in-window fallback messages; in-window response messages still
-prevent duplicate fallback counts for their role. Tool names and output lengths are
+prevent duplicate fallback counts for their role only when extracted text is
+usable. Text is usable when masking/control removal leaves non-whitespace text.
+Empty, unsupported, whitespace-only, or control-only response text neither counts
+as a message nor suppresses fallback. Empty fallback text is also excluded.
+Raw text lengths remain the observed prompt metrics. Tool names and output lengths are
 observations; outputs are not interpreted as verified failures. Correction
 signals are keyword heuristics over request text, not proven mistakes. Recognized
 AGENTS/environment/skill/open-page wrappers are excluded from that heuristic; IDE context is
@@ -103,6 +112,7 @@ Summaries contain metadata and counts, not transcript excerpts. Drill-down
 strips control characters, masks common credential formats, then clips each
 excerpt to 1600 characters. `clipped` is based on the masked length, so it
 describes actual truncation rather than redaction or control-character removal.
+Control removal covers C0 except tab/LF, DEL, and C1 (U+0080–U+009F).
 This is not comprehensive redaction. Do not publish
 raw output without inspection. For excerpt-backed findings, record timestamps,
 session ID, file, and log line. For aggregate usage, cite session IDs,
