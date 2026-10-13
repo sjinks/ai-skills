@@ -18,7 +18,7 @@ stdout; fatal errors go to stderr with exit status 1. `--help` lists options.
 ## Scope and drill-down
 
 - `--home PATH`: Codex data directory; defaults to `CODEX_HOME` or `~/.codex`.
-- `--repo PATH`: include sessions whose recorded working directory is this path or a descendant, with a path-separator boundary. Default: process working directory. This is directory scope, not remote-repository identity; separate worktrees require separate passes.
+- `--repo PATH`: include sessions whose recorded working directory is this path or a descendant, with a path-separator boundary. Only absolute recorded paths are accepted; missing, empty, or relative paths remain `null` and are excluded from repository-scoped runs. They can still appear in an all-repositories run. Default: process working directory. This is directory scope, not remote-repository identity; separate worktrees require separate passes.
 - `--all-repos`: explicitly widen scope; incompatible with `--repo` and `improve`.
 - `--days N`: positive integer, at most 3650. Default: 7 for `tips`, 30 otherwise.
 - `--until ISO`: inclusive endpoint with an explicit timezone. Default: current instant. Start is endpoint minus N times 24 hours, inclusive. These are rolling windows, not calendar-day boundaries.
@@ -65,6 +65,12 @@ whose first counter is omitted and warned. Usage is assigned by event timestamp.
 Cached input and reasoning output are subsets, not additional tokens. Missing
 subset counts remain `null` for aggregate subsets. Invalid subsets, including
 counts larger than their corresponding whole, are omitted and warned.
+Individual token counts must be nonnegative safe integers. If a sum exceeds
+`Number.MAX_SAFE_INTEGER`, that aggregate field becomes `null` and remains
+unknown. This applies to session, model/effort, and client-surface totals;
+warnings appear in the session or surface's `warnings` array. Other fields
+remain independently measurable. Unknown input totals sort after measured
+totals in `cost-tips`.
 Model attribution uses the
 latest preceding turn context; missing values use `unknown`. Unrecognized
 formats are reported, not treated as zero usage. Missing per-response records
@@ -92,3 +98,8 @@ node --test skills/codex-chronicle/scripts/chronicle.test.mjs
 
 Tests use synthetic temporary data and remove only their own temporary directory.
 Live smoke tests read local logs without changing them. No model calls are needed.
+
+When `improve` supports no instruction changes, report `Recommendations: None supported.`
+and `Instruction changes: None supported.`. Preserve all five report
+labels from `SKILL.md` and explain missing or insufficient evidence in
+`Limitations:`.

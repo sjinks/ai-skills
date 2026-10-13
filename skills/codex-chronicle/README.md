@@ -29,6 +29,7 @@ The default scope is the current repository and root sessions. Ask explicitly
 to include all repositories or subagents. `improve` stays within one selected
 repository and requires evidence from at least two sessions for each recurring
 problem. It proposes changes before applying explicitly authorized edits.
+When no changes are supported, its `Instruction changes:` field is `None supported.`.
 
 Node.js 22 or later is required. To inspect evidence directly from the repository
 root, run:
@@ -50,6 +51,9 @@ The helper reads `sessions/` and `archived_sessions/` under `CODEX_HOME` or
 separate. Missing usage remains unknown; cached input and reasoning output are
 subsets, not additional tokens. Duplicate session copies are selected rather
 than merged, so divergent copies can omit activity.
+Unsafe token sums remain unknown and produce warnings at the affected session
+or client surface. Recorded working directories must be absolute to qualify for
+repository-scoped analysis; invalid paths remain unassigned.
 
 Correction signals are keyword-based candidates, not confirmed mistakes.
 Recommendations require inspection of surrounding conversations and current

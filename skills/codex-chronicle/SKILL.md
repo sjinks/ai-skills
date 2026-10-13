@@ -59,7 +59,7 @@ Use these labels once, in order:
 
 `Limitations:` coverage warnings, missing usage, sampling, historical/current distinctions, and billing uncertainty; or `None identified.`
 
-`Instruction changes:` `Not applicable.` for other modes; for `improve`, report proposals pending approval or list authorized edits and verification.
+`Instruction changes:` `Not applicable.` for other modes. For `improve`, use `None supported.` when no instruction change is supported; otherwise report proposals pending approval or list authorized edits and verification.
 
 ## Done
 

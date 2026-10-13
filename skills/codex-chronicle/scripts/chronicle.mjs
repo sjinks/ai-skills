@@ -54,11 +54,14 @@ export function mask(text) {
     .replace(/(Bearer\s+)[\w.\-]+/gi, '$1[REDACTED]');
 }
 
-function addUsage(target, usage) {
+function addUsage(target, usage, warnings) {
   for (const key of KEYS) {
     const value = usage[key];
     if (target[key] === null || !integer(value)) target[key] = null;
-    else target[key] += value;
+    else if (value > Number.MAX_SAFE_INTEGER - target[key]) {
+      target[key] = null;
+      warnings.push(`Unsafe aggregate for ${key}: count left unknown`);
+    } else target[key] += value;
   }
 }
 
@@ -161,7 +164,7 @@ async function readSession(file, options, coverage) {
       const timestamp = Date.parse(row.timestamp);
       if (row.type === 'session_meta') {
         session.id = typeof p.id === 'string' ? p.id : typeof p.session_id === 'string' ? p.session_id : null;
-        session.cwd = typeof p.cwd === 'string' ? path.resolve(p.cwd) : null;
+        session.cwd = typeof p.cwd === 'string' && path.isAbsolute(p.cwd) ? path.resolve(p.cwd) : null;
         session.subagent = p.thread_source === 'subagent' || Boolean(p.source?.subagent);
         session.surface = session.subagent ? 'subagent' : typeof p.source === 'string' ? p.source : 'unknown';
         started = Date.parse(p.timestamp || row.timestamp);
@@ -234,10 +237,10 @@ async function readSession(file, options, coverage) {
           session.warnings.push('Invalid token subset omitted');
         }
       }
-      addUsage(session.usage, counts);
+      addUsage(session.usage, counts, session.warnings);
       const key = item.model + '/' + item.effort;
       session.models[key] ??= emptyUsage();
-      addUsage(session.models[key], counts);
+      addUsage(session.models[key], counts, session.warnings);
     }
   }
   session.warnings = [...new Set(session.warnings)];
@@ -276,12 +279,15 @@ export async function analyze(options) {
   coverage.missing_usage_sessions = sessions.filter(x => !x.usage).length;
   const surfaces = Object.create(null);
   for (const session of sessions) {
-    surfaces[session.surface] ??= { sessions: 0, sessions_with_usage: 0, measured_usage: emptyUsage() };
+    surfaces[session.surface] ??= { sessions: 0, sessions_with_usage: 0, measured_usage: emptyUsage(), warnings: [] };
     const group = surfaces[session.surface];
     group.sessions++;
-    if (session.usage) { group.sessions_with_usage++; addUsage(group.measured_usage, session.usage); }
+    if (session.usage) { group.sessions_with_usage++; addUsage(group.measured_usage, session.usage, group.warnings); }
   }
-  for (const group of Object.values(surfaces)) if (!group.sessions_with_usage) group.measured_usage = null;
+  for (const group of Object.values(surfaces)) {
+    if (!group.sessions_with_usage) group.measured_usage = null;
+    group.warnings = [...new Set(group.warnings)];
+  }
   sessions.sort((a, b) => (options.mode === 'cost-tips'
     ? (b.usage?.input_tokens ?? -1) - (a.usage?.input_tokens ?? -1)
     : b.correction_signals - a.correction_signals) || b.last - a.last || a.id.localeCompare(b.id));

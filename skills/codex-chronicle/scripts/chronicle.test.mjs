@@ -69,6 +69,78 @@ test('missing usage and absent optional subsets remain unknown', async t => {
   assert.deepEqual(result.surfaces.vscode.measured_usage, { input_tokens: 20, output_tokens: 2, cached_input_tokens: null, reasoning_output_tokens: null });
 });
 
+test('session and model totals become persistently unknown on overflow in either usage stream', async t => {
+  const f = await fixture(t);
+  const maximum = Number.MAX_SAFE_INTEGER;
+  const large = usage(maximum, maximum, maximum, maximum);
+  const small = usage(1, 1, 1, 1);
+  await f.write('sessions/records.jsonl', [meta('records'),
+    row('turn_context', { model: 'example', effort: 'low' }),
+    record('one', large), record('two', small), record('three', small)]);
+  await f.write('sessions/counters.jsonl', [meta('counters'),
+    row('turn_context', { model: 'example', effort: 'low' }),
+    counter(large), counter(usage(0, 0, 0, 0)), counter(small), counter(usage(2, 2, 2, 2))]);
+  await f.write('sessions/measured.jsonl', [meta('measured'), record('safe', small)]);
+  const result = await analyze(f.options());
+  assert.equal(result.sessions[0].id, 'measured');
+  for (const id of ['records', 'counters']) {
+    const session = result.sessions.find(s => s.id === id);
+    const unknown = Object.fromEntries(Object.keys(large).map(k => [k, null]));
+    assert.deepEqual(session.usage, unknown);
+    assert.deepEqual(session.models['example/low'], unknown);
+    for (const key of Object.keys(large)) assert.ok(session.warnings.some(w => w.includes(key)));
+  }
+});
+
+test('safe-integer boundary stays measured and independently overflowing surface fields warn', async t => {
+  const f = await fixture(t);
+  const maximum = Number.MAX_SAFE_INTEGER;
+  await f.write('sessions/a.jsonl', [meta('a'),
+    record('one', usage(maximum - 1, 1, maximum - 1, 0)), record('two', usage(1, 1, 1, 0))]);
+  const safe = (await analyze(f.options())).sessions[0];
+  assert.deepEqual(safe.usage, usage(maximum, 2, maximum, 0));
+  assert.deepEqual(safe.models['unknown/unknown'], safe.usage);
+  assert.deepEqual(safe.warnings, []);
+  await f.write('sessions/b.jsonl', [meta('b'), record('one', usage(1, 1, 1, 1))]);
+  await f.write('sessions/c.jsonl', [meta('c'), record('one', usage(1, 1, 1, 1))]);
+  const group = (await analyze(f.options())).surfaces.vscode;
+  assert.deepEqual(group.measured_usage, { input_tokens: null, output_tokens: 4,
+    cached_input_tokens: null, reasoning_output_tokens: 2 });
+  assert.equal(group.warnings.length, 2);
+  assert.ok(group.warnings.some(w => w.includes('input_tokens')));
+  assert.ok(group.warnings.some(w => w.includes('cached_input_tokens')));
+  for (const [i, counts] of [usage(maximum, maximum, maximum, maximum), usage(1, 1, 1, 1), usage(1, 1, 1, 1)].entries()) {
+    await f.write('sessions/cli-' + i + '.jsonl', [meta('cli-' + i, '/repo', { source: 'cli' }), record('one', counts)]);
+  }
+  const cli = (await analyze(f.options())).surfaces.cli;
+  assert.deepEqual(cli.measured_usage, { input_tokens: null, output_tokens: null,
+    cached_input_tokens: null, reasoning_output_tokens: null });
+  assert.equal(cli.warnings.length, 4);
+});
+
+test('invalid recorded cwd stays unassigned across repository modes and all-repository scope', async t => {
+  const f = await fixture(t);
+  const invalid = [undefined, null, false, 0, '', ' ', '.', './nested', 'repo', '../repo'];
+  for (const [i, cwd] of invalid.entries()) {
+    const metadata = meta('invalid-' + i);
+    if (cwd === undefined) delete metadata.payload.cwd;
+    else metadata.payload.cwd = cwd;
+    await f.write('sessions/invalid-' + i + '.jsonl', [metadata, record('one', usage(1, 1))]);
+  }
+  await f.write('sessions/valid.jsonl', [meta('valid', '/repo/nested'), record('one', usage(1, 1))]);
+  await f.write('sessions/neighbor.jsonl', [meta('neighbor', '/repo-other'), record('one', usage(1, 1))]);
+  for (const mode of ['tips', 'cost-tips', 'improve']) {
+    const options = parseArgs([mode, '--home', f.home, '--repo', '/repo', '--days', '1', '--until', at]);
+    assert.deepEqual((await analyze(options)).sessions.map(s => s.id), ['valid']);
+  }
+  // Resolving '.' against the analyzer's cwd would falsely include this session.
+  const current = parseArgs(['improve', '--home', f.home, '--repo', process.cwd(), '--until', at]);
+  assert.equal((await analyze(current)).coverage.matched_sessions, 0);
+  const all = await analyze(parseArgs(['tips', '--home', f.home, '--all-repos', '--until', at]));
+  assert.equal(all.coverage.matched_sessions, invalid.length + 2);
+  assert.ok(all.sessions.filter(s => s.id.startsWith('invalid-')).every(s => s.cwd === null));
+});
+
 test('repository boundaries and agent scopes exclude neighbors; aggregates exceed listing limit', async t => {
   const f = await fixture(t);
   await f.write('sessions/a.jsonl', [meta('a'), record('a', usage(20, 2))]);
