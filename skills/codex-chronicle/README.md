@@ -54,6 +54,10 @@ than merged, so divergent copies can omit activity.
 Unsafe token sums remain unknown and produce warnings at the affected session
 or client surface. Recorded working directories must be absolute to qualify for
 repository-scoped analysis; invalid paths remain unassigned.
+Cumulative snapshots are validated before subtraction; malformed required
+totals break the baseline, and invalid subsets remain unknown. Aggregate usage
+is attributed by session, `usage_source`, and JSON field; log-line references
+accompany excerpts, not usage events.
 
 Correction signals are keyword-based candidates, not confirmed mistakes.
 Recommendations require inspection of surrounding conversations and current

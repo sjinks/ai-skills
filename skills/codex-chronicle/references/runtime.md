@@ -57,7 +57,12 @@ For usage, prefer `token_usage_record.payload.usage`, deduplicated by
 `response_id`. Records lacking a response ID or valid nonnegative integer input
 and output counts are excluded with warnings. If any valid records exist in a
 file, do not also count its `event_msg.token_count` events. Otherwise, subtract
-successive valid cumulative input/output counters. The baseline is zero only
+successive valid cumulative input/output counters. Validate snapshot subsets
+before subtraction and validate resulting delta subsets again. Invalid required
+totals or invalid counter timestamps are warned and discard the baseline; omit the next valid snapshot to
+establish a new baseline without bridging unknown activity. Invalid or missing
+subset counts stay unknown for deltas that depend on them.
+The baseline is zero only for the first observed counter
 when the session starts within the window; for an older session with no earlier
 counter, omit the first counter and warn. Counter decreases start a new segment,
 whose first counter is omitted and warned. Usage is assigned by event timestamp.
@@ -81,8 +86,10 @@ in a partially populated preferred stream cannot be detected reliably.
 Summaries contain metadata and counts, not transcript excerpts. Drill-down
 clips each excerpt to 1600 characters, strips control characters, and masks
 common credential formats. This is not comprehensive redaction. Do not publish
-raw output without inspection. Record timestamps, session ID, file, and line
-for evidence; do not treat a regex match or a large token total as causal proof.
+raw output without inspection. For excerpt-backed findings, record timestamps,
+session ID, file, and log line. For aggregate usage, cite session IDs,
+`usage_source`, and the relevant JSON fields; usage-event line provenance is
+not exported. Do not treat a regex match or a large token total as causal proof.
 
 Do not convert these local observations into a bill. Any optional API-dollar
 estimate needs verified model rates, cache categories, billing mode, and an

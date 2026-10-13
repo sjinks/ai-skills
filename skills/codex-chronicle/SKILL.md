@@ -53,7 +53,7 @@ Use these labels once, in order:
 
 `Chronicle scope:` mode, repository, time window, root/subagent scope, matched session count, and sessions inspected through excerpts.
 
-`Observed patterns:` measured patterns with session IDs and log line references; distinguish heuristic candidates from confirmed findings.
+`Observed patterns:` distinguish heuristic candidates from confirmed findings. Cite session IDs, `usage_source`, and JSON fields for aggregate usage; also cite log lines for excerpt-backed findings. Usage-event log lines are not exported.
 
 `Recommendations:` up to five numbered recommendations. For each, give evidence, a concrete action, expected benefit, and uncertainty. For `improve`, include proposed wording and target file. Use `None supported.` when evidence is insufficient.
 

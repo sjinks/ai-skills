@@ -13,6 +13,17 @@ const integer = value => Number.isSafeInteger(value) && value >= 0;
 const validUsage = value => value && integer(value.input_tokens) && integer(value.output_tokens);
 const emptyUsage = () => Object.fromEntries(KEYS.map(key => [key, 0]));
 
+function validatedSubsets(usage, warnings) {
+  const counts = { ...usage };
+  for (const [subset, whole] of [['cached_input_tokens', 'input_tokens'], ['reasoning_output_tokens', 'output_tokens']]) {
+    if (counts[subset] !== undefined && counts[subset] !== null && (!integer(counts[subset]) || counts[subset] > counts[whole])) {
+      counts[subset] = null;
+      warnings.push(`Invalid token subset ${subset} omitted`);
+    }
+  }
+  return counts;
+}
+
 export function parseArgs(args, now = new Date()) {
   const mode = args[0] && !args[0].startsWith('--') ? args.shift() : 'tips';
   if (!MODES.includes(mode)) throw new Error('Mode must be tips, cost-tips, or improve');
@@ -119,7 +130,7 @@ async function readSession(file, options, coverage) {
   const fallback = [];
   const responseRoles = new Set();
   const eventMessages = [];
-  let model = 'unknown', effort = 'unknown', baseline = null, line = 0, started = NaN;
+  let model = 'unknown', effort = 'unknown', baseline = null, counterSeen = false, line = 0, started = NaN;
   const inWindow = timestamp => timestamp >= options.start && timestamp <= options.end;
   function message(role, text, timestamp, location) {
     if (!inWindow(timestamp)) return;
@@ -173,7 +184,15 @@ async function readSession(file, options, coverage) {
         model = typeof p.model === 'string' ? p.model : 'unknown';
         effort = typeof p.effort === 'string' ? p.effort : 'unknown';
       }
-      if (!Number.isFinite(timestamp)) { coverage.invalid_timestamps++; continue; }
+      if (!Number.isFinite(timestamp)) {
+        coverage.invalid_timestamps++;
+        if (row.type === 'event_msg' && p.type === 'token_count') {
+          counterSeen = true;
+          baseline = null;
+          session.warnings.push('Invalid cumulative usage timestamp omitted; baseline discarded');
+        }
+        continue;
+      }
       if (inWindow(timestamp)) {
         session.first = session.first === null ? timestamp : Math.min(session.first, timestamp);
         session.last = session.last === null ? timestamp : Math.max(session.last, timestamp);
@@ -183,15 +202,22 @@ async function readSession(file, options, coverage) {
           session.warnings.push('Invalid per-response usage record omitted');
         } else if (!records.has(p.response_id)) records.set(p.response_id, { usage: p.usage, timestamp, model, effort });
       }
-      if (row.type === 'event_msg' && p.type === 'token_count' && validUsage(p.info?.total_token_usage)) {
-        const current = p.info.total_token_usage;
+      if (row.type === 'event_msg' && p.type === 'token_count') {
+        const firstCounter = !counterSeen;
+        counterSeen = true;
+        if (!validUsage(p.info?.total_token_usage)) {
+          session.warnings.push('Invalid cumulative usage snapshot omitted; baseline discarded');
+          baseline = null;
+          continue;
+        }
+        const current = validatedSubsets(p.info.total_token_usage, session.warnings);
         let delta = null;
         if (baseline && (current.input_tokens < baseline.input_tokens || current.output_tokens < baseline.output_tokens)) {
           if (inWindow(timestamp)) session.warnings.push('Counter reset: first counter of new segment omitted');
         } else if (baseline) {
           delta = Object.fromEntries(KEYS.map(key => [key,
             integer(current[key]) && integer(baseline[key]) && current[key] >= baseline[key] ? current[key] - baseline[key] : null]));
-        } else if (started >= options.start && started <= options.end) delta = current;
+        } else if (firstCounter && started >= options.start && started <= options.end) delta = current;
         else if (inWindow(timestamp)) session.warnings.push('No earlier usage baseline: first cumulative counter omitted');
         baseline = current;
         if (delta && inWindow(timestamp)) fallback.push({ usage: delta, model, effort });
@@ -230,13 +256,7 @@ async function readSession(file, options, coverage) {
   if (usageRows.length) {
     session.usage = emptyUsage();
     for (const item of usageRows) {
-      const counts = { ...item.usage };
-      for (const [subset, whole] of [['cached_input_tokens', 'input_tokens'], ['reasoning_output_tokens', 'output_tokens']]) {
-        if (counts[subset] !== undefined && (!integer(counts[subset]) || counts[subset] > counts[whole])) {
-          counts[subset] = null;
-          session.warnings.push('Invalid token subset omitted');
-        }
-      }
+      const counts = validatedSubsets(item.usage, session.warnings);
       addUsage(session.usage, counts, session.warnings);
       const key = item.model + '/' + item.effort;
       session.models[key] ??= emptyUsage();

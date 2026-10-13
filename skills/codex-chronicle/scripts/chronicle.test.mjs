@@ -59,6 +59,67 @@ test('unknown baseline and counter reset do not inflate usage', async t => {
   assert.equal(session.warnings.length, 2);
 });
 
+test('cumulative snapshots and deltas independently validate cached and reasoning subsets', async t => {
+  const f = await fixture(t);
+  const invalid = usage(100, 10, 200, 20);
+  for (const [id, prior, current] of [
+    ['bad-baseline', invalid, usage(150, 15, 120, 12)],
+    ['bad-current', usage(100, 10, 80, 8), usage(150, 15, 220, 22)],
+    ['both-bad', invalid, usage(150, 15, 220, 22)],
+    ['bad-delta', usage(100, 10, 0, 0), usage(150, 15, 120, 12)],
+    ['negative', usage(100, 10, -1, -1), usage(150, 15, 120, 12)],
+    ['fractional', usage(100, 10, 1.5, 1.5), usage(150, 15, 120, 12)],
+    ['unsafe', usage(100, 10, Number.MAX_SAFE_INTEGER + 1, Number.MAX_SAFE_INTEGER + 1), usage(150, 15, 120, 12)],
+  ]) {
+    await f.write('sessions/' + id + '.jsonl', [meta(id, '/repo', {}, before),
+      counter(prior, before), counter(current)]);
+  }
+  for (const s of (await analyze(f.options())).sessions) {
+    assert.equal(s.usage_source, 'cumulative_deltas');
+    assert.deepEqual(s.usage, { input_tokens: 50, output_tokens: 5,
+      cached_input_tokens: null, reasoning_output_tokens: null });
+    assert.ok(s.warnings.some(w => w.includes('cached_input_tokens')));
+    assert.ok(s.warnings.some(w => w.includes('reasoning_output_tokens')));
+  }
+  await f.write('sessions/missing.jsonl', [meta('missing', '/repo', {}, before),
+    counter({ input_tokens: 100, output_tokens: 10 }, before), counter(usage(150, 15, 120, 12))]);
+  const missing = (await analyze(f.options('--session', 'missing'))).sessions[0];
+  assert.equal(missing.usage.cached_input_tokens, null);
+  assert.equal(missing.usage.reasoning_output_tokens, null);
+});
+
+test('invalid required counter totals break the baseline and never become a zero baseline', async t => {
+  const f = await fixture(t);
+  const badTotals = [null, {}, usage(-1, 1), usage(1, -1), usage(1.5, 1),
+    usage(1, 1.5), usage(Number.MAX_SAFE_INTEGER + 1, 1), usage(1, Number.MAX_SAFE_INTEGER + 1)];
+  for (const [i, bad] of badTotals.entries()) {
+    for (const older of [false, true]) {
+      const id = i + '-' + older;
+      const rows = [meta(id, '/repo', {}, older ? before : at)];
+      if (older) rows.push(counter(usage(100, 10), before));
+      rows.push(counter(bad), counter(usage(200, 20)), counter(usage(250, 25)));
+      await f.write('sessions/' + id + '.jsonl', rows);
+    }
+  }
+  const result = await analyze(f.options());
+  assert.equal(result.coverage.matched_sessions, badTotals.length * 2);
+  for (const s of result.sessions) {
+    assert.deepEqual(s.usage, usage(50, 5));
+    assert.ok(s.warnings.some(w => w.startsWith('Invalid cumulative usage snapshot')));
+    assert.ok(s.warnings.some(w => w.startsWith('No earlier usage baseline')));
+  }
+});
+
+test('an invalid cumulative timestamp breaks rather than bridges the baseline', async t => {
+  const f = await fixture(t);
+  await f.write('sessions/a.jsonl', [meta('a', '/repo', {}, before), counter(usage(100, 10), before),
+    counter(usage(150, 15), 'invalid'), counter(usage(200, 20)), counter(usage(250, 25))]);
+  const r = await analyze(f.options());
+  assert.deepEqual(r.sessions[0].usage, usage(50, 5));
+  assert.equal(r.coverage.invalid_timestamps, 1);
+  assert.ok(r.sessions[0].warnings.some(w => w.startsWith('Invalid cumulative usage timestamp')));
+});
+
 test('missing usage and absent optional subsets remain unknown', async t => {
   const f = await fixture(t);
   await f.write('sessions/a.jsonl', [meta('a'), record('one', { input_tokens: 20, output_tokens: 2 })]);
