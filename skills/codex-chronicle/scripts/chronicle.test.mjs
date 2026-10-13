@@ -332,7 +332,8 @@ test('invalid recorded cwd stays unassigned across repository modes and all-repo
   }
   // Resolving '.' against the analyzer's cwd would falsely include this session.
   const current = parseArgs(['improve', '--home', f.home, '--repo', process.cwd(), '--until', at]);
-  assert.equal((await analyze(current)).coverage.matched_sessions, 0);
+  const currentSessions = (await analyze(current)).sessions;
+  assert.deepEqual(currentSessions.filter(s => s.id.startsWith('invalid-')), []);
   const all = await analyze(parseArgs(['tips', '--home', f.home, '--all-repos', '--until', at]));
   assert.equal(all.coverage.matched_sessions, invalid.length + 2);
   assert.ok(all.sessions.filter(s => s.id.startsWith('invalid-')).every(s => s.cwd === null));
