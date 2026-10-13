@@ -75,7 +75,26 @@ With duplicate session IDs, it selects the largest file
 (lexical path breaks ties); it does not merge divergent copies. This can omit
 activity and must be disclosed. Growing logs are a best-effort snapshot.
 
-Metadata comes from `session_meta`; model/effort from `turn_context`. Messages
+Metadata comes from `session_meta`; model/effort from `turn_context`.
+Exported log metadata uses the limits in `metadata_limits`: session ID
+(including legacy `session_id`), source, model, effort and tool names are at most
+256 UTF-16 units; recorded cwd is at most 4096; unknown event-type names are at
+most 80. Present non-string or oversized values are rejected, never truncated.
+Missing/null values retain their existing missing/unknown behavior. Rejected
+IDs leave the session without usable identity and exclude it from analysis;
+rejected cwd remains unassigned and is excluded from repository-scoped runs.
+Rejected source/model/effort/tool/event-type names use `unknown`; totals under
+that sentinel do not identify the rejected names. A recognized subagent source
+object still uses the fixed `subagent` surface.
+Each rejection increments `coverage.metadata_fields_rejected`; its diagnostic
+contains file, physical line, field and a fixed reason, never the rejected value.
+`coverage.metadata_warnings` retains the first 20 diagnostics across the scan,
+with `metadata_warning_limit` declaring the cap and
+`coverage.metadata_warnings_truncated` disclosing omissions. Selected sessions
+also carry deduplicated field warnings. These limits bound individual exported
+strings and rejection diagnostics, not collection cardinality or total analyzer
+memory; inventory and distinct accepted contexts still scale with history.
+Messages
 and usage events require valid timezone-bearing ISO calendar strings using the
 same validation as `--until`; invalid calendar dates, incomplete forms and
 non-string timestamps are rejected rather than normalized or coerced.

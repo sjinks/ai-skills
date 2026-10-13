@@ -57,6 +57,12 @@ The helper reads `sessions/` and `archived_sessions/` under `CODEX_HOME` or
 separate. Missing usage remains unknown; cached input and reasoning output are
 subsets, not additional tokens. Duplicate session copies are selected rather
 than merged, so divergent copies can omit activity.
+Exported log metadata is length-checked and rejected instead of truncated:
+IDs, sources, model/effort and tool names have a 256-UTF-16-unit limit, cwd 4096,
+and unknown event-type names 80. Rejected IDs exclude their sessions; rejected
+cwd stays unassigned; rejected names use `unknown`. Coverage records rejection
+counts and at most 20 value-free diagnostics with an explicit truncation flag.
+These are per-field and diagnostic limits, not a total-output or memory cap.
 Unsafe token sums remain unknown and produce warnings at the affected session
 or client surface. Recorded working directories must be absolute to qualify for
 repository-scoped analysis; invalid paths remain unassigned.

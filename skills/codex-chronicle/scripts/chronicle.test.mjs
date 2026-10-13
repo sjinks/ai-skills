@@ -662,6 +662,95 @@ test('oversized token subsets become unknown and arbitrary metadata keys remain 
   assert.match(result.sessions[0].warnings[0], /Invalid token subset/);
 });
 
+test('oversized exported metadata is rejected with bounded diagnostics and no raw values', async t => {
+  const f = await fixture(t);
+  const huge = 'oversized-private-value-' + 'x'.repeat(1024 * 1024);
+  await f.write('sessions/a.jsonl', [meta('a', '/' + huge, { source: huge }),
+    row('turn_context', { model: huge, effort: huge }), record('one', usage(10, 1)),
+    row('response_item', { type: 'function_call', name: huge }), row(huge, {}),
+    ...Array.from({ length: 30 }, () => row('turn_context', { model: huge }))]);
+  await f.write('sessions/id.jsonl', [meta(huge), record('one', usage(900, 90))]);
+  await f.write('sessions/legacy-id.jsonl', [row('session_meta', { session_id: huge, cwd: '/repo' }), record('one', usage(900, 90))]);
+  const r = await analyze({ ...f.options(), repo: null });
+  assert.equal(r.coverage.metadata_missing, 2);
+  assert.equal(r.coverage.metadata_fields_rejected, 38);
+  assert.equal(r.coverage.metadata_warnings.length, 20);
+  assert.equal(r.coverage.metadata_warnings_truncated, true);
+  assert.equal(r.sessions.length, 1);
+  const s = r.sessions[0];
+  assert.equal(s.cwd, null);
+  assert.equal(s.surface, 'unknown');
+  assert.deepEqual(s.models['["unknown","unknown"]'], usage(10, 1));
+  assert.equal(s.tools.unknown, 1);
+  assert.equal(r.surfaces.unknown.measured_usage.input_tokens, 10);
+  assert.equal(r.coverage.unknown_event_types.unknown, 1);
+  for (const field of ['cwd', 'source', 'model', 'effort', 'tool', 'event_type']) {
+    assert.ok(s.warnings.some(w => w.includes('metadata field ' + field + ' ')));
+  }
+  const json = JSON.stringify(r);
+  assert.equal(json.includes('oversized-private-value'), false);
+  assert.ok(json.length < 20000);
+  assert.equal((await analyze(f.options())).coverage.matched_sessions, 0);
+});
+
+test('metadata length boundaries preserve distinct identities and reject one unit over the limit', async t => {
+  const f = await fixture(t);
+  const name = 'x'.repeat(256);
+  const cwd = '/' + 'x'.repeat(4095);
+  await f.write('sessions/exact.jsonl', [meta(name, cwd, { source: name }),
+    row('turn_context', { model: name, effort: name }), record('one', usage(10, 1)),
+    row('response_item', { type: 'custom_tool_call', name }), row('x'.repeat(80), {})]);
+  await f.write('sessions/over.jsonl', [meta(name + 'y'), record('one', usage(900, 90))]);
+  const r = await analyze({ ...f.options(), repo: null });
+  assert.equal(r.sessions.length, 1);
+  assert.equal(r.sessions[0].id, name);
+  assert.equal(r.sessions[0].cwd, cwd);
+  assert.equal(r.sessions[0].surface, name);
+  assert.deepEqual(r.sessions[0].models[JSON.stringify([name, name])], usage(10, 1));
+  assert.equal(r.sessions[0].tools[name], 1);
+  assert.equal(r.coverage.unknown_event_types['x'.repeat(80)], 1);
+  assert.equal(r.coverage.metadata_fields_rejected, 1);
+  assert.equal(r.coverage.metadata_warnings[0].field, 'id');
+  assert.equal(r.coverage.metadata_warnings_truncated, false);
+  assert.deepEqual(r.surfaces[name].usage_provenance, [{ id: name, usage_source: 'response_records' }]);
+});
+
+test('each metadata field rejects invalid types and one unit over its declared limit', async t => {
+  const f = await fixture(t);
+  for (const [field, limit] of [['id', 256], ['cwd', 4096], ['source', 256],
+    ['model', 256], ['effort', 256], ['tool', 256], ['event_type', 80]]) {
+    for (const [kind, value] of [['type', 42], ['length', field === 'cwd' ? '/' + 'x'.repeat(limit) : 'x'.repeat(limit + 1)]]) {
+      const id = field + '-' + kind;
+      const rows = [meta(id), row('turn_context', { model: 'good', effort: 'low' }),
+        record('one', usage(10, 1)), row('response_item', { type: 'custom_tool_call', name: 'good' }), row('new_event', {})];
+      if (['id', 'cwd', 'source'].includes(field)) rows[0].payload[field] = value;
+      else if (['model', 'effort'].includes(field)) rows[1].payload[field] = value;
+      else if (field === 'tool') rows[3].payload.name = value;
+      else rows[4].type = value;
+      await f.write('sessions/' + id + '.jsonl', rows);
+    }
+  }
+  const r = await analyze({ ...f.options(), repo: null });
+  assert.equal(r.coverage.metadata_fields_rejected, 14);
+  assert.equal(r.coverage.metadata_missing, 2);
+  assert.equal(r.coverage.metadata_warnings.length, 14);
+  assert.equal(r.coverage.metadata_warnings_truncated, false);
+  assert.equal(r.sessions.length, 12);
+  for (const field of ['id', 'cwd', 'source', 'model', 'effort', 'tool', 'event_type']) {
+    assert.equal(r.coverage.metadata_warnings.filter(w => w.field === field).length, 2);
+  }
+  for (const s of r.sessions) {
+    const field = s.id.split('-')[0];
+    assert.equal(s.warnings.length, 1);
+    if (field === 'cwd') assert.equal(s.cwd, null);
+    if (field === 'source') assert.equal(s.surface, 'unknown');
+    if (field === 'model') assert.deepEqual(s.models['["unknown","low"]'], usage(10, 1));
+    if (field === 'effort') assert.deepEqual(s.models['["good","unknown"]'], usage(10, 1));
+    if (field === 'tool') assert.equal(s.tools.unknown, 1);
+  }
+  assert.equal(r.coverage.unknown_event_types.unknown, 2);
+});
+
 test('source-directory symlinks are skipped rather than followed', async t => {
   const f = await fixture(t);
   await rm(path.join(f.home, 'archived_sessions'), { recursive: true });

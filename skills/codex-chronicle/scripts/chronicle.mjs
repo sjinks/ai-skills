@@ -8,6 +8,8 @@ import { pathToFileURL } from 'node:url';
 
 const MODES = ['tips', 'cost-tips', 'improve'];
 const PROVENANCE_LIMIT = 100;
+const METADATA_LIMITS = { id: 256, cwd: 4096, source: 256, model: 256, effort: 256, tool: 256, event_type: 80 };
+const METADATA_WARNING_LIMIT = 20;
 
 export async function openLogSnapshot(file) {
   if (!Number.isInteger(constants.O_NOFOLLOW) || constants.O_NOFOLLOW <= 0) throw Object.assign(new Error('No-follow reads unavailable'), { code: 'ENOTSUP' });
@@ -163,6 +165,17 @@ async function readSession(file, options, coverage) {
   const eventMessages = [];
   let model = 'unknown', effort = 'unknown', baseline = null, counterSeen = false, line = 0, started = NaN;
   const inWindow = timestamp => timestamp >= options.start && timestamp <= options.end;
+  function metadata(value, field) {
+    if (value === undefined || value === null) return null;
+    if (typeof value === 'string' && value.length <= METADATA_LIMITS[field]) return value;
+    const reason = typeof value === 'string' ? 'length limit exceeded' : 'expected a string';
+    coverage.metadata_fields_rejected++;
+    if (coverage.metadata_warnings.length < METADATA_WARNING_LIMIT) {
+      coverage.metadata_warnings.push({ file, line, field, reason });
+    }
+    session.warnings.push(`Rejected metadata field ${field} (${reason})`);
+    return null;
+  }
   function message(role, text, timestamp, location) {
     if (!inWindow(timestamp)) return;
     session.messages[role]++;
@@ -201,17 +214,18 @@ async function readSession(file, options, coverage) {
       catch { coverage.malformed_lines++; continue; }
       if (!row || typeof row !== 'object' || Array.isArray(row)) { coverage.malformed_lines++; continue; }
       if (!KNOWN.has(row.type)) {
-        const type = typeof row.type === 'string' ? row.type.slice(0, 80) : 'missing';
+        const type = metadata(row.type, 'event_type') ?? (row.type == null ? 'missing' : 'unknown');
         coverage.unknown_event_types[type] = (coverage.unknown_event_types[type] || 0) + 1;
       }
       const p = row.payload;
       if (!p || typeof p !== 'object' || Array.isArray(p)) { coverage.invalid_payloads++; continue; }
       const timestamp = timestampValue(row.timestamp);
       if (row.type === 'session_meta') {
-        session.id = typeof p.id === 'string' ? p.id : typeof p.session_id === 'string' ? p.session_id : null;
-        session.cwd = typeof p.cwd === 'string' && path.isAbsolute(p.cwd) ? path.resolve(p.cwd) : null;
+        session.id = metadata(p.id ?? p.session_id, 'id');
+        const cwd = metadata(p.cwd, 'cwd');
+        session.cwd = cwd !== null && path.isAbsolute(cwd) ? path.resolve(cwd) : null;
         session.subagent = p.thread_source === 'subagent' || Boolean(p.source?.subagent);
-        session.surface = session.subagent ? 'subagent' : typeof p.source === 'string' ? p.source : 'unknown';
+        session.surface = session.subagent ? 'subagent' : metadata(p.source, 'source') ?? 'unknown';
         started = timestampValue(p.timestamp === undefined ? row.timestamp : p.timestamp);
         if (p.timestamp !== undefined && !Number.isFinite(started)) {
           coverage.invalid_timestamps++;
@@ -228,8 +242,8 @@ async function readSession(file, options, coverage) {
         continue;
       }
       if (row.type === 'turn_context') {
-        model = typeof p.model === 'string' ? p.model : 'unknown';
-        effort = typeof p.effort === 'string' ? p.effort : 'unknown';
+        model = metadata(p.model, 'model') ?? 'unknown';
+        effort = metadata(p.effort, 'effort') ?? 'unknown';
       }
       if (inWindow(timestamp)) {
         session.first = session.first === null ? timestamp : Math.min(session.first, timestamp);
@@ -272,7 +286,7 @@ async function readSession(file, options, coverage) {
       }
       if (row.type === 'response_item' && ['function_call', 'custom_tool_call'].includes(p.type) && inWindow(timestamp)) {
         session.tool_calls++;
-        const name = typeof p.name === 'string' ? p.name : 'unknown';
+        const name = metadata(p.name, 'tool') ?? 'unknown';
         session.tools[name] = (session.tools[name] || 0) + 1;
       }
       if (row.type === 'response_item' && ['function_call_output', 'custom_tool_call_output'].includes(p.type) && inWindow(timestamp)) {
@@ -313,6 +327,7 @@ export async function analyze(options) {
   const coverage = { files_discovered: 0, files_read: 0, matched_sessions: 0,
     duplicate_sessions: 0, metadata_missing: 0, missing_usage_sessions: 0,
     malformed_lines: 0, invalid_payloads: 0, invalid_timestamps: 0,
+    metadata_fields_rejected: 0, metadata_warnings: [],
     symlinks_skipped: 0, large_files_skipped: 0, directory_errors: [], file_errors: [], unknown_event_types: Object.create(null) };
   const files = [...await discover(path.join(options.home, 'sessions'), coverage),
     ...await discover(path.join(options.home, 'archived_sessions'), coverage)].sort();
@@ -337,6 +352,7 @@ export async function analyze(options) {
     return options.agents === 'all' || (options.agents === 'subagents' ? session.subagent : !session.subagent);
   });
   coverage.matched_sessions = sessions.length;
+  coverage.metadata_warnings_truncated = coverage.metadata_fields_rejected > coverage.metadata_warnings.length;
   coverage.missing_usage_sessions = sessions.filter(x => !x.usage).length;
   const surfaces = Object.create(null);
   let provenanceEntries = 0;
@@ -364,7 +380,8 @@ export async function analyze(options) {
   const selected = options.session ? sessions.filter(x => x.id === options.session) : sessions.slice(0, options.limit);
   return { schema_version: 1, scope: { mode: options.mode, home: options.home, repo: options.repo,
     start: new Date(options.start).toISOString(), until: new Date(options.end).toISOString(), agents: options.agents },
-    coverage, surfaces, usage_provenance_limit: PROVENANCE_LIMIT, listed_sessions: selected.length, session_list_truncated: !options.session && sessions.length > selected.length,
+    coverage, surfaces, metadata_limits: METADATA_LIMITS, metadata_warning_limit: METADATA_WARNING_LIMIT,
+    usage_provenance_limit: PROVENANCE_LIMIT, listed_sessions: selected.length, session_list_truncated: !options.session && sessions.length > selected.length,
     sessions: selected.map(({ size, first, last, excerpts, ...session }) => ({ ...session,
       first: new Date(first).toISOString(), last: new Date(last).toISOString(),
       ...(options.session ? { excerpts } : {}) })) };
