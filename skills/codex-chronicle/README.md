@@ -58,6 +58,8 @@ Cumulative snapshots are validated before subtraction; malformed required
 totals break the baseline, and invalid subsets remain unknown. Aggregate usage
 is attributed by session, `usage_source`, and JSON field; log-line references
 accompany excerpts, not usage events.
+Event timestamps must be strings. Explicitly invalid session-start timestamps
+stay unknown and cannot establish a zero counter baseline.
 
 Correction signals are keyword-based candidates, not confirmed mistakes.
 Recommendations require inspection of surrounding conversations and current

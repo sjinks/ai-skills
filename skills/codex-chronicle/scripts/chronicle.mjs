@@ -12,6 +12,7 @@ const KNOWN = new Set(['session_meta', 'turn_context', 'response_item', 'event_m
 const integer = value => Number.isSafeInteger(value) && value >= 0;
 const validUsage = value => value && integer(value.input_tokens) && integer(value.output_tokens);
 const emptyUsage = () => Object.fromEntries(KEYS.map(key => [key, 0]));
+const timestampValue = value => typeof value === 'string' ? Date.parse(value) : NaN;
 
 function validatedSubsets(usage, warnings) {
   const counts = { ...usage };
@@ -172,13 +173,17 @@ async function readSession(file, options, coverage) {
       }
       const p = row.payload;
       if (!p || typeof p !== 'object' || Array.isArray(p)) { coverage.invalid_payloads++; continue; }
-      const timestamp = Date.parse(row.timestamp);
+      const timestamp = timestampValue(row.timestamp);
       if (row.type === 'session_meta') {
         session.id = typeof p.id === 'string' ? p.id : typeof p.session_id === 'string' ? p.session_id : null;
         session.cwd = typeof p.cwd === 'string' && path.isAbsolute(p.cwd) ? path.resolve(p.cwd) : null;
         session.subagent = p.thread_source === 'subagent' || Boolean(p.source?.subagent);
         session.surface = session.subagent ? 'subagent' : typeof p.source === 'string' ? p.source : 'unknown';
-        started = Date.parse(p.timestamp || row.timestamp);
+        started = timestampValue(p.timestamp === undefined ? row.timestamp : p.timestamp);
+        if (p.timestamp !== undefined && !Number.isFinite(started)) {
+          coverage.invalid_timestamps++;
+          session.warnings.push('Invalid session start timestamp: zero usage baseline unavailable');
+        }
       }
       if (row.type === 'turn_context') {
         model = typeof p.model === 'string' ? p.model : 'unknown';

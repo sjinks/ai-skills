@@ -112,12 +112,45 @@ test('invalid required counter totals break the baseline and never become a zero
 
 test('an invalid cumulative timestamp breaks rather than bridges the baseline', async t => {
   const f = await fixture(t);
-  await f.write('sessions/a.jsonl', [meta('a', '/repo', {}, before), counter(usage(100, 10), before),
-    counter(usage(150, 15), 'invalid'), counter(usage(200, 20)), counter(usage(250, 25))]);
+  for (const [i, timestamp] of ['invalid', 2026, null, false, [], [2026], {}].entries()) {
+    await f.write('sessions/' + i + '.jsonl', [meta('counter-' + i, '/repo', {}, before), counter(usage(100, 10), before),
+      counter(usage(150, 15), timestamp), counter(usage(200, 20)), counter(usage(250, 25))]);
+  }
   const r = await analyze(f.options());
-  assert.deepEqual(r.sessions[0].usage, usage(50, 5));
-  assert.equal(r.coverage.invalid_timestamps, 1);
-  assert.ok(r.sessions[0].warnings.some(w => w.startsWith('Invalid cumulative usage timestamp')));
+  assert.equal(r.coverage.invalid_timestamps, 7);
+  for (const s of r.sessions) {
+    assert.deepEqual(s.usage, usage(50, 5));
+    assert.ok(s.warnings.some(w => w.startsWith('Invalid cumulative usage timestamp')));
+  }
+});
+
+test('non-string event and metadata timestamps never enter window accounting or authorize zero baseline', async t => {
+  const f = await fixture(t);
+  // A numeric year is coercible by Date.parse; the selected window contains its parsed date.
+  const endpoint = '2026-01-02T00:00:00Z';
+  await f.write('sessions/events.jsonl', [meta('events', '/repo', {}, '2026-01-01T00:00:00Z'),
+    record('invalid', usage(900, 90), 2026), message('user', 'invalid', [2026]),
+    record('valid', usage(10, 1), '2026-01-01T12:00:00Z')]);
+  const options = parseArgs(['cost-tips', '--home', f.home, '--repo', '/repo', '--days', '2', '--until', endpoint]);
+  const r = await analyze(options);
+  assert.deepEqual(r.sessions[0].usage, usage(10, 1));
+  assert.equal(r.sessions[0].messages.user, 0);
+  assert.equal(r.coverage.invalid_timestamps, 2);
+  for (const [i, timestamp] of [2026, 0, null, false, '', [], [2026], {}].entries()) {
+    await f.write('sessions/start-' + i + '.jsonl', [meta('start-' + i, '/repo', { timestamp }, '2026-01-01T00:00:00Z'),
+      counter(usage(100, 10), '2026-01-01T12:00:00Z'), counter(usage(150, 15), '2026-01-01T13:00:00Z')]);
+  }
+  const starts = (await analyze(options)).sessions.filter(s => s.id.startsWith('start-'));
+  assert.equal(starts.length, 8);
+  for (const s of starts) {
+    assert.deepEqual(s.usage, usage(50, 5));
+    assert.ok(s.warnings.some(w => w.startsWith('Invalid session start timestamp')));
+  }
+  const missing = meta('missing-start', '/repo', {}, '2026-01-01T00:00:00Z');
+  delete missing.payload.timestamp;
+  await f.write('sessions/missing-start.jsonl', [missing, counter(usage(100, 10), '2026-01-01T12:00:00Z')]);
+  const fallback = (await analyze({ ...options, session: 'missing-start' })).sessions[0];
+  assert.deepEqual(fallback.usage, usage(100, 10));
 });
 
 test('missing usage and absent optional subsets remain unknown', async t => {

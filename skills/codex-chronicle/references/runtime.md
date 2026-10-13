@@ -43,6 +43,12 @@ With duplicate session IDs, it selects the largest file
 activity and must be disclosed. Growing logs are a best-effort snapshot.
 
 Metadata comes from `session_meta`; model/effort from `turn_context`. Messages
+and usage events require finite parsed string timestamps; non-string timestamps
+are invalid rather than coerced. An absent session-start timestamp falls back
+to the event timestamp; an explicitly invalid start remains unknown, warns,
+and cannot authorize a zero counter baseline. `invalid_timestamps` counts
+invalid event timestamps and explicitly invalid session-start timestamp fields.
+Messages
 come from `response_item`, with `event_msg` message fallback only when the file
 has no response messages for that role. Tool names and output lengths are
 observations; outputs are not interpreted as verified failures. Correction
