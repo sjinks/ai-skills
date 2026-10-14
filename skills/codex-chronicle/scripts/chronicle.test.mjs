@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, readFile, rm, symlink, rename, appendFile, truncate } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, readFile, rm, symlink, rename, appendFile, truncate, realpath } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -357,6 +357,63 @@ test('repository boundaries and agent scopes exclude neighbors; aggregates excee
   const rootOptions = f.options();
   rootOptions.repo = path.parse('/repo').root;
   assert.equal((await analyze(rootOptions)).coverage.matched_sessions, 3);
+});
+
+test('repository scope matches equivalent directory aliases while excluding physical neighbors', async t => {
+  const f = await fixture(t);
+  const repo = path.join(f.home, 'Repo');
+  const nested = path.join(repo, 'Nested');
+  const alias = path.join(f.home, 'alias');
+  const childAlias = path.join(f.home, 'child-alias');
+  const neighbor = repo + '-other';
+  await mkdir(nested, { recursive: true });
+  await mkdir(neighbor);
+  const caseVariant = path.join(f.home, 'REPO');
+  let caseSensitive = true;
+  try { await mkdir(caseVariant); }
+  catch (error) { if (error.code !== 'EEXIST') throw error; caseSensitive = false; }
+  await symlink(repo, alias);
+  await symlink(nested, childAlias);
+  await f.write('sessions/root.jsonl', [meta('root', repo), record('one', usage(10, 1))]);
+  await f.write('sessions/nested.jsonl', [meta('nested', nested), record('one', usage(20, 2))]);
+  await f.write('sessions/alias.jsonl', [meta('alias', childAlias), record('one', usage(30, 3))]);
+  await f.write('sessions/neighbor.jsonl', [meta('neighbor', neighbor), record('one', usage(900, 90))]);
+  await f.write('sessions/case.jsonl', [meta('case', caseVariant), record('one', usage(5, 1))]);
+  for (const selected of [repo, alias]) {
+    const r = await analyze({ ...f.options(), repo: selected });
+    assert.deepEqual(r.sessions.map(s => s.id).sort(), caseSensitive ? ['alias', 'nested', 'root'] : ['alias', 'case', 'nested', 'root']);
+    assert.equal(r.surfaces.vscode.measured_usage.input_tokens, caseSensitive ? 60 : 65);
+    assert.equal(r.scope.repo_path_resolution, 'filesystem_identity');
+    assert.equal(r.scope.repo_canonical, await realpath(repo));
+    assert.equal(r.coverage.repository_path_failures, 0);
+  }
+  const byCase = await analyze({ ...f.options(), repo: caseVariant });
+  assert.deepEqual(byCase.sessions.map(s => s.id).sort(), caseSensitive ? ['case'] : ['alias', 'case', 'nested', 'root']);
+});
+
+test('unavailable repository paths use disclosed lexical fallback with bounded diagnostics', async t => {
+  const f = await fixture(t);
+  const gone = path.join(f.home, 'gone');
+  await f.write('sessions/a.jsonl', [meta('a', path.join(gone, 'nested')), record('one', usage(10, 1))]);
+  const r = await analyze({ ...f.options(), repo: gone });
+  assert.deepEqual(r.sessions.map(s => s.id), ['a']);
+  assert.equal(r.scope.repo_path_resolution, 'lexical_fallback');
+  assert.equal(r.scope.repo_canonical, null);
+  assert.equal(r.coverage.repository_path_failures, 1);
+  assert.deepEqual(r.coverage.repository_path_warnings, [{ role: 'selected', code: 'ENOENT' }]);
+  const existing = path.join(f.home, 'existing');
+  await mkdir(existing);
+  for (let i = 0; i < 25; i++) {
+    await f.write('sessions/' + i + '.jsonl', [meta('missing-' + i, path.join(existing, String(i))), record('one', usage(1, 1))]);
+  }
+  const partial = await analyze({ ...f.options(), repo: existing });
+  assert.equal(partial.coverage.matched_sessions, 25);
+  assert.equal(partial.coverage.repository_path_failures, 26);
+  assert.equal(partial.coverage.repository_path_warnings.length, 20);
+  assert.equal(partial.coverage.repository_path_warnings_truncated, true);
+  const all = await analyze({ ...f.options(), repo: null });
+  assert.equal(all.scope.repo_path_resolution, 'not_applicable');
+  assert.equal(all.coverage.repository_path_failures, 0);
 });
 
 test('surface provenance retains eligible contributors independently of summary and drill-down limits', async t => {

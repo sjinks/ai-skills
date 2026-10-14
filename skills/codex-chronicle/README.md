@@ -66,6 +66,12 @@ These are per-field and diagnostic limits, not a total-output or memory cap.
 Unsafe token sums remain unknown and produce warnings at the affected session
 or client surface. Recorded working directories must be absolute to qualify for
 repository-scoped analysis; invalid paths remain unassigned.
+Existing directory aliases are matched through realpath resolution and
+device/inode ancestry, including equivalent case spellings. Distinct
+directories on case-sensitive filesystems stay separate. Unavailable selected
+or recorded directories use disclosed lexical fallback for historical paths;
+coverage records failures with at most 20 role/code diagnostics. These fallback
+matches have unverified physical identity. All-repository runs skip resolution.
 Cumulative snapshots are validated before subtraction; malformed required
 totals break the baseline, and invalid subsets remain unknown. Usage accounting
 prefers valid response records within the selected inclusive window, with

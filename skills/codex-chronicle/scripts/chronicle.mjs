@@ -1,5 +1,5 @@
 import { constants } from 'node:fs';
-import { readdir, lstat, open } from 'node:fs/promises';
+import { readdir, lstat, open, realpath, stat } from 'node:fs/promises';
 import { Readable } from 'node:stream';
 import { createInterface } from 'node:readline';
 import { homedir } from 'node:os';
@@ -323,11 +323,60 @@ async function readSession(file, options, coverage) {
   return session;
 }
 
+const lexicalDescendant = (root, cwd) => {
+  const relative = path.relative(root, cwd);
+  return relative !== '..' && !relative.startsWith('..' + path.sep) && !path.isAbsolute(relative);
+};
+
+async function repositoryScope(repo, coverage) {
+  const warn = (role, error) => {
+    coverage.repository_path_failures++;
+    if (coverage.repository_path_warnings.length < 20) {
+      coverage.repository_path_warnings.push({ role, code: error.code || 'UNKNOWN' });
+    }
+  };
+  if (repo === null) return { canonical: null, resolution: 'not_applicable', matches: async () => true };
+  const directory = async value => {
+    const canonical = await realpath(value);
+    const info = await stat(canonical, { bigint: true });
+    if (!info.isDirectory()) throw Object.assign(new Error('Not a directory'), { code: 'ENOTDIR' });
+    return { canonical, info };
+  };
+  let selected;
+  try { selected = await directory(repo); }
+  catch (error) {
+    warn('selected', error);
+    return { canonical: null, resolution: 'lexical_fallback', matches: async cwd => cwd !== null && lexicalDescendant(repo, cwd) };
+  }
+  const cache = new Map();
+  const matches = async cwd => {
+    if (cwd === null) return false;
+    if (cache.has(cwd)) return cache.get(cwd);
+    let result = false;
+    try {
+      let current = await directory(cwd);
+      for (;;) {
+        if (current.info.dev === selected.info.dev && current.info.ino === selected.info.ino) { result = true; break; }
+        const parent = path.dirname(current.canonical);
+        if (parent === current.canonical) break;
+        current = await directory(parent);
+      }
+    } catch (error) {
+      warn('recorded', error);
+      result = lexicalDescendant(repo, cwd) || lexicalDescendant(selected.canonical, cwd);
+    }
+    cache.set(cwd, result);
+    return result;
+  };
+  return { canonical: selected.canonical, resolution: 'filesystem_identity', matches };
+}
+
 export async function analyze(options) {
   const coverage = { files_discovered: 0, files_read: 0, matched_sessions: 0,
     duplicate_sessions: 0, metadata_missing: 0, missing_usage_sessions: 0,
     malformed_lines: 0, invalid_payloads: 0, invalid_timestamps: 0,
     metadata_fields_rejected: 0, metadata_warnings: [],
+    repository_path_failures: 0, repository_path_warnings: [],
     symlinks_skipped: 0, large_files_skipped: 0, directory_errors: [], file_errors: [], unknown_event_types: Object.create(null) };
   const files = [...await discover(path.join(options.home, 'sessions'), coverage),
     ...await discover(path.join(options.home, 'archived_sessions'), coverage)].sort();
@@ -342,17 +391,16 @@ export async function analyze(options) {
     if (previous) coverage.duplicate_sessions++;
     if (!previous || previous.size < session.size) unique.set(session.id, session);
   }
-  const sessions = [...unique.values()].filter(session => {
-    if (session.last === null) return false;
-    if (options.repo !== null) {
-      if (!session.cwd) return false;
-      const relative = path.relative(options.repo, session.cwd);
-      if (relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative)) return false;
-    }
-    return options.agents === 'all' || (options.agents === 'subagents' ? session.subagent : !session.subagent);
-  });
+  const repository = await repositoryScope(options.repo, coverage);
+  const sessions = [];
+  for (const session of unique.values()) {
+    if (session.last === null) continue;
+    if (options.agents !== 'all' && (options.agents === 'subagents' ? !session.subagent : session.subagent)) continue;
+    if (await repository.matches(session.cwd)) sessions.push(session);
+  }
   coverage.matched_sessions = sessions.length;
   coverage.metadata_warnings_truncated = coverage.metadata_fields_rejected > coverage.metadata_warnings.length;
+  coverage.repository_path_warnings_truncated = coverage.repository_path_failures > coverage.repository_path_warnings.length;
   coverage.missing_usage_sessions = sessions.filter(x => !x.usage).length;
   const surfaces = Object.create(null);
   let provenanceEntries = 0;
@@ -379,6 +427,7 @@ export async function analyze(options) {
     : b.correction_signals - a.correction_signals) || b.last - a.last || a.id.localeCompare(b.id));
   const selected = options.session ? sessions.filter(x => x.id === options.session) : sessions.slice(0, options.limit);
   return { schema_version: 1, scope: { mode: options.mode, home: options.home, repo: options.repo,
+    repo_canonical: repository.canonical, repo_path_resolution: repository.resolution,
     start: new Date(options.start).toISOString(), until: new Date(options.end).toISOString(), agents: options.agents },
     coverage, surfaces, metadata_limits: METADATA_LIMITS, metadata_warning_limit: METADATA_WARNING_LIMIT,
     usage_provenance_limit: PROVENANCE_LIMIT, listed_sessions: selected.length, session_list_truncated: !options.session && sessions.length > selected.length,

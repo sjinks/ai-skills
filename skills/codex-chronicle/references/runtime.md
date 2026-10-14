@@ -27,7 +27,7 @@ repository, not for an already-resolved default.
 ## Scope and drill-down
 
 - `--home PATH`: Codex data directory; defaults to `CODEX_HOME` or `~/.codex`.
-- `--repo PATH`: include sessions whose recorded working directory is this path or a descendant, with a path-separator boundary. Only absolute recorded paths are accepted; missing, empty, or relative paths remain `null` and are excluded from repository-scoped runs. They can still appear in an all-repositories run. Default: process working directory. This is directory scope, not remote-repository identity; separate worktrees require separate passes.
+- `--repo PATH`: include sessions whose recorded working directory is this directory or a descendant. Resolve existing directories with `realpath` and compare device/inode identity along the recorded directory's ancestors; equivalent symlink or case spellings do not require identical strings. Preserve distinct directories on case-sensitive filesystems. Only absolute recorded paths are accepted; missing, empty, or relative paths remain `null` and are excluded from repository-scoped runs. They can still appear in an all-repositories run. Default: process working directory. This is directory scope, not remote-repository identity; separate worktrees require separate passes.
 - `--all-repos`: explicitly widen scope; incompatible with `--repo` and `improve`.
 - `--days N`: positive integer, at most 3650. Default: 7 for `tips`, 30 otherwise.
 - `--until ISO`: inclusive endpoint with an explicit timezone. Require `YYYY-MM-DDTHH:mm:ss[.fraction]Z` or the same with `±HH:mm`; validate Gregorian month/day and leap years before parsing. Hours are 00–23 and minutes/seconds 00–59; impossible dates and normalized `24:00` are rejected. Default: current instant. Start is endpoint minus N times 24 hours, inclusive. These are rolling windows, not calendar-day boundaries.
@@ -55,6 +55,23 @@ provenance and a false truncation flag. Deduplication and scope filtering preced
 aggregation; the sample follows deterministic file-discovery order.
 This cap bounds the provenance payload, not the entire analyzer's memory;
 the complete session inventory still scales with history size.
+
+`scope.repo` retains the requested absolute path; `scope.repo_canonical` reports the
+resolved selected directory or `null`. `scope.repo_path_resolution` is
+`filesystem_identity`, `lexical_fallback` when the selected directory cannot be
+resolved, or `not_applicable` for all repositories. For an unavailable selected
+directory, retain historical analysis using lexical descendant matching with
+a path-separator boundary. If a recorded directory or ancestor cannot be
+resolved, compare its recorded spelling against the requested and canonical
+selected roots lexically. Such matches have unverified physical identity.
+Do not describe them as verified directory matches.
+`coverage.repository_path_failures` counts the selected-root failure and
+failures for distinct recorded paths checked after window/agent filtering;
+recorded-path results are cached. `coverage.repository_path_warnings` contains at most
+20 role/code diagnostics, with `coverage.repository_path_warnings_truncated` disclosing
+omissions. All-repository runs do not resolve repository paths. Resolution is
+a current-filesystem observation, not proof of historical identity or a
+race-proof access boundary.
 
 ## Sources and accounting
 
