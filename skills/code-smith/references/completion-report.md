@@ -15,7 +15,7 @@ Return all sections in order. Write an empty section as `None — <reason>`.
 `done | partial | blocked` — <one-sentence rationale>
 
 ## Changes
-- <file or change> → satisfies <US-/FR-/NFR-/INT-/AC-/EDGE-/D-/TC- as relevant>
+- <file or change> → satisfies <existing identifier or approved prose scope>
 
 ## Verification
 - Tests: <TC- IDs or prose test scope> — <passed | failed | skipped> (restated resolved command or None; exit status or reason)
@@ -23,12 +23,13 @@ Return all sections in order. Write an empty section as `None — <reason>`.
 - Self-review: <checklist run; findings and how they were addressed or reported>
 
 ## Gaps / Unmet ACs
-- <AC-/FR- id or check> — <why unmet, blocking question, or follow-up>
+- <existing identifier, approved prose scope, or check> — <why unmet, blocking question, or follow-up>
 
 ## Limitations
-- <absent contract field, unavailable optional reference/skill, missing test runner, or None>
+- <accepted carry-forward item with supplied disposition, rationale, and blocking questions; or other limitation>
 
 ## Deferred
+- <deferred carry-forward item with supplied disposition, rationale, and blocking questions>
 - Commit, branch, push, pull request, and deploy are out of Code Smith's scope.
 ```
 
@@ -42,6 +43,17 @@ Return all sections in order. Write an empty section as `None — <reason>`.
 - Absent test/build/lint tooling is a verification gap and prevents `done`.
 - In Verification, report an unavailable, blocked, or inconclusive test/build/lint as `skipped` with its exact reason. Preserve failing evidence as `failed`.
 
+## Carry-Forward Status Rules
+
+Preserve accepted items in `Limitations` and deferred items in `Deferred`, using their original identifiers or prose labels, dispositions, rationales, and blocking questions. Do not invent missing metadata.
+
+- Neither acceptance nor deferral waives verification or silently removes an item from the approved ready slice.
+- An accepted limitation or deferred item outside that slice does not by itself prevent `done`; all Status Rules still apply.
+- If an accepted or deferred item remains unmet within that slice, also list it in `Gaps / Unmet ACs`. It prevents `done` until fulfilled or removed by an explicit user scope amendment.
+- If the disposition conflicts with the approved slice, ask before dependent edits; do not silently select a scope.
+
+In `Changes` and `Gaps / Unmet ACs`, preserve every supplied identifier, including `US-`, `FR-`, `NFR-`, `INT-`, `AC-`, `EDGE-`, `D-`, and `TC-`. For items without IDs, use their existing prose scope or check labels.
+
 ## Reserved Handoff Surface
 
 The `Verification` and `Gaps / Unmet ACs` sections are the documented surface that future Test-execution, Review-execution, and Orchestrator agents will consume. Keep their shape stable; do not invoke or depend on those agents in this version.
@@ -54,12 +66,13 @@ Read this before producing the completion report. Run the checklist over the com
 
 ## Checklist
 
-- **Scope adherence.** Every change maps to a `US-`/`FR-`/`NFR-`/`INT-`/`AC-`/`EDGE-`/`D-`/`TC-` ID in the approved ready slice, or, when IDs are absent, to the approved prose scope. A behavior-preserving mechanical support edit required to compile/import an in-slice change must be listed as a flagged deviation. No change maps to `Excluded blocked scope`.
+- **Scope adherence.** Every edit to source, documentation, tests, fixtures, snapshots, manifests, lockfiles, or checked-in generated files maps to an identifier or prose scope in the approved ready slice, including any explicit user scope amendment obtained before the edit. Compile/import support edits have no independent exception. Disposable dependency caches and verification outputs do not expand the ready slice or authorize those edits. No change maps to `Excluded blocked scope`.
 - **No incidental work.** No unrequested refactors, renames, formatting sweeps, feature additions, or behavior changes outside the approved scope.
 - **Behavior preserved.** Unrelated existing work is preserved. Assess behavior outside the approved scope from inspected code and available checks; report uncertainty instead of claiming unobserved behavior.
 - **Verification actually ran.** The planned `TC-` tests and the project's targeted build/lint were attempted; results are recorded with restated resolved commands. If verification could not run, this is a gap, not a pass.
 - **Gaps are honest.** Every failed, skipped, or blocked check and every unmet acceptance criterion is listed as a gap, never reported as success.
+- **Carry-forward preserved.** Accepted items appear in `Limitations`; deferred items appear in `Deferred`. Their original identifiers or prose labels, dispositions, rationales, and blocking questions are preserved when supplied. Unmet items still in the approved slice also appear in `Gaps / Unmet ACs` and prevent `done`.
 - **Contract conflicts surfaced.** Any architecture-vs-repository conflict or upstream open question that blocked a choice is reported, not silently resolved.
-- **Safety respected.** Command effects were covered by the approved task or prior approvals; any additional approval required by the skill or host was obtained. Verification edits outside both approved scope and expected generated outputs were reported as failed checks. No hooks were bypassed; no secrets or PII were requested, echoed, logged, or persisted.
+- **Safety respected.** Command effects were covered by the approved task or prior approvals; any additional approval required by the skill or host was obtained. Verification edits violating the scope rules were reported as failed checks. No hooks were bypassed; no secrets or PII were requested, echoed, logged, or persisted.
 - **IDs preserved.** Existing IDs are referenced as-is; no new ID prefix was introduced.
 - **Report complete.** The completion report contains every required section, with empty sections written as `None — <reason>`.

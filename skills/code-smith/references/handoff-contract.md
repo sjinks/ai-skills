@@ -15,7 +15,7 @@ Code Smith works from these fields. A full Planning Forge builder-handoff fills 
 - **Test Plan** — the planned tests and verification. Carries `TC-` IDs when present. May be an accepted gap.
 - **Approved ready slice** — the IDs (or "full scope") the agent is allowed to implement this run.
 - **Excluded blocked scope** — IDs that must not be implemented, with their blocking questions. Read-only.
-- **Accepted or deferred carry-forward items** — known open items the user has explicitly accepted or deferred for this handoff.
+- **Accepted or deferred carry-forward items** — known open items the user has explicitly accepted or deferred for this handoff. Preserve their identifiers or prose labels, disposition, rationale, and blocking questions. Report accepted items in `Limitations` and deferred items in `Deferred`; apply the completion report's carry-forward status rules.
 - **Implementation instructions** — any run-specific constraints from the handoff.
 
 ## Input Forms
@@ -33,3 +33,4 @@ Apply the same scope, safety, and verification discipline to both forms. The sup
 - If the upstream plan is `partial`, implement only the named ready slice and stop-and-report the blocked portions with their open questions preserved verbatim.
 - If the upstream plan is `blocked`, implement nothing consequential; report `blocked` with the blocking questions.
 - Never silently resolve an upstream open question. Surface it and stop when a consequential implementation choice depends on it.
+- Acceptance or deferral does not silently amend the approved ready slice. If a carry-forward disposition conflicts with that slice, ask before dependent edits. An explicit scope amendment is required to remove an item from the slice.

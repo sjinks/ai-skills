@@ -10,6 +10,8 @@ Supply an implementation plan, specification, or builder handoff that identifies
 
 Missing architecture and test-plan fields are recorded as limitations. For a supplied plan without an explicit ready slice, the plan's scope becomes the ready slice, with that assumption stated. Missing or unclear plans, scope, or requirements are surfaced before edits. A partial upstream plan permits only its named ready slice; a blocked plan stops consequential implementation. Consequential open questions and architecture conflicts are surfaced before dependent edits.
 
+Edits to source, documentation, tests, fixtures, snapshots, manifests, lockfiles, or checked-in generated files outside the approved ready slice require an explicit user scope amendment before editing, including compile/import support work. Reporting a deviation does not authorize the edit.
+
 ## Example Request
 
 ```text
@@ -21,11 +23,11 @@ the completion report.
 
 ## Command Safety
 
-Command-safety rules live in `SKILL.md`. The approved task and prior user approvals cover routine inspection, in-scope edits, verification, and necessary project-local dependency setup. Expected dependency fetches and cache/build outputs alone do not require another confirmation; dependency and generated-file changes must remain within approved scope.
+Command-safety rules live in `SKILL.md`. The approved task and prior user approvals cover routine inspection, in-scope edits, verification, and necessary project-local dependency setup. Expected dependency fetches and disposable cache/build outputs alone do not require another confirmation. Edits to source, documentation, tests, fixtures, snapshots, manifests, lockfiles, and checked-in generated files must remain within the approved ready slice. Disposable dependency caches and verification outputs are part of authorized execution; they do not expand that slice.
 
 Unfamiliar commands require inspection of their scripts or configuration to identify targets and side effects. Material uncertainty about scope, unrelated data deletion, system/service changes, or sensitive-data exposure blocks execution until resolved.
 
-Additional approval is required only for effects not covered by the task or prior approvals, or when the host requires it. Authorization carries forward when command syntax changes but purpose, targets, and effects remain covered. Host instruction precedence and runtime permissions still apply. Verification edits outside both approved scope and expected generated outputs are failed checks.
+Additional approval is required only for effects not covered by the task or prior approvals, or when the host requires it. Authorization carries forward when command syntax changes but purpose, targets, and effects remain covered. Host instruction precedence and runtime permissions still apply. Verification edits violating the scope rules are failed checks.
 
 Git mutations, pull request actions, deployment, and production changes are outside this workflow and are reported in `Deferred`.
 
@@ -40,6 +42,8 @@ The report uses exactly one Build Status:
 - Otherwise, `partial` when meaningful implementation occurred but scope, verification, or self-review remains incomplete or failed.
 
 Absent test/build/lint tooling prevents `done`. An unavailable, blocked, or inconclusive test/build/lint check is reported as `skipped` with its reason; failing evidence stays `failed`. Expected behavior is never a substitute for observed verification.
+
+Accepted carry-forward items appear in `Limitations`; deferred items appear in `Deferred`, preserving supplied identifiers or prose labels, dispositions, rationales, and blocking questions. Neither disposition waives verification or silently changes the approved slice. An item outside that slice does not by itself prevent `done`; an unmet item still inside it also appears in `Gaps / Unmet ACs` and prevents `done` until fulfilled or removed by an explicit scope amendment. Both changes and gaps support every supplied identifier and ID-less prose scope.
 
 ## Files
 
