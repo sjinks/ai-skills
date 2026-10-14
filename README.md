@@ -119,6 +119,7 @@ The repository currently contains the following skills, grouped by area. Each li
 
 ### Platform & Tooling
 
+- [`codex-chronicle`](skills/codex-chronicle/README.md) — Analyze local Codex history for token-efficiency tips, workflow recommendations across repositories, and proposed project-instruction improvements with a read-only Node.js helper.
 - [`gh-cli`](skills/gh-cli/README.md) — GitHub CLI payloads, comment destinations, methods, pagination, and verified results, with supported body transport and failure handling.
 - [`shell-command-construction`](skills/shell-command-construction/README.md) — Check construction before every in-scope shell-tool submission, including routine and destructive commands; preserve quoting, argument boundaries and payload transport.
 - [`shell-portability`](skills/shell-portability/README.md) — Writing, reviewing, or fixing shell code against a declared shell/OS target or across multiple targets (POSIX sh vs bash/ksh/zsh, dash/busybox, GNU vs BSD/macOS coreutils), catching bashisms, non-portable utility flags, shebang mismatches, and locale/word-splitting hazards with portable replacements.
