@@ -1,0 +1,48 @@
+# code-smith
+
+> Implement a supplied implementation plan, specification, or builder handoff with scope locking, verification, and a completion report.
+
+Code Smith carries one approved implementation scope through intake, scope lock, implementation, verification, self-review, and a completion report. It runs in the current conversation. It does not require another skill, custom agent, or subagent.
+
+## Inputs
+
+Supply an implementation plan, specification, or builder handoff that identifies implementation scope and requirements. Architecture, a test plan, and formal IDs are optional. Existing IDs are preserved; plans without IDs use prose labels. Ordinary feature requests and bug fixes without a supplied plan are outside this skill's activation scope.
+
+Missing architecture and test-plan fields are recorded as limitations. For a supplied plan without an explicit ready slice, the plan's scope becomes the ready slice, with that assumption stated. Missing or unclear plans, scope, or requirements are surfaced before edits. A partial upstream plan permits only its named ready slice; a blocked plan stops consequential implementation. Consequential open questions and architecture conflicts are surfaced before dependent edits.
+
+## Example Request
+
+```text
+Use code-smith to implement the attached parser specification.
+Implement only its approved ready slice, preserve the public API and
+unrelated changes, run the planned tests and targeted lint, and return
+the completion report.
+```
+
+## Command Safety
+
+Command-safety rules live in `SKILL.md`. The approved task and prior user approvals cover routine inspection, in-scope edits, verification, and necessary project-local dependency setup. Expected dependency fetches and cache/build outputs alone do not require another confirmation; dependency and generated-file changes must remain within approved scope.
+
+Unfamiliar commands require inspection of their scripts or configuration to identify targets and side effects. Material uncertainty about scope, unrelated data deletion, system/service changes, or sensitive-data exposure blocks execution until resolved.
+
+Additional approval is required only for effects not covered by the task or prior approvals, or when the host requires it. Authorization carries forward when command syntax changes but purpose, targets, and effects remain covered. Host instruction precedence and runtime permissions still apply. Verification edits outside both approved scope and expected generated outputs are failed checks.
+
+Git mutations, pull request actions, deployment, and production changes are outside this workflow and are reported in `Deferred`.
+
+## Completion Report
+
+Every run returns these sections in order: `Build Status`, `Changes`, `Verification`, `Gaps / Unmet ACs`, `Limitations`, and `Deferred`.
+
+The report uses exactly one Build Status:
+
+- `blocked` when no meaningful implementation could proceed, or a required bundled reference is unavailable.
+- Otherwise, `done` only when the approved scope is implemented, required tests and discovered build/lint ran and passed, and self-review has no unresolved required finding.
+- Otherwise, `partial` when meaningful implementation occurred but scope, verification, or self-review remains incomplete or failed.
+
+Absent test/build/lint tooling prevents `done`. An unavailable, blocked, or inconclusive test/build/lint check is reported as `skipped` with its reason; failing evidence stays `failed`. Expected behavior is never a substitute for observed verification.
+
+## Files
+
+- [`SKILL.md`](SKILL.md) — activation, boundaries, workflow, stopping rules, and output contract.
+- [`references/handoff-contract.md`](references/handoff-contract.md) — input normalization, approved scope, absent fields, and conflicts.
+- [`references/completion-report.md`](references/completion-report.md) — report template, status precedence, handoff surface, and self-review checklist.
