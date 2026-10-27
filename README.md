@@ -38,6 +38,10 @@ The repository currently contains the following skills, grouped by area. Each li
 - [`type-safe-design`](skills/type-safe-design/README.md) — Designing, reviewing, refactoring, and test-planning type-safe architecture where contracts, validation states, generics, reflection, factories, and compiler feedback affect correctness and change locality.
 - [`data-migration-safety`](skills/data-migration-safety/README.md) — Planning or auditing schema and data migration implementations: expand-contract phases, idempotent batched backfills, concurrent-write accounting, per-phase rollback and verification, consumer switch mapping, and a labeled point-of-no-return.
 
+### Implementation
+
+- [`code-smith`](skills/code-smith/README.md) — Implementing a supplied implementation plan, specification, or builder handoff with scope locking, acceptance-criteria traceability, verification, and a factual completion report.
+
 ### Code Review & Quality
 
 - [`complexity-audit`](skills/complexity-audit/README.md) — Dedicated audits whose primary goal is avoidable complexity, with four evidence gates, behavior-preserving proposals, and explicit incomplete-review outcomes; read-only and excludes broader code-quality assessments.
