@@ -52,9 +52,11 @@ If tools, permissions, or information needed for implementation or verification 
 
 Return the completion report with these sections in order: `Build Status`, `Changes`, `Verification`, `Gaps / Unmet ACs`, `Limitations`, `Deferred`. Use `None — <reason>` for empty sections.
 
-- `done`: all approved scope is implemented, required tests and discovered build/lint ran and passed, and self-review has no unresolved required finding.
-- `partial`: meaningful implementation occurred, but scope, verification, or self-review remains incomplete or failed.
-- `blocked`: no meaningful implementation could proceed, or a required bundled reference is unavailable.
+Apply these gates in order. A completed deliverable is an identifiable behavior, document, or test required by the approved scope that is implemented and retained; investigation and unfinished edits do not count.
+
+- `blocked`: a required bundled reference is unavailable, or no approved-scope deliverable is completed. Name the blocker or unfinished work.
+- Otherwise, `done`: all approved scope is implemented, required tests and discovered build/lint ran and passed, and self-review has no unresolved required finding.
+- Otherwise, `partial`: at least one approved-scope deliverable is completed, but scope, verification, or self-review remains incomplete or failed.
 
 Report absent test/build/lint tooling as a verification gap, preventing `done`. For plans without IDs, evaluate these gates against the supplied prose scope.
 

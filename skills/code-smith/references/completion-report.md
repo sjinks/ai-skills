@@ -19,7 +19,7 @@ Return all sections in order. Write an empty section as `None — <reason>`.
 
 ## Verification
 - Tests: <TC- IDs or prose test scope> — <passed | failed | skipped> (restated resolved command or None; exit status or reason)
-- Build/Lint: <passed | failed | skipped> (restated resolved command or None; exit status or reason)
+- Build/Lint: <build or lint check> — <passed | failed | skipped> (restated resolved command or None; exit status or reason)
 - Self-review: <checklist run; findings and how they were addressed or reported>
 
 ## Gaps / Unmet ACs
@@ -33,15 +33,24 @@ Return all sections in order. Write an empty section as `None — <reason>`.
 - Commit, branch, push, pull request, and deploy are out of Code Smith's scope.
 ```
 
+## Verification Entries
+
+Within each category, emit one `Tests` or `Build/Lint` entry per distinct command; for a check without a command, emit one entry per check. Do not add category-wide aggregate entries. Include every planned test and discovered targeted build/lint check, even if it could not run. If a category has no tooling, emit exactly one `skipped` entry for that category with command `None` and the missing-tooling reason. Emit `Self-review` exactly once after those entries.
+
+If one command covers multiple checks, list their IDs or prose labels in its entry. Assign `failed` if any covered check failed; otherwise assign `skipped` if any covered check was unavailable, blocked, or inconclusive; otherwise assign `passed`. Describe mixed outcomes in that entry and list every failed or skipped check separately in `Gaps / Unmet ACs`. Do not infer an individual pass from an aggregate success without supporting evidence.
+
+For reruns of the same check, report its latest observed result and preserve earlier failures with their resolution or remaining impact in the same entry. A successful rerun can close the corresponding gap; unresolved failures remain gaps.
+
 ## Status Rules
 
 - Use exactly one Build Status.
-- `blocked` when no meaningful implementation could proceed, or a required bundled reference is unavailable. Name the blocker.
+- Apply the status gates below in order. A completed deliverable is an identifiable behavior, document, or test required by the approved scope that is implemented and retained; investigation and unfinished edits do not count.
+- `blocked` when a required bundled reference is unavailable, or no approved-scope deliverable is completed. Name the blocker or unfinished work.
 - Otherwise, `done` only when all approved scope is implemented, required tests and discovered build/lint ran and passed, and self-review has no unresolved required finding.
-- Otherwise, `partial`: meaningful implementation occurred, but scope, verification, or self-review is incomplete or failed. Name what remains.
+- Otherwise, `partial`: at least one approved-scope deliverable is completed, but scope, verification, or self-review is incomplete or failed. Name what remains.
 - For scope without IDs, apply the same gates to the approved prose scope. Report changes against that scope without inventing IDs.
 - Absent test/build/lint tooling is a verification gap and prevents `done`.
-- In Verification, report an unavailable, blocked, or inconclusive test/build/lint as `skipped` with its exact reason. Preserve failing evidence as `failed`.
+- In Verification, report an unavailable, blocked, or inconclusive test/build/lint as `skipped` with its exact reason. Preserve failing evidence as `failed`, applying Verification Entries for mixed outcomes and reruns.
 
 ## Carry-Forward Status Rules
 
@@ -69,10 +78,10 @@ Read this before producing the completion report. Run the checklist over the com
 - **Scope adherence.** Every edit to source, documentation, tests, fixtures, snapshots, manifests, lockfiles, or checked-in generated files maps to an identifier or prose scope in the approved ready slice, including any explicit user scope amendment obtained before the edit. Compile/import support edits have no independent exception. Disposable dependency caches and verification outputs do not expand the ready slice or authorize those edits. No change maps to `Excluded blocked scope`.
 - **No incidental work.** No unrequested refactors, renames, formatting sweeps, feature additions, or behavior changes outside the approved scope.
 - **Behavior preserved.** Unrelated existing work is preserved. Assess behavior outside the approved scope from inspected code and available checks; report uncertainty instead of claiming unobserved behavior.
-- **Verification actually ran.** The planned `TC-` tests and the project's targeted build/lint were attempted; results are recorded with restated resolved commands. If verification could not run, this is a gap, not a pass.
-- **Gaps are honest.** Every failed, skipped, or blocked check and every unmet acceptance criterion is listed as a gap, never reported as success.
+- **Verification actually ran.** The planned `TC-` tests and the project's targeted build/lint were attempted; results are recorded with restated resolved commands. Apply Verification Entries for cardinality, mixed outcomes, missing tooling, and reruns. If verification could not run, this is a gap, not a pass.
+- **Gaps are honest.** Every unresolved failed, skipped, or blocked check and every unmet acceptance criterion is listed as a gap, never reported as success. A successful rerun closes a check's gap only as specified in Verification Entries.
 - **Carry-forward preserved.** Accepted items appear in `Limitations`; deferred items appear in `Deferred`. Their original identifiers or prose labels, dispositions, rationales, and blocking questions are preserved when supplied. Unmet items still in the approved slice also appear in `Gaps / Unmet ACs` and prevent `done`.
-- **Contract conflicts surfaced.** Any architecture-vs-repository conflict or upstream open question that blocked a choice is reported, not silently resolved.
+- **Contract conflicts surfaced.** Any architecture-vs-repository conflict or upstream open question that blocked a choice is reported. Dependent edits wait for user resolution; a scope amendment is required only when that resolution changes the approved ready slice.
 - **Safety respected.** Command effects were covered by the approved task or prior approvals; any additional approval required by the skill or host was obtained. Verification edits violating the scope rules were reported as failed checks. No hooks were bypassed; no secrets or PII were requested, echoed, logged, or persisted.
 - **IDs preserved.** Existing IDs are referenced as-is; no new ID prefix was introduced.
 - **Report complete.** The completion report contains every required section, with empty sections written as `None — <reason>`.

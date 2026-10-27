@@ -10,6 +10,8 @@ Supply an implementation plan, specification, or builder handoff that identifies
 
 Missing architecture and test-plan fields are recorded as limitations. For a supplied plan without an explicit ready slice, the plan's scope becomes the ready slice, with that assumption stated. Missing or unclear plans, scope, or requirements are surfaced before edits. A partial upstream plan permits only its named ready slice; a blocked plan stops consequential implementation. Consequential open questions and architecture conflicts are surfaced before dependent edits.
 
+Architecture conflicts require user resolution through a revised design or explicit decision before dependent edits resume. A scope amendment is required only if that resolution changes the approved ready slice.
+
 Edits to source, documentation, tests, fixtures, snapshots, manifests, lockfiles, or checked-in generated files outside the approved ready slice require an explicit user scope amendment before editing, including compile/import support work. Reporting a deviation does not authorize the edit.
 
 ## Example Request
@@ -35,13 +37,15 @@ Git mutations, pull request actions, deployment, and production changes are outs
 
 Every run returns these sections in order: `Build Status`, `Changes`, `Verification`, `Gaps / Unmet ACs`, `Limitations`, and `Deferred`.
 
-The report uses exactly one Build Status:
+The report uses exactly one Build Status, applying these gates in order. A completed deliverable is an identifiable behavior, document, or test required by the approved scope that is implemented and retained; investigation and unfinished edits do not count.
 
-- `blocked` when no meaningful implementation could proceed, or a required bundled reference is unavailable.
+- `blocked` when a required bundled reference is unavailable, or no approved-scope deliverable is completed.
 - Otherwise, `done` only when the approved scope is implemented, required tests and discovered build/lint ran and passed, and self-review has no unresolved required finding.
-- Otherwise, `partial` when meaningful implementation occurred but scope, verification, or self-review remains incomplete or failed.
+- Otherwise, `partial` when at least one approved-scope deliverable is completed but scope, verification, or self-review remains incomplete or failed.
 
 Absent test/build/lint tooling prevents `done`. An unavailable, blocked, or inconclusive test/build/lint check is reported as `skipped` with its reason; failing evidence stays `failed`. Expected behavior is never a substitute for observed verification.
+
+Within each `Verification` category, `Tests` and `Build/Lint` have one entry per distinct command, or per check without a command; there is no category-wide aggregate entry. `Self-review` appears once. A category without tooling has one `skipped` entry with command `None`. For a command covering multiple checks, any failure yields `failed`; otherwise any unavailable, blocked, or inconclusive check yields `skipped`; otherwise it is `passed`. Entries explain mixed outcomes, with each failed or skipped check listed as a gap. Reruns use the latest observed result and retain earlier failure history and resolution in the same entry; successful reruns close the corresponding gaps.
 
 Accepted carry-forward items appear in `Limitations`; deferred items appear in `Deferred`, preserving supplied identifiers or prose labels, dispositions, rationales, and blocking questions. Neither disposition waives verification or silently changes the approved slice. An item outside that slice does not by itself prevent `done`; an unmet item still inside it also appears in `Gaps / Unmet ACs` and prevents `done` until fulfilled or removed by an explicit scope amendment. Both changes and gaps support every supplied identifier and ID-less prose scope.
 
