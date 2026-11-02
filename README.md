@@ -59,6 +59,7 @@ The repository currently contains the following skills, grouped by area. Each li
 - [`test-gap-to-test-plan`](skills/test-gap-to-test-plan/README.md) — Converting review findings and unverified behaviors into a prioritized, owned, layer-typed test plan that tracks the test evidence a downstream merge gate will require.
 - [`test-design`](skills/test-design/README.md) — Designing and implementing a compact set of behavior-driven automated tests for a feature or module, or assessing suite-level gaps, with explicit defect signals and honest verification.
 - [`test-quality-review`](skills/test-quality-review/README.md) — Auditing test code or writing one preselected test for quality: whether it can fail for one behavioral reason, targets observable behavior over incidental detail, is deterministic and isolated, and covers the negative/boundary paths it claims, returning a per-test `solid`/`weak`/`cannot-fail` verdict.
+- [`test-suite-audit`](skills/test-suite-audit/README.md) — Auditing existing test-suite adequacy through contract traces, assertion provenance, isolation, determinism, redundancy, and qualified mutation evidence, with explicit scope and completion status.
 
 ### Debugging & Refactoring
 
