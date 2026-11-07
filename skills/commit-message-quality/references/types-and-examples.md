@@ -4,6 +4,10 @@ When to read: when selecting a conventional type, classifying a removal, or illu
 
 The core defines rule precedence, decisions and report structure. The type descriptions and removal choices below are fallback message defaults; apply caller and readable repository rules first under the core precedence. Examples are non-normative and use hypothetical supplied issue/change context.
 
+## Subject grammar
+
+In conventional mode use a lowercase type from `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`; optional scope is enclosed in parentheses and consists of comma-separated `[a-z0-9][a-z0-9-]*` tokens without spaces; optional `!`; then exactly `: ` and an imperative description. Plain mode omits the prefix. In both modes, the description starts lowercase unless a proper noun/acronym. The core owns punctuation, whole-subject length and selected-rule precedence.
+
 ## Conventional type selection
 
 | Type | Use for |
@@ -56,14 +60,14 @@ A message says the change eliminates production timeouts, but the only evidence 
 
 Deleting a supplied, known-invalid optional footer during repair uses `Footers: none — rewritten`, an `error` finding describing the correction, and `CONCERNS`. An already absent permitted footer uses `Footers: none — compliant`.
 
-Deleting a supplied invalid body from a trivial change uses `Body: n/a (trivial) — rewritten`. If selected repository rules permit no body for a nontrivial change, correction by deletion uses `Body: pass — rewritten`; intentional omission while drafting uses `Body: pass — compliant`. Required unknown facts or rules override these passing examples with `fail (...) — needs-author-input`.
+Deleting a filler body when the subject carries all required context uses `Body: n/a (not needed) — rewritten`. Intentionally omitting an unnecessary body while drafting uses `Body: n/a (not needed) — compliant`. A rule requiring a body or missing required context overrides these passing examples; unresolved required facts use `fail (...) — needs-author-input`.
 
 ## Footer and input-finding illustrations
 
-A hypothetical trivial change with supplied real issue #123 may omit Body while retaining a footer separated from Subject:
+A hypothetical change whose subject carries all required context, with supplied real issue #123, may omit Body while retaining a footer separated from Subject:
 
 ```text
-docs: clarify setup instructions
+docs(cli): correct the spelling of configuration in help
 
 Closes #123
 ```
