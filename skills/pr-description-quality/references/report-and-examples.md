@@ -73,8 +73,32 @@ Examples illustrate existing rules:
 - A diff contains excluded content but safe title/body pass: compliant parts, Input/error finding, CONCERNS; no extra check.
 - Unsupported passing-test claim: validate marks Body needs-author-input; rewrite omits the claim and states the evidence limitation with the same status until facts arrive. Missing evidence never proves no checks ran.
 - Confirmed no checks: honest limitation passes description quality; drafting still yields rewritten and CONCERNS.
+- Supplied routine passing checks, with no meaningful regression scenario supplied: omit the routine success inventory from a drafted body unless a core exception applies. Do not invent coverage, say validation evidence was absent, or request more checks merely to fill Testing. Leave the default Testing section empty when no body-worthy verification content remains; preserve any selected template's checklist rules.
+- A draft includes a supported but unnecessary unit-suite count, version matrix, full head hash and agent review verdict: rewrite removes these body details under the default omissions; validate preserves safe text and reports the unnecessary details as Body/error, noncompliant/fail. An explicit caller/template requirement permits supported details; it does not permit unsupported success or attribution.
+- A supplied failing compatibility check affects the changed behavior: retain the failure and relevant environment limitation, even though routine successful checks are omitted. Proposed reproduction steps remain unrun; coverage alone is not a passing-test claim.
+- A body says "fails closed" but the supplied evidence does not establish whether the finding remains or approval is withheld: request the missing behavior fact. Do not invent an outcome to make the prose concrete.
 - Multiple unresolved templates or unreadable required template: BLOCK; no default compliance claim.
 - Reverted breaking API change: omit canceled claim; unresolved final-evidence conflict needs author input.
 - Optional missing issue: omit default Linked issues or leave its template section empty; do not block/invent a closure reference.
 
 Mixed-type selection and caller-supplied structure follow the core and evidence reference: an equally primary feature/fix pair selects feat under the default tie order; a custom caller heading set uses Structure: template. Both passing unchanged parts still yield CONCERNS if excluded source content was found.
+
+## Reviewer-focused body example
+
+This illustrative body assumes evidence establishes every stated behavior and coverage case. It uses the default headings; a selected template replaces that structure. It does not claim that the tests ran or passed. This is only the Body payload: the full report still requires its opening markers and Title before it, and Checks, Findings and Needs author input after it.
+
+```markdown
+## Summary
+
+Two PRs can share a head commit while using different bases. A file can therefore contain a nonfunctional change in one PR and a functional change in the other. Previously, approval for that filename in one PR could suppress the other PR's finding.
+
+## Changes
+
+Approval reasons are now scoped to each PR and filename. When approval state is missing, the finding and error count remain and automatic approval is withheld.
+
+## Testing
+
+Regression tests cover the shared-head, different-base scenario in both processing orders. They verify that only the eligible PR receives approval and the other retains its finding and error count.
+```
+
+If evidence establishes a compatibility effect from changing the approval-state format, describe that effect as well. If the required persistence or migration facts are unknown, request them rather than copying an unsupported compatibility claim into this example.
