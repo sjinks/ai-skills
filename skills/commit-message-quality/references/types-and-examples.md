@@ -1,8 +1,32 @@
-When to read: when selecting a conventional type, classifying a removal, or illustrating a message rewrite or split.
+Read the Report format section before emitting a report. Read the remaining sections when selecting a conventional type, classifying a removal, or illustrating a message rewrite or split.
 
 # Types and Examples
 
-The core defines rule precedence, decisions and report structure. The type descriptions and removal choices below are fallback message defaults; apply caller and readable repository rules first under the core precedence. Examples are non-normative and use hypothetical supplied issue/change context.
+The core defines rule precedence and decisions; the Report format section below defines report serialization. The type descriptions and removal choices below are fallback message defaults; apply caller and readable repository rules first under the core precedence. Examples are non-normative and use hypothetical supplied issue/change context.
+
+## Report format
+
+Use these exact markers in order; do not substitute labels. Replace every report-template placeholder with concrete content, including both BLOCK fields. Preserve literal angle-bracket text in supplied messages.
+
+- `## Commit Message Quality Report`
+- `Verdict:` — `CLEAN`, `CONCERNS`, or `BLOCK`.
+- `Mode:` — `conventional` or `plain`.
+- `### Commit message` — full message in a `text` fence; use a fence longer than any backtick run in the message.
+- `### Checks` — exactly three bullets, each `<part>: <result> — <status>`; failure reasons name violated contract items or required missing facts or message rules:
+  - `Subject:` result is `pass`, `pass (length: <N> chars, over 50)`, or `fail (reason)`. Replace `<N>` with the measured whole-subject character count as a decimal integer.
+  - `Body:` result is `pass`, `fail (reason)`, or `n/a (not needed)`.
+  - `Footers:` result is `pass`, `fail (reason)`, or `none`.
+- `### Findings` — bullets `<anchor>: <severity> — <detail>`, with anchor `Subject`, `Body`, `Footers`, `Input`, or `Convention`. For `error`, detail names the violation and correction. For `warning`, detail names the unresolved fact or message rule and required input. Use `Input` only for excluded source content outside the message parts, with severity `error`. For required non-violating cleanup advice, use `Body: information — <cleanup preservation status and advice>`; say `unverified` when effective cleanup is unknown. Include `Convention: information — <evidence or assumption>`; `Convention` uses only `information`.
+- `### Split recommendation` — proposed commits or `- None`.
+- `### Needs author input` — exact missing facts or required message rules or `- None`.
+
+Use bullets outside the message fence. For an empty Findings, Split recommendation or Needs author input list, use `- None`. A full report always has convention information, so its Findings list is not empty.
+
+For unusable input, the core's reduced BLOCK template replaces the full form, including Mode and all section headings. Do not emit an incomplete full report.
+
+The core's verdict policy deliberately returns `CONCERNS` for newly drafted or corrected text, including passing text. Do not copy another report's verdict semantics or treat a passing draft as `CLEAN`.
+
+The complete validation example below is illustrative, not a second source of decision rules.
 
 ## Subject grammar
 

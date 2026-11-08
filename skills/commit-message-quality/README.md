@@ -2,9 +2,9 @@
 
 > Prepare or assess commit messages that preserve motivation, decisions and behavioral consequences for humans and LLMs reading Git history without PR access.
 
-Standalone usefulness comes before formatting. Explain the problem or trigger, its impact and the resulting behavior. Preserve consequential choices and their evidenced reasons, constraints, invariants and compatibility effects. Links supplement that explanation. Stable domain terms and exact identifiers help future readers find and interpret decisions; vague activity summaries and file inventories do not replace outcomes.
+Standalone usefulness comes before formatting and report statuses. Lead with the primary outcome and explain the problem or trigger and impact needed to understand it. Check supplied changes for separate behavior, compatibility, licensing and verification effects. Preserve consequential choices and their evidenced reasons, constraints, invariants and compatibility effects. Maintenance changes do not need invented failure stories, and mechanical edits do not each need a reason. Links supplement the explanation. Stable domain terms and exact identifiers help future readers find and interpret decisions; vague activity summaries and file inventories do not replace outcomes.
 
-Require a body when the subject omits needed context or selected rules require one. Otherwise a self-contained subject is enough, regardless of diff size. Omitted unnecessary Body now uses `n/a (not needed)` rather than `n/a (trivial)`; omission status still distinguishes intentional/already absent content from correction by deletion. Routine check inventories, counts and process history are omitted by default. Retain a regression scenario, observation or reproduction detail when it explains a defect, decision or boundary; distinguish intended coverage from executed results.
+Require a body when the subject omits needed context or selected rules require one. Otherwise a self-contained subject is enough, regardless of diff size. Omitted unnecessary Body uses `n/a (not needed)`; omission status still distinguishes intentional/already absent content from correction by deletion. Routine successful build, lint, test and CI results, counts and process history are omitted by default. Retain a regression scenario, observation or reproduction detail when it explains a defect, decision or boundary; distinguish intended coverage from executed results. Retain material failures and verification gaps with the affected behavior and practical consequence. Missing routine evidence alone needs neither author input nor a disclaimer.
 
 Individual messages describe their own changes. Squash/combined messages describe the final surviving change, retaining still-relevant rationale without stale approaches or concatenated fixup chronology. Missing required rationale or unresolved final scope needs author input. Optional unknown alternatives, deliberation and runtime-success claims are not invented.
 
@@ -16,7 +16,7 @@ Sensitive content is excluded in every mode. An excluded-source Input/error requ
 
 ## Files
 
-- [`SKILL.md`](SKILL.md) — routing, standalone content criteria, grammar defaults, status/verdict rules and report contract.
+- [`SKILL.md`](SKILL.md) — routing, standalone content criteria, grammar defaults, status/verdict rules and report markers.
 - [`references/history-and-rationale.md`](references/history-and-rationale.md) — motivation, decisions, body necessity, squash scope, illustrations and static regression cases.
-- [`references/types-and-examples.md`](references/types-and-examples.md) — subject grammar, type/removal policy, evidence/omission examples and a complete validation report.
+- [`references/types-and-examples.md`](references/types-and-examples.md) — report serialization, subject grammar, type/removal policy, evidence/omission examples and a complete validation report.
 - [`references/git-cleanup.md`](references/git-cleanup.md) — comment-like heading preservation and conditional cleanup advice.

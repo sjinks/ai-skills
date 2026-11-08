@@ -24,7 +24,7 @@ Apply the skill to the message-preparation subtask when the current workflow req
 ## Workflow
 
 1. Select the requested operation. Draft from a supplied diff/change description when no message exists. Audit/rewrite a supplied draft when repair is requested. Validate when asked only to check a message: preserve it except removal or redaction required by the disclosure restrictions in Contract; report corrections without applying them. Follow Error Handling when usable input is unavailable.
-2. Establish the intended final change and apply Standalone history usefulness before checking formatting. Detect convention using Convention detection before checking grammar.
+2. Establish the intended final change and select content under Standalone history usefulness before checking formatting or assigning report statuses. Keep content selection internal. Detect convention using Convention detection before checking grammar.
 3. Check Subject, Body, and Footers under the contract. Read [types and examples](references/types-and-examples.md) when type selection or an illustration is needed. Apply Scope and evidence to the supplied commit scope and every substantive claim.
 4. Assign each part a status and check result. Ask only for author facts or required message rules needed to assess or complete the message; omit optional unknown issue links or attribution instead of blocking; do not invent issue keys, breaking-change claims, attribution, signoffs, or test evidence. Select the verdict, emit the report, and apply the checklist. Stop after one report.
 
@@ -32,7 +32,9 @@ Apply the skill to the message-preparation subtask when the current workflow req
 
 Write for humans and LLMs with Git history but no PR, issue tracker or task conversation. External sources can supply evidence. Include the facts needed to understand the change without opening those sources. Issue links supplement the explanation.
 
-Describe the problem or trigger, its impact, and the intended behavioral change. Preserve consequential decisions and their evidenced reasons, constraints or invariants that a future change could violate, and compatibility or migration effects. Include an alternatives comparison only when needed to explain a consequential choice or required by selected rules. Request missing required rationale. Use evidenced options and reasons; guarantees require supporting evidence.
+Lead with the primary outcome. Include the problem or trigger and its impact when needed to understand that outcome. Do not invent a prior failure to justify a maintenance change. Check every supplied change for a separate effect on behavior, compatibility, licensing or verification boundaries. Preserve each evidenced effect needed to understand the commit's consequences.
+
+Preserve consequential decisions and their evidenced reasons, constraints or invariants that a future change could violate, and compatibility or migration effects. Include reasons and alternatives only when needed to explain a consequential choice or required by selected rules. Request missing required rationale; do not request a reason for every mechanical edit. Use evidenced options and reasons; guarantees require supporting evidence.
 
 Use concrete outcomes and stable domain terms or exact identifiers when they help retrieval or disambiguation. Explain the mechanism when it makes a decision or invariant understandable. Replace vague activity summaries such as “align behavior” or “update coverage” when they hide the outcome; omit file inventories and line-by-line diff narration.
 
@@ -54,7 +56,7 @@ Compare behavior, rationale, compatibility, and completion claims with supplied 
 
 Subject: name the primary outcome in one concrete imperative line without a trailing period. Use the selected convention and the [subject grammar](references/types-and-examples.md#subject-grammar); plain mode omits the conventional prefix. By default, limit the whole subject to 72 characters. Apply the selected limit before checking length; passing subjects over 50 characters use the length note, including explicitly authorized limits above 72.
 
-Body: require it when the subject omits context needed by Standalone history usefulness or selected rules require a body. Otherwise omit it; decide by missing information, not change size or a trivial/nontrivial label. Avoid filler such as `No functional change.` when it adds no context. Separate an included body from the subject by a blank line and wrap prose near 72 characters unless the caller requests otherwise. Retain regression scenarios, observations or reproduction details when they explain the defect, decision, constraint or behavioral boundary. Omit routine pass summaries, test counts, exact tool versions, review verdicts and process chronology unless needed to understand or reproduce the change or required by selected rules. Distinguish intended coverage from observed results. Execution claims require observed results; test presence establishes intended coverage. Read [Git cleanup](references/git-cleanup.md) before returning comment-like headings; it defines preservation advice.
+Body: require it when the subject omits context needed by Standalone history usefulness or selected rules require a body. Otherwise omit it; decide by missing information, not change size or a trivial/nontrivial label. Avoid filler such as `No functional change.` when it adds no context. Separate an included body from the subject by a blank line and wrap prose near 72 characters unless the caller requests otherwise. Retain regression scenarios, observations or reproduction details when they explain the defect, decision, constraint or behavioral boundary. Omit routine successful build, lint, test and CI results, test counts, exact tool versions, review verdicts and process chronology unless needed to understand or reproduce the change or required by selected rules. Retain material failures or verification gaps; name the affected claim or behavior and practical consequence. Missing routine evidence alone requires neither author input nor a disclaimer. Distinguish intended coverage from observed results. Execution claims require observed results; test presence establishes intended coverage. Read [Git cleanup](references/git-cleanup.md) before returning comment-like headings; it defines preservation advice.
 
 Footers: by default, separate the footer block from the preceding subject or body with a blank line. Include only real issue references (`Closes #123`, `Fixes #456`, `Refs #789`, or required project form) and real attribution/signoff trailers. Every breaking change requires `BREAKING CHANGE: <description>` in either mode; conventional mode also requires `!`. A supplied `!` without a breaking description fails Footers; unknown breaking intent needs author input rather than a fabricated claim.
 
@@ -79,19 +81,7 @@ Verdict precedence: `BLOCK` only for unusable input; otherwise `CONCERNS` if any
 
 ## Output
 
-Use these exact markers in order; do not substitute labels. In every report, replace every report-template placeholder with concrete content, including both BLOCK fields; do not copy template placeholders literally. Preserve literal angle-bracket text in supplied messages:
-
-- `## Commit Message Quality Report`
-- `Verdict:` — `CLEAN`, `CONCERNS`, or `BLOCK`.
-- `Mode:` — `conventional` or `plain`.
-- `### Commit message` — full message in a `text` fence; use a fence longer than any backtick run in the message.
-- `### Checks` — exactly three bullets, each `<part>: <result> — <status>`; failure reasons name violated contract items or required missing facts or message rules:
-  - `Subject:` result is `pass`, `pass (length: <N> chars, over 50)`, or `fail (reason)`. Replace `<N>` with the measured whole-subject character count as a decimal integer.
-  - `Body:` result is `pass`, `fail (reason)`, or `n/a (not needed)`.
-  - `Footers:` result is `pass`, `fail (reason)`, or `none`.
-- `### Findings` — bullets `<anchor>: <severity> — <detail>`, with anchor `Subject`, `Body`, `Footers`, `Input`, or `Convention`. For `error`, detail names the violation and correction. For `warning`, detail names the unresolved fact or message rule and required input. Use `Input` only for excluded source content outside the message parts, with severity `error`. For required non-violating cleanup advice, use `Body: information — <cleanup preservation status and advice>`; say `unverified` when effective cleanup is unknown. Include `Convention: information — <evidence or assumption>`; `Convention` uses only `information`.
-- `### Split recommendation` — proposed commits or `- None`.
-- `### Needs author input` — exact missing facts or required message rules or `- None`.
+Read [report format](references/types-and-examples.md#report-format) before emitting a report; it defines serialization and check-result fields. Use exact markers in order: `## Commit Message Quality Report`, `Verdict:`, `Mode:`, `### Commit message`, `### Checks`, `### Findings`, `### Split recommendation`, `### Needs author input`. Full reports use conventional/plain mode and exactly three checks: Subject, Body, Footers. Use the reduced template below only for Error Handling. Status, severity and verdict rules remain above.
 
 ## Checklist and Done
 
