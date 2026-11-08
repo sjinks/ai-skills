@@ -107,5 +107,7 @@ Each case assumes readable repository/caller rules with no template or special t
 | PRD-20 | Default title selection with three of five supplied conventional titles; then two of four. | Conventional mode first; plain mode for tie. Body template fallback does not change title selection. |
 | PRD-21 | Validate a body containing an empty explicitly optional Testing heading; no repair requested. | Preserve safe Body including the heading; report the relevance violation; Body noncompliant/fail and CONCERNS. |
 | PRD-22 | Title-only review passes, but supplied unrequested Body contains forbidden content. | Empty Body fence with not-assessed; sanitized Input/error; CONCERNS despite passing Title. |
+| PRD-23 | Draft a runner migration; supplied facts say a routine build passed and the replacement suite was not run. | Omit routine build success; retain the unverified runner migration and its consequence. Do not claim tests passed or invent a prior failure. |
+| PRD-24 | The same supplied scope also changes license metadata and removes reports that supplied workflow evidence still requires. | Include the separate licensing and report-consumer effects; omit an exhaustive file inventory. Do not invent a reason for the license change. |
 
 These cases define maintenance expectations through existing rules. They do not authorize live model/API calls or establish runtime/model compatibility.
