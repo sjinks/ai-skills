@@ -1,6 +1,6 @@
 # Vocabulary standardization review
 
-Source SHA-256: `03563caed2adce2d529fe2c5d66af315c384e41ecafd1ae5de14fdba04626eb8`.
+Source SHA-256: `9fed80511413bf127a33e9d1616a2395ded84e16b16d9b6a9c822f72d671b0eb`.
 
 Hash scope: all canonical skill files plus AGENTS.md, README.md and docs/skill-vocabulary.md (294 files). Sort repository-relative paths; hash each path, NUL, exact file bytes, NUL using SHA-256. Exclude this evidence report to avoid self-reference. All reviews below bind to this unchanged source snapshot.
 
@@ -14,55 +14,69 @@ The shared vocabulary guide remains the authoring convention. Existing project i
 
 ## Review intake and resolution
 
-Fetched available discussion timeline, submitted reviews including suppressed/previously missed text, and all inline threads for PR #147 before editing. The latest review contains seven validator findings, all eliminated by removing the validator rather than extending its parser.
+Fetched the available discussion timeline, submitted reviews including suppressed/previously missed text, and all inline threads for PR #147 before editing. The preceding seven parser findings were resolved by removing the parser. The current review identifies two contract/projection defects:
 
-| Comment | Defect class | Final resolution |
+| Comment | Defect class | Affected projections and resolution |
 |---|---|---|
-| 4576606634 | Coverage recognition depended on the first enum member. | No coverage parser remains; review the complete local coverage contract and its slots. |
-| 4576606654 | Obsolete summary matching omitted positive counts. | No summary-count regex remains; exact summary labels remain defined by each package. |
-| 4576606666 | Malformed severity alternatives were treated as prose. | No severity-list parser remains; review literal alternatives against their governing contract. |
-| 4576606685 | Lifecycle checks missed output-table cells. | No field-only lifecycle check remains; the guide explicitly includes structured fields and tables. |
-| 4576606702 | Markdown wrappers bypassed obsolete-entry checks. | No obsolete-entry matcher remains; review formatting as presentation. |
-| 4576606733 | Valid bulleted fields were collected as rubric levels. | No overlapping field/rubric collectors remain. |
-| 4576606747 | Prose rubrics depended on repeating a keyword. | No keyword-dependent prose-rubric recognizer remains. |
+| 4576707182 | First-match action routing conflated production corrections with verification-only work. | SSRF core, disposition template order, README and shared vocabulary guide now route supported implementation/policy/documentation corrections to fix-now even when regression verification is missing. add-verification is restricted to findings whose only required change is verification. |
+| 4576707206 | A conditional matrix retained an obsolete coverage vocabulary. | Unicode adversarial matrix now uses the core four-state coverage rules, their precedence and unassessed-subpart disclosure. Accepted risk stays with the finding or the core-permitted residual-risk disclosure; acceptance does not satisfy an unmet requirement. README synchronized. |
+
+Manual semantic walkthroughs (static reasoning, not model/runtime execution):
+
+| Scenario | Required result under the final rules |
+|---|---|
+| Confirmed DNS bypass plus missing regression test | fix-now; correction includes the required regression verification. |
+| Confirmed redirect bypass plus missing regression test | fix-now; add-verification cannot substitute for correcting the bypass. |
+| Known correct behavior lacks its required test; no other correction needed | add-verification. |
+| Missing policy decision prevents choosing a correction | clarify. |
+| Documented accountable-owner acceptance of this finding/scope | retain-accepted under the existing first-match rule. |
+| Agreed owned deferral with rationale/plan | defer-with-owner under the existing first-match rule. |
+| Missing claimed acceptance or deferral evidence | clarify; no invented acceptance. |
+| Applicable control or test demonstrably fails | gap. |
+| Required assessment/evidence unavailable | not-assessed; no unqualified CLEAN result. |
+| Class does not apply | n/a with reason. |
+| Inspected evidence satisfies every applicable part | covered. |
+| Known gap and unavailable assessment of another subpart | gap plus explicit unassessed-subpart disclosure; no unqualified CLEAN result. |
+| Owner accepts an unmet requirement | gap remains; record acceptance on the finding or where the core permits under Residual risk. |
+| Test plan exists but required regression tests have not run | The plan alone cannot satisfy the core Tests checklist item. |
 
 ## Inventory and validation
 
-- Inspected the entire removal diff and the surviving authoring rule, README summary and maintenance guide. Consolidated the previous parser-specific reports into this final record.
+- Inspected the final contract diff and surviving authoring rule, package README summaries and maintenance guide. The removed parser remains absent; this record consolidates current evidence.
 - Searched AGENTS.md, README.md, docs, scripts and .github for the removed executable/test paths and obsolete report links. No active references remain after consolidation.
 - Skill sources are byte-identical to d8359252ca6236a4cdbab1d07ac9d76db600ecaf; the 40 package CAIE reports in the PR description still assess those same instruction bytes. The previous direct sweep covered rules, outputs, checklists, conditional references, examples, README descriptions and consumers. Existing compatibility-symlink comparisons cover those unchanged bytes.
-- Refreshed open sibling inventory: #96, #140 and #147. Inspected the full changed-file inventories for #96 and #140; neither contains this validator, its tests, the vocabulary guide or these review reports. No sibling propagation is needed for removal. The earlier companion fixture commit c02bfcb remains in #96, unchanged.
-- Git diff checks pass. No new behavioral tests are needed for deleting this optional read-only tool and its own tests; skill output behavior is unchanged. No live model/API evaluation ran.
-- Earlier Waza checks on the unchanged skill files found passing links and non-exempt specification checks, with existing advisory failures. Those baseline limitations remain; this is not an all-checks-green or full-PR merge-readiness claim. A removed check’s earlier passing test count is not current validation.
+- Refreshed open sibling inventory: #96, #140 and #147. Inspected full changed-file inventories. #140 has no related package. At immutable #96 head c02bfcb889ac6bd693909098b0fa22d03d589962, read both changed SSRF/Unicode fixtures and searched both complete suite directories for disposition and coverage labels. Graders require substantive risks and report sections, not the conflicting action order or obsolete coverage enum. No fixture change is needed. The earlier companion fixture commit remains unchanged.
+- Git diff checks pass. Static semantic walkthroughs cover both reported failures and their neighboring acceptance, deferral, clarification, verification-only and coverage branches. No replacement checker was added and no live model/API evaluation ran.
+- Reran Waza on both final affected packages and exact pre-change package snapshots: SSRF 3/3 links, Unicode 5/5 links; non-exempt specification checks pass. No new advisory failures. Existing SSRF over-specificity and body-structure advisories remain. Repository-exempt token/frontmatter/missing-suite/complexity advisories are not blockers. This is not an all-checks-green or full-PR merge-readiness claim. Removed checker test counts are not current validation.
 - Review is local. Independent review was not performed because the routing table’s comparable current-model ceiling could not be verified. Static model compatibility is unmeasured.
 
 ## Equivalence-Class Audit Report
-Triggering finding: the optional vocabulary parser admits invalid contracts and rejects a valid contract.
-Locked audit scope: validator/test removal, surviving project vocabulary instructions and documentation, and available sibling PR projections at the source fingerprint above.
+Triggering finding: SSRF first-match routing masked a production correction, and a Unicode matrix projected obsolete coverage states.
+Locked audit scope: the two affected canonical packages, shared vocabulary guide, related workspace projections and open sibling PR inventories at the source fingerprint above.
 Output depth: standard
 Verdict: CLEAN
 Severity: NONE
 
 | Axis | Candidate | Presence | Disposition | Evidence |
 |------|-----------|----------|-------------|----------|
-| Opposite Bound | Acceptance and rejection | absent | n/a | Both false-accept and false-reject paths are removed with the parser. |
-| Sibling Parameter/Field | Required labels and enums | absent | n/a | Shared definitions and local package output fields remain unchanged. |
-| Mirror Call Site/Use Site | Tool invocations | absent | n/a | Project rule, root README and maintenance guide no longer invoke the removed tool. |
-| Inverse Operation | Input normalization versus output | absent | n/a | Explicit input mappings remain local; removal changes no emitted values. |
-| Type/Schema Narrowing | Coverage and lifecycle schemas | absent | n/a | No inference layer remains; existing local domains are preserved. |
-| Validation vs Normalization/Sanitization | Markdown formatting | absent | n/a | Maintenance review explicitly treats formatting as presentation. |
-| Happy/Error/Retry/Cancel Path Twin | Parser branches | absent | n/a | Success, malformed-list and insufficient-context parser paths are all deleted. |
-| Race/Shared-State Twin | Runtime shared state | n/a — structurally inapplicable | n/a | No runtime shared state changes. |
-| Permission/Authorization Class | Review authority | absent | n/a | No new execution or risk-acceptance authority is granted. |
-| Observability Twin | Validation claims | absent | n/a | PR description and this record disclose removed automated lint coverage. |
-| Resource Cleanup | Parser-owned tests | absent | n/a | The tool’s own regression suite is removed with the tool. |
-| Contract Symmetry | Rules and projections | absent | n/a | Governing vocabulary rules remain; script requirements and claims are removed together. |
-| Equivalence by Naming | Similar checker paths | absent | n/a | Workspace search and sibling inventories contain no counterpart requiring removal. |
-| Test Mirror | Deleted test suite | absent | n/a | No orphaned test import or command remains. |
-| Empty/Sentinel Equivalence | None/unknown/not-assessed/n/a | absent | n/a | Their definitions and local representations are preserved. |
-| Async/Sync or Mode Twin | Review and runtime use | absent | n/a | The guide governs authoring; self-contained installed skill behavior is unchanged. |
-| Documentation/Spec Prose Twin | Obsolete reports and references | absent | n/a | Previous parser reports are replaced by this current scoped record. |
-| Cache/Projection/Source-of-Truth Twin | Generated copies | absent | n/a | Canonical skills and generated-path identity are unchanged; experimental artifacts remain excluded. |
+| Opposite Bound | Implementation correction versus verification-only work | absent | n/a | Supported corrections win; verification-only findings still select add-verification. |
+| Sibling Parameter/Field | Disposition and classification slots | absent | n/a | Classification remains evidence kind; action enum/order matches the source rule. |
+| Mirror Call Site/Use Site | Core/matrix/README/guide uses | absent | n/a | All add-verification occurrences and the Unicode matrix projection were inspected. |
+| Inverse Operation | Coverage versus acceptance | absent | n/a | Acceptance never converts gap to covered; no inverse inference of safety. |
+| Type/Schema Narrowing | Four coverage states | absent | n/a | Unicode matrix links to the core state contract without a richer incompatible enum. |
+| Validation vs Normalization/Sanitization | Presentation-to-semantic mappings | absent | n/a | No old missing/not-applicable/accepted-tradeoff coverage translation remains. |
+| Happy/Error/Retry/Cancel Path Twin | Action-selection branches | absent | n/a | Correction plus missing tests, verification-only and clarification cases were walked through. |
+| Race/Shared-State Twin | Runtime shared state | n/a — structurally inapplicable | n/a | No concurrency implementation changes. |
+| Permission/Authorization Class | Owner acceptance/deferral authority | absent | n/a | Existing evidence/owner prerequisites and lack of execution authority are retained. |
+| Observability Twin | Residual risk disclosure | absent | n/a | Unassessed subparts and accepted risks stay explicit in their permitted slots. |
+| Resource Cleanup | Runtime resources | n/a — structurally inapplicable | n/a | No allocation or cleanup implementation changes. |
+| Contract Symmetry | Rules and output slots | absent | n/a | SSRF procedure, disposition order, coverage rules and template were compared. |
+| Equivalence by Naming | Adversarial matrices | absent | n/a | SSRF matrix already uses the four states; Unicode counterpart corrected. |
+| Test Mirror | Sibling evals and static scenarios | absent | n/a | Inspected sibling fixtures/directories; static walkthroughs cover both failure classes. |
+| Empty/Sentinel Equivalence | gap/not-assessed/n/a/covered | absent | n/a | Known gaps, unavailable evidence, structural inapplicability and satisfaction remain distinct. |
+| Async/Sync or Mode Twin | Matrix-loaded and normal review paths | absent | n/a | Conditional matrix path now shares the same coverage contract; full/reduced templates remain valid. |
+| Documentation/Spec Prose Twin | Shared guide and package README files | absent | n/a | Guide and READMEs state the corrected routing/coverage boundaries. |
+| Cache/Projection/Source-of-Truth Twin | Canonical versus compatibility paths | absent | n/a | Changed skill files compare equal through the generated-path symlink. |
 
 ### Defects to fix now
 
@@ -136,10 +150,10 @@ Verdict: No material defects
 
 ## Adversarial Review Report
 Verdict: CLEAN
-Target: Vocabulary-maintenance path and tool removal at the source fingerprint above.
-Intended behavior: Keep the shared contracts and semantic review requirements without maintaining a partial Markdown validator.
-Evidence basis: Final diff, deleted-path/reference search, unchanged canonical skill bytes and sibling inventory.
-What works: No deleted-tool requirement remains; domain outputs, legacy-input mappings and local evidence gates remain intact.
+Target: Vocabulary-maintenance path, SSRF disposition routing and Unicode matrix coverage at the source fingerprint above.
+Intended behavior: Route supported corrections ahead of verification-only work, and preserve one coverage contract across core and matrix paths.
+Evidence basis: Final contract/projection diff, equivalence sweep, static scenario walkthroughs, Waza snapshot comparison and sibling inventory.
+What works: A known implementation bypass cannot select add-verification solely because its test is missing. The Unicode matrix cannot classify missing evidence as a defect or accepted risk as completed coverage.
 Assumptions: Maintainers apply the existing contract-projection review workflow.
 Findings: None
 Adversarial tests: None
@@ -170,6 +184,183 @@ Audit: Project vocabulary-maintenance path
 | Operational completeness | 4 | Semantic review requires inspecting all applicable projections. |
 | Model and runtime portability | 4 | Compatibility is assessed statically, not measured. |
 | Maintainability and evaluability | 4 | Vocabulary consistency is reviewed without automated lint coverage. |
+
+## Material Findings
+
+None.
+
+## Target-Model Compatibility
+
+| Model | Verdict | Main risk | Required adaptation |
+|---|---|---|---|
+| GPT-6 Luna | Suitable with limitations | No measured compatibility evaluation. | None. |
+| Claude Haiku 5.5 | Suitable with limitations | No measured compatibility evaluation. | None. |
+
+## Priority Changes
+
+None.
+
+Verdict: Ready with limitations
+
+
+## Current package-path CAIE audits
+
+### ssrf-outbound-fetch-review
+
+```text
+CAIE mode: audit
+CAIE artifact: None.
+CAIE findings: None.
+CAIE status: Clean
+```
+
+### unicode-text-security-review
+
+```text
+CAIE mode: audit
+CAIE artifact: None.
+CAIE findings: None.
+CAIE status: Clean
+```
+
+## Current package-path instruction-quality reports
+
+# Instruction Quality Audit
+
+Audit: skills/ssrf-outbound-fetch-review disposition/coverage migration
+
+## Audit Scope
+
+- Mode: path
+- Status: completed
+- Effective instruction files: skills/ssrf-outbound-fetch-review/SKILL.md and its adversarial matrix; README and shared guide compared as projections.
+- Mutually exclusive paths: Normal/full versus insufficient-context reports; conditional matrix loading.
+- Trusted custom diagnostics: Repository contract/projection requirements.
+- Limitations: Static review of the changed decision/coverage path at 9fed80511413bf127a33e9d1616a2395ded84e16b16d9b6a9c822f72d671b0eb; unchanged domain factual claims are context, not a fresh domain audit. No independent or measured model review.
+
+## Findings
+
+None.
+
+## Unresolved Questions
+
+None.
+
+## Summary
+
+Critical: 0
+High: 0
+Medium: 0
+Low: 0
+Highest-priority corrections:
+None.
+
+Verdict: No material defects
+
+---
+
+# Instruction Quality Audit
+
+Audit: skills/unicode-text-security-review disposition/coverage migration
+
+## Audit Scope
+
+- Mode: path
+- Status: completed
+- Effective instruction files: skills/unicode-text-security-review/SKILL.md and its adversarial matrix; README and shared guide compared as projections.
+- Mutually exclusive paths: Normal/full versus insufficient-context reports; conditional matrix loading.
+- Trusted custom diagnostics: Repository contract/projection requirements.
+- Limitations: Static review of the changed decision/coverage path at 9fed80511413bf127a33e9d1616a2395ded84e16b16d9b6a9c822f72d671b0eb; unchanged domain factual claims are context, not a fresh domain audit. No independent or measured model review.
+
+## Findings
+
+None.
+
+## Unresolved Questions
+
+None.
+
+## Summary
+
+Critical: 0
+High: 0
+Medium: 0
+Low: 0
+Highest-priority corrections:
+None.
+
+Verdict: No material defects
+
+## Current package-path readiness reports
+
+# Agent/Skill Readiness Audit
+
+Audit: skills/ssrf-outbound-fetch-review disposition/coverage migration
+
+## Audit Scope
+
+- Artifact type: Agent Skill
+- Mode: path
+- Status: completed
+- Target models: GPT-6 Luna; Claude Haiku 5.5
+- Target runtimes: Not supplied
+- Files included: skills/ssrf-outbound-fetch-review/SKILL.md and applicable adversarial matrix; README and shared guide cross-checked.
+- Files excluded: Unchanged domain semantics and experimental/generated copies — outside this correction path.
+- Limitations: Static assessment at 9fed80511413bf127a33e9d1616a2395ded84e16b16d9b6a9c822f72d671b0eb; no measured model compatibility or independent review. Existing Waza advisories remain; this is not a whole-PR merge-readiness verdict.
+
+## Readiness Ratings
+
+| Area | Rating | Main risk |
+|---|---:|---|
+| Discovery and delegation | 4 | Activation unchanged; adherence unmeasured. |
+| Instruction architecture | 4 | Conditional references must share their core contract. |
+| Operational completeness | 4 | Static scenarios do not establish model behavior. |
+| Model and runtime portability | 4 | Compatibility is not measured. |
+| Maintainability and evaluability | 4 | Semantic consistency is reviewed without a bespoke parser. |
+
+## Material Findings
+
+None.
+
+## Target-Model Compatibility
+
+| Model | Verdict | Main risk | Required adaptation |
+|---|---|---|---|
+| GPT-6 Luna | Suitable with limitations | No measured compatibility evaluation. | None. |
+| Claude Haiku 5.5 | Suitable with limitations | No measured compatibility evaluation. | None. |
+
+## Priority Changes
+
+None.
+
+Verdict: Ready with limitations
+
+---
+
+# Agent/Skill Readiness Audit
+
+Audit: skills/unicode-text-security-review disposition/coverage migration
+
+## Audit Scope
+
+- Artifact type: Agent Skill
+- Mode: path
+- Status: completed
+- Target models: GPT-6 Luna; Claude Haiku 5.5
+- Target runtimes: Not supplied
+- Files included: skills/unicode-text-security-review/SKILL.md and applicable adversarial matrix; README and shared guide cross-checked.
+- Files excluded: Unchanged domain semantics and experimental/generated copies — outside this correction path.
+- Limitations: Static assessment at 9fed80511413bf127a33e9d1616a2395ded84e16b16d9b6a9c822f72d671b0eb; no measured model compatibility or independent review. Existing Waza advisories remain; this is not a whole-PR merge-readiness verdict.
+
+## Readiness Ratings
+
+| Area | Rating | Main risk |
+|---|---:|---|
+| Discovery and delegation | 4 | Activation unchanged; adherence unmeasured. |
+| Instruction architecture | 4 | Conditional references must share their core contract. |
+| Operational completeness | 4 | Static scenarios do not establish model behavior. |
+| Model and runtime portability | 4 | Compatibility is not measured. |
+| Maintainability and evaluability | 4 | Semantic consistency is reviewed without a bespoke parser. |
 
 ## Material Findings
 
