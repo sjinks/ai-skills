@@ -50,12 +50,12 @@ graders:
         - '(?i)Contract:'
         - '(?i)Inputs/states reviewed:'
         - '(?i)Checklist status:'
-        - '(?i)Contract and inputs:\s*(covered|missing|n/a)'
-        - '(?i)Control flow.*:\s*(covered|missing|n/a)'
-        - '(?i)Numeric and size.*:\s*(covered|missing|n/a)'
-        - '(?i)Containers.*:\s*(covered|missing|n/a)'
-        - '(?i)Consistency.*:\s*(covered|missing|n/a)'
-        - '(?i)Tests:\s*(covered|missing|n/a)'
+        - '(?i)Contract and inputs:\s*(covered|n/a)'
+        - '(?i)Control flow.*:\s*(covered|n/a)'
+        - '(?i)Numeric and size.*:\s*(covered|n/a)'
+        - '(?i)Containers.*:\s*(covered|n/a)'
+        - '(?i)Consistency.*:\s*(covered|n/a)'
+        - '(?i)Tests:\s*(covered|n/a)'
         - '(?i)Residual risk:\s*[A-Za-z]'
       not_contains:
         - "Owners:"

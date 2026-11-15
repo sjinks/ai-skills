@@ -51,7 +51,7 @@ graders:
         - '(?i)npm test'
         - '(?i)outstanding'
         - '(?i)TODO'
-        - '(?i)Verdict:\s*(CONCERNS|CLEAN)'
+        - '(?i)Verdict:\s*CONCERNS'
       not_contains:
         - "Gate decision:"
         - "Equivalence-Class Audit Report"

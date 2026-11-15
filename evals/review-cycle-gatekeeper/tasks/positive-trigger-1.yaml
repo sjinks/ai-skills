@@ -18,7 +18,7 @@ inputs:
     Fix cycle:
     - F-001 marked fixed by commit `a1b2c3d` adding a guard; no new tests.
     - F-002 marked owned-with-remediation-plan by @alice, target 2026-06-15,
-      issue #142.
+      issue #142; remediation steps: batch related-order reads in one query.
     - F-003 not addressed.
 
     Unresolved threads: none.
@@ -44,7 +44,7 @@ graders:
     name: task_completion
     config:
       regex_match:
-        - "(?i)Gate decision:\\s*(pass|fail|BLOCK)"
+        - "(?i)Gate decision:\\s*BLOCK"
         - "(?i)Findings matrix:"
         - "(?i)Blockers to clear:"
         - "(?i)(F-001.*(no\\s+test|insufficient\\s+verification|missing\\s+test\\s+evidence)|reopen\\s+F-001|Gate\\s+Rule\\s+4)"
@@ -58,11 +58,14 @@ graders:
     config:
       prompt: |
         Grade whether the response:
-        - Reaches Gate decision FAIL (or BLOCK).
-        - Reports F-001 as state `fixed` BUT flags it as failing Gate Rule 4
-          (no test evidence), so the gate cannot pass on F-001 either.
-        - Reports F-002 as `owned-with-remediation-plan` and accepts it for
-          Medium severity per Gate Rule 2.
+        - Reaches Gate decision BLOCK because claimed fix verification is missing.
+        - Identifies F-001 as an unverified claim of being fixed: no test
+          evidence or no-test rationale is supplied. It must not treat F-001
+          as a verified fix or pass the gate on that claim.
+        - Reports F-002 as a documented, owned remediation plan, not as a
+          verified fix or risk waiver, and accepts it for Medium severity
+          per Gate Rule 2. The owner, target, concrete remediation steps
+          and tracking reference must all be present.
         - Reports F-003 as `open` and correctly says Low severity does not
           block per Gate Rule 3.
         - Lists at least one concrete blocker to clear (F-001 verification
