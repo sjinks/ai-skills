@@ -12,7 +12,9 @@ The skill activates for message preparation within broader implementation, PR or
 
 Draft/repair corrects text; validate preserves safe text and reports defects. Claims need evidence; the assessed message does not prove itself. Missing required facts/rules take status precedence over remaining violations and passing repairs. Reports retain the established labels, conventional/plain modes, Subject/Body/Footers checks, and CLEAN/CONCERNS/BLOCK verdict mapping. Drafting/correction still produces CONCERNS under this package's existing mapping; this update changes content criteria and the Body omission reason, not that verdict policy.
 
-Sensitive content is excluded in every mode. An excluded-source Input/error requires CONCERNS without inventing a failing message part or fourth check. Unusable required input produces reduced BLOCK. Non-violating cleanup advice is informational and does not alone require author input or prevent CLEAN.
+Sensitive content is excluded in every mode. An excluded-source Input finding requires CONCERNS without inventing a failing message part or fourth check. Unusable required input produces reduced BLOCK. Non-violating cleanup advice is informational and does not alone require author input or prevent CLEAN.
+
+Impact severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; task-specific statuses and decisions remain separate.
 
 ## Files
 

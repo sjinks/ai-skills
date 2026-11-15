@@ -8,7 +8,7 @@ It helps an assistant:
 
 - audit the supplied diff against a nine-item gating checklist: diff hygiene, scope, tests, contracts, commit atomicity, description accuracy, project checks, reviewer anticipation, and repeated-pattern consistency (templated multi-file edits validated once and swept repo-wide)
 - discover the project's own checks structurally from CI config, package scripts, and task runners, listing unrun checks as outstanding instead of inventing them
-- classify findings as `High`, `Medium`, or `Low` by whether they would force a review round on their own
+- classify findings as `CRITICAL`, `HIGH`, `MEDIUM`, or `LOW` by impact
 - keep the full checklist table even on the no-findings path
 - return `CLEAN`, `CONCERNS`, or `BLOCK` with findings, outstanding items, and a deterministic insufficient-context template
 

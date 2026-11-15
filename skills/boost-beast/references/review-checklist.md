@@ -6,7 +6,9 @@ Use this reference when producing a Beast-focused code review. Lead with concret
 
 ```markdown
 Findings:
-- Severity: file/path and behavior. Explain the protocol, lifetime, security, or test risk.
+- Severity: <CRITICAL | HIGH | MEDIUM | LOW>
+  Location: <file/path and behavior>
+  Evidence: <concrete failure and domain risk>
 
 Open questions:
 - Only include questions that affect correctness or risk.
@@ -68,6 +70,7 @@ Summary:
 
 ## Severity Guide
 
-- High: request smuggling exposure, unbounded untrusted memory growth, use-after-free, overlapping stream operations, hidden bytes accepted after rejection, TLS truncation suppressed across a sensitive boundary.
-- Medium: missing parser limits on trusted-only paths, incomplete timeout handling, ambiguous keep-alive behavior, missing WebSocket queue cap, poor error mapping that affects operations.
-- Low: diagnostics gaps, minor output formatting issues, missing narrow tests for low-risk compatibility behavior.
+- `CRITICAL`: credible severe or irreversible harm at an exposed boundary.
+- `HIGH`: request smuggling exposure, unbounded untrusted memory growth, use-after-free, overlapping stream operations, hidden bytes accepted after rejection, TLS truncation suppressed across a sensitive boundary.
+- `MEDIUM`: missing parser limits on trusted-only paths, incomplete timeout handling, ambiguous keep-alive behavior, missing WebSocket queue cap, poor error mapping that affects operations.
+- `LOW`: diagnostics gaps, minor output formatting issues, missing narrow tests for low-risk compatibility behavior.

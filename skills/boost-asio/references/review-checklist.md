@@ -2,7 +2,7 @@
 
 Use this template for Asio code review. Lead with concrete defects and risks, then summarize the concurrency model.
 
-Use `unknown` when the supplied code or context does not prove an answer; do not infer. For any `no` or safety-critical `unknown`, add either a Finding or Test Gap with the evidence needed. Order Findings by severity: critical, high, medium, low.
+Use `unknown` when the supplied code or context does not prove an answer; do not infer. For any `no` or safety-critical `unknown`, add either a Finding or Test Gap with the evidence needed. Order Findings by severity: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`.
 
 ```markdown
 ## Findings
@@ -72,10 +72,10 @@ Use `unknown` when the supplied code or context does not prove an answer; do not
 
 ## Severity Guidance
 
-- `critical`: use-after-free, data race, unbounded memory growth from remote input, parser bypass, or corrupt protocol output.
-- `high`: leaked sessions/tasks, shutdown hang, missing timeout, concurrent stream operations, blocking I/O executor, or uncaught coroutine exceptions.
-- `medium`: unclear ownership, weak test coverage for races, inconsistent error mapping, or overly broad locking.
-- `low`: style, naming, local simplification, or documentation that does not affect runtime safety.
+- `CRITICAL`: use-after-free, data race, unbounded memory growth from remote input, parser bypass, or corrupt protocol output.
+- `HIGH`: leaked sessions/tasks, shutdown hang, missing timeout, concurrent stream operations, blocking I/O executor, or uncaught coroutine exceptions.
+- `MEDIUM`: unclear ownership, weak test coverage for races, inconsistent error mapping, or overly broad locking.
+- `LOW`: minor localized comprehension, diagnostic, or maintenance harm; omit pure preferences.
 
 ## Review Procedure
 

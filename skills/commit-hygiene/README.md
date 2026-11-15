@@ -8,6 +8,8 @@ Unknown merge style uses preserved-commit rules; squash merge focuses on final c
 
 Cleanup preserves useful history as well as code. Inspect message bodies for motivation, decisions, invariants, compatibility effects and regression intent before discarding commits or selecting fixup. Redundant code does not establish redundant explanation. Required context must survive elsewhere or have explicit discard approval; unknown preservation stays pending. Reword targets include bodies that hide consequential decisions: use message pending for body/context work and subject pending for subject-only work. Squash handoffs retain source hashes and facts needed by the final message, excluding superseded behavior claims without drafting replacement wording.
 
+Impact severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; task-specific statuses and decisions remain separate.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — workflow, safety rules, output contract, and completion checklist.

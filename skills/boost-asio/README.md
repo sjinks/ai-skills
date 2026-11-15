@@ -11,7 +11,9 @@ It helps an assistant:
 - identify common async bugs such as raw `this` captures, stack-buffer lifetime, overlapping stream operations, unobserved detached coroutine failures, timeout races, and unbounded queues
 - route to focused references for patterns, debugging, testing, observability, Beast/TLS integration, and migration work
 
+Impact severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; task-specific statuses and decisions remain separate.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.
-- [`references/`](references/) — extended workflow and reference material.
+- [`references/`](references/index.md) — extended workflow and reference material.

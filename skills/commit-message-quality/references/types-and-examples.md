@@ -16,7 +16,7 @@ Use these exact markers in order; do not substitute labels. Replace every report
   - `Subject:` result is `pass`, `pass (length: <N> chars, over 50)`, or `fail (reason)`. Replace `<N>` with the measured whole-subject character count as a decimal integer.
   - `Body:` result is `pass`, `fail (reason)`, or `n/a (not needed)`.
   - `Footers:` result is `pass`, `fail (reason)`, or `none`.
-- `### Findings` — bullets `<anchor>: <severity> — <detail>`, with anchor `Subject`, `Body`, `Footers`, `Input`, or `Convention`. For `error`, detail names the violation and correction. For `warning`, detail names the unresolved fact or message rule and required input. Use `Input` only for excluded source content outside the message parts, with severity `error`. For required non-violating cleanup advice, use `Body: information — <cleanup preservation status and advice>`; say `unverified` when effective cleanup is unknown. Include `Convention: information — <evidence or assumption>`; `Convention` uses only `information`.
+- `### Findings` — bullets `<anchor>: <severity-or-note> — <detail>`, with anchor `Subject`, `Body`, `Footers`, `Input`, or `Convention`. For a severity label, detail names the impact and violation/correction or unresolved required fact. For `note`, detail names non-defect evidence, assumptions, or advice. Use `Input` only for excluded source content outside the message parts, with impact-rated severity. For required non-violating cleanup advice, use `Body: note — <cleanup preservation status and advice>`; say `unverified` when effective cleanup is unknown. Include `Convention: note — <evidence or assumption>`; `Convention` uses only `note`.
 - `### Split recommendation` — proposed commits or `- None`.
 - `### Needs author input` — exact missing facts or required message rules or `- None`.
 
@@ -82,7 +82,7 @@ A message says the change eliminates production timeouts, but the only evidence 
 
 ## Omission status illustrations
 
-Deleting a supplied, known-invalid optional footer during repair uses `Footers: none — rewritten`, an `error` finding describing the correction, and `CONCERNS`. An already absent permitted footer uses `Footers: none — compliant`.
+Deleting a supplied, known-invalid optional footer during repair uses `Footers: none — rewritten`, an impact-rated finding describing the correction, and `CONCERNS`. An already absent permitted footer uses `Footers: none — compliant`.
 
 Deleting a filler body when the subject carries all required context uses `Body: n/a (not needed) — rewritten`. Intentionally omitting an unnecessary body while drafting uses `Body: n/a (not needed) — compliant`. A rule requiring a body or missing required context overrides these passing examples; unresolved required facts use `fail (...) — needs-author-input`.
 
@@ -96,11 +96,11 @@ docs(cli): correct the spelling of configuration in help
 Closes #123
 ```
 
-For a valid safe message accompanied by a diff with sensitive source content, retain otherwise passing part checks, add `Input: error — excluded sensitive source content; review the source separately` under Findings, and select `CONCERNS`. Do not quote that content or add an Input check. Reduced BLOCK reports instead name the actual missing input and smallest requested addition; report-template placeholders are never copied literally.
+For a valid safe message accompanied by a diff with exposed active production credentials, retain otherwise passing part checks, add `Input: CRITICAL — excluded sensitive source content; review the source separately` under Findings, and select `CONCERNS`. Do not quote that content or add an Input check. Reduced BLOCK reports instead name the actual missing input and smallest requested addition; report-template placeholders are never copied literally.
 
 ## Cleanup-advice illustration
 
-When validating a safe, otherwise compliant message with a comment-like body heading and unknown cleanup mode, preserve the message, retain `Body: pass — compliant`, and include `Body: information — cleanup preservation unverified; use --cleanup=whitespace or --cleanup=verbatim to preserve headings` under Findings. Convention evidence still appears; no author question is required, and cleanup uncertainty alone permits `CLEAN`.
+When validating a safe, otherwise compliant message with a comment-like body heading and unknown cleanup mode, preserve the message, retain `Body: pass — compliant`, and include `Body: note — cleanup preservation unverified; use --cleanup=whitespace or --cleanup=verbatim to preserve headings` under Findings. Convention evidence still appears; no author question is required, and cleanup uncertainty alone permits `CLEAN`.
 
 ## Complete validation report
 
@@ -124,8 +124,8 @@ Eliminate production login failures after session expiry.
 - Footers: none — compliant
 
 ### Findings
-- Body: warning — the supplied change facts do not establish elimination of production login failures; provide supporting production evidence or corrected author facts.
-- Convention: information — no readable repository message rules or known history were supplied; conventional mode and default style rules apply.
+- Body: MEDIUM — the supplied change facts do not establish elimination of production login failures; provide supporting production evidence or corrected author facts.
+- Convention: note — no readable repository message rules or known history were supplied; conventional mode and default style rules apply.
 
 ### Split recommendation
 - None

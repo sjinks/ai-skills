@@ -11,8 +11,10 @@ It helps an assistant:
 - identify lifetime bugs such as dangling frames, dangling awaiters, double resume, missed resume, swallowed exceptions, detached work, and scheduler surprises
 - plan deterministic tests for suspension, resumption, cancellation, early destruction, exception paths, scheduler hops, and frame-lifetime invariants
 
+Impact severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; task-specific statuses and decisions remain separate.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.
-- [`references/`](references/) — extended workflow and reference material.
-- [`assets/`](assets/) — review templates.
+- [`references/`](references/index.md) — extended workflow and reference material.
+- [`assets/`](assets/review-templates.md) — review templates.

@@ -6,7 +6,7 @@ This skill is aimed at draft review comments and findings lists that need to be 
 
 It helps an assistant:
 
-- enforce a five-field contract per finding: severity (`blocker`, `should-fix`, `suggestion`), anchor, observed-vs-expected problem, concrete fix direction, and an objective `Resolved when` acceptance condition
+- enforce a five-field contract per finding: impact severity (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`), anchor, observed-vs-expected problem, concrete fix direction, and an objective `Resolved when` acceptance condition
 - split compound findings, separate questions from findings, and drop formatter-covered style nits as non-findings
 - mark findings that cannot satisfy the contract as `needs-author-input` with the missing information named, never inventing anchors or evidence
 - report each input finding exactly once as `compliant`, `rewritten`, or `needs-author-input`

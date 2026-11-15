@@ -16,7 +16,7 @@ The canonical template uses these uppercase placeholders. Replace them with actu
 - `RULE_OR_NONE` - trusted custom diagnostic rule or `None.`.
 - `NONE_OR_DESCRIPTION` - `None.` or a concrete limitation description.
 - `FINDING_TITLE` - concise finding title.
-- `FINDING_SEVERITY` - one of `error`, `warning`, `information`.
+- `FINDING_SEVERITY` - one of `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`.
 - `FINDING_CONFIDENCE` - one of `high`, `medium`.
 - `FINDING_TYPE` - one of `contradiction`, `precedence`, `ambiguity`, `terminology`, `authority`, `side-effect`, `closure`, `failure-handling`, `cognitive-load`, `duplication`, `output-contract`, `custom`.
 - `FILE_AND_SECTION_OR_LINE` - grounding location.
@@ -25,9 +25,10 @@ The canonical template uses these uppercase placeholders. Replace them with actu
 - `CONCRETE_MODEL_OR_EVAL_FAILURE` - concrete behavioral risk.
 - `EXACT_REWRITE_OR_SPECIFIC_STRUCTURAL_CHANGE` - exact rewrite or specific corrective action.
 - `UNRESOLVED_QUESTION_OR_NONE` - unresolved question text or `None.`.
-- `ERROR_COUNT` - non-negative integer count of error findings.
-- `WARNING_COUNT` - non-negative integer count of warning findings.
-- `INFORMATIONAL_FINDING_COUNT` - non-negative integer count of informational findings.
+- `CRITICAL_COUNT` - non-negative integer count of CRITICAL findings.
+- `HIGH_COUNT` - non-negative integer count of HIGH findings.
+- `MEDIUM_COUNT` - non-negative integer count of MEDIUM findings.
+- `LOW_COUNT` - non-negative integer count of LOW findings.
 - `CORRECTION` - highest-priority correction.
 - `VERDICT_VALUE` - one of `No material defects`, `Needs revision`, `Blocked`.
 
@@ -74,9 +75,10 @@ UNRESOLVED_QUESTION_OR_NONE
 
 ## Summary
 
-Errors: ERROR_COUNT
-Warnings: WARNING_COUNT
-Informational findings: INFORMATIONAL_FINDING_COUNT
+Critical: CRITICAL_COUNT
+High: HIGH_COUNT
+Medium: MEDIUM_COUNT
+Low: LOW_COUNT
 Highest-priority corrections:
 1. CORRECTION
 
@@ -100,7 +102,7 @@ Use:
 
 Do not use `No material defects` for a partial audit.
 
-## Partial No-Finding Snippet
+## Complete No-Finding Snippet
 
 This snippet begins at `## Findings`. Precede it with the required `# Instruction Quality Audit`, `Audit:`, and `## Audit Scope` sections.
 
@@ -117,9 +119,10 @@ None.
 
 ## Summary
 
-Errors: 0
-Warnings: 0
-Informational findings: 0
+Critical: 0
+High: 0
+Medium: 0
+Low: 0
 Highest-priority corrections:
 None.
 
@@ -135,9 +138,10 @@ Use:
 - `Status: blocked`;
 - `Not assessed.` under `## Findings`;
 - the blocker or target ambiguity under `## Unresolved Questions`;
-- `Errors: Not assessed.`;
-- `Warnings: Not assessed.`;
-- `Informational findings: Not assessed.`;
+- `Critical: Not assessed.`;
+- `High: Not assessed.`;
+- `Medium: Not assessed.`;
+- `Low: Not assessed.`;
 - the exact required input under `Highest-priority corrections`;
 - `Verdict: Blocked`.
 

@@ -13,8 +13,10 @@ It helps an assistant:
 - generate compact `SKILL.md` files with optional references, examples, or checklists only when those supporting files reduce cognitive load
 - validate frontmatter, trigger specificity, links, provenance, copyright posture, output formats, severity rubrics, stop conditions, and completion reporting before declaring success
 
+Impact severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; task-specific statuses and decisions remain separate.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.
-- [`references/`](references/) — extended workflow and reference material.
-- [`scripts/`](scripts/) — the local extractor helper and its tests.
+- [`references/`](references/extraction-helper.md) — extended workflow and reference material.
+- [`scripts/`](scripts/extract.py) — the local extractor helper and its tests.

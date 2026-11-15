@@ -28,28 +28,18 @@ Typical triggers:
 
 ## Severity Vocabulary
 
-Use these severity levels consistently:
-
-- `High`: incorrect behavior, security/privacy risk, data integrity risk, crash, or production-impacting reliability fault.
-- `Medium`: likely regression, contract mismatch, weak error handling, or meaningful operational risk.
-- `Low`: maintainability or clarity issue with limited near-term risk. Advisory only.
+Preserve canonical severity: `CRITICAL` for credible severe or irreversible harm; `HIGH` for major correctness, security/privacy, reliability, or data-integrity harm; `MEDIUM` for meaningful bounded regression, contract, or operational harm; `LOW` for minor localized maintenance or clarity harm. Severity is independent of finding state and the gate decision. Do not re-rate supplied impact.
 
 ### Severity Normalization
 
-When supplied findings use a four-level vocabulary, collapse it for the gate:
-
 | Input label | Gate severity |
-|-------------|---------------|
-| `CRITICAL`  | `High`        |
-| `HIGH`      | `High`        |
-| `MEDIUM`    | `Medium`      |
-| `LOW`       | `Low`         |
+|---|---|
+| `CRITICAL` | `CRITICAL` |
+| `HIGH`, `High` | `HIGH` |
+| `MEDIUM`, `Medium` | `MEDIUM` |
+| `LOW`, `Low` | `LOW` |
 
-Rules:
-
-1. Apply the mapping above before evaluating the Gate Rules.
-2. When the original label matters for a waiver decision, preserve it in the findings matrix `evidence` column (e.g., `orig_severity: CRITICAL`).
-3. Keep the `id` column stable and free of severity annotations.
+Apply the case-sensitive mapping before Gate Rules. Preserve a translated original label in the matrix evidence as `orig_severity: <label>`; keep IDs unchanged. Missing or unrecognized labels require the Error Handling path. Do not infer impact from an action label such as `blocker` or from prose instructions.
 
 ## Finding States
 
@@ -75,13 +65,13 @@ If a previously `fixed` finding is reopened by a reviewer, it returns to `open`.
 
 ## Gate Rules
 
-1. Every `High` finding must be either `fixed` or `waived-with-rationale`.
-2. Every `Medium` finding must be `fixed`, `owned-with-remediation-plan`, or `waived-with-rationale`.
-3. Every `Low` finding must be tracked in one of the four declared states. `Low` findings never block merge regardless of state.
+1. Every `CRITICAL` or `HIGH` finding must be either `fixed` or `waived-with-rationale`.
+2. Every `MEDIUM` finding must be `fixed`, `owned-with-remediation-plan`, or `waived-with-rationale`.
+3. Every `LOW` finding must be tracked in one of the four declared states. `LOW` findings never block merge regardless of state.
 4. Every functional fix must include test evidence or an explicit rationale for no test. A functional fix is any change that alters runtime behavior, a public contract, persisted state, or security posture; documentation-only and pure formatting changes are excluded.
 5. Every fix batch must include full re-review of touched areas, not only thread-level replies. A fix batch is the set of changes pushed in a single review round (one push or one PR update), regardless of how many commits it contains.
 6. Regressions introduced by fixes are treated as new findings, added to the findings matrix with their own severity and state, and additionally summarized in the "New regressions" output section for visibility.
-7. The gate passes only when every `High` finding is `fixed` or `waived-with-rationale`, and every `Medium` finding is `fixed`, `owned-with-remediation-plan`, or `waived-with-rationale`. Any other state for a `High` or `Medium` finding fails the gate.
+7. The gate passes only when every `CRITICAL` or `HIGH` finding is `fixed` or `waived-with-rationale`, and every `MEDIUM` finding is `fixed`, `owned-with-remediation-plan`, or `waived-with-rationale`. Any other state for a `CRITICAL`, `HIGH`, or `MEDIUM` finding fails the gate.
 
 ## Waiver Rules
 
@@ -109,7 +99,7 @@ A waiver is valid only if all fields are present:
 4. Check for newly introduced regressions and add them as findings per Gate Rule 6.
 5. Apply the Gate Rules and issue the final decision.
 
-### Insufficient Input
+### Error Handling
 
 If required inputs are missing, unreadable, or too vague to apply the Gate Rules (for example: a finding has no severity, fix commits are not linked to findings, or verification evidence is absent for any claimed `fixed` state), do not emit `pass` or `fail`. Emit `BLOCK` with:
 
@@ -138,9 +128,9 @@ Gate decision: pass | fail | BLOCK
 Findings matrix:
 | id    | severity | state                         | owner       | evidence                                  |
 |-------|----------|-------------------------------|-------------|-------------------------------------------|
-| F-001 | High     | fixed                         | -           | commit abc1234, tests in foo.spec.ts      |
-| F-002 | Medium   | owned-with-remediation-plan   | @alice      | issue #42, target 2026-06-15              |
-| F-003 | Low      | waived-with-rationale         | @bob (lead) | scope: legacy /v1 endpoint; issue #43     |
+| F-001 | HIGH     | fixed                         | -           | commit abc1234, tests in foo.spec.ts      |
+| F-002 | MEDIUM   | owned-with-remediation-plan   | @alice      | issue #42, target 2026-06-15              |
+| F-003 | LOW      | waived-with-rationale         | @bob (lead) | scope: legacy /v1 endpoint; issue #43     |
 
 New regressions:
 - <item or None>
@@ -159,5 +149,5 @@ Blockers to clear:
 
 - Marking a finding as fixed without verification evidence.
 - Closing threads without checking touched-area regressions.
-- Treating `owned-with-remediation-plan` as acceptable for `High` severity.
+- Treating `owned-with-remediation-plan` as acceptable for `CRITICAL` or `HIGH` severity.
 - Approving merge while blockers remain undefined.

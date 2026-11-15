@@ -70,9 +70,10 @@ Each finding has `Location:`, `Severity:`, `Evidence:`, and `Minimal change:`. M
 
 Assign the highest matching severity from evidenced consequences of the current avoidable complexity:
 
-- `high`: substantial maintenance cost or substantial correctness/security risk.
-- `medium`: meaningful cognitive or change cost, or a correctness/security risk with more than minor localized impact that does not meet `high`.
-- `low`: modest, concrete localized overhead or minor localized correctness/security risk.
+- `CRITICAL`: credible severe or irreversible harm caused by the current complexity.
+- `HIGH`: substantial maintenance cost or substantial correctness/security risk.
+- `MEDIUM`: meaningful cognitive or change cost, or a correctness/security risk with more than minor localized impact that does not meet `HIGH`.
+- `LOW`: modest, concrete localized overhead or minor localized correctness/security risk.
 
 Risks introduced by a proposed simplification affect `Preservation`, not finding severity. Suppress cosmetic preferences and generic best-practice advice.
 

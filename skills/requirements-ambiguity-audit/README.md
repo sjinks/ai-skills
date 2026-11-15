@@ -10,7 +10,7 @@ It helps an assistant:
 - quote the exact text, name its location, and state the plausible readings for every finding
 - propose rewrites that preserve intent and turn unknowns into explicit open questions instead of invented values
 - respect supplied glossaries and explicitly delegated flexibility instead of flagging them
-- assign `blocker`, `should-fix`, or `suggestion` severity and return `BLOCK`, `CONCERNS`, or `CLEAN` verdicts
+- assign `CRITICAL`, `HIGH`, `MEDIUM`, or `LOW` severity and return `BLOCK`, `CONCERNS`, or `CLEAN` verdicts
 - emit a deterministic BLOCK template when spec text is missing or unreadable
 
 ## Files

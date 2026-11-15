@@ -18,7 +18,7 @@ In conventional mode, use a lowercase type from feat/fix/docs/style/refactor/per
 
 Choose type by the stated primary user-visible or maintenance outcome, not commit/file counts. If multiple types remain equally primary, choose the first applicable type in this order: feat, fix, perf, refactor, docs, test, build, ci, style, chore, revert. Higher-precedence type-selection rules override this tie order.
 
-Confirmed breaking changes require `!` in conventional mode and concrete disclosure when Body is requested. A supplied `!` with unknown breaking intent needs author input for the affected requested parts. If evidence establishes no breaking change, rewrite removes the unsupported marker; validate reports it. For title-only work, note an evidenced body-disclosure follow-up under Input/information without assessing or demanding Body.
+Confirmed breaking changes require `!` in conventional mode and concrete disclosure when Body is requested. A supplied `!` with unknown breaking intent needs author input for the affected requested parts. If evidence establishes no breaking change, rewrite removes the unsupported marker; validate reports it. For title-only work, note an evidenced body-disclosure follow-up under Input/note without assessing or demanding Body.
 
 A passing title over the default target uses `pass (length: N chars, over 72)`. Exceeding a required limit fails. Explain a different selected target in Findings.
 

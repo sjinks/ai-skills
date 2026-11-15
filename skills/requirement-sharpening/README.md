@@ -16,6 +16,8 @@ It helps an assistant:
 
 It complements document-structure and stable-ID work (singular decomposition, clause outline, honest conformance statement) and defers word-level ambiguity, acceptance-criterion verifiability, and test-code quality to their dedicated concerns.
 
+Impact severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; task-specific statuses and decisions remain separate.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

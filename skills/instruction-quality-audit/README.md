@@ -11,6 +11,8 @@ diagnostics.
 It does not provide holistic readiness ratings or model-by-model
 certification; use `agent-skill-audit` for that.
 
+Impact severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; task-specific statuses and decisions remain separate.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full instruction-quality audit definition.

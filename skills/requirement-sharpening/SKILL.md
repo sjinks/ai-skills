@@ -116,7 +116,7 @@ For each finding:
 
 Default to `sharpen` when the caller's verb is sharpen/rewrite/fix and to `audit` when it is review/audit/check; if ambiguous, pick `audit` and say so.
 
-Use these exact labels (`Verdict:`, `Mode:`, `Quote:`, `Problem:`, `Fix:`) unless the caller requests different ones, in which case follow the caller's labels exactly. Each finding's `Severity` column is `BLOCK` or `CONCERNS` (a finding is never `SHARP` — that is a whole-report verdict only).
+Use these exact labels (`Verdict:`, `Mode:`, `Quote:`, `Problem:`, `Fix:`) unless the caller requests different ones, in which case follow the caller's labels exactly. Each finding's `Severity` column is `CRITICAL`, `HIGH`, `MEDIUM`, or `LOW`. Use `CRITICAL` for credible severe or irreversible harm; `HIGH` for a defect that prevents a definite build/test outcome or breaks traceability; `MEDIUM` for bounded coupling, ranking, or completeness defects; `LOW` for localized clarity or maintenance harm. Verdict values are not finding severities. Apply the verdict rules below independently.
 
 Verdict mapping:
 

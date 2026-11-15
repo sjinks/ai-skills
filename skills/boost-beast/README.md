@@ -11,8 +11,10 @@ It helps an assistant:
 - enforce body/header limits, strictness gates, parser differential handling, close/drain/keep-alive policy, and request-smuggling-resistant framing decisions
 - use role-specific, debugging, hardening, testing, and observability references without overloading the main skill file
 
+Impact severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; task-specific statuses and decisions remain separate.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.
-- [`references/`](references/) — extended workflow and reference material.
-- [`assets/`](assets/) — HTTP fixtures and review templates.
+- [`references/`](references/index.md) — extended workflow and reference material.
+- [`assets/`](assets/review-templates.md) — HTTP fixtures and review templates.

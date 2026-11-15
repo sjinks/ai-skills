@@ -30,7 +30,7 @@ Quality findings:
 
 CQ-001 — Retry configuration is ignored
 
-Severity: High
+Severity: HIGH
 
 Status: Open
 
@@ -62,7 +62,7 @@ Quality findings:
 
 CQ-001 — Narration obscures the useful contract comment
 
-Severity: Low
+Severity: LOW
 
 Status: Resolved
 
@@ -96,7 +96,7 @@ Quality findings:
 
 CQ-001 — Repeated eligibility policy obscures the decision
 
-Severity: Medium
+Severity: MEDIUM
 
 Status: Open
 
