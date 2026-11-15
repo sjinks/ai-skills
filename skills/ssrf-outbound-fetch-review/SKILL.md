@@ -162,7 +162,7 @@ Default to `standard`. `quick` still reports missing required context, blockers,
 
 ## Adversarial Test Matrix
 
-Use the full matrix in [references/adversarial-test-matrix.md](./references/adversarial-test-matrix.md) when reviewing test coverage or composing the `Adversarial tests:` output section. It enumerates concrete cases across eight areas: URL shape, literal IPs, DNS, proxies/ports/transport, redirects, sensitive headers and credentials, trusted private-target opt-ins, and response/archive download cases. Mark each applicable item as covered, not applicable, accepted tradeoff, intentionally deferred, or unresolved/blocking.
+Use the full matrix in [references/adversarial-test-matrix.md](./references/adversarial-test-matrix.md) when reviewing test coverage or composing the `Adversarial tests:` output section. It enumerates concrete cases across eight areas: URL shape, literal IPs, DNS, proxies/ports/transport, redirects, sensitive headers and credentials, trusted private-target opt-ins, and response/archive download cases. Use the coverage states in Classification, disposition and coverage; keep acceptance and deferral on the related finding.
 
 ## Review Procedure
 
@@ -171,8 +171,16 @@ Use the full matrix in [references/adversarial-test-matrix.md](./references/adve
 3. Write or inspect the egress policy contract.
 4. Review implementation against URL normalization, IP policy, DNS, connection-time lookup, proxies, ports, transport semantics, redirects, headers, trusted private-target opt-ins, logging, and response handling.
 5. Review tests against the adversarial matrix and distinguish HTTP-mock coverage from DNS/socket coverage.
-6. Classify each finding as `blocker`, `required test`, `accepted tradeoff`, `follow-up`, or `not applicable`.
+6. Assign each finding a classification and a separate disposition under Classification, disposition and coverage.
 7. If product compatibility conflicts with a strict host allowlist, document the chosen policy and the compensating runtime guardrails.
+
+## Classification, disposition and coverage
+
+Classification describes the finding: `Confirmed issue` for an evidenced violation; `Likely risk` for an evidence-backed plausible failure; `Open question` for missing context or a decision; `Accepted tradeoff` for documented owner-accepted risk; `Test gap` for known behavior lacking verification; `Defense-in-depth` for additional protection without an evidenced vulnerability.
+
+Disposition recommends an action; it does not authorize execution or decide merge readiness. Assign it separately, using the first matching rule: `retain-accepted` when a named accountable owner has explicitly accepted this finding and scope with rationale; `defer-with-owner` for an explicitly agreed deferral with owner, rationale and remediation plan; `clarify` when a missing decision or evidence prevents selecting a correction; `add-verification` for known behavior lacking the required test; otherwise `fix-now` for a supported actionable correction. Request missing acceptance/deferral evidence under `clarify`; do not invent it. An agent cannot accept risk on the owner's behalf. Legacy action labels alone do not establish classification or acceptance.
+
+Apply the first matching checklist coverage state: `n/a` for an inapplicable check; `gap` for an evidenced unmet applicable requirement; `not-assessed` for unperformed requested assessment or unavailable required evidence; otherwise `covered` when inspected evidence satisfies every applicable part. Disclose unassessed subparts even when a known gap determines the state. Explain non-covered items in the related finding or Residual risk. Record acceptance or deferral under the related finding's disposition; it does not convert a gap to covered. Do not emit inapplicable checks as findings. Coverage and disposition do not waive Definition Of Done: do not claim a fix is ready while required checks remain gap or not-assessed.
 
 ## Output Format
 
@@ -189,25 +197,26 @@ Egress policy:
 Findings:
 1. <short title>
   Severity: CRITICAL | HIGH | MEDIUM | LOW
-  Classification: blocker | required test | accepted tradeoff | follow-up | not applicable
+  Classification: Confirmed issue | Likely risk | Open question | Accepted tradeoff | Test gap | Defense-in-depth
+  Disposition: retain-accepted | defer-with-owner | clarify | add-verification | fix-now
   Location: <file:line or design reference>
   Issue: <what is wrong>
   Impact: <what an attacker gains>
   Suggested fix: <specific change>
 
 Checklist status:
-- URL normalization: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
-- IP ranges: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
-- DNS: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
-- Connection-time lookup: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
-- Proxies: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
-- Ports: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
-- Transport semantics: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
-- Redirects: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
-- Headers: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
-- Trusted private-target opt-ins: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
-- Shared policy: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
-- Tests: covered | not applicable | accepted tradeoff | intentionally deferred | unresolved/blocking
+- URL normalization: covered | gap | not-assessed | n/a
+- IP ranges: covered | gap | not-assessed | n/a
+- DNS: covered | gap | not-assessed | n/a
+- Connection-time lookup: covered | gap | not-assessed | n/a
+- Proxies: covered | gap | not-assessed | n/a
+- Ports: covered | gap | not-assessed | n/a
+- Transport semantics: covered | gap | not-assessed | n/a
+- Redirects: covered | gap | not-assessed | n/a
+- Headers: covered | gap | not-assessed | n/a
+- Trusted private-target opt-ins: covered | gap | not-assessed | n/a
+- Shared policy: covered | gap | not-assessed | n/a
+- Tests: covered | gap | not-assessed | n/a
 
 Adversarial tests: <missing or newly added tests from the matrix>
 

@@ -38,6 +38,17 @@ Collect or infer before judging:
 
 If the target or expected contract cannot be established, return `Verdict: BLOCK` with one open question. Do not invent the expected behavior. Insufficient-context mode takes precedence over pattern-level decision rules: general rules may be cited as context, but no verdict other than `BLOCK` may rest on an unseen target or unstated contract.
 
+## Coverage states
+
+For full-report checklist coverage, apply the first matching state:
+
+1. `n/a`: the check does not apply.
+2. `gap`: evidence shows an unmet applicable requirement.
+3. `not-assessed`: remaining requested assessment or required evidence is unavailable.
+4. `covered`: evidence satisfies every applicable part.
+
+A gap may coexist with unassessed subparts; disclose both. Explain every non-covered item in findings or residual risk, keeping each checklist entry to one state. Missing evidence alone is not a target defect. Requested `not-assessed` items or unassessed subparts prevent `CLEAN`: use `BLOCK` when meaningful review is impossible, otherwise `CONCERNS`; retain stronger local blocking rules. Other gaps follow existing severity/verdict rules.
+
 ## Output Depth
 
 Default to `standard`. `quick` still reports missing required context, blockers, unmitigated HIGH/CRITICAL findings, and target-specific concerns; it only omits non-applicable checklist expansion. `standard` covers the applicable checklist with concise evidence. `exhaustive` enumerates the full checklist only when asked or when the change surface warrants it. Name the selected depth when the user asks for `quick` or `exhaustive`.
@@ -135,12 +146,12 @@ Findings:
   Test expectation: <regression test or N/A>
 
 Checklist status:
-- Contract and inputs: covered | missing | n/a
-- Control flow and state transitions: covered | missing | n/a
-- Numeric and size calculations: covered | missing | n/a
-- Containers, iterators, and algorithms: covered | missing | n/a
-- Consistency and derived state: covered | missing | n/a
-- Tests: covered | missing | n/a
+- Contract and inputs: covered | gap | not-assessed | n/a
+- Control flow and state transitions: covered | gap | not-assessed | n/a
+- Numeric and size calculations: covered | gap | not-assessed | n/a
+- Containers, iterators, and algorithms: covered | gap | not-assessed | n/a
+- Consistency and derived state: covered | gap | not-assessed | n/a
+- Tests: covered | gap | not-assessed | n/a
 
 Residual risk: <remaining caveats or None>
 ```

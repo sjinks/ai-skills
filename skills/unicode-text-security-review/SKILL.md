@@ -37,6 +37,17 @@ Collect or infer the narrowest useful context before judging:
 
 If the input boundary, security decision, or downstream consumer is missing and cannot be inferred, return `Verdict: BLOCK` with one open question. Do not guess a Unicode policy.
 
+## Coverage states
+
+For full-report checklist coverage, apply the first matching state:
+
+1. `n/a`: the check does not apply.
+2. `gap`: evidence shows an unmet applicable requirement.
+3. `not-assessed`: remaining requested assessment or required evidence is unavailable.
+4. `covered`: evidence satisfies every applicable part.
+
+A gap may coexist with unassessed subparts; disclose both. Explain every non-covered item in findings or residual risk, keeping each checklist entry to one state. Missing evidence alone is not a target defect. Requested `not-assessed` items or unassessed subparts prevent `CLEAN`: use `BLOCK` when meaningful review is impossible, otherwise `CONCERNS`; retain stronger local blocking rules. Other gaps follow existing severity/verdict rules.
+
 ## Output Depth
 
 Default to `standard`. `quick` still reports missing required context, blockers, unmitigated HIGH/CRITICAL findings, and target-specific concerns; it only omits non-applicable checklist expansion. `standard` covers the applicable checklist with concise evidence. `exhaustive` enumerates the full checklist and adversarial matrix only when asked or when the risk surface warrants it. If the user asks for `quick` or `exhaustive`, name the selected depth in the report.
@@ -165,13 +176,13 @@ Findings:
   Test expectation: <regression test or N/A>
 
 Checklist status:
-- Decode boundary: covered | missing | n/a
-- Normalization and matching: covered | missing | n/a
-- Parser and consumer drift: covered | missing | n/a
-- Identifiers and spoofing: covered | missing | n/a
-- Storage and indexes: covered | missing | n/a
-- Limits, layers, and display: covered | missing | n/a
-- Tests: covered | missing | n/a
+- Decode boundary: covered | gap | not-assessed | n/a
+- Normalization and matching: covered | gap | not-assessed | n/a
+- Parser and consumer drift: covered | gap | not-assessed | n/a
+- Identifiers and spoofing: covered | gap | not-assessed | n/a
+- Storage and indexes: covered | gap | not-assessed | n/a
+- Limits, layers, and display: covered | gap | not-assessed | n/a
+- Tests: covered | gap | not-assessed | n/a
 
 Residual risk: <remaining caveats or None>
 ```

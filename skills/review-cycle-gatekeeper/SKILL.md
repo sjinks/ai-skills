@@ -43,21 +43,25 @@ Apply the case-sensitive mapping before Gate Rules. Preserve a translated origin
 
 ## Finding States
 
-Each finding must be in exactly one explicit state:
+Emit exactly one state per finding:
 
 - `fixed`: the underlying defect is no longer present and has been verified.
-- `owned-with-remediation-plan`: the defect remains, but a named owner has committed to a concrete remediation plan.
-- `waived-with-rationale`: the defect remains and will not be fixed, with explicit risk acceptance.
-- `open`: the defect remains and is not fixed, owned, or waived.
+- `deferred`: the defect remains, but a named owner has committed to a concrete remediation plan.
+- `waived`: the defect remains and will not be fixed, with explicit risk acceptance.
+- `open`: the defect remains and is not fixed, deferred, or waived.
+
+Normalize legacy input states `Open` to `open`, `Resolved` to `fixed`, `owned-with-remediation-plan` to `deferred`, and `waived-with-rationale` to `waived`. Preserve the original label in matrix evidence as `orig_state: <label>`. A translated label does not establish evidence: validate the destination state under Required Evidence Per State. Missing or unknown states use Error Handling. Never treat deferral, waiver, or thread closure as a verified fix.
 
 ### Required Evidence Per State
 
 | State                         | Required artifacts                                                                                                                                |
 |-------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
 | `fixed`                       | Linked fix commit or PR change, plus verification evidence (tests, manual checks) or an explicit no-test rationale (see Gate Rule 4).             |
-| `owned-with-remediation-plan` | All fields listed under Ownership Rules.                                                                                                          |
-| `waived-with-rationale`       | All fields listed under Waiver Rules.                                                                                                             |
+| `deferred` | All fields listed under Ownership Rules.                                                                                                          |
+| `waived`       | All fields listed under Waiver Rules.                                                                                                             |
 | `open`                        | None required, but the finding blocks per the Gate Rules.                                                                                         |
+
+For `fixed`, inspect the linked change evidence to establish that the underlying defect was removed. A no-test rationale substitutes for test execution, not for evidence of removal or the resolution criterion.
 
 ### Reopened Findings
 
@@ -65,13 +69,13 @@ If a previously `fixed` finding is reopened by a reviewer, it returns to `open`.
 
 ## Gate Rules
 
-1. Every `CRITICAL` or `HIGH` finding must be either `fixed` or `waived-with-rationale`.
-2. Every `MEDIUM` finding must be `fixed`, `owned-with-remediation-plan`, or `waived-with-rationale`.
+1. Every `CRITICAL` or `HIGH` finding must be either `fixed` or `waived`.
+2. Every `MEDIUM` finding must be `fixed`, `deferred`, or `waived`.
 3. Every `LOW` finding must be tracked in one of the four declared states. `LOW` findings never block merge regardless of state.
 4. Every functional fix must include test evidence or an explicit rationale for no test. A functional fix is any change that alters runtime behavior, a public contract, persisted state, or security posture; documentation-only and pure formatting changes are excluded.
 5. Every fix batch must include full re-review of touched areas, not only thread-level replies. A fix batch is the set of changes pushed in a single review round (one push or one PR update), regardless of how many commits it contains.
 6. Regressions introduced by fixes are treated as new findings, added to the findings matrix with their own severity and state, and additionally summarized in the "New regressions" output section for visibility.
-7. The gate passes only when every `CRITICAL` or `HIGH` finding is `fixed` or `waived-with-rationale`, and every `MEDIUM` finding is `fixed`, `owned-with-remediation-plan`, or `waived-with-rationale`. Any other state for a `CRITICAL`, `HIGH`, or `MEDIUM` finding fails the gate.
+7. The gate passes only when every `CRITICAL` or `HIGH` finding is `fixed` or `waived`, and every `MEDIUM` finding is `fixed`, `deferred`, or `waived`. Any other state for a `CRITICAL`, `HIGH`, or `MEDIUM` finding fails the gate.
 
 ## Waiver Rules
 
@@ -84,7 +88,7 @@ A waiver is valid only if all fields are present:
 
 ## Ownership Rules
 
-`owned-with-remediation-plan` is valid only if it includes:
+`deferred` is valid only if it includes:
 
 - Named owner
 - Target milestone/date
@@ -93,7 +97,7 @@ A waiver is valid only if all fields are present:
 
 ## Decision Procedure
 
-1. Map each finding to exactly one of the four declared states; reject any other label.
+1. Normalize only the declared input aliases, then map each finding to exactly one of the four canonical states; reject any other label.
 2. Validate that every finding carries the artifacts listed in "Required Evidence Per State".
 3. Verify that fixes are linked to findings and that touched areas have been re-reviewed per Gate Rule 5.
 4. Check for newly introduced regressions and add them as findings per Gate Rule 6.
@@ -101,7 +105,7 @@ A waiver is valid only if all fields are present:
 
 ### Error Handling
 
-If required inputs are missing, unreadable, or too vague to apply the Gate Rules (for example: a finding has no severity, fix commits are not linked to findings, or verification evidence is absent for any claimed `fixed` state), do not emit `pass` or `fail`. Emit `BLOCK` with:
+If required inputs are missing, unreadable, or too vague to apply the Gate Rules (for example: a finding has no severity, fix commits are not linked to findings, or a claimed `fixed` state lacks evidence of removal, or lacks both verification and a permitted no-test rationale), do not emit `pass` or `fail`. Emit `BLOCK` with:
 
 - The specific missing or ambiguous input.
 - The findings or rules that cannot be evaluated as a result.
@@ -129,8 +133,8 @@ Findings matrix:
 | id    | severity | state                         | owner       | evidence                                  |
 |-------|----------|-------------------------------|-------------|-------------------------------------------|
 | F-001 | HIGH     | fixed                         | -           | commit abc1234, tests in foo.spec.ts      |
-| F-002 | MEDIUM   | owned-with-remediation-plan   | @alice      | issue #42, target 2026-06-15              |
-| F-003 | LOW      | waived-with-rationale         | @bob (lead) | scope: legacy /v1 endpoint; issue #43     |
+| F-002 | MEDIUM   | deferred                      | @alice      | issue #42, target 2026-06-15, steps: batch reads in one query |
+| F-003 | LOW      | waived                        | @bob (lead) | scope: legacy /v1 endpoint; rationale: bounded internal-only exposure accepted by @bob; issue #43 |
 
 New regressions:
 - <item or None>
@@ -149,5 +153,5 @@ Blockers to clear:
 
 - Marking a finding as fixed without verification evidence.
 - Closing threads without checking touched-area regressions.
-- Treating `owned-with-remediation-plan` as acceptable for `CRITICAL` or `HIGH` severity.
+- Treating `deferred` as acceptable for `CRITICAL` or `HIGH` severity.
 - Approving merge while blockers remain undefined.

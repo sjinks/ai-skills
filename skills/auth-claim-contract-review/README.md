@@ -12,6 +12,10 @@ It helps an assistant:
 - keep sensitive-data boundaries explicit by using redacted or synthetic examples instead of raw tokens, auth headers, secrets, credentials, private keys, customer PII, or private raw data
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with findings, checklist status, assumptions, unverified areas, and residual risk
 
+Checklist coverage distinguishes `covered`, `gap`, `not-assessed`, and `n/a`; missing evidence is not an evidenced target defect.
+
+Missing context or evidence uses `Open question`; it does not establish an authorization defect.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

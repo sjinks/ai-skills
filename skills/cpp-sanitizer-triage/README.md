@@ -14,6 +14,8 @@ It helps an assistant:
 - keep sanitizer configurations compatible and verified (separate builds for TSan/MSan, symbolization working, regression tests under the sanitizer)
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with classification, root cause vs symptom, findings, checklist status, and an insufficient-context template
 
+Checklist coverage distinguishes `covered`, `gap`, `not-assessed`, and `n/a`; missing evidence is not an evidenced target defect.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

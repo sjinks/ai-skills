@@ -84,7 +84,7 @@ Verdict: COMPLETE-PASS | PARTIAL-PASS | BLOCK
 
 Verdict mapping: `COMPLETE-PASS` — every dimension is `swept`, `n/a`, or skipped for requester exclusion, and Coverage gaps is `None`. `PARTIAL-PASS` — coverage gaps exist, or a dimension is skipped for missing expertise/context (any skip without requester agreement); name what a follow-up pass must cover. `BLOCK` — insufficient input. Emit exactly one value for each enum field; do not copy enum lists or angle-bracket placeholders into the report.
 
-No-findings path: full coverage with no findings is a valid `COMPLETE-PASS`; keep the `### Findings` heading with the single line `Findings: none` under it.
+No-findings path: full coverage with no findings is a valid `COMPLETE-PASS`; keep the `### Findings` heading with the single line `Findings: None` under it.
 
 ## Error Handling
 

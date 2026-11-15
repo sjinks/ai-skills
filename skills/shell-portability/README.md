@@ -20,6 +20,8 @@ Bash shebang selection preserves target-confirmed fixed paths. An `env`-based fo
 
 Any supplied construction handoff activates review, including malformed or BLOCKED reports, which receive reduced BLOCK. Raw mixed requests still route through construction or interface correction first; normal portability analysis requires exact command text.
 
+Checklist coverage distinguishes `covered`, `gap`, `not-assessed`, and `n/a`; missing evidence is not an evidenced target defect.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

@@ -14,6 +14,8 @@ It helps an assistant:
 - enforce consumption: `[[nodiscard]]` error channels, no silent catch-and-swallow, every failure class has a consumer
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with the policy, findings, checklist status, failure-path test expectations, and an insufficient-context template
 
+Checklist coverage distinguishes `covered`, `gap`, `not-assessed`, and `n/a`; missing evidence is not an evidenced target defect.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

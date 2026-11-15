@@ -87,6 +87,17 @@ Verdicts:
 - `CONCERNS`: the `const` is correct but intersects another check (e.g. return-move) that should be confirmed, or grouped declarations still need isolation.
 - `CLEAN`: every flagged declaration in scope is correctly qualified, the build compiles, and re-running tidy clears the finding with no new one.
 
+## Coverage states
+
+For full-report checklist coverage, apply the first matching state:
+
+1. `n/a`: the check does not apply.
+2. `gap`: evidence shows an unmet applicable requirement.
+3. `not-assessed`: remaining requested assessment or required evidence is unavailable.
+4. `covered`: evidence satisfies every applicable part.
+
+A gap may coexist with unassessed subparts; disclose both. Explain every non-covered item in findings or residual risk, keeping each checklist entry to one state. Missing evidence alone is not a target defect. Requested `not-assessed` items or unassessed subparts prevent `CLEAN`: use `BLOCK` when meaningful review is impossible, otherwise `CONCERNS`; retain stronger local blocking rules. Other gaps follow existing severity/verdict rules.
+
 ## Output Format
 
 ```text
@@ -103,12 +114,12 @@ Findings:
   Cross-check: <performance-no-automatic-move | none | other>
 
 Checklist status:
-- Flagged declarations qualified: covered | missing | n/a
-- Out-of-scope cases avoided: covered | missing | n/a
-- Grouped declarations isolated: covered | missing | n/a
-- Return-move conflicts resolved: covered | missing | n/a
-- Build / overload behavior preserved: covered | missing | n/a
-- tidy re-run clears finding: covered | missing | n/a
+- Flagged declarations qualified: covered | gap | not-assessed | n/a
+- Out-of-scope cases avoided: covered | gap | not-assessed | n/a
+- Grouped declarations isolated: covered | gap | not-assessed | n/a
+- Return-move conflicts resolved: covered | gap | not-assessed | n/a
+- Build / overload behavior preserved: covered | gap | not-assessed | n/a
+- tidy re-run clears finding: covered | gap | not-assessed | n/a
 
 Residual risk: <remaining caveats, or None>
 ```

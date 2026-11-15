@@ -13,6 +13,8 @@ It helps an assistant:
 - keep configuration logic multi-config-safe with generator expressions and make sanitizers/LTO/warnings opt-in, per-target, compile-and-link consistent
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with project shape, findings, checklist status, verification expectations, and an insufficient-context template
 
+Checklist coverage distinguishes `covered`, `gap`, `not-assessed`, and `n/a`; missing evidence is not an evidenced target defect.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

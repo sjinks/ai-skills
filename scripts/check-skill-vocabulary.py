@@ -20,6 +20,14 @@ FIRST_DEFINITION = re.compile(rf"({FORMATTED})\s+(?:means|for)\b")
 PROSE_DEFINITION = re.compile(rf"(?:^|[;,]\s*(?:(?:and|or)\s+)?)({FORMATTED})\s+(?:means|for)\b")
 BULLET_DEFINITION = re.compile(rf"^\s*-\s+({ATOM})\s*:")
 HEADING = re.compile(r"^(#{1,6})\s+(.*)")
+COVERAGE_STATES = {"covered", "gap", "not-assessed", "n/a"}
+COVERAGE_ENUM = re.compile(r":\s*<?(covered\s*\|[^\n]+)")
+CLASSIFICATION_FIELD = re.compile(r"^\s*(?:-\s*)?Classification:\s*(.*)$")
+ACTION_CLASSIFICATIONS = {
+    "blocker", "required test", "follow-up", "accepted tradeoff", "not applicable",
+    "fix-now", "add-verification", "clarify", "defer-with-owner", "retain-accepted",
+}
+FINDING_STATE_REPORTS = {"code-quality", "review-cycle-gatekeeper"}
 OLD_RUBRIC = re.compile(rf"^\s*-\s+(?:`({LEGACY})`|\*\*({LEGACY}):\*\*)\s*:?")
 OLD_ENTRY = re.compile(
     rf"(?:Title|Body|Footers|Input|Convention|Structure|Disclosure):\s*(?:{LEGACY})(?:\s|$)"
@@ -69,6 +77,26 @@ def check_members(members, location, errors, *, complete):
         errors.append(f"{location}: missing four-level severity vocabulary in this declaration")
 
 
+def check_shared_states(line, location, errors, *, finding_lifecycle):
+    plain = line.replace("`", "").replace("**", "").replace(r"\|", "|")
+    for match in COVERAGE_ENUM.finditer(plain):
+        values = {
+            re.sub(r"\s*\([^)]*\)\s*$", "", value).strip(" <>.")
+            for value in match[1].split("|")
+        }
+        if values != COVERAGE_STATES:
+            errors.append(f"{location}: incomplete or obsolete checklist coverage enum")
+    classification = CLASSIFICATION_FIELD.match(plain)
+    if classification:
+        values = {value.strip().strip("<>") for value in classification[1].split("|")}
+        if values & (ACTION_CLASSIFICATIONS | {"Needs more evidence"}):
+            errors.append(f"{location}: action or missing-evidence label in Classification field")
+    if finding_lifecycle and re.match(r"^\s*(?:Status|State):\s*(?:Open|Resolved|owned-with-remediation-plan|waived-with-rationale)(?:\s|$)", plain):
+        errors.append(f"{location}: legacy emitted finding state")
+    if re.search(r"\bFindings:\s+none(?:[.\s]|$)", plain):
+        errors.append(f"{location}: use the canonical Findings: None marker")
+
+
 def inspect_package(package):
     errors = []
     emits = False
@@ -90,6 +118,7 @@ def inspect_package(package):
 
         for number, line in enumerate(text.splitlines(), 1):
             location = f"{path.relative_to(ROOT)}:{number}"
+            check_shared_states(line, location, errors, finding_lifecycle=package.name in FINDING_STATE_REPORTS)
             delimiter = re.match(r"^\s*(`{3,}|~{3,})", line)
             if delimiter:
                 if fence is None:

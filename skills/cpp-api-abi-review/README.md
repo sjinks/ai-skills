@@ -13,6 +13,8 @@ It helps an assistant:
 - require a loud break mechanism (soname/major bump, inline-namespace version, symbol versioning) for every break, plus ABI-diff or link-test verification
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with the promise, findings, checklist status, verification expectations, and an insufficient-context template
 
+Checklist coverage distinguishes `covered`, `gap`, `not-assessed`, and `n/a`; missing evidence is not an evidenced target defect.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

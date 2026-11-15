@@ -35,6 +35,17 @@ Collect or infer before judging:
 
 If neither a report nor a concrete description of one can be established, return `Verdict: BLOCK` with one open question; do not guess. When the report is supplied but configuration items are unstated, analyze the report normally, mark those fields `undeclared`, and record configuration-dependent conclusions as open questions instead of guessing.
 
+## Coverage states
+
+For full-report checklist coverage, apply the first matching state:
+
+1. `n/a`: the check does not apply.
+2. `gap`: evidence shows an unmet applicable requirement.
+3. `not-assessed`: remaining requested assessment or required evidence is unavailable.
+4. `covered`: evidence satisfies every applicable part.
+
+A gap may coexist with unassessed subparts; disclose both. Explain every non-covered item in findings or residual risk, keeping each checklist entry to one state. Missing evidence alone is not a target defect. Requested `not-assessed` items or unassessed subparts prevent `CLEAN`: use `BLOCK` when meaningful review is impossible, otherwise `CONCERNS`; retain stronger local blocking rules. Other gaps follow existing severity/verdict rules.
+
 ## Output Depth
 
 Default to `standard`. `quick` still reports missing required context, blockers, the classification, and the root-cause frame; it only omits non-applicable checklist expansion. `standard` covers the applicable checklist with concise evidence. `exhaustive` enumerates the full checklist only when asked or when the risk surface warrants it. Whenever the selected depth is `quick` or `exhaustive` — whether user-requested or risk-selected — state it on a `Depth:` line directly after `Target:` in the report.
@@ -133,11 +144,11 @@ Root cause: <frame and contract violation, or undetermined with the missing evid
 Symptom: <faulting frame, for contrast>
 
 Checklist status:
-- Report reading: covered | missing | n/a
-- Classification: covered | missing | n/a
-- Action and routing: covered | missing | n/a
-- Configuration hygiene: covered | missing | n/a
-- Tests: covered | missing | n/a
+- Report reading: covered | gap | not-assessed | n/a
+- Classification: covered | gap | not-assessed | n/a
+- Action and routing: covered | gap | not-assessed | n/a
+- Configuration hygiene: covered | gap | not-assessed | n/a
+- Tests: covered | gap | not-assessed | n/a
 
 Residual risk: <remaining caveats or None>
 ```

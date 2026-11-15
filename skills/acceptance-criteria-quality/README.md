@@ -12,6 +12,10 @@ It helps an assistant:
 - propose additions only from the supplied feature description, turning undecided behavior into open questions instead of invented requirements
 - emit a deterministic BLOCK template when neither criteria nor a feature description is supplied
 
+Checklist coverage distinguishes `covered`, `gap`, `not-assessed`, and `n/a`; missing evidence is not an evidenced target defect.
+
+Criteria-only mode marks feature coverage `not-assessed`; any CLEAN verdict covers criterion quality only.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

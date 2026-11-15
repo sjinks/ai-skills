@@ -16,7 +16,7 @@ Input modes:
 
 - Audit/rewrite mode: draft criteria supplied. The table and Criteria section cover them.
 - Drafting mode: no draft criteria, but a feature description is supplied. Emit the table header with no rows, write `None` under `### Criteria`, and emit every drafted criterion under `### Proposed additions` prefixed with `drafted`, each meeting the criterion contract with its nested `Verify by` line.
-- Criteria-only mode: draft criteria supplied without a feature description. Run the per-criterion audit only; mark every coverage category `n/a (no feature description supplied)` and write `None` under Proposed additions.
+- Criteria-only mode: draft criteria supplied without a feature description. Run the per-criterion audit only; mark every coverage category `not-assessed (no feature description supplied)` and write `None` under Proposed additions.
 
 ## Required Inputs
 
@@ -39,7 +39,7 @@ Every criterion must satisfy all five properties:
 
 ## Coverage Check
 
-After auditing individual criteria, check the set against the supplied feature description for these gap categories: success path, failure/rejection path, empty or boundary input, permission or authorization outcome, and persistence or side-effect visibility. A category that does not apply is marked `n/a` with a one-line reason. Gaps become items under `### Proposed additions`, derived only from the supplied feature description — never from guessed requirements; when the description does not say what the behavior should be, the gap becomes an open question instead.
+After auditing individual criteria, check the set against the supplied feature description for these gap categories: success path, failure/rejection path, empty or boundary input, permission or authorization outcome, and persistence or side-effect visibility. Apply the first matching coverage state: `n/a` when the category does not apply; `gap` when known required behavior lacks a criterion; `not-assessed` when the feature description or a required decision is unavailable; otherwise `covered` when criteria check every required outcome. Disclose unassessed subparts even when a known gap determines the category state. Explain every non-covered category. Gaps become items under `### Proposed additions`, derived only from the supplied feature description — never from guessed requirements; when behavior is undecided, raise an open question instead of inventing a requirement. Mark its category `not-assessed` unless an evidenced gap already determines the category state; in that case, disclose the undecided subpart alongside the gap.
 
 ## Per-Criterion Status
 
@@ -71,18 +71,18 @@ For each criterion numbered as in the table:
 
 ### Coverage
 
-- success path: covered | gap | n/a (<reason>)
-- failure/rejection path: covered | gap | n/a (<reason>)
-- empty or boundary input: covered | gap | n/a (<reason>)
-- permission or authorization outcome: covered | gap | n/a (<reason>)
-- persistence or side-effect visibility: covered | gap | n/a (<reason>)
+- success path: covered | gap | not-assessed | n/a (<reason>)
+- failure/rejection path: covered | gap | not-assessed | n/a (<reason>)
+- empty or boundary input: covered | gap | not-assessed | n/a (<reason>)
+- permission or authorization outcome: covered | gap | not-assessed | n/a (<reason>)
+- persistence or side-effect visibility: covered | gap | not-assessed | n/a (<reason>)
 
 ### Open questions (product decisions)
 
 - <decision needed, who can make it>
 ```
 
-The `Contract gaps` cell lists the violated contract property names (`testable`, `observable`, `single`, `scoped`, `implementation-neutral`) and contains exactly `none` for `compliant` rows.
+The `Contract gaps` cell lists the violated contract property names (`testable`, `observable`, `single`, `scoped`, `implementation-neutral`) and contains exactly `None` for `compliant` rows.
 
 For a split criterion, replace its single `Final:`/`Verify by:` pair with one pair per split part, each `Final:` prefixed by the part label:
 
@@ -95,7 +95,7 @@ For a split criterion, replace its single `Final:`/`Verify by:` pair with one pa
 
 `### Proposed additions` holds coverage-gap criteria in audit/rewrite mode (prefixed with their coverage category) and all drafted criteria in drafting mode (prefixed with `drafted`).
 
-Verdict mapping: `BLOCK` — insufficient input (reduced template below). `CONCERNS` — any criterion is not `compliant`, or any coverage category is `gap`. `CLEAN` — every criterion `compliant` and no coverage gaps; say so immediately after the verdict line and keep the report.
+Verdict mapping: `BLOCK` — insufficient input (reduced template below). `CONCERNS` — any criterion is not `compliant`, or any requested coverage category is `gap` or `not-assessed`. `CLEAN` — every assessed criterion is `compliant` and all requested coverage is `covered` or justified `n/a`; say so immediately after the verdict line and keep the report. In criteria-only mode, feature coverage is outside the requested assessment: its `not-assessed` categories do not prevent `CLEAN`, but state immediately after the verdict that it covers criterion quality only and feature coverage was not assessed.
 
 Empty sections are written with `None`.
 

@@ -11,6 +11,8 @@ It helps an assistant:
 - check file count, decompressed size, compression ratio, nested archive depth, and partial extraction cleanup
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with findings, checklist status, tests, and residual risk
 
+Checklist coverage distinguishes `covered`, `gap`, `not-assessed`, and `n/a`; missing evidence is not an evidenced target defect.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

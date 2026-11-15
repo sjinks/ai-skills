@@ -38,6 +38,17 @@ Collect or infer before judging:
 
 If the target cannot be seen, or the language/standard cannot be established for a standard-dependent rule, return `Verdict: BLOCK` with one open question. Do not guess whether a type is trivially copyable, whether a function's return value matters, or whether code runs in a signal handler. Insufficient-context mode takes precedence over pattern-level decision rules: general rules may be cited as context, but no verdict other than `BLOCK` may rest on an unseen target or an undetermined execution context.
 
+## Coverage states
+
+For full-report checklist coverage, apply the first matching state:
+
+1. `n/a`: the check does not apply.
+2. `gap`: evidence shows an unmet applicable requirement.
+3. `not-assessed`: remaining requested assessment or required evidence is unavailable.
+4. `covered`: evidence satisfies every applicable part.
+
+A gap may coexist with unassessed subparts; disclose both. Explain every non-covered item in findings or residual risk, keeping each checklist entry to one state. Missing evidence alone is not a target defect. Requested `not-assessed` items or unassessed subparts prevent `CLEAN`: use `BLOCK` when meaningful review is impossible, otherwise `CONCERNS`; retain stronger local blocking rules. Other gaps follow existing severity/verdict rules.
+
 ## Output Depth
 
 Default to `standard`. `quick` still reports missing required context, blockers, unmitigated HIGH/CRITICAL findings, and target-specific concerns; it only omits non-applicable checklist expansion. `standard` covers the applicable checklist with concise evidence. `exhaustive` enumerates the full checklist only when asked or when the change surface warrants it. Name the selected depth when the user asks for `quick` or `exhaustive`.
@@ -139,13 +150,13 @@ Findings:
   Test expectation: <regression test, static-analysis assertion, or N/A>
 
 Checklist status:
-- Declarations and namespaces: covered | missing | n/a
-- Error handling and exceptions: covered | missing | n/a
-- Memory and object operations: covered | missing | n/a
-- Expressions and types: covered | missing | n/a
-- Concurrency and signals: covered | missing | n/a
-- Security-sensitive API: covered | missing | n/a
-- Suppressions and tests: covered | missing | n/a
+- Declarations and namespaces: covered | gap | not-assessed | n/a
+- Error handling and exceptions: covered | gap | not-assessed | n/a
+- Memory and object operations: covered | gap | not-assessed | n/a
+- Expressions and types: covered | gap | not-assessed | n/a
+- Concurrency and signals: covered | gap | not-assessed | n/a
+- Security-sensitive API: covered | gap | not-assessed | n/a
+- Suppressions and tests: covered | gap | not-assessed | n/a
 
 Residual risk: <remaining caveats, deferred cross-skill questions, or None>
 ```

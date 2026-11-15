@@ -120,6 +120,17 @@ Verdicts (apply BLOCK first, then CONCERNS, otherwise CLEAN subject to the state
 
 A data-structure finding must never be promoted over a correctness or lifetime concern: if the faster structure changes ordering callers rely on, collapses duplicates, or invalidates retained references, downgrade or withdraw the finding and route the question to object-lifetime or concurrency review as appropriate.
 
+## Coverage states
+
+For full-report checklist coverage, apply the first matching state:
+
+1. `n/a`: the check does not apply.
+2. `gap`: evidence shows an unmet applicable requirement.
+3. `not-assessed`: remaining requested assessment or required evidence is unavailable.
+4. `covered`: evidence satisfies every applicable part.
+
+A gap may coexist with unassessed subparts; disclose both. Explain every non-covered item in findings or residual risk, keeping each checklist entry to one state. Missing evidence alone is not a target defect. Requested `not-assessed` items or unassessed subparts prevent `CLEAN`: use `BLOCK` when meaningful review is impossible, otherwise `CONCERNS`; retain stronger local blocking rules. Other gaps follow existing severity/verdict rules.
+
 ## Output Format
 
 ```text
@@ -142,11 +153,11 @@ Findings:
   Test expectation: <benchmark across N, profile, regression test for preserved order, or N/A>
 
 Checklist status:
-- Asymptotic shape: covered | missing | n/a
-- Structure choice: covered | missing | n/a
-- Crossover and constants: covered | missing | n/a
-- Behavior preservation: covered | missing | n/a
-- Measurement: covered | missing | n/a
+- Asymptotic shape: covered | gap | not-assessed | n/a
+- Structure choice: covered | gap | not-assessed | n/a
+- Crossover and constants: covered | gap | not-assessed | n/a
+- Behavior preservation: covered | gap | not-assessed | n/a
+- Measurement: covered | gap | not-assessed | n/a
 
 Residual risk: <remaining caveats, deferred lifetime/concurrency questions, or None>
 ```

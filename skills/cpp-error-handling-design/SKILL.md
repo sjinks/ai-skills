@@ -35,6 +35,17 @@ Collect or infer before judging:
 
 If the target cannot be established, return `Verdict: BLOCK` with one open question; do not guess. When the target is supplied but the policy is unstated, analyze policy-independent findings (safety-guarantee violations, terminate paths, swallowed errors) normally, state the policy as `undeclared`, and record policy-dependent recommendations as open questions instead of guessing the policy.
 
+## Coverage states
+
+For full-report checklist coverage, apply the first matching state:
+
+1. `n/a`: the check does not apply.
+2. `gap`: evidence shows an unmet applicable requirement.
+3. `not-assessed`: remaining requested assessment or required evidence is unavailable.
+4. `covered`: evidence satisfies every applicable part.
+
+A gap may coexist with unassessed subparts; disclose both. Explain every non-covered item in findings or residual risk, keeping each checklist entry to one state. Missing evidence alone is not a target defect. Requested `not-assessed` items or unassessed subparts prevent `CLEAN`: use `BLOCK` when meaningful review is impossible, otherwise `CONCERNS`; retain stronger local blocking rules. Other gaps follow existing severity/verdict rules.
+
 ## Output Depth
 
 Default to `standard`. `quick` still reports missing required context, blockers, unmitigated HIGH/CRITICAL findings, and target-specific concerns; it only omits non-applicable checklist expansion. `standard` covers the applicable checklist with concise evidence. `exhaustive` enumerates the full checklist only when asked or when the risk surface warrants it. Name the selected depth when the user asks for `quick` or `exhaustive`.
@@ -133,12 +144,12 @@ Findings:
   Test expectation: <failure-path test or N/A>
 
 Checklist status:
-- Policy and channels: covered | missing | n/a
-- Safety guarantees: covered | missing | n/a
-- Noexcept and special functions: covered | missing | n/a
-- Boundaries and propagation: covered | missing | n/a
-- Consumption and completeness: covered | missing | n/a
-- Tests: covered | missing | n/a
+- Policy and channels: covered | gap | not-assessed | n/a
+- Safety guarantees: covered | gap | not-assessed | n/a
+- Noexcept and special functions: covered | gap | not-assessed | n/a
+- Boundaries and propagation: covered | gap | not-assessed | n/a
+- Consumption and completeness: covered | gap | not-assessed | n/a
+- Tests: covered | gap | not-assessed | n/a
 
 Residual risk: <remaining caveats or None>
 ```

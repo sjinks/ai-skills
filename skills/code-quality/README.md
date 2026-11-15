@@ -2,7 +2,7 @@
 
 > Assess production-code quality and, when requested, apply verified behavior-preserving findings using project evidence.
 
-Targets can be supplied code snippets, diffs, or named paths; only when no target is supplied does the skill select relevant current workspace changes. Missing required snippet context remains an explicit coverage gap.
+Targets can be supplied code snippets, diffs, or named paths; only when no target is supplied does the skill select relevant current workspace changes. Missing required snippet context remains explicit `not-assessed` review coverage.
 
 Checks cover readability, API and module design, representations, trust boundaries, errors, resources, retries and concurrency, behavioral evidence, performance tradeoffs, and compatibility. Separate plan validation, new-code authoring, framework recipes, companion-skill orchestration, and AI fingerprints are intentionally outside this skill's scope. Comprehensive security audits, performance investigations, test-suite audits, isolated test-code reviews, dedicated avoidable-complexity audits, and standalone refactoring or simplification requests are excluded; performance costs and behavioral tests remain dimensions of a code-quality review.
 
@@ -12,9 +12,11 @@ Isolated test-code review means a primary target of test assertions, determinism
 
 Simplification records a passing starting state and checks retained edits together. Failed or unavailable required checks, or uncertain equivalence, stop new edits and roll back the agent’s edits since the last passing combined state, preserving pre-existing work and reporting recovery results.
 
-Applicability and reference loading consider the target and relevant inspected context, including callers and behavioral tests. Required but unavailable context is a coverage gap; context inspection does not expand edit scope.
+Applicability and reference loading consider the target and relevant inspected context, including callers and behavioral tests. Required but unavailable context is `not-assessed` review coverage; context inspection does not expand edit scope.
 
-All 13 dimensions receive an applicability screen, followed by investigation of applicable signals and risks. Findings describe concrete consequences rather than smell counts and retain stable IDs, `Open`/`Resolved` statuses, and observable resolution criteria. The report uses `Quality` labels and returns `Blocked`, `Needs attention`, or `Clean`; `Clean` applies only to the inspected scope.
+Review coverage uses `reviewed`, `not-assessed`, and `n/a`; finding state is `open` or verified `fixed`, with legacy input mappings that retain the evidence requirements.
+
+All 13 dimensions receive an applicability screen, followed by investigation of applicable signals and risks. Findings describe concrete consequences rather than smell counts and retain stable IDs, `open`/`fixed` statuses, and observable resolution criteria. The report uses `Quality` labels and returns `Blocked`, `Needs attention`, or `Clean`; `Clean` applies only to the inspected scope.
 
 Impact severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; task-specific statuses and decisions remain separate.
 

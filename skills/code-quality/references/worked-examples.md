@@ -32,7 +32,7 @@ CQ-001 — Retry configuration is ignored
 
 Severity: HIGH
 
-Status: Open
+Status: open
 
 Location: `client/retry-policy:18`
 
@@ -64,7 +64,7 @@ CQ-001 — Narration obscures the useful contract comment
 
 Severity: LOW
 
-Status: Resolved
+Status: fixed
 
 Location: `format/label:12`
 
@@ -90,7 +90,7 @@ Quality verdict: Clean
 
 Quality mode: simplify
 
-Quality scope: Requested code-quality assessment of `checkout/eligibility` with application of supported findings; inspected callers and available tests. Assessed naming, comments, control flow, abstraction, duplication, API design, architecture, validation, errors, side effects, performance costs, and change safety. Behavioral tests are a coverage gap: the available test files cannot be read in this checkout. No unrelated paths selected.
+Quality scope: Requested code-quality assessment of `checkout/eligibility` with application of supported findings; inspected callers and available tests. Assessed naming, comments, control flow, abstraction, duplication, API design, architecture, validation, errors, side effects, performance costs, and change safety. Behavioral tests are `not-assessed`: the available test files cannot be read in this checkout. No unrelated paths selected.
 
 Quality findings:
 
@@ -98,7 +98,7 @@ CQ-001 — Repeated eligibility policy obscures the decision
 
 Severity: MEDIUM
 
-Status: Open
+Status: open
 
 Location: `checkout/eligibility:20,35`
 

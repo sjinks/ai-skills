@@ -110,6 +110,17 @@ Verdicts:
 - `CONCERNS`: the reorder is correct and saves space but intersects another constraint to confirm (init order, designated-init call sites, standard-layout requirement) before applying.
 - `CLEAN`: layout is already optimal for its alignment classes, or the proposed reorder strictly shrinks `sizeof`, is provably safe, and is locked with a `static_assert`.
 
+## Coverage states
+
+For full-report checklist coverage, apply the first matching state:
+
+1. `n/a`: the check does not apply.
+2. `gap`: evidence shows an unmet applicable requirement.
+3. `not-assessed`: remaining requested assessment or required evidence is unavailable.
+4. `covered`: evidence satisfies every applicable part.
+
+A gap may coexist with unassessed subparts; disclose both. Explain every non-covered item in findings or residual risk, keeping each checklist entry to one state. Missing evidence alone is not a target defect. Requested `not-assessed` items or unassessed subparts prevent `CLEAN`: use `BLOCK` when meaningful review is impossible, otherwise `CONCERNS`; retain stronger local blocking rules. Other gaps follow existing severity/verdict rules.
+
 ## Output Format
 
 ```text
@@ -128,12 +139,12 @@ Findings:
   Cross-check: <clang-analyzer optin.performance.Padding | -Wreorder | copy/allocation-cost | none>
 
 Checklist status:
-- Current layout computed: covered | missing | n/a
-- Proposed layout strictly smaller: covered | missing | n/a
-- Frozen-layout constraints checked: covered | missing | n/a
-- Init-order / aggregate-init reviewed: covered | missing | n/a
-- standard-layout / offsetof preserved: covered | missing | n/a
-- Result locked with static_assert: covered | missing | n/a
+- Current layout computed: covered | gap | not-assessed | n/a
+- Proposed layout strictly smaller: covered | gap | not-assessed | n/a
+- Frozen-layout constraints checked: covered | gap | not-assessed | n/a
+- Init-order / aggregate-init reviewed: covered | gap | not-assessed | n/a
+- standard-layout / offsetof preserved: covered | gap | not-assessed | n/a
+- Result locked with static_assert: covered | gap | not-assessed | n/a
 
 Residual risk: <remaining caveats, or None>
 ```

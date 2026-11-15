@@ -12,6 +12,10 @@ It helps an assistant:
 - keep the full checklist table even on the no-findings path
 - return `CLEAN`, `CONCERNS`, or `BLOCK` with findings, outstanding items, and a deterministic insufficient-context template
 
+Empty findings use the exact `Findings: None` marker; an empty findings list does not establish complete review coverage.
+
+Unavailable requested assessment uses `not-assessed`, including a required repository sweep when search is unavailable; it prevents `CLEAN`. Preserve this checklist’s `pass`/`fail` satisfaction values.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.
