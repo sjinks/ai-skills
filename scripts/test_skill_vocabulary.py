@@ -69,6 +69,44 @@ class VocabularyTests(unittest.TestCase):
         _, errors = self.inspect(CANONICAL + "- **High:** major harm.\n")
         self.assertTrue(any("obsolete emitted severity" in error for error in errors))
 
+    def test_bold_rubrics_validate_colons_inside_and_outside_wrappers(self):
+        levels = ("CRITICAL", "HIGH", "MEDIUM", "LOW")
+        for pattern in ("**{level}:**", "**{level}**:"):
+            with self.subTest(pattern=pattern):
+                rubric = "## Severity\n" + "\n".join(
+                    "- " + pattern.format(level=level) + " impact." for level in levels
+                ) + "\n"
+                _, errors = self.inspect(rubric)
+                self.assertEqual(errors, [])
+                for missing in levels:
+                    partial = "\n".join(
+                        line for line in rubric.splitlines()
+                        if pattern.format(level=missing) not in line
+                    ) + "\n"
+                    _, errors = self.inspect(partial, {"README.md": CANONICAL})
+                    self.assertTrue(any("missing four-level" in error for error in errors))
+                for unknown in ("URGENT", "urgent"):
+                    _, errors = self.inspect(
+                        rubric + "- " + pattern.format(level=unknown) + " impact.\n"
+                    )
+                    self.assertTrue(any("invalid literal Severity" in error for error in errors))
+
+    def test_every_finding_anchor_rejects_legacy_severity(self):
+        for anchor in ("Title", "Subject", "Body", "Footers", "Input", "Convention",
+                       "Structure", "Disclosure"):
+            for severity in ("Critical", "High", "Medium", "Low", "critical", "high",
+                             "medium", "low", "error", "warning", "information",
+                             "blocker", "should-fix", "suggestion"):
+                with self.subTest(anchor=anchor, severity=severity):
+                    _, errors = self.inspect(f"- {anchor}: {severity} — obsolete.\n")
+                    self.assertTrue(any("obsolete emitted severity" in error for error in errors))
+
+    def test_subject_accepts_canonical_severity_and_notes(self):
+        for value in ("CRITICAL", "HIGH", "MEDIUM", "LOW", "note"):
+            with self.subTest(value=value):
+                _, errors = self.inspect(f"- Subject: {value} — detail.\n")
+                self.assertEqual(errors, [])
+
     def test_confidence_only_package_needs_no_severity(self):
         emits, errors = self.inspect("## Confidence\n- `high`: direct evidence.\n")
         self.assertFalse(emits)
