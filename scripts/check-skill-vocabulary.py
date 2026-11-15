@@ -8,8 +8,18 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 LEVELS = {"CRITICAL", "HIGH", "MEDIUM", "LOW"}
+SENTINELS = {"NONE", "UNASSESSED"}
 LEGACY = "Critical|High|Medium|Low|critical|high|medium|low|error|warning|information|blocker|should-fix|suggestion"
 FIELD = re.compile(r"^\s*(?:-\s*)?Severity:\s*(.*)$")
+NAMED_ENUM = re.compile(r"`FINDING_SEVERITY`\s*[-—]\s*one of\s+(.*)")
+ATOM = r"(?:`+[^`]+`+|\*\*[^*]+\*\*|[A-Za-z_][A-Za-z0-9_-]*)"
+SEPARATOR = r"(?:\s*\|\s*|\s*,\s*(?:or\s+)?|\s+or\s+)"
+ENUM = re.compile(rf"{ATOM}(?:{SEPARATOR}{ATOM})*\.?$")
+FORMATTED = r"(?:`+[^`]+`+|\*\*[^*]+\*\*)"
+FIRST_DEFINITION = re.compile(rf"({FORMATTED})\s+(?:means|for)\b")
+PROSE_DEFINITION = re.compile(rf"(?:^|[;,]\s*(?:(?:and|or)\s+)?)({FORMATTED})\s+(?:means|for)\b")
+BULLET_DEFINITION = re.compile(rf"^\s*-\s+({ATOM})\s*:")
+HEADING = re.compile(r"^(#{1,6})\s+(.*)")
 OLD_RUBRIC = re.compile(rf"^\s*-\s+(?:`({LEGACY})`|\*\*({LEGACY}):\*\*)\s*:?")
 OLD_ENTRY = re.compile(
     rf"(?:Title|Body|Footers|Input|Convention|Structure|Disclosure):\s*(?:{LEGACY})(?:\s|$)"
@@ -26,33 +36,119 @@ OLD_OUTPUT = re.compile(
 )
 
 
+def unformat(value):
+    """Remove one matching Markdown code/bold wrapper, not literal word content."""
+    code = re.fullmatch(r"(`+)([^`]+)\1", value)
+    if code:
+        return code[2]
+    bold = re.fullmatch(r"\*\*([^*]+)\*\*", value)
+    if bold:
+        return bold[1].rstrip(":")
+    return value
+
+
+def literal_members(value):
+    value = unformat(value.strip())
+    if value.startswith("<") and value.endswith(">"):
+        value = value[1:-1].strip()
+        # A descriptive slot is not an enum. Template alternatives are literals.
+        if not re.search(r"\||,|\sor\s", value):
+            return None
+    if value == "FINDING_SEVERITY" or not ENUM.fullmatch(value):
+        return None  # Exact schema placeholder or explanatory prose.
+    return [unformat(match[1]) for match in re.finditer(
+        rf"(?:^|{SEPARATOR})({ATOM})", value.rstrip(".")
+    )]
+
+
+def check_members(members, location, errors, *, complete):
+    values = set(members)
+    if not values <= LEVELS | SENTINELS:
+        errors.append(f"{location}: invalid literal Severity values: {', '.join(members)}")
+    if complete and values - SENTINELS and not LEVELS <= values:
+        errors.append(f"{location}: missing four-level severity vocabulary in this declaration")
+
+
 def inspect_package(package):
     errors = []
-    sources = sorted(package.rglob("*.md"))
-    combined = "\n".join(path.read_text() for path in sources)
-    # Match declared severity sections/fields, not incidental mentions or log levels.
-    emits = bool(re.search(r"^#{2,3} Severity|^\s*(?:-\s*)?Severity:", combined, re.M))
-    if emits and not all(re.search(rf"\b{level}\b", combined) for level in LEVELS):
-        errors.append(f"{package.relative_to(ROOT)}: missing four-level severity vocabulary")
-    for path in sources:
+    emits = False
+    for path in sorted(package.rglob("*.md")):
+        text = path.read_text()
+        emits |= bool(re.search(r"^#{2,3} .*Severity|^\s*(?:-\s*)?Severity:", text, re.M))
         axis = None
-        for number, line in enumerate(path.read_text().splitlines(), 1):
-            if line.startswith("#"):
-                axis = "severity" if re.search(r"\bSeverity\b", line) else None
-            if re.search(r"Use confidence|confidence label", line, re.I):
-                axis = "confidence"
+        rubric = []
+        rubric_line = 0
+        fence = None
+
+        def finish_rubric():
+            if rubric and path.name != "README.md":
+                # Outside a named severity section, only a run containing an
+                # impact label is a rubric; arbitrary domain lists are not.
+                if axis == "severity" or set(rubric) & LEVELS:
+                    check_members(rubric, f"{path.relative_to(ROOT)}:{rubric_line}", errors, complete=True)
+            rubric.clear()
+
+        for number, line in enumerate(text.splitlines(), 1):
             location = f"{path.relative_to(ROOT)}:{number}"
+            delimiter = re.match(r"^\s*(`{3,}|~{3,})", line)
+            if delimiter:
+                if fence is None:
+                    finish_rubric()
+                    fence = delimiter[1]
+                elif delimiter[1][0] == fence[0] and len(delimiter[1]) >= len(fence):
+                    fence = None
+                continue
+            heading = HEADING.match(line) if fence is None else None
+            if heading:
+                title = heading[2]
+                label_heading = axis == "severity" and re.fullmatch(FORMATTED, title)
+                if not label_heading:
+                    finish_rubric()
+                    axis = "severity" if re.search(r"\bSeverity\b", title) else None
+                if re.search(r"\bConfidence\b", title, re.I):
+                    finish_rubric()
+                    axis = "confidence"
+                if label_heading:
+                    if not rubric:
+                        rubric_line = number
+                    rubric.append(unformat(title))
+            if re.search(r"Use confidence|confidence label", line, re.I):
+                finish_rubric()
+                axis = "confidence"
+            if re.match(r"\s*(?:Verdicts?:|Verdict mapping|Verdict precedence|Use .*verdict)", line, re.I):
+                finish_rubric()
+                axis = None
             if (axis == "severity" and OLD_RUBRIC.search(line)) or OLD_ENTRY.search(line) or OLD_OUTPUT.search(line):
                 errors.append(f"{location}: obsolete emitted severity or summary label")
-            field = FIELD.match(line)
+            field = FIELD.match(line) or NAMED_ENUM.search(line)
             if field:
-                value = field[1].strip()
-                # Placeholders are governed by the containing report contract.
-                if value.startswith(("<", "`", "FINDING_SEVERITY")):
+                members = literal_members(field[1])
+                if members is not None:
+                    check_members(members, location, errors, complete=len(members) > 1)
+            if fence is not None or heading or axis == "confidence":
+                continue
+            bullet = BULLET_DEFINITION.match(line)
+            first = FIRST_DEFINITION.search(line)
+            definitions = [] if first is None else [
+                unformat(match[1]) for match in PROSE_DEFINITION.finditer(line[first.start():])
+            ]
+            if bullet:
+                label = unformat(bullet[1])
+                if label in {"BLOCK", "CONCERNS", "CLEAN"} or not (
+                    re.fullmatch(r"[A-Z][A-Z_-]*", label) or label in LEGACY.split("|")
+                ):
+                    finish_rubric()
+                    axis = None
                     continue
-                values = set(re.split(r"\s*\|\s*", value))
-                if not values <= LEVELS | {"NONE", "UNASSESSED"}:
-                    errors.append(f"{location}: invalid literal Severity field: {value}")
+                if not rubric:
+                    rubric_line = number
+                rubric.append(unformat(bullet[1]))
+            elif len(definitions) >= 2 and re.search(r"severity", line, re.I):
+                finish_rubric()
+                check_members(definitions, location, errors, complete=True)
+            elif rubric and line.strip() and axis != "severity":
+                finish_rubric()
+        finish_rubric()
     return emits, errors
 
 
