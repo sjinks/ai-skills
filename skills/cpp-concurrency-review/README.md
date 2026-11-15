@@ -14,6 +14,8 @@ It helps an assistant:
 - review cross-thread observer/callback dispatch: a race-free callback container during emission (verified, not assumed) and slot-captured-object lifetime across the emission via slot tracking or join/drain ordering
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with shared-state inventory, findings, checklist status, test expectations, and an insufficient-context template
 
+Checklist coverage distinguishes `covered`, `gap`, `not-assessed`, and `n/a`; missing evidence is not an evidenced target defect.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

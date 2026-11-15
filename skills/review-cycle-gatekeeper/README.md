@@ -6,7 +6,7 @@ This skill is aimed at pull requests and change reviews that have already gone t
 
 It helps an assistant:
 
-- normalize findings into explicit states (`fixed`, `owned-with-remediation-plan`, `waived-with-rationale`, `open`)
+- normalize findings into explicit states (`fixed`, `deferred`, `waived`, `open`)
 - enforce severity-aware closure rules so unresolved high-risk findings cannot be merged silently
 - require verification evidence for functional fixes and highlight missing proof
 - track regressions introduced during fix rounds as first-class findings
@@ -14,6 +14,8 @@ It helps an assistant:
 - return a compact `pass`, `fail`, or `BLOCK` gate summary with exact blockers to clear
 
 Impact severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; task-specific statuses and decisions remain separate.
+
+Legacy state labels are normalized to `open`, `fixed`, `deferred`, or `waived`; fixes, plans and waivers still require their own evidence.
 
 ## Files
 

@@ -88,6 +88,17 @@ Verdict mapping:
 - `CONCERNS`: actionable `HIGH` or `MEDIUM` gaps remain but each has a documented compensating control, accepted tradeoff, or bounded impact.
 - `CLEAN`: the contract, implementation, and tests cover every applicable checklist item with no material gaps.
 
+## Coverage states
+
+For full-report checklist coverage, apply the first matching state:
+
+1. `n/a`: the check does not apply.
+2. `gap`: evidence shows an unmet applicable requirement.
+3. `not-assessed`: remaining requested assessment or required evidence is unavailable.
+4. `covered`: evidence satisfies every applicable part.
+
+A gap may coexist with unassessed subparts; disclose both. Explain every non-covered item in findings or residual risk, keeping each checklist entry to one state. Missing evidence alone is not a target defect. Requested `not-assessed` items or unassessed subparts prevent `CLEAN`: use `BLOCK` when meaningful review is impossible, otherwise `CONCERNS`; retain stronger local blocking rules. Other gaps follow existing severity/verdict rules.
+
 ## Output Format
 
 ```text
@@ -109,18 +120,18 @@ Findings:
   Test expectation: <regression test or N/A>
 
 Checklist status:
-- Destination-root trust: covered | missing | n/a
-- Parser consistency: covered | missing | n/a
-- Entry path normalization: covered | missing | n/a
-- Platform path hazards: covered | missing | n/a
-- Destination containment: covered | missing | n/a
-- Links and special files: covered | missing | n/a
-- Resource limits: covered | missing | n/a
-- Race-resistant writes: covered | missing | n/a
-- Overwrite policy: covered | missing | n/a
-- Permission/ownership restoration: covered | missing | n/a
-- Partial extraction cleanup: covered | missing | n/a
-- Tests: covered | missing | n/a
+- Destination-root trust: covered | gap | not-assessed | n/a
+- Parser consistency: covered | gap | not-assessed | n/a
+- Entry path normalization: covered | gap | not-assessed | n/a
+- Platform path hazards: covered | gap | not-assessed | n/a
+- Destination containment: covered | gap | not-assessed | n/a
+- Links and special files: covered | gap | not-assessed | n/a
+- Resource limits: covered | gap | not-assessed | n/a
+- Race-resistant writes: covered | gap | not-assessed | n/a
+- Overwrite policy: covered | gap | not-assessed | n/a
+- Permission/ownership restoration: covered | gap | not-assessed | n/a
+- Partial extraction cleanup: covered | gap | not-assessed | n/a
+- Tests: covered | gap | not-assessed | n/a
 
 Residual risk: <remaining caveats or None>
 ```

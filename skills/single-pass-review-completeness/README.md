@@ -12,6 +12,8 @@ It helps an assistant:
 - keep pre-existing issues outside the locked diff separate from pass findings
 - return `COMPLETE-PASS`, `PARTIAL-PASS`, or `BLOCK` with the coverage declaration table and an explicit no-findings path
 
+Empty findings use the exact `Findings: None` marker; an empty findings list does not establish complete review coverage.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

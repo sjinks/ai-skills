@@ -15,6 +15,8 @@ It helps an assistant:
 
 Verdicts apply in order: blocking conditions produce `BLOCK`; other findings or missing applicable checks produce `CONCERNS`; otherwise the package's `CLEAN` criteria apply. Design-stage verification limitations retain `CONCERNS`.
 
+Checklist coverage distinguishes `covered`, `gap`, `not-assessed`, and `n/a`; missing evidence is not an evidenced target defect.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — operational workflow, decision rules, output contract, and completion gates.

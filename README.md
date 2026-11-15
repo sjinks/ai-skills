@@ -128,7 +128,7 @@ The repository currently contains the following skills, grouped by area. Each li
 
 ## Shared Vocabulary
 
-Finding severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; confidence, priority, status, and verdict remain separate. See [skill vocabulary](docs/skill-vocabulary.md) for definitions, domain outcomes, and input compatibility. Check canonical contracts with `python3 scripts/check-skill-vocabulary.py`.
+Finding severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; classification, disposition, confidence, priority, finding state, and verdict remain separate. Coverage distinguishes satisfied checks, evidenced gaps, unassessed work, and inapplicability. See [skill vocabulary](docs/skill-vocabulary.md) for definitions, domain outcomes, and input compatibility. Check canonical contracts with `python3 scripts/check-skill-vocabulary.py`.
 
 ## Skill Format
 

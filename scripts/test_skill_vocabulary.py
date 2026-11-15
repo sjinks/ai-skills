@@ -16,12 +16,12 @@ CANONICAL = "## Severity\n\nSeverity: CRITICAL | HIGH | MEDIUM | LOW\n"
 
 
 class VocabularyTests(unittest.TestCase):
-    def inspect(self, text, files=None):
+    def inspect(self, text, files=None, *, package_name="fixture"):
         with tempfile.TemporaryDirectory() as directory:
             original_root = vocabulary.ROOT
             try:
                 vocabulary.ROOT = Path(directory)
-                package = vocabulary.ROOT / "skills" / "fixture"
+                package = vocabulary.ROOT / "skills" / package_name
                 package.mkdir(parents=True)
                 (package / "SKILL.md").write_text(text)
                 for name, content in (files or {}).items():
@@ -222,6 +222,77 @@ class VocabularyTests(unittest.TestCase):
             {"README.md": CANONICAL, "references/examples.md": CANONICAL},
         )
         self.assertTrue(any("SKILL.md" in error and "missing four-level" in error for error in errors))
+
+    def test_generic_coverage_enum_requires_all_four_states(self):
+        for value in ("covered | missing | n/a", "covered | gap | n/a",
+                      "covered | gap | unknown | n/a", "covered | not-assessed | n/a"):
+            with self.subTest(value=value):
+                _, errors = self.inspect("Checklist status:\n- Tests: " + value + "\n")
+                self.assertTrue(any("coverage enum" in error for error in errors))
+
+    def test_complete_coverage_enum_passes(self):
+        for value in ("covered | gap | not-assessed | n/a",
+                      "covered | gap | not-assessed | n/a (<reason>)"):
+            with self.subTest(value=value):
+                _, errors = self.inspect("Checklist status:\n- Tests: " + value + "\n")
+                self.assertEqual(errors, [])
+
+    def test_coverage_checks_every_member_including_unknown_trailing_values(self):
+        for value in ("covered | gap | not-assessed | n/a | invented",
+                      "covered | invented | gap | not-assessed | n/a",
+                      "`covered` | `gap` | `not-assessed` | `n/a` | `invented`"):
+            with self.subTest(value=value):
+                _, errors = self.inspect("- Tests: " + value + "\n")
+                self.assertTrue(any("coverage enum" in error for error in errors))
+
+    def test_coverage_enum_cannot_be_completed_by_another_declaration(self):
+        _, errors = self.inspect(
+            "- Code: covered | gap | not-assessed | n/a\n- Tests: covered | gap | n/a\n"
+        )
+        self.assertTrue(any("coverage enum" in error for error in errors))
+
+    def test_actions_and_missing_evidence_are_not_general_classifications(self):
+        for value in ("blocker", "required test", "follow-up", "accepted tradeoff",
+                      "not applicable", "Needs more evidence", "fix-now", "clarify"):
+            with self.subTest(value=value):
+                _, errors = self.inspect("Classification: Confirmed issue | `" + value + "`\n")
+                self.assertTrue(any("Classification field" in error for error in errors))
+
+    def test_general_and_domain_classifications_pass(self):
+        for value in ("Confirmed issue", "Likely risk", "Open question", "Accepted tradeoff",
+                      "Test gap", "Defense-in-depth", "Measurement gap", "true positive"):
+            with self.subTest(value=value):
+                _, errors = self.inspect("Classification: " + value + "\n")
+                self.assertEqual(errors, [])
+
+    def test_canonical_finding_states_pass_and_legacy_outputs_fail(self):
+        for value in ("open", "fixed", "deferred", "waived"):
+            with self.subTest(value=value):
+                _, errors = self.inspect("Status: " + value + "\n", package_name="code-quality")
+                self.assertEqual(errors, [])
+        for value in ("Open", "Resolved", "`Resolved`", "owned-with-remediation-plan",
+                      "waived-with-rationale"):
+            with self.subTest(value=value):
+                _, errors = self.inspect("Status: " + value + "\n", package_name="code-quality")
+                self.assertTrue(any("legacy emitted finding state" in error for error in errors))
+
+    def test_legacy_input_state_mapping_prose_passes(self):
+        _, errors = self.inspect("Normalize input `Open` to `open` and `Resolved` to `fixed`.\n")
+        self.assertEqual(errors, [])
+
+    def test_domain_artifact_status_is_not_a_finding_lifecycle(self):
+        _, errors = self.inspect("Status: Open\nState: Resolved\n", package_name="domain-workflow")
+        self.assertEqual(errors, [])
+
+    def test_no_findings_marker_has_one_canonical_case(self):
+        _, errors = self.inspect("Findings: none\n")
+        self.assertTrue(any("Findings: None marker" in error for error in errors))
+        _, errors = self.inspect("Findings: None\n")
+        self.assertEqual(errors, [])
+
+    def test_task_specific_absence_and_unassessed_forms_pass(self):
+        _, errors = self.inspect("Footers: none\nAssessment: Not assessed.\nSeverity: UNASSESSED\n")
+        self.assertEqual(errors, [])
 
 
 if __name__ == "__main__":

@@ -37,6 +37,17 @@ Collect or infer before judging:
 
 If the target or the shared-state/thread topology cannot be established, return `Verdict: BLOCK` with one open question. Do not guess the synchronization regime. Insufficient-context mode takes precedence over pattern-level decision rules: general rules may be cited as context, but no verdict other than `BLOCK` may rest on an unseen target.
 
+## Coverage states
+
+For full-report checklist coverage, apply the first matching state:
+
+1. `n/a`: the check does not apply.
+2. `gap`: evidence shows an unmet applicable requirement.
+3. `not-assessed`: remaining requested assessment or required evidence is unavailable.
+4. `covered`: evidence satisfies every applicable part.
+
+A gap may coexist with unassessed subparts; disclose both. Explain every non-covered item in findings or residual risk, keeping each checklist entry to one state. Missing evidence alone is not a target defect. Requested `not-assessed` items or unassessed subparts prevent `CLEAN`: use `BLOCK` when meaningful review is impossible, otherwise `CONCERNS`; retain stronger local blocking rules. Other gaps follow existing severity/verdict rules.
+
 ## Output Depth
 
 Default to `standard`. `quick` still reports missing required context, blockers, unmitigated HIGH/CRITICAL findings, and target-specific concerns; it only omits non-applicable checklist expansion. `standard` covers the applicable checklist with concise evidence. `exhaustive` enumerates the full checklist only when asked or when the risk surface warrants it. Name the selected depth when the user asks for `quick` or `exhaustive`.
@@ -138,12 +149,12 @@ Findings:
   Test expectation: <TSan/deterministic test or N/A>
 
 Checklist status:
-- Shared state and races: covered | missing | n/a
-- Locks and ordering: covered | missing | n/a
-- Condition variables: covered | missing | n/a
-- Atomics and ordering: covered | missing | n/a
-- Thread lifecycle and shutdown: covered | missing | n/a
-- Tests: covered | missing | n/a
+- Shared state and races: covered | gap | not-assessed | n/a
+- Locks and ordering: covered | gap | not-assessed | n/a
+- Condition variables: covered | gap | not-assessed | n/a
+- Atomics and ordering: covered | gap | not-assessed | n/a
+- Thread lifecycle and shutdown: covered | gap | not-assessed | n/a
+- Tests: covered | gap | not-assessed | n/a
 
 Residual risk: <remaining caveats or None>
 ```

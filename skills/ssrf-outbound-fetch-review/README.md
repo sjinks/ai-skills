@@ -16,7 +16,11 @@ It helps an assistant:
 
 The skill covers both implementation concerns and review discipline, including boundaries, required input context, a definition of done, and a structured output contract.
 
+Checklist coverage distinguishes `covered`, `gap`, `not-assessed`, and `n/a`; missing evidence is not an evidenced target defect.
+
+Finding `Classification` describes evidence/risk; `Disposition` records the action, explicit deferral, or existing owner acceptance. Inapplicable checks appear only in checklist coverage.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.
-- [`references/`](references/) — extended workflow and reference material.
+- [`references/`](references/adversarial-test-matrix.md) — extended workflow and reference material.

@@ -18,7 +18,7 @@ If the skill or a required reference is unavailable, do not submit the affected 
 
 ## Shared vocabulary
 
-- Follow [skill vocabulary](docs/skill-vocabulary.md) for canonical severity, confidence, findings, notes, and the distinction between priority, status, and verdict. Keep each package self-contained with local impact anchors. Preserve domain outcomes and explicit legacy input mappings.
+- Follow [skill vocabulary](docs/skill-vocabulary.md) for canonical severity, confidence, classification, disposition, coverage, missing-information states, finding lifecycle, and the distinction between priority, status, and verdict. Keep each package self-contained with local impact anchors. Preserve domain outcomes and explicit legacy input mappings.
 - New severity outputs use `CRITICAL`, `HIGH`, `MEDIUM`, or `LOW`. Do not use verdicts, urgency labels, or diagnostic kinds as severity. Run `python3 scripts/check-skill-vocabulary.py` after vocabulary or report-contract changes.
 
 ## Skill layout and content

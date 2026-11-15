@@ -3,7 +3,7 @@
 Read this when reviewing test coverage for an SSRF/outbound-fetch change (Review Procedure step 5) or composing the `Adversarial tests:` output section.
 
 
-Adapt this matrix to the runtime and policy. Mark each item as covered, not applicable, accepted tradeoff, intentionally deferred, or unresolved/blocking.
+Adapt this matrix to the runtime and policy. Use `covered`, `gap`, `not-assessed`, or `n/a` under the core coverage rules. Record accepted risk or agreed deferral on the related finding; neither changes an unmet requirement to `covered`.
 
 ## URL Shape
 

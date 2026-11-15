@@ -12,6 +12,8 @@ It helps an assistant:
 - catch the unsafe-reorder traps: changed member-init order (`-Wreorder`), positional aggregate/designated-init mismatches, and loss of standard-layout (`offsetof` validity, C-interop)
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with before/after sizes, safety classification, the reordered declarations, a `static_assert` to lock the gain, and a deterministic insufficient-context template
 
+Checklist coverage distinguishes `covered`, `gap`, `not-assessed`, and `n/a`; missing evidence is not an evidenced target defect.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

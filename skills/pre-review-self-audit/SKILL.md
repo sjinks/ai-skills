@@ -18,7 +18,7 @@ Use after a change is functionally complete and before opening a pull request or
 - The intended behavior of the change, stated by the author.
 - Draft PR description and commit messages, when they exist.
 
-If the diff or change set is unavailable, emit the BLOCK template; do not audit from the description alone. If commit messages or a PR description do not exist yet, do not block: mark checklist items 5–6 `n/a` with a note. If the diff contains a repeated templated edit but repository search is unavailable, do not block: mark item 9 `n/a` and list the sweep as outstanding, using the canonical command `git grep -nF -- '<template line>'` with a single, distinctive line from the validated template substituted (the command matches line by line, so never substitute a multi-line snippet); use a different search tool only when the author names one.
+If the diff or change set is unavailable, emit the BLOCK template; do not audit from the description alone. If commit messages or a PR description do not exist yet, do not block: mark checklist items 5–6 `n/a` with a note. If the diff contains a repeated templated edit but repository search is unavailable, do not block: mark item 9 `not-assessed` and list the sweep as outstanding, using the canonical command `git grep -nF -- '<template line>'` with a single, distinctive line from the validated template substituted (the command matches line by line, so never substitute a multi-line snippet); use a different search tool only when the author names one.
 
 ## Workflow
 
@@ -57,7 +57,7 @@ If the diff or change set is unavailable, emit the BLOCK template; do not audit 
 
 | # | Checklist item | Status | Notes |
 |---|----------------|--------|-------|
-| <1> | <Diff hygiene> | <pass \| fail \| n/a> | <evidence or reason> |
+| <1> | <Diff hygiene> | <pass \| fail \| not-assessed \| n/a> | <evidence or reason> |
 
 One row per checklist item, all nine items.
 
@@ -72,9 +72,11 @@ One row per checklist item, all nine items.
 Verdict: CLEAN | CONCERNS | BLOCK
 ```
 
-Verdict mapping: `CLEAN` — all checklist items pass, no findings, ready for review. `CONCERNS` — findings exist; fix or annotate them before requesting review. `BLOCK` — insufficient input or the change is not in a reviewable state. Emit exactly one value for each enum field; do not copy enum lists or angle-bracket placeholders into the report.
+Use `pass` for an evidenced satisfied check, `fail` for an evidenced defect, `not-assessed` for unavailable requested assessment or evidence, and justified `n/a` for an inapplicable check. Missing evidence alone does not establish a target defect.
 
-No-findings path: when every item passes, still emit the full table, keep the `### Findings` heading with the single line `Findings: none` under it, and return `CLEAN`.
+Verdict mapping: `CLEAN` — every checklist item is `pass` or justified `n/a`, with no findings or outstanding required checks. `CONCERNS` — findings, `not-assessed` items, or outstanding required checks remain; report the correction or missing evidence before requesting review. `BLOCK` — insufficient input or the change is not in a reviewable state. Emit exactly one value for each enum field; do not copy enum lists or angle-bracket placeholders into the report.
+
+No-findings path: when every item is `pass` or justified `n/a` and no required checks remain outstanding, still emit the full table, keep the `### Findings` heading with the single line `Findings: None` under it, and return `CLEAN`.
 
 ### BLOCK Template (insufficient context)
 

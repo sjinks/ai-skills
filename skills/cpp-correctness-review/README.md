@@ -12,6 +12,8 @@ It helps an assistant:
 - separate correctness findings from lifetime, concurrency, security, performance, sanitizer, and broad-design concerns
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with contract, inputs/states reviewed, severity-classified findings, checklist status, regression-test expectations, residual risk, and a deterministic insufficient-context template
 
+Checklist coverage distinguishes `covered`, `gap`, `not-assessed`, and `n/a`; missing evidence is not an evidenced target defect.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

@@ -12,6 +12,8 @@ It helps an assistant:
 - verify the fix by re-running clang-tidy so the finding clears without introducing a new diagnostic or build break
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with per-declaration findings, checklist status, cross-check notes, and a deterministic insufficient-context template
 
+Checklist coverage distinguishes `covered`, `gap`, `not-assessed`, and `n/a`; missing evidence is not an evidenced target defect.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

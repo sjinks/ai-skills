@@ -106,6 +106,17 @@ Verdicts:
 - `CONCERNS`: any unmitigated `MEDIUM`, or remaining `HIGH`/`MEDIUM` findings that each have a stated relaxed target, compensating branch, or accepted tradeoff.
 - `CLEAN`: every applicable checklist item holds for the target. `LOW`-only findings do not block `CLEAN` and are listed. If no code changes are in scope, Verification is n/a and does not block `CLEAN`.
 
+## Coverage states
+
+For full-report checklist coverage, apply the first matching state:
+
+1. `n/a`: the check does not apply.
+2. `gap`: evidence shows an unmet applicable requirement.
+3. `not-assessed`: remaining requested assessment or required evidence is unavailable.
+4. `covered`: evidence satisfies every applicable part.
+
+A gap may coexist with unassessed subparts; disclose both. Explain every non-covered item in findings or residual risk, keeping each checklist entry to one state. Missing evidence alone is not a target defect. Requested `not-assessed` items or unassessed subparts prevent `CLEAN`: use `BLOCK` when meaningful review is impossible, otherwise `CONCERNS`; retain stronger local blocking rules. Other gaps follow existing severity/verdict rules.
+
 ## Output Format
 
 ```text
@@ -124,11 +135,11 @@ Portability findings:
   Verification: <shellcheck -s sh | checkbashisms | run under dash/busybox | BSD/macOS run | N/A>
 
 Portability checklist status:
-- Interpreter and shebang: covered | missing | n/a
-- Bashisms: covered | missing | n/a
-- Utilities and flags: covered | missing | n/a
-- Output and behavior: covered | missing | n/a
-- Verification: covered | missing | n/a
+- Interpreter and shebang: covered | gap | not-assessed | n/a
+- Bashisms: covered | gap | not-assessed | n/a
+- Utilities and flags: covered | gap | not-assessed | n/a
+- Output and behavior: covered | gap | not-assessed | n/a
+- Verification: covered | gap | not-assessed | n/a
 
 Portability residual risk: <remaining caveats or None>
 ```
