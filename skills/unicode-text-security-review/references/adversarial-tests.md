@@ -2,7 +2,7 @@ Read this file when designing or reviewing the regression test suite for a Unico
 
 # Adversarial Test Matrix
 
-Adapt each class to the runtime and product policy. In the test plan, mark each class as covered, not applicable, accepted tradeoff, or missing. When filling the skill report's `Checklist status`, collapse `not applicable` to `n/a` and record each `accepted tradeoff` as a finding with classification `Accepted tradeoff`.
+Adapt each class to the runtime and product policy. Use `covered`, `gap`, `not-assessed`, or `n/a` under the core [coverage rules](../SKILL.md#coverage-states), including their first-match precedence and disclosure of unassessed subparts. Record owner-accepted risk on the related finding as `Classification: Accepted tradeoff`, or under `Residual risk` when the core permits an empty findings section. Acceptance does not convert an unmet requirement to `covered`.
 
 ## Invalid UTF-8
 

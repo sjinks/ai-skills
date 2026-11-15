@@ -14,7 +14,7 @@ It helps an assistant:
 - apply decision rules for length-limit units, safe truncation, lone surrogates, decode-layer ordering, log/display injection, regex Unicode semantics, normalization expansion, and canonical hostname comparison
 - return `BLOCK`, `CONCERNS`, or `CLEAN` with findings, checklist status, adversarial test expectations, and residual risk, including a deterministic insufficient-context template
 
-Checklist coverage distinguishes `covered`, `gap`, `not-assessed`, and `n/a`; missing evidence is not an evidenced target defect.
+Checklist coverage distinguishes `covered`, `gap`, `not-assessed`, and `n/a`; missing evidence is not an evidenced target defect. The adversarial matrix uses the same states and precedence; accepted risk remains with the finding or permitted residual-risk disclosure.
 
 ## Files
 

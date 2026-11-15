@@ -178,7 +178,7 @@ Use the full matrix in [references/adversarial-test-matrix.md](./references/adve
 
 Classification describes the finding: `Confirmed issue` for an evidenced violation; `Likely risk` for an evidence-backed plausible failure; `Open question` for missing context or a decision; `Accepted tradeoff` for documented owner-accepted risk; `Test gap` for known behavior lacking verification; `Defense-in-depth` for additional protection without an evidenced vulnerability.
 
-Disposition recommends an action; it does not authorize execution or decide merge readiness. Assign it separately, using the first matching rule: `retain-accepted` when a named accountable owner has explicitly accepted this finding and scope with rationale; `defer-with-owner` for an explicitly agreed deferral with owner, rationale and remediation plan; `clarify` when a missing decision or evidence prevents selecting a correction; `add-verification` for known behavior lacking the required test; otherwise `fix-now` for a supported actionable correction. Request missing acceptance/deferral evidence under `clarify`; do not invent it. An agent cannot accept risk on the owner's behalf. Legacy action labels alone do not establish classification or acceptance.
+Disposition recommends an action; it does not authorize execution or decide merge readiness. Assign it separately, using the first matching rule: `retain-accepted` when a named accountable owner has explicitly accepted this finding and scope with rationale; `defer-with-owner` for an explicitly agreed deferral with owner, rationale and remediation plan; `clarify` when a missing decision or evidence prevents selecting a correction; `fix-now` for a supported implementation, policy, or documentation correction, even when its regression verification is also missing; `add-verification` only for a verification-only finding where known behavior lacks the required test and no other correction is needed. Request missing acceptance/deferral evidence under `clarify`; do not invent it. An agent cannot accept risk on the owner's behalf. Legacy action labels alone do not establish classification or acceptance.
 
 Apply the first matching checklist coverage state: `n/a` for an inapplicable check; `gap` for an evidenced unmet applicable requirement; `not-assessed` for unperformed requested assessment or unavailable required evidence; otherwise `covered` when inspected evidence satisfies every applicable part. Disclose unassessed subparts even when a known gap determines the state. Explain non-covered items in the related finding or Residual risk. Record acceptance or deferral under the related finding's disposition; it does not convert a gap to covered. Do not emit inapplicable checks as findings. Coverage and disposition do not waive Definition Of Done: do not claim a fix is ready while required checks remain gap or not-assessed.
 
@@ -198,7 +198,7 @@ Findings:
 1. <short title>
   Severity: CRITICAL | HIGH | MEDIUM | LOW
   Classification: Confirmed issue | Likely risk | Open question | Accepted tradeoff | Test gap | Defense-in-depth
-  Disposition: retain-accepted | defer-with-owner | clarify | add-verification | fix-now
+  Disposition: retain-accepted | defer-with-owner | clarify | fix-now | add-verification
   Location: <file:line or design reference>
   Issue: <what is wrong>
   Impact: <what an attacker gains>

@@ -18,7 +18,7 @@ The skill covers both implementation concerns and review discipline, including b
 
 Checklist coverage distinguishes `covered`, `gap`, `not-assessed`, and `n/a`; missing evidence is not an evidenced target defect.
 
-Finding `Classification` describes evidence/risk; `Disposition` records the action, explicit deferral, or existing owner acceptance. Inapplicable checks appear only in checklist coverage.
+Finding `Classification` describes evidence/risk; `Disposition` records the action, explicit deferral, or existing owner acceptance. Supported implementation, policy, or documentation corrections use `fix-now` even when tests are missing; `add-verification` is reserved for verification-only findings. Inapplicable checks appear only in checklist coverage.
 
 ## Files
 
