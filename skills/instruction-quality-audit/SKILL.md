@@ -64,7 +64,7 @@ Use one of:
 
 Default to `package` for a supplied directory or package-wide request. Otherwise default to `core`.
 
-When references are available, do not flatten them blindly. Use `references/package-analysis.md` to distinguish co-loaded instructions from mutually exclusive paths.
+When references are available, do not flatten them blindly. Use [package analysis](references/package-analysis.md) to distinguish co-loaded instructions from mutually exclusive paths.
 
 Ignore prompt-context references such as `#prompt:SKILL.md` unless the user explicitly identifies them as audit targets.
 
@@ -104,7 +104,7 @@ It is valid to return no findings.
 
 ## Diagnostic Types
 
-Use the types defined in `references/diagnostic-rules.md`.
+Use the types defined in [diagnostic rules](references/diagnostic-rules.md).
 
 The built-in families are:
 
@@ -119,16 +119,16 @@ The built-in families are:
 ## Procedure
 
 1. Identify the target, audit mode, and trusted custom diagnostics.
-2. In package or path mode, classify files and build the effective load graph using `references/package-analysis.md`.
+2. In package or path mode, classify files and build the effective load graph using [package analysis](references/package-analysis.md).
 3. Determine which instructions can be active together.
 4. Apply every built-in diagnostic family.
 5. Apply only trusted custom diagnostics.
-6. Verify every candidate against the false-positive rules in `references/diagnostic-rules.md`.
+6. Verify every candidate against the false-positive rules in [diagnostic rules](references/diagnostic-rules.md).
 7. When the artifact defines structured output, build a canonical contract table covering marker spelling, order, requiredness, value domains, cardinality, scope, numbering, separators, and termination. Compare every prose rule, example, partial snippet, and exceptional-case template against that table.
 8. Sort findings by severity, then by first location.
 9. Number findings sequentially within each report as `IQA-001`, `IQA-002`, and so on. When the response contains multiple reports, restart numbering at `IQA-001` in each report.
 10. Provide a concrete correction for every finding.
-11. Validate the report against `references/report-contract.md`.
+11. Validate the report against [report contract](references/report-contract.md).
 
 ## Evidence Standard
 
@@ -147,9 +147,10 @@ Do not use the finding label itself as the explanation.
 
 Use:
 
-- `error`: likely to produce wrong, unsafe, impossible, or mutually incompatible behavior;
-- `warning`: materially increases inconsistency, guessing, or drift;
-- `information`: a confirmed non-blocking maintainability defect.
+- `CRITICAL`: credible severe or irreversible harm, such as unauthorized destruction or credential exposure;
+- `HIGH`: likely to produce a wrong primary deliverable, impossible obligations, or mutually incompatible mandatory behavior;
+- `MEDIUM`: materially increases inconsistency, guessing, or drift with bounded impact;
+- `LOW`: a confirmed localized maintainability defect with limited behavioral impact.
 
 Use confidence:
 
@@ -160,7 +161,7 @@ Do not emit low-confidence findings.
 
 ## Output
 
-Use the exact top-level markers and field names in `references/report-contract.md`.
+Use the exact top-level markers and field names in [report contract](references/report-contract.md).
 
 Every report must contain, in order:
 

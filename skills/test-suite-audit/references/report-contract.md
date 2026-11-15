@@ -20,7 +20,7 @@ Use these fields in order for each finding:
 
 ```text
 Title: <concrete finding title>
-Severity: Critical | High | Medium | Low
+Severity: CRITICAL | HIGH | MEDIUM | LOW
 Category: Weak Test | Low-Value Test | Redundant Test | Missing Test | Isolation | Determinism | Misleading Coverage | Other
 Finding kind: Test gap | Current defect
 Behavior: <contract, invariant, or property>

@@ -8,6 +8,8 @@ Author mode returns a complete instruction artifact. For a combined audit-and-re
 
 The report contract is defined by the skill and its references. The intended compatibility floor is the `fast-general` profile; no model-specific patches or runtime adapters are required.
 
+Impact severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; task-specific statuses and decisions remain separate.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — compact entry point, triggers, reference loading, and report labels.

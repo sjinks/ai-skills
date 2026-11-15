@@ -14,7 +14,7 @@ Include alternatives when the caller/template requires comparison or the choice 
 
 Describe consequential differences between affected modes or operations. Do not enumerate unaffected modes. For testing/CI changes, explain changes in automated/manual or fixture/live verification only when affected. If automated coverage is removed, explain the evidenced reason and resulting tradeoff; a retained manual counterpart does not establish adequacy or rationale. A pure unit-test assertion change does not require a discussion of live services.
 
-If no diff is available, report that evidence boundary under Input/information rather than implying repository inspection. An evidence limitation alone does not fail Body; unresolved required facts do.
+If no diff is available, report that evidence boundary under Input/note rather than implying repository inspection. An evidence limitation alone does not fail Body; unresolved required facts do.
 
 ## Relevance and verification
 

@@ -41,9 +41,10 @@ If the diff or change set is unavailable, emit the BLOCK template; do not audit 
 
 ## Severity Rubric
 
-- `High`: would force a review round on its own — broken or untested behavior change, misleading description, committed secret.
-- `Medium`: a likely reviewer finding — scope creep, noisy diff, unclear naming, missing contract note, an instance deviating from a templated pattern.
-- `Low`: minor polish; advisory only.
+- `CRITICAL`: credible severe or irreversible harm, including exposed active production credentials.
+- `HIGH`: major correctness, security, reliability, or contract harm — broken or untested important behavior, a materially misleading description, or sensitive disclosure.
+- `MEDIUM`: meaningful bounded regression or change cost — scope creep, misleading contract notes, or a consequential deviation from a templated pattern.
+- `LOW`: minor localized comprehension or maintenance harm; omit pure preferences.
 
 ## Output Format
 
@@ -62,7 +63,7 @@ One row per checklist item, all nine items.
 
 ### Findings
 
-- [High|Medium|Low] <anchor> — <issue> — <action before requesting review>
+- [CRITICAL|HIGH|MEDIUM|LOW] <anchor> — <issue> — <action before requesting review>
 
 ### Outstanding before requesting review
 

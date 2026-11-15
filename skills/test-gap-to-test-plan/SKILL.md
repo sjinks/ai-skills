@@ -55,7 +55,7 @@ When coverage signals or test-layer conventions are partially available — enou
 
 Before planning, normalize each finding independently. Preserve the upstream label verbatim on the test case as `Original severity label` and derive `Priority` from `Normalized priority`.
 
-Recognized local labels are case-sensitive and may be mixed in one findings list:
+Canonical severity is `CRITICAL`, `HIGH`, `MEDIUM`, or `LOW`. Recognized input labels are case-sensitive and may be mixed in one findings list; legacy vocabularies below are input compatibility only:
 
 - 4-level vocabulary: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`.
 - 3-level vocabulary: `High`, `Medium`, `Low`.
@@ -72,7 +72,7 @@ Proceed for findings that have enough behavior, location, change-set, and layer/
 
 Unmapped priority is usable only for non-blocking or clearly optional findings where a test can still be proposed without deciding `must-have` status. Emit `BLOCK` for a specific finding when a high-impact behavior might require `must-have` priority but the original label is missing or unmapped and the input lacks enough context to decide. Emit full `BLOCK` only when no useful plan can be produced at all.
 
-## Local Severity Vocabulary And Priority Mapping
+## Canonical Severity And Priority Mapping
 
 This skill uses the following four-level severity vocabulary:
 

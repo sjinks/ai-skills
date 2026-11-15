@@ -16,6 +16,8 @@ The report separates action from quality. Passing created/repaired text is rewri
 
 Sensitive content is excluded in every mode. Original disclosures still prevent CLEAN even when corrected or outside the requested parts. Evidence limitations are reported without inventing successful execution. Static regression cases support maintenance; they are not measured model evaluations.
 
+Impact severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; task-specific statuses and decisions remain separate.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — modes, scope, core behavior, decisions and report markers.

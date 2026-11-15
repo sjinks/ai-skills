@@ -44,11 +44,12 @@ Sweep the whole text once per class:
 
 ## Severity
 
-Evaluate `blocker` first; it takes precedence whenever another severity condition also applies.
+Use the highest applicable impact severity.
 
-- `blocker`: the plausible readings lead to materially different builds, or requirements conflict.
-- `should-fix`: one reading dominates in context but is not stated; a wrong guess is plausible.
-- `suggestion`: neither `blocker` nor `should-fix` applies; no reading dominates and the alternatives do not produce materially different builds.
+- `CRITICAL`: plausible readings permit severe or irreversible security, privacy, safety, or data-integrity harm.
+- `HIGH`: the plausible readings lead to materially different builds, or requirements conflict.
+- `MEDIUM`: one reading dominates in context but is not stated; a wrong guess is plausible.
+- `LOW`: none of `CRITICAL`, `HIGH`, or `MEDIUM` applies; no reading dominates and the alternatives do not produce materially different builds.
 
 ## Output Format
 
@@ -80,11 +81,11 @@ Class-specific `Readings:` replacements: `conflicting-requirements` → `Conflic
 
 In each proposed rewrite, retain concrete requirement text before the first token and format every unresolved value as `[OPEN QUESTION: <decision> — <owner> to decide]`; a token-only line is not a rewrite. Do not invent values. Use `requirements owner` when the input names no explicit decision owner, both in rewrite tokens and the Open Questions section. The exact `[OPEN QUESTION:` prefix is reserved for these tokens; preserve other balanced square-bracket text without a colon when it belongs to the requirement.
 
-Verdict mapping: `BLOCK` — at least one `blocker` finding, or insufficient input. `CONCERNS` — findings exist, none `blocker`. `CLEAN` — no findings; immediately after the verdict line write exactly `All eight ambiguity classes were swept; no findings.` and keep the report with an empty table. Empty sections are written with `None`.
+Verdict mapping: `BLOCK` — at least one `CRITICAL` or `HIGH` finding, or insufficient input. `CONCERNS` — findings exist, none `CRITICAL` or `HIGH`. `CLEAN` — no findings; immediately after the verdict line write exactly `All eight ambiguity classes were swept; no findings.` and keep the report with an empty table. Empty sections are written with `None`.
 
 ## Error Handling (BLOCK Template)
 
-Use this reduced template only for missing or unreadable input. A `BLOCK` verdict caused by `blocker` findings uses the full report shape above.
+Use this reduced template only for missing or unreadable input. A `BLOCK` verdict caused by `CRITICAL` or `HIGH` findings uses the full report shape above.
 
 ```markdown
 ## Requirements Ambiguity Report
@@ -101,7 +102,7 @@ Emit exactly these two fields in this order. Both values are required, complete,
 
 Input requirement (R1): "The export should complete quickly for large accounts."
 
-Table row: `| 1 | vague-quantifier | blocker | R1 |`
+Table row: `| 1 | vague-quantifier | HIGH | R1 |`
 
 Finding 1:
 - Quote: "complete quickly for large accounts"

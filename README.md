@@ -126,6 +126,10 @@ The repository currently contains the following skills, grouped by area. Each li
 - [`shell-portability`](skills/shell-portability/README.md) — Writing, reviewing, or fixing shell code against a declared shell/OS target or across multiple targets (POSIX sh vs bash/ksh/zsh, dash/busybox, GNU vs BSD/macOS coreutils), catching bashisms, non-portable utility flags, shebang mismatches, and locale/word-splitting hazards with portable replacements.
 - [`vip-dev-env`](skills/vip-dev-env/README.md) — WordPress VIP Local Development Environment (LDE) workflows using `vip dev-env`, including creating and updating local environments, loading app code, inspecting services and logs, slug-first and message-driven troubleshooting of startup and HTTP 500 failures, Docker triage and escalation, and the local-repo-vs-container code boundary.
 
+## Shared Vocabulary
+
+Finding severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; confidence, priority, status, and verdict remain separate. See [skill vocabulary](docs/skill-vocabulary.md) for definitions, domain outcomes, and input compatibility. Check canonical contracts with `python3 scripts/check-skill-vocabulary.py`.
+
 ## Skill Format
 
 Each skill file follows the same high-level pattern:

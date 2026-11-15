@@ -6,7 +6,9 @@ Use this reference when producing a coroutine-focused code review. Lead with fin
 
 ```markdown
 Findings:
-- Severity: file/path and behavior. Explain the coroutine lifetime, suspension, cancellation, exception, or scheduler risk.
+- Severity: <CRITICAL | HIGH | MEDIUM | LOW>
+  Location: <file/path and behavior>
+  Evidence: <concrete failure and domain risk>
 
 Open questions:
 - Only include questions that affect correctness or API contract.
@@ -58,6 +60,7 @@ Summary:
 
 ## Severity Guide
 
-- High: use-after-free, double resume, leaked frame, swallowed exception across public API, cancellation leaving dangling callback, wrong-thread resume violating contract.
-- Medium: missing tests for cancellation/final suspend, unclear eager/lazy contract, weak scheduler documentation, detached coroutine without clear observation.
-- Low: naming, minor ergonomics, or documentation gaps that do not affect lifetime or correctness.
+- `CRITICAL`: credible severe or irreversible harm at an exposed boundary.
+- `HIGH`: use-after-free, double resume, leaked frame, swallowed exception across public API, cancellation leaving dangling callback, wrong-thread resume violating contract.
+- `MEDIUM`: missing tests for cancellation/final suspend, unclear eager/lazy contract, weak scheduler documentation, detached coroutine without clear observation.
+- `LOW`: minor localized ergonomics or documentation harm that does not affect lifetime or correctness; omit pure preferences.

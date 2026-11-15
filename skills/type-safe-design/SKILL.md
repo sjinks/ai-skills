@@ -82,14 +82,15 @@ For design or implementation advice, provide:
 
 For reviews, lead with findings ordered by severity. Use this rubric:
 
-- `high`: likely invalid states, data corruption, security/privacy exposure, production breakage, or broad `O(n)`/worse change cascades.
-- `medium`: meaningful maintainability, testability, substitution, or public-contract risk that can become expensive as the system grows.
-- `low`: localized clarity, naming, or modeling issue with limited current blast radius.
+- `CRITICAL`: credible severe or irreversible security, privacy, or data-integrity harm.
+- `HIGH`: likely invalid states, data corruption, security/privacy exposure, production breakage, or broad `O(n)`/worse change cascades.
+- `MEDIUM`: meaningful maintainability, testability, substitution, or public-contract risk that can become expensive as the system grows.
+- `LOW`: localized clarity, naming, or modeling issue with limited current blast radius.
 
 Finding format:
 
 ```text
-Severity: high|medium|low
+Severity: CRITICAL | HIGH | MEDIUM | LOW
 Evidence: <code, design note, or observed behavior>
 Rule: <contract or change-locality rule violated>
 Risk: <failure mode or scaling cost>

@@ -66,7 +66,7 @@ Emit these labels once, in order, with nonempty bodies:
 - `Quality limitations:` — coverage gaps, missing input, and unresolved uncertainty; otherwise `None.`.
 - `Quality verdict:` — one value below; final line.
 
-Severity: `High` means evidenced risk to correctness, security, or a public contract; `Medium` means consequential ambiguity, coupling, or ineffective behavioral verification; `Low` means localized comprehension or maintenance cost. Pure preferences are not findings.
+Severity: `CRITICAL` means credible severe or irreversible security, privacy, or data-integrity harm; `HIGH` means evidenced risk to correctness, security, or a public contract; `MEDIUM` means consequential ambiguity, coupling, or ineffective behavioral verification; `LOW` means localized comprehension or maintenance cost. Pure preferences are not findings.
 
 Assign `CQ-001` onward in discovery order; preserve supplied IDs for the same findings and assign new IDs after the highest existing number. Sorting does not renumber findings. Each finding has `Severity:`, `Status:`, `Location:`, `Evidence:`, `Consequence:`, `Correction:`, and `Resolved when:`. Status is `Open` or `Resolved`. Use `Resolved` only when the resolution criterion is demonstrated and required checks pass; include `Resolution evidence:` only for that status. Proposals remain `Open` when they address a finding. Missing verification alone does not create a finding.
 

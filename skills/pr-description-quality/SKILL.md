@@ -63,7 +63,7 @@ Assign each part the first matching status:
 
 Validate assesses original text, including disclosure violations. Draft/rewrite assesses emitted text while recording corrected defects.
 
-Severity: error for evidenced violations, including corrected defects and disclosures; warning for unresolved required facts; information for creation, assumptions or evidence limits. Corrected errors do not alone force CONCERNS.
+Severity: `CRITICAL` for credible severe or irreversible disclosure harm; `HIGH` for other major disclosure harm or an evidenced violation that materially misstates the change or its adoption requirements; `MEDIUM` for other consequential violations or unresolved required facts; `LOW` for minor localized defects. Use `note` for creation, assumptions or evidence limits without a defect; `note` is not a severity. Rate corrected defects by their original impact. Corrected defects do not alone force CONCERNS.
 
 Verdict precedence: BLOCK only for Error handling; otherwise CONCERNS for any requested part that fails or any forbidden content found anywhere in supplied input; otherwise CLEAN. Rewritten/pass and not-assessed do not force CONCERNS. A partial verdict covers only the requested part.
 
@@ -83,7 +83,7 @@ Verdict: BLOCK
 - Disclosure: none
 ```
 
-Inspect readable input first. If forbidden content occurs, replace the last line with exactly `- Disclosure: error — Forbidden content found in supplied input; excluded from output.` Do not fabricate missing text or substitute defaults for known requirements. If discovery is unavailable and no requirement is known, apply defaults and disclose that assumption.
+Inspect readable input first. If forbidden content occurs, replace the last line with exactly `- Disclosure: present — Forbidden content found in supplied input; excluded from output.` Do not fabricate missing text or substitute defaults for known requirements. If discovery is unavailable and no requirement is known, apply defaults and disclose that assumption.
 
 ## Checklist
 

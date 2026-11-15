@@ -29,7 +29,7 @@ Execution is optional unless requested and uses only authorized disposable resou
 
 ## Report
 
-Every audit returns `Audit scope`, `Findings`, `Evidence table`, `Final assessment`, and `Audit status`. Findings distinguish `Test gap` from `Current defect`. Severity (`Critical`, `High`, `Medium`, `Low`) prioritizes test remediation rather than incident impact.
+Every audit returns `Audit scope`, `Findings`, `Evidence table`, `Final assessment`, and `Audit status`. Findings distinguish `Test gap` from `Current defect`. Severity (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`) prioritizes test remediation rather than incident impact.
 
 The terminal status measures completion:
 

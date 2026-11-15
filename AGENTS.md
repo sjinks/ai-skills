@@ -16,6 +16,11 @@ If the skill or a required reference is unavailable, do not submit the affected 
 
 - The skill, review, and documentation conventions below apply when changing this `AGENTS.md`, canonical `skills/**`, or related README files. Treat `.agents/skills/**` as generated output: do not mirror it into `skills/**` or add README entries unless the request explicitly promotes that artifact. `AGENTS.md` is the sole Codex instruction surface; clients that load only `.github/instructions/*.instructions.md` are intentionally out of scope.
 
+## Shared vocabulary
+
+- Follow [skill vocabulary](docs/skill-vocabulary.md) for canonical severity, confidence, findings, notes, and the distinction between priority, status, and verdict. Keep each package self-contained with local impact anchors. Preserve domain outcomes and explicit legacy input mappings.
+- New severity outputs use `CRITICAL`, `HIGH`, `MEDIUM`, or `LOW`. Do not use verdicts, urgency labels, or diagnostic kinds as severity. Run `python3 scripts/check-skill-vocabulary.py` after vocabulary or report-contract changes.
+
 ## Skill layout and content
 
 - Canonical repository skills live at `skills/<name>/SKILL.md`; the folder name equals frontmatter `name`. When a compatibility symlink exists, edit only the canonical path and verify the resolved files match with `cmp`.

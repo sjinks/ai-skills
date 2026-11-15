@@ -53,7 +53,7 @@ For pending message work, include the source commit hashes and facts to retain o
 
 ## Severity
 
-In action rationales, rate issues `high` for potential content loss/exposure, `medium` for broken sequencing, fragmented changes, or mixed concerns; `low` for message clarity, and `none` for no issue. Use the highest applicable severity; severity does not override the verdict mapping.
+In action rationales, rate issues `CRITICAL` for evidenced severe or irreversible content loss/exposure, `HIGH` for potential content loss/exposure, `MEDIUM` for broken sequencing, fragmented changes, or mixed concerns; `LOW` for message clarity, and `NONE` for no issue. Use the highest applicable severity; severity does not override the verdict mapping.
 
 ## Safety
 
@@ -72,7 +72,7 @@ Exact labels, one enum value, in order:
 2. `Verdict:` — `CLEAN`, `CONCERNS`, or `BLOCK`.
 3. `Merge style:` — `squash`, `preserve`, or `unknown`.
 4. `### Rebase plan` — fenced `text`; each hash/subject once in proposed order. Flatten subjects to one line. Empty range: `# No commits in supplied range`.
-5. `### Actions` — one bullet per commit: `<hash>: <action> — <severity>: <rationale>`; severity is `high`, `medium`, `low`, or `none` under Severity.
+5. `### Actions` — one bullet per commit: `<hash>: <action> — <severity>: <rationale>`; severity is `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`, or `NONE` under Severity.
 6. `### Resulting sequence` — ordered surviving subjects; omit dropped/folded commits. Annotate subject-only rewords `subject pending`; annotate rewords involving body/context work and message-combining squashes `message pending`. For splits list ordered concerns with `subject pending`. Pending input: provisional. Never invent wording.
 7. `### Cautions` — bullets or `None`.
 8. `### Needs author input` — questions/verification, including pending split or message work; otherwise `None`.

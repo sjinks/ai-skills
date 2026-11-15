@@ -39,7 +39,7 @@ Audit each test against these. Any failure is a finding.
 - Order-dependent tests or shared global state without reset.
 - A "happy path only" test for a behavior whose error path is the actual risk.
 
-## Severity and Scope
+## Priority and Scope
 
 Treat inability to detect the promised regression and non-determinism as high
 priority; behavior or claimed-coverage gaps as medium priority; readability

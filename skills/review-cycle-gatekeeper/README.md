@@ -13,6 +13,8 @@ It helps an assistant:
 - validate waiver quality and ownership/remediation metadata
 - return a compact `pass`, `fail`, or `BLOCK` gate summary with exact blockers to clear
 
+Impact severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; task-specific statuses and decisions remain separate.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.

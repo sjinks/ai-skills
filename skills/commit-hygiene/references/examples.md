@@ -25,9 +25,9 @@ pick c3c3c3c add formatter
 
 ### Actions
 
-- a1a1a1a: keep — none: Self-contained parser step; target for b2b2b2b.
-- b2b2b2b: squash — medium: Supplied diff establishes a fixup for a1a1a1a.
-- c3c3c3c: keep — none: Independent formatter step.
+- a1a1a1a: keep — NONE: Self-contained parser step; target for b2b2b2b.
+- b2b2b2b: squash — MEDIUM: Supplied diff establishes a fixup for a1a1a1a.
+- c3c3c3c: keep — NONE: Independent formatter step.
 
 ### Resulting sequence
 
@@ -82,9 +82,9 @@ pick c3c3c3c fixup parser
 
 ### Actions
 
-- a1a1a1a: keep — none: Preserve the evidenced parser step at its current position.
-- b2b2b2b: needs-author-input — medium: Content and dependency evidence is missing; retain its position.
-- c3c3c3c: needs-author-input — medium: A parser fixup is evidenced, but moving it across b2b2b2b is not yet justified.
+- a1a1a1a: keep — NONE: Preserve the evidenced parser step at its current position.
+- b2b2b2b: needs-author-input — MEDIUM: Content and dependency evidence is missing; retain its position.
+- c3c3c3c: needs-author-input — MEDIUM: A parser fixup is evidenced, but moving it across b2b2b2b is not yet justified.
 
 ### Resulting sequence
 

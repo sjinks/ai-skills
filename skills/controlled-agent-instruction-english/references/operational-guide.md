@@ -161,12 +161,15 @@ The objective is reliable interpretation, not linguistic purity.
 
 ## Severity and Decision
 
-Use `error` when requirements conflict, a required action is impossible, or text permits behavior that violates an explicit constraint.
-Use `warning` when text leaves materially different plausible interpretations without an established violation of an explicit constraint.
-If both criteria apply, use `error`.
+Use the highest supported impact severity:
+
+- `CRITICAL`: text permits credible severe or irreversible harm, including unauthorized destruction or credential exposure.
+- `HIGH`: conflicting requirements, impossible required actions, or explicit-constraint violations cause major behavioral failure.
+- `MEDIUM`: materially different plausible interpretations cause meaningful bounded inconsistency or guessing.
+- `LOW`: a confirmed localized clarity or maintenance defect has limited behavioral impact.
 Do not report style-only preferences or advisory threshold violations without a behavioral consequence.
 
-In `audit`, use `Findings` when at least one error or warning exists; otherwise use `Clean`.
+In `audit`, use `Findings` when at least one finding exists; otherwise use `Clean`.
 In `author`, use `Authored` only when the final consistency check passes.
 Use `Blocked` in either mode when required input is missing or unreadable; do not rate unavailable text. In `author`, also use `Blocked` when the requested artifact depends on unresolved intended behavior. In `audit`, retain meaningful ambiguity findings and use the `Clarify:` correction instead of blocking on unresolved intent.
 
@@ -180,7 +183,7 @@ Return one report. Use these labels exactly once, at column zero, in this order:
 - `CAIE status:` — the terminal status on one line; no content follows this line.
 
 Each finding uses `- severity | rule | location | risk | correction`.
-Use `error` or `warning` for severity. Use one rule ID from the language rules as the primary rule.
+Use `CRITICAL`, `HIGH`, `MEDIUM`, or `LOW` for severity. Use one rule ID from the language rules as the primary rule.
 Use `<path>#<section>` or `supplied snippet:<positive line number>` for location. Path and section must be nonblank; hashes inside either component remain exact literals. Include the affected text and its operational consequence in risk.
 When the intended correction is unknown, write `Clarify:` followed by the exact question in correction. The question must contain nonempty text and end with `?`.
 Separate fields with ` | ` only outside inline backtick literals. Bare `|` characters are permitted. Wrap a literal containing ` | ` in matching inline backticks; choose a delimiter longer than every backtick run in the payload. For a location, wrap the entire `<path>#<section>` value. Preserve the literal payload exactly; wrapper backticks are report formatting.

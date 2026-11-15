@@ -15,7 +15,9 @@ It helps an assistant:
 - avoid public API pollution for one-off internal access by using scoped operations or dedicated closure-carrier abstractions
 - plan compiler-guided refactors and verification through boundary tests, substitution tests, completeness checks, and fail-fast construction paths
 
+Impact severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; task-specific statuses and decisions remain separate.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — the full skill definition.
-- [`references/`](references/) — extended workflow and reference material.
+- [`references/`](references/source-map.md) — extended workflow and reference material.

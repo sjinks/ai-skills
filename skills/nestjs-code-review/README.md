@@ -9,7 +9,7 @@ It helps an assistant:
 - restate the change as intent, scope, risk surfaces, severity rubric, and out-of-scope before judging
 - walk a checklist covering module architecture and DI, controllers and the request lifecycle, DTOs and validation, guards and auth, exception handling, configuration and bootstrap, persistence, test changes, API design, performance, and microservices
 - flag NestJS-specific anti-patterns such as fat controllers, direct ORM access from controllers, `forwardRef` overuse, and modules exporting themselves
-- return findings classified as Critical, Warning, or Suggestion, each with file/line evidence and a concrete fix
+- return findings rated `CRITICAL`, `HIGH`, `MEDIUM`, or `LOW`, each with file/line evidence and a concrete fix
 - stay stack-neutral on ORM and auth strategy while respecting existing project conventions
 
 ## Files

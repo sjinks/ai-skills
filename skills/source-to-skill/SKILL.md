@@ -256,7 +256,7 @@ When the generated skill defines a review output format, include both issue and 
 - Issue path: findings first, ordered by severity, with evidence, rule, risk, and recommendation.
 - No-issue path: explicitly say `No material findings` and list residual risks, assumptions, or validation gaps instead of inventing findings.
 
-When the generated skill uses severity labels such as `high`, `medium`, and `low`, define a compact severity rubric near the output format. Tie severity to concrete user impact, change risk, security/privacy risk, testability, release risk, or operational failure modes rather than tone or preference.
+When the generated skill uses severity labels, use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; define a compact severity rubric near the output format. Tie severity to concrete user impact, change risk, security/privacy risk, testability, release risk, or operational failure modes rather than tone or preference.
 
 ## Workflow
 

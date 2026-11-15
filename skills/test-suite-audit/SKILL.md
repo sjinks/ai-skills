@@ -50,10 +50,10 @@ Risk determines inspection order and depth, not permission to omit scope. Report
 
 Severity prioritizes test remediation, not incident or deployed-vulnerability impact. Use the highest applicable level:
 
-- **Critical:** misleading assurance around severe security, integrity, financial, or destructive risk; realistic faults survive or source evidence strongly supports survival.
-- **High:** ineffective assertions, negative guarantees, or isolation permit significant defects to escape.
-- **Medium:** partial evidence misses relevant boundaries, failure behavior, or meaningful assertions.
-- **Low:** localized maintainability, duplication, or reliability harm with limited behavioral impact.
+- **CRITICAL:** misleading assurance around severe security, integrity, financial, or destructive risk; realistic faults survive or source evidence strongly supports survival.
+- **HIGH:** ineffective assertions, negative guarantees, or isolation permit significant defects to escape.
+- **MEDIUM:** partial evidence misses relevant boundaries, failure behavior, or meaningful assertions.
+- **LOW:** localized maintainability, duplication, or reliability harm with limited behavioral impact.
 
 Naming, length, mock existence, and coverage percentages alone are not findings. A mutation survivor establishes a test gap, not an existing production defect.
 

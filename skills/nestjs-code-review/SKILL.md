@@ -51,7 +51,7 @@ Before writing findings, restate the change in concrete terms:
 - **Intent:** What the change is supposed to do, in one or two sentences.
 - **Scope:** Which modules, files, and runtime surfaces are touched.
 - **Risk surfaces:** DI graph, request lifecycle, security, persistence, public API, performance, observability, deployment.
-- **Severity rubric:** Critical, Warning, Suggestion (see Output Format).
+- **Severity rubric:** CRITICAL, HIGH, MEDIUM, LOW (see Output Format).
 - **Out of scope:** What this review will not cover, to avoid scope creep.
 
 ## Review Checklist
@@ -169,7 +169,7 @@ Before writing findings, restate the change in concrete terms:
 2. Map the diff to risk surfaces: DI graph, request lifecycle, security, persistence, public API, performance, observability.
 3. Walk the Review Checklist for each surface touched by the diff.
 4. For each potential issue, capture file path, line range, the exact code snippet, the impact, and a concrete fix.
-5. Validate findings: each Critical or Warning must have reproducible evidence and an actionable remediation. Demote or remove style-only or speculative items.
+5. Validate findings: each finding must have reproducible evidence and an actionable remediation. Demote or remove style-only or speculative items.
 6. Acknowledge positive patterns: well-scoped modules, good DI, tight DTOs, good tests.
 7. Produce the structured report (see Output Format).
 
@@ -178,9 +178,7 @@ Before writing findings, restate the change in concrete terms:
 Return:
 
 - **Summary:** Intent, scope, and overall quality signal in two or three sentences.
-- **Critical (must fix):** Security, correctness, data integrity, or production-breaking issues. Each item has location, evidence, impact, and a concrete fix.
-- **Warnings (should fix):** Best-practice violations or maintainability risks likely to cause bugs. Same shape as Critical.
-- **Suggestions (consider improving):** Readability, performance, or developer-experience improvements.
+- **Findings:** Order by severity: `CRITICAL` for credible severe or irreversible security/privacy or data-integrity harm; `HIGH` for major normally triggerable correctness, security, or reliability harm; `MEDIUM` for meaningful bounded regression or operational harm; `LOW` for minor localized maintainability harm. Each item has `Severity:`, `Location:`, `Evidence:`, `Impact:`, and `Fix:`. Use `None` when no material findings exist.
 - **Positive observations:** Patterns worth keeping and amplifying.
 - **Recommendations:** Prioritized next steps with code examples for the highest-impact items.
 - **Residual risk:** Known gaps, deferred items, and follow-up work.
@@ -190,8 +188,8 @@ Return:
 A NestJS review is not ready until:
 
 - Intent, scope, and out-of-scope are explicit.
-- Every Critical and Warning has file/line evidence and a concrete fix, not just a label.
+- Every finding has file/line evidence and a concrete fix, not just a label.
 - Findings are deduplicated and classified by severity.
-- Speculative or purely stylistic comments are removed or moved to Suggestions.
+- Speculative or purely stylistic comments are removed.
 - Positive observations are included so the report is not adversarial-only.
 - The report distinguishes confirmed defects from defense-in-depth recommendations.
