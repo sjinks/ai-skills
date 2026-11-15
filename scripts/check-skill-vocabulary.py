@@ -30,7 +30,7 @@ ACTION_CLASSIFICATIONS = {
 FINDING_STATE_REPORTS = {"code-quality", "review-cycle-gatekeeper"}
 OLD_RUBRIC = re.compile(rf"^\s*-\s+(?:`({LEGACY})`|\*\*({LEGACY}):\*\*)\s*:?")
 OLD_ENTRY = re.compile(
-    rf"(?:Title|Body|Footers|Input|Convention|Structure|Disclosure):\s*(?:{LEGACY})(?:\s|$)"
+    rf"(?:Title|Subject|Body|Footers|Input|Convention|Structure|Disclosure):\s*(?:{LEGACY})(?:\s|$)"
 )
 # Legacy inputs may appear in compatibility tables and prose, never emitted fields.
 OLD_OUTPUT = re.compile(
@@ -156,7 +156,8 @@ def inspect_package(package):
                     check_members(members, location, errors, complete=len(members) > 1)
             if fence is not None or heading or axis == "confidence":
                 continue
-            bullet = BULLET_DEFINITION.match(line)
+            # Bold may enclose the separator too: **HIGH:** and **HIGH**:.
+            bullet = BULLET_DEFINITION.match(line.replace("**", ""))
             first = FIRST_DEFINITION.search(line)
             definitions = [] if first is None else [
                 unformat(match[1]) for match in PROSE_DEFINITION.finditer(line[first.start():])
@@ -165,6 +166,7 @@ def inspect_package(package):
                 label = unformat(bullet[1])
                 if label in {"BLOCK", "CONCERNS", "CLEAN"} or not (
                     re.fullmatch(r"[A-Z][A-Z_-]*", label) or label in LEGACY.split("|")
+                    or (axis == "severity" and re.fullmatch(r"[A-Za-z][A-Za-z_-]*", label))
                 ):
                     finish_rubric()
                     axis = None
