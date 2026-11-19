@@ -13,15 +13,21 @@ behavioral patch.
 
 | Target | Default profile | Default model-specific patches |
 |---|---|---|
-| GPT-6 Luna | `fast-general` | none |
-| GPT-6 Sol | `strong-general` | none |
-| GPT-6.1 Sol | `strong-general` | none |
-| GPT-6 Astra | `deep-reasoning` | none |
-| GPT-5.3 Codex / Codex Spark | `coding-agent` | none |
+| GPT Luna-class | `fast-general` | none |
+| GPT Terra-class | `strong-general` | none |
+| GPT Sol-class | `strong-general` | none |
+| GPT Astra-class | `deep-reasoning` | none |
 | Claude Haiku-class | `fast-general` | none |
 | Claude Sonnet-class | `strong-general` | none |
 | Claude Opus-class | `deep-reasoning` | none |
-| Gemini general-purpose | `strong-general` | none |
+| Gemini general-purpose (including Gemini 4 Argon) | `strong-general` | none |
+| GLM-5.3 | `strong-general` | none |
+| GLM-5.3-Flash | `fast-general` | none |
+| Kimi K-series (e.g., K3, K3.1 Pro) | `strong-general` | none |
+| Qwen Max-class (e.g., Qwen3.8-Max) | `strong-general` | none |
+| Qwen Flash-class (e.g., Qwen3.8-Flash) | `fast-general` | none |
+| DeepSeek Pro-class (e.g., DeepSeek-V4-Pro) | `strong-general` | none |
+| DeepSeek Flash-class (e.g., DeepSeek-V4.1-Flash) | `fast-general` | none |
 | Grok general-purpose | choose by task requirements | none |
 | Grok code-specialized | `coding-agent` when appropriate | none |
 
