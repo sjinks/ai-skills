@@ -89,6 +89,7 @@ Inspect readable input first. If forbidden content occurs, replace the last line
 
 - Preserve mode, requested parts and entire supplied change scope.
 - Apply Body principles only to requested Body; title rules only to requested Title.
+- **Body relevance gate:** For each detail, identify the reviewer decision it informs or the explicit requirement to include it in the PR body. Otherwise, remove the detail in draft/rewrite; in validate, preserve safe text and report a Body relevance violation. Apply required-field and disclosure rules before this gate. If an internal record can go in either the body or the task handoff, put it in the handoff unless it independently informs a reviewer decision.
 - Preserve conditions: explain only affected verification boundaries; preserve required/unmarked template elements and omit explicitly optional empty sections unless retention was requested.
 - Match claims to evidence; keep consequential gaps without demanding routine check results.
 - Record corrected defects separately from final quality; exclude not-assessed parts from the quality decision.
