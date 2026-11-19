@@ -1,6 +1,6 @@
 # review-finding-quality
 
-> Use when: writing, rewriting, or auditing code review findings, review comments, or PR feedback for quality: severity tag, evidence anchor, concrete expected fix, and an explicit acceptance condition, so each finding is actionable and closable without extra clarification rounds.
+> Draft, rewrite, or audit supplied code review findings in a Finding Quality Report.
 
 This skill is aimed at draft review comments and findings lists that need to be actionable and closable in a single round before they are posted.
 

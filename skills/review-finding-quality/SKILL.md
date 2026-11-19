@@ -1,6 +1,6 @@
 ---
 name: review-finding-quality
-description: "Use when: writing, rewriting, or auditing code review findings, review comments, or PR feedback for quality: severity tag, evidence anchor, concrete expected fix, and an explicit acceptance condition, so each finding is actionable and closable without extra clarification rounds."
+description: "Use when: drafting, rewriting, or auditing code review findings in a Finding Quality Report. Check severity, evidence anchors, fix direction, and acceptance conditions. Excludes requests for paste-ready review text without a quality report."
 argument-hint: "The draft findings or review comments to audit or rewrite, plus the diff or code context they refer to when available."
 ---
 
@@ -10,7 +10,7 @@ Enforce a quality contract on review findings so each one can be acted on and cl
 
 ## When to Use
 
-Use when drafting review comments, rewriting existing draft findings, or auditing a findings list before it is posted. Out of scope: producing new findings by reviewing code (this skill formats and audits findings it is given), deciding merge readiness, and resolving disagreements about a finding's merit.
+Use when the deliverable is a Finding Quality Report for supplied findings or draft comments. This includes drafting or rewriting findings within the report and auditing findings before posting. Requests for paste-ready individual comments or an overall review message without a quality report are outside scope. Producing new findings, deciding merge readiness, and resolving disagreements about a finding's merit are also outside scope.
 
 ## Required Inputs
 
@@ -83,7 +83,9 @@ Verdict mapping: `CLEAN` — every finding is `compliant`. `CONCERNS` — at lea
 
 Empty sections are written with `None`. Only findings get table rows and numbers; questions and dropped non-findings appear solely in their own sections. When every finding is `compliant`, say so above the table and keep the report.
 
-### BLOCK Template (insufficient context)
+## Error Handling
+
+Use this `BLOCK` template when the Required Inputs are insufficient.
 
 ```markdown
 ## Finding Quality Report
@@ -93,6 +95,11 @@ Verdict: BLOCK
 - Missing input: <no findings text provided / findings unreadable>
 - Smallest addition to proceed: <concrete ask>
 ```
+
+## Examples
+
+- “Audit these findings and tell me which need clearer acceptance conditions” requests a Finding Quality Report.
+- “Turn this finding into a comment I can paste into the PR” requests comment text and is outside this skill's scope.
 
 ## Definition of Done
 
