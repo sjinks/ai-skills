@@ -8,6 +8,8 @@ Descriptions lead with the primary outcome and include the problem, impact and a
 
 Detail scales to the change: a short paragraph is enough for one outcome. Default headings are optional. Required and unmarked template elements are preserved; explicitly optional empty sections are omitted unless the caller requests retention. Caller/repository conventions override house title defaults.
 
+For each PR body detail, require a reviewer decision it informs or an explicit requirement to include it in the body. Remove irrelevant details in draft/rewrite; flag them in validate without changing safe text. Keep internal records in the task handoff when either location is allowed and the records do not independently help the reviewer.
+
 Testing/Validation sections are optional unless required. Include verification details only when they explain reproduction, support a specific behavioral claim beyond routine success, identify a material failure or gap, or meet a caller/template requirement. Otherwise omit them, including routine successful build, lint, test and CI results. Omit process summaries and editing chronology. Name the affected behavior and consequence of a gap. Missing routine evidence alone needs neither author input nor a disclaimer.
 
 For testing/CI changes, discuss automated/manual or fixture/live coverage only when affected. Explain removed automated coverage and its rationale. A pure unit-test assertion change does not require a live-verification discussion.
