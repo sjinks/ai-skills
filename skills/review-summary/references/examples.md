@@ -11,6 +11,12 @@ The reviewer likes that local and remote files share one listing interface. The 
 >
 > I’ve left an inline comment on each case with a suggested fix and a way to check it.
 
+## Request changes when the strength is in the PR description
+
+The PR description says that a background job and an API route now share one query. The reviewer’s notes mention only that the new query excludes launched sites without the WordPress initialization marker.
+
+> I like that the job and the API route now share one query. Before merging, please keep launched sites eligible for monitoring even when they don’t have the WordPress initialization marker. Otherwise, those sites could miss uptime monitoring.
+
 ## Approve after a fix
 
 The author fixed both issues. The reviewer checked both behaviors and approved the changes.
