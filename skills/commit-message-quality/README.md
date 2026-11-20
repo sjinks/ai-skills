@@ -16,6 +16,8 @@ Sensitive content is excluded in every mode. An excluded-source Input finding re
 
 Impact severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; task-specific statuses and decisions remain separate.
 
+For independent review, include requirements or invariants that affect whether a changed behavior is correct and are not clear from the diff and message. Ask for missing facts rather than inferring requirements from the implementation.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — routing, standalone content criteria, grammar defaults, status/verdict rules and report markers.

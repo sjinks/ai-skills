@@ -79,6 +79,8 @@ That last-line snippet is partial: the four preceding BLOCK lines remain mandato
 
 ## Regression cases
 
+- A PR diff raises an import limit from 10 to 20. If a supplied commit message already states that batches of 20 must be accepted, do not require the PR Body to repeat that requirement solely for independent review. If no review artifact states the requirement but other supplied evidence establishes it, draft or rewrite includes it and validation flags its omission. If whether 20 is required or merely a default affects correctness and the evidence does not resolve it, mark Body `needs-author-input` and ask for that fact.
+
 These are static input/expectation cases, not executed model evaluations.
 
 Each case assumes readable repository/caller rules with no template or special title convention unless stated. Apply the output reference to every full report. “Passing” means supplied evidence supports the text and no other defect exists.
