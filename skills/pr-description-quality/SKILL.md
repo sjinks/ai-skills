@@ -37,6 +37,8 @@ Check every supplied change for a separate effect on behavior, compatibility, li
 
 Include evidenced changed failure behavior and breaking changes.
 
+**Independent review check:** Use the supplied PR diff, commit messages, and PR description when available. If a changed behavior could be correct under one plausible requirement or invariant and incorrect under another, check whether the review artifacts state which applies. If they do not, check whether other supplied evidence establishes the requirement or invariant. If established, include it in draft or rewrite, or report the omission in validate mode. If not established, mark Body `needs-author-input` and ask for the specific missing fact. Do not treat the implementation alone as evidence of what is required. Do not repeat context already stated in the commit messages or PR description solely for this check. Do not add a dedicated section.
+
 Include reasons and alternatives only when required by the caller/template or needed to explain a consequential choice. Request missing required rationale; do not request a reason for every mechanical edit.
 
 Scale detail to the change. Use a short paragraph for one outcome; add headings for independently useful topics. Preserve required template elements and unmarked elements; omit explicitly optional empty sections unless the caller requests retention.

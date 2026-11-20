@@ -75,6 +75,8 @@ If the final combined diff is unavailable and supplied messages disagree about t
 
 ## Static regression cases
 
+- A diff raises an import limit from 10 to 20 and the message only repeats the numeric change. If supplied requirements establish that batches of 20 must be accepted, draft or repair states that requirement; validation flags its omission. If the evidence leaves open whether 20 is required or merely a default and that distinction affects correctness, ask for that fact and mark the affected part `needs-author-input`.
+
 These are maintenance expectations, not measured model results:
 
 | Case | Supplied situation | Expected decision |

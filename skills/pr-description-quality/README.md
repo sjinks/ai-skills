@@ -20,6 +20,8 @@ Sensitive content is excluded in every mode. Original disclosures still prevent 
 
 Impact severities use `CRITICAL`, `HIGH`, `MEDIUM`, and `LOW`; task-specific statuses and decisions remain separate.
 
+For independent review, include requirements or invariants needed to judge changed behavior that the PR diff, commit messages, and description do not already state. Ask for missing facts rather than inferring requirements from the implementation.
+
 ## Files
 
 - [`SKILL.md`](SKILL.md) — modes, scope, core behavior, decisions and report markers.
