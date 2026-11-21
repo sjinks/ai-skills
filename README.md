@@ -72,6 +72,8 @@ The repository currently contains the following skills, grouped by area. Each li
 
 ### Security Review
 
+- [`electron-app-review`](skills/electron-app-review/README.md) — Defensive Electron desktop review of window isolation, IPC, local authority, lifecycle, and distribution.
+
 - [`web-app-security-review`](skills/web-app-security-review/README.md) — Defensive web application security review of code, PRs, designs, vulnerability reports, and fixes across access control, auth, browser, API, data-flow, supply-chain, cloud, and abuse-risk surfaces.
 - [`wp-plugin-generic-vulnerability-hunter`](skills/wp-plugin-generic-vulnerability-hunter/README.md) — Discovering and validating WordPress plugin vulnerabilities through attack-surface mapping, complete exploit paths, and evidence-backed reporting, with emphasis on unauthenticated and low-privileged attackers.
 - [`gutenberg-block-generic-vulnerability-hunter`](skills/gutenberg-block-generic-vulnerability-hunter/README.md) — Discovering and validating Gutenberg block vulnerabilities across editor, frontend, bindings, shared content, and associated endpoints, with agent-designed probes and explicit coverage.
