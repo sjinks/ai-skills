@@ -20,7 +20,7 @@ Use these verdicts per model:
 
 Assess each selected target independently. For a target with a profile in this package, use its checks below. For an unprofiled target, apply Cross-Provider Checks without inferring model-specific behavior, emit `Not assessed` in its compatibility row, and record the missing profile under `Limitations` in `## Audit Scope`. Assess the readable artifact normally; this missing profile alone does not require `Blocked`. If all other readiness conditions pass, use `Ready with limitations`; otherwise retain the core's applicable revision or blocking verdict. Keep the default roster order in reports, but do not treat it as a benchmark ranking or infer compatibility from another model's result.
 
-Current Anthropic additions were checked against the [models overview](https://platform.claude.com/docs/en/models/overview) on 2026-10-09; Haiku 5.5 replaces Haiku 4.5, while the other earlier default profiles remain in the roster.
+The Claude roster is a selected audit set, not a catalog of all released models. See Anthropic's [models overview](https://platform.claude.com/docs/en/models/overview) for the current lineup.
 
 Do not infer one total capability order across Claude Opus and Fable profiles. Opus targets complex reasoning and synthesis; Fable targets long-horizon autonomy.
 
@@ -37,6 +37,15 @@ Check for:
 - no need to infer material tool parameters.
 
 Flag tasks whose intrinsic breadth should be routed to a stronger model rather than compensated for with a much longer prompt.
+
+## GPT-6.2 Sol and GPT-6.2 Astra
+
+Assess each model separately using the shared checks below. Use [OpenAI's model-selection guide](https://developers.openai.com/api/docs/guides/model-selection) to calibrate workload expectations: Sol for general coding and agent workflows, Astra for demanding engineering and analysis.
+
+- Check for clear scope, explicit evidence requirements, and observable completion criteria.
+- When a runtime is supplied, check its configured reasoning effort and available tools against the task. Record unknown settings as limitations when they affect the assessment. Do not assume API defaults or tool availability apply to the supplied runtime.
+
+The following older GPT profiles apply only when explicitly requested.
 
 ## GPT-6 Sol
 
@@ -102,48 +111,21 @@ Check for effort-aware completion and verification rules; boundaries against unr
 
 Use [Anthropic's Sonnet 5.5 guidance](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5-5). Do not transfer effort settings or observed behavior from Sonnet 5 without evidence.
 
-## Claude Opus 4.8
-
-Check for:
-
-- explicit distinction between reasoning and verification;
-- tool triggers for claims about current state;
-- useful delegation guidance for genuinely independent workstreams;
-- broad scope stated literally;
-- no assumption that tool availability alone guarantees tool use.
-
-## Claude Opus 5
-
-Check for:
-
-- outcome-first instructions for complex analysis and synthesis;
-- explicit tool and evidence triggers for claims about current state;
-- hard scope, safety, and stopping boundaries without procedural micromanagement;
-- optional delegation guidance for genuinely independent investigations;
-- preservation of uncertainty, disagreement, and verification status in final conclusions.
-
 ## Claude Opus 5.5
 
-Check for clear completion criteria in unattended work; progress reports distinguished from completed tasks; scope and consequential-action boundaries; and effort calibration that does not inherit Opus 5 assumptions. When a harness is supplied, check pending-work handling, bounded continuations and response-block handling rather than treating every text-only turn as completion.
+Check for clear completion criteria in unattended work; progress reports distinguished from completed tasks; scope and consequential-action boundaries; and effort calibration for the supplied workload. When a harness is supplied, check pending-work handling, bounded continuations and response-block handling rather than treating every text-only turn as completion.
 
 Use [Anthropic's Opus 5.5 guidance](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5). Keep runtime mechanics out of portable instructions.
-
-## Claude Fable 5
-
-Check for:
-
-- mission, boundaries, completion, and evidence-based checkpoints;
-- explicit pause conditions;
-- prohibition of unrequested refactoring, defensive work, and scope expansion;
-- progress and completion claims grounded in tool results;
-- no micromanagement of ordinary execution;
-- optional delegation policy rather than a fixed subagent count.
 
 ## Claude Fable 5.1
 
 Check for completion and scope boundaries; explicit search triggers at low effort; compaction preserving constraints and decisions; targeted edits; and clear deliverable formatting. Permit batching of independent calls when supported, without requiring parallel execution. With a harness, check append-only history and whether progress updates reach the user.
 
-Use [Anthropic's Fable 5.1 guidance](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1); calibrate effort independently of Fable 5.
+Use [Anthropic's Fable 5.1 guidance](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1).
+
+## Claude Fable 5.2
+
+Use [Anthropic's Fable 5.2 prompting guidance](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-2) to check for observable completion criteria, explicit approval boundaries, and delegation limited to work that benefits from separate context. For long-running tasks, check that progress updates do not substitute for completion. When a runtime is supplied, assess its effort settings against the workload rather than assuming settings from an earlier profile apply.
 
 ## Claude Mythos 5.1
 
